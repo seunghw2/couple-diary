@@ -10,6 +10,8 @@
 | [04](04-remote-tunnel.md) | 2026-07-04~05 | 원격 실행 — Cloudflare 터널 고정 URL |
 | [05](05-qa-photo-upload.md) | 2026-07-05 | QA(서브에이전트) + 버그 수정 + 실제 사진 업로드 |
 | [06](06-sdk54-expo-go.md) | 2026-07-05 | Expo SDK 57→54 다운그레이드(Expo Go 호환) |
+| [07](07-login-branding-emoji.md) | 2026-07-05 | 로그인 닉네임만 + love today + 이모지 정리 |
+| [08](08-vector-icons.md) | 2026-07-05 | UI 전면 벡터 아이콘화(기본 이모지 제거) |
 
 ## 현재 앱 화면 (SDK54, 실제 동작 캡처)
 | 로그인 | 홈(캘린더) | 상세(상호공개) |
