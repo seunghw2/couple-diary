@@ -7,5 +7,6 @@
 |---|------|------|------|
 | 01 | 프로필 사진 변경 | 기획 | [01-profile-photo.md](01-profile-photo.md) |
 | 02 | 일기 댓글 | 기획 | [02-comments.md](02-comments.md) |
+| 03 | 자유 일기 · 질문 픽 모드 | 기획 | [03-question-pick.md](03-question-pick.md) |
 
 > 새 기능은 `NN-기능이름.md`로 추가하고 이 표에 등록한다.

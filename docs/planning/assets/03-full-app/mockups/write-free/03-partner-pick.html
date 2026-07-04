@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 자유 일기 · 상대 답하기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Gothic A1", sans-serif;
+    background: #F3E9DF;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 40px 20px 60px; color: #5A4038;
+  }
+  .screen-label { font-size: 13px; font-weight: 600; color: #9C7B6C; margin-bottom: 10px; letter-spacing: 0.02em; }
+  .phone { width: 390px; background: #FFF6EF; border-radius: 44px; box-shadow: 0 18px 50px rgba(90,64,56,0.18); overflow: hidden; position: relative; }
+  .statusbar { height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-size: 14px; font-weight: 700; color: #5A4038; }
+  .statusbar .icons { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+
+  .header { padding: 8px 22px 4px; }
+  .back-btn { width: 34px; height: 34px; border-radius: 12px; background: #FFFDFA; box-shadow: 0 2px 8px rgba(90,64,56,0.08); display: flex; align-items: center; justify-content: center; font-size: 16px; color: #7A5A4E; }
+
+  .partner-banner { display: flex; align-items: center; gap: 12px; margin: 14px 22px 4px; background: linear-gradient(120deg,#FFE9DD,#FFF3EC); border: 1.5px solid #FBD9C7; border-radius: 18px; padding: 14px 16px; }
+  .partner-banner .ava { width: 38px; height: 38px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #FFC9A8, #E88E6C); flex-shrink: 0; box-shadow: 0 0 0 2px #FFFDFA; }
+  .partner-banner .txt { font-size: 13.5px; line-height: 1.5; color: #5A4038; }
+  .partner-banner .txt b { color: #E0693F; font-weight: 800; }
+
+  .lead { padding: 16px 24px 6px; font-size: 13px; color: #7A5A4E; font-weight: 600; }
+  .lead .pill { color: #FF8E72; }
+
+  .body { padding: 6px 22px 150px; display: flex; flex-direction: column; gap: 12px; }
+  .qcard { background: #FFFDFA; border: 1.5px solid #F1E2D6; border-radius: 20px; padding: 15px 16px; box-shadow: 0 2px 8px rgba(90,64,56,0.05); }
+  .qcard .row { display: flex; align-items: center; gap: 11px; }
+  .qcard .badge { font-family: "Jua", sans-serif; font-size: 13px; color: #C89A87; background: #FFF1E8; width: 30px; height: 30px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .qcard .qtext { flex: 1; font-size: 14px; font-weight: 600; color: #5A4038; line-height: 1.4; }
+  .qcard .check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #E7D5C8; flex-shrink: 0; }
+
+  .qcard.on { border: 2px solid #FF8E72; background: #FFF9F4; box-shadow: 0 4px 14px rgba(255,142,114,0.16); }
+  .qcard.on .badge { background: #FF8E72; color: #FFFDFA; }
+  .qcard.on .qtext { font-weight: 800; }
+  .qcard.on .check { border: none; background: #FF8E72; display: flex; align-items: center; justify-content: center; color: #FFFDFA; font-size: 13px; font-weight: 800; }
+
+  .answer { margin-top: 12px; font-size: 14px; color: #5A4038; line-height: 1.6; background: #FFF4EC; border-radius: 12px; padding: 12px 13px; border: 1px dashed #F0D2BF; }
+  .answer.placeholder { color: #C3AC9E; }
+  .answer .cursor { display:inline-block; width:2px; height:15px; background:#FF8E72; vertical-align:-2px; margin-left:1px; }
+
+  /* his locked answer preview */
+  .his { margin-top: 12px; border-radius: 12px; padding: 12px 13px; background: #F6ECE4; position: relative; overflow: hidden; }
+  .his .who { font-size: 11px; font-weight: 700; color: #A98876; margin-bottom: 5px; }
+  .his .blur { font-size: 13.5px; color: #8A7263; line-height: 1.5; filter: blur(5px); user-select: none; }
+  .his .lock { position: absolute; right: 12px; top: 11px; font-size: 14px; }
+  .his .hint { font-size: 11px; color: #B79A8A; margin-top: 7px; }
+
+  .bottom { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 22px 26px; background: linear-gradient(to top, #FFF6EF 78%, rgba(255,246,239,0)); }
+  .cta { width: 100%; background: #FF8E72; color: #FFFDFA; border: none; border-radius: 18px; padding: 17px 0; font-family: "Gothic A1", sans-serif; font-size: 16px; font-weight: 800; box-shadow: 0 8px 20px rgba(255,142,114,0.4); }
+  .cta-note { text-align: center; font-size: 12px; color: #A98876; margin-top: 10px; }
+  .cta-note b { color: #FF8E72; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="screen-label">자유 모드 ③ — 승환이 고른 질문 범위에서 답하기 (수정)</div>
+
+<div class="phone">
+  <div class="statusbar">
+    <span>9:41</span>
+    <span class="icons">▮▮▮ ᯤ 🔋</span>
+  </div>
+
+  <div class="header">
+    <div class="back-btn">‹</div>
+  </div>
+
+  <div class="partner-banner">
+    <div class="ava"></div>
+    <div class="txt"><b>승환님</b>이 오늘의 질문 3개를 골랐어요 💌<br>같은 질문에 답하면 나란히 열려요</div>
+  </div>
+
+  <div class="lead">이 중 <span class="pill">답하고 싶은 질문</span>을 골라 써보세요 · 최소 1개</div>
+
+  <div class="body">
+    <!-- Q1 선택됨 + 작성 중 -->
+    <div class="qcard on">
+      <div class="row">
+        <div class="badge">Q1</div>
+        <div class="qtext">기억에 남는 장면 2~3가지</div>
+        <div class="check">✓</div>
+      </div>
+      <div class="answer">비 오는 창밖 보면서 크로플 먹던 거, 우산 하나 같이 쓰고 골목 걷던 순간<span class="cursor"></span></div>
+      <div class="his">
+        <div class="lock">🔒</div>
+        <div class="who">승환님의 답</div>
+        <div class="blur">창가 자리에서 크로플 나눠 먹다가 눈 마주친 순간, 비 그치고…</div>
+        <div class="hint">둘 다 쓰면 열려요</div>
+      </div>
+    </div>
+
+    <!-- Q2 선택됨 (아직 입력 전) -->
+    <div class="qcard on">
+      <div class="row">
+        <div class="badge">Q2</div>
+        <div class="qtext">한 줄 요약 — 오늘은 “___”한 하루였다</div>
+        <div class="check">✓</div>
+      </div>
+      <div class="answer placeholder">오늘은 “___”한 하루였다 — 빈칸을 채워보세요</div>
+    </div>
+
+    <!-- Q3 선택 안 함 -->
+    <div class="qcard">
+      <div class="row">
+        <div class="badge">Q3</div>
+        <div class="qtext">상대가 오늘 귀여웠던 순간</div>
+        <div class="check"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <button class="cta">저장하기</button>
+    <div class="cta-note"><b>2개</b> 질문에 답하는 중 · 저장하면 서로 공개돼요 🧡</div>
+  </div>
+</div>
+
+</body>
+</html>

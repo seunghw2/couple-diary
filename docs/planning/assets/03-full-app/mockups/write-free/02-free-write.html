@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 자유 일기 · 답 작성</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Gothic A1", sans-serif;
+    background: #F3E9DF;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 40px 20px 60px; color: #5A4038;
+  }
+  .screen-label { font-size: 13px; font-weight: 600; color: #9C7B6C; margin-bottom: 10px; letter-spacing: 0.02em; }
+  .phone { width: 390px; background: #FFF6EF; border-radius: 44px; box-shadow: 0 18px 50px rgba(90,64,56,0.18); overflow: hidden; position: relative; }
+  .statusbar { height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-size: 14px; font-weight: 700; color: #5A4038; }
+  .statusbar .icons { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+
+  .header { padding: 8px 22px 4px; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; }
+  .back-btn { width: 34px; height: 34px; border-radius: 12px; background: #FFFDFA; box-shadow: 0 2px 8px rgba(90,64,56,0.08); display: flex; align-items: center; justify-content: center; font-size: 16px; color: #7A5A4E; }
+  .daychip { font-size: 12px; font-weight: 700; color: #A98876; background: #FFF1E8; border-radius: 999px; padding: 6px 12px; }
+  .header h1 { font-family: "Jua", sans-serif; font-size: 22px; font-weight: 400; color: #5A4038; margin-top: 16px; }
+  .header .sub { font-size: 13px; color: #7A5A4E; margin-top: 6px; }
+
+  .body { padding: 14px 22px 150px; display: flex; flex-direction: column; gap: 14px; }
+
+  .qblock { background: #FFFDFA; border: 1.5px solid #F1E2D6; border-radius: 20px; padding: 16px; box-shadow: 0 2px 8px rgba(90,64,56,0.05); }
+  .qhead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .qbadge { font-family: "Jua", sans-serif; font-size: 13px; color: #FFFDFA; background: #FF8E72; width: 30px; height: 30px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(255,142,114,0.35); }
+  .qtext { font-size: 14px; font-weight: 700; color: #5A4038; line-height: 1.4; }
+  .answer { font-size: 14px; color: #5A4038; line-height: 1.6; background: #FFF9F4; border-radius: 12px; padding: 13px 14px; border: 1px dashed #F0D9CB; }
+  .answer.placeholder { color: #C3AC9E; }
+  .answer .cursor { display:inline-block; width:2px; height:15px; background:#FF8E72; vertical-align:-2px; margin-left:1px; }
+  /* inline blank (한 줄 요약) */
+  .oneline { font-size: 15px; color: #5A4038; line-height: 1.9; }
+  .blank { display: inline-block; background: #FFE4D6; color: #E0693F; font-weight: 700; border-radius: 8px; padding: 2px 14px; margin: 0 2px; }
+
+  .metarow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .metacard { flex: 1; min-width: 0; background: #FFFDFA; border: 1.5px solid #F1E2D6; border-radius: 18px; padding: 14px 16px; box-shadow: 0 2px 8px rgba(90,64,56,0.05); }
+  .metacard .lbl { font-size: 12px; color: #A98876; font-weight: 600; margin-bottom: 8px; }
+  .stars { font-size: 19px; letter-spacing: 2px; }
+  .stars .on { color: #FF8E72; } .stars .off { color: #EAD8CB; }
+  .score { font-weight: 800; color: #FF8E72; font-size: 14px; margin-left: 4px; }
+  .loc { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: #5A4038; }
+
+  .photos { display: flex; gap: 10px; }
+  .thumb { width: 66px; height: 66px; border-radius: 14px; box-shadow: inset 0 0 0 1px rgba(90,64,56,0.06); }
+  .t1 { background: linear-gradient(135deg,#F6C9A8,#E89A78); }
+  .t2 { background: linear-gradient(135deg,#F3D6C0,#D9A98C); }
+  .addphoto { width: 66px; height: 66px; border-radius: 14px; border: 1.6px dashed #E7CDBB; color: #C89A87; display: flex; align-items: center; justify-content: center; font-size: 24px; background: #FFFBF7; }
+
+  .bottom { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 22px 26px; background: linear-gradient(to top, #FFF6EF 75%, rgba(255,246,239,0)); }
+  .cta { width: 100%; background: #FF8E72; color: #FFFDFA; border: none; border-radius: 18px; padding: 17px 0; font-family: "Gothic A1", sans-serif; font-size: 16px; font-weight: 800; box-shadow: 0 8px 20px rgba(255,142,114,0.4); }
+  .cta-note { text-align: center; font-size: 12px; color: #A98876; margin-top: 10px; }
+  .cta-note b { color: #FF8E72; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="screen-label">자유 모드 ② — 고른 질문에 답 쓰기 (승환)</div>
+
+<div class="phone">
+  <div class="statusbar">
+    <span>9:41</span>
+    <span class="icons">▮▮▮ ᯤ 🔋</span>
+  </div>
+
+  <div class="header">
+    <div class="header-top">
+      <div class="back-btn">‹</div>
+      <div class="daychip">📍 성수 · 어니언</div>
+    </div>
+    <h1>오늘의 질문에 답하기</h1>
+    <div class="sub">내가 고른 3가지 질문 · 성수 카페 데이트</div>
+  </div>
+
+  <div class="body">
+    <div class="qblock">
+      <div class="qhead"><div class="qbadge">Q1</div><div class="qtext">기억에 남는 장면 2~3가지</div></div>
+      <div class="answer">창가 자리에서 크로플 나눠 먹다가 눈 마주친 순간, 비 그치고 골목에 햇살 들어오던 거<span class="cursor"></span></div>
+    </div>
+
+    <div class="qblock">
+      <div class="qhead"><div class="qbadge">Q2</div><div class="qtext">한 줄 요약</div></div>
+      <div class="oneline">오늘은 <span class="blank">포근</span> 한 하루였다.</div>
+    </div>
+
+    <div class="qblock">
+      <div class="qhead"><div class="qbadge">Q3</div><div class="qtext">상대가 오늘 귀여웠던 순간</div></div>
+      <div class="answer placeholder">수정이가 오늘 이랬을 때 귀여웠어…</div>
+    </div>
+
+    <div class="metarow">
+      <div class="metacard">
+        <div class="lbl">오늘 데이트</div>
+        <div class="stars"><span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="off">★</span><span class="score">4.0</span></div>
+      </div>
+      <div class="metacard">
+        <div class="lbl">기분</div>
+        <div class="loc">🥰 설렜어</div>
+      </div>
+    </div>
+
+    <div class="photos">
+      <div class="thumb t1"></div>
+      <div class="thumb t2"></div>
+      <div class="addphoto">+</div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <button class="cta">저장하기</button>
+    <div class="cta-note"><b>수정님</b>이 아직 안 썼어요 · 저장하면 잠금 상태로 기다려요 🔒</div>
+  </div>
+</div>
+
+</body>
+</html>
