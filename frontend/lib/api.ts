@@ -242,8 +242,8 @@ export type UpsertEntryRequest = {
 // ─────────────────────────── 도메인 API ───────────────────────────
 
 export const authApi = {
-  devLogin: (email: string, nickname: string) =>
-    api.post<DevLoginResponse>('/api/auth/dev-login', { email, nickname }, false),
+  devLogin: (nickname: string) =>
+    api.post<DevLoginResponse>('/api/auth/dev-login', { nickname }, false),
   me: () => api.get<MeResponse>('/api/me'),
   updateMe: (patch: Partial<Pick<UserSummary, 'nickname' | 'avatarColor' | 'birthday'>>) =>
     api.patch<UserSummary>('/api/me', patch),

@@ -80,7 +80,7 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>설정 ⚙️</Text>
+        <Text style={styles.title}>설정 🎀</Text>
 
         <Card style={{ marginTop: spacing.xl }}>
           <Text style={styles.label}>내 정보</Text>

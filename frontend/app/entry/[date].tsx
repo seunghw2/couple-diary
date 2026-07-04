@@ -173,7 +173,7 @@ export default function EntryDetailScreen() {
               {/* 획득 스티커(OPEN) */}
               {status === 'OPEN' ? (
                 <View style={styles.stickerRow}>
-                  <SeedThumb seed={dateStr} size={48} label="💗" />
+                  <SeedThumb seed={dateStr} size={48} label="🩷" />
                   <Text style={styles.stickerText}>이 날의 스티커를 획득했어요!</Text>
                 </View>
               ) : null}
@@ -286,7 +286,7 @@ function SideCard({
               seed={p.colorSeed}
               size={90}
               round={false}
-              label={i === 2 && side.photos.length > 3 ? `+${side.photos.length - 2}` : '📷'}
+              label={i === 2 && side.photos.length > 3 ? `+${side.photos.length - 2}` : '🌷'}
             />
           ))}
         </View>

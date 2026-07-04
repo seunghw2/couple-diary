@@ -1,14 +1,14 @@
 package com.today.user;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDate;
 
 public class UserDtos {
 
+    /** 닉네임만 필수. email은 옵셔널(없으면 닉네임 기반으로 서버가 결정적 생성). */
     public record DevLoginRequest(
-            @NotBlank @Email String email,
+            String email,
             @NotBlank String nickname
     ) {}
 

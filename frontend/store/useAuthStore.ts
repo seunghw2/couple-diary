@@ -8,7 +8,7 @@ type AuthState = {
   coupled: boolean;
   partner: PartnerSummary | null;
   bootstrap: () => Promise<void>;
-  devLogin: (email: string, nickname: string) => Promise<void>;
+  devLogin: (nickname: string) => Promise<void>;
   logout: () => Promise<void>;
   setUser: (user: UserSummary) => void;
 };
@@ -39,8 +39,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  devLogin: async (email, nickname) => {
-    const res = await authApi.devLogin(email, nickname);
+  devLogin: async (nickname) => {
+    const res = await authApi.devLogin(nickname);
     await tokenStore.saveToken(res.accessToken);
     set({ status: 'authenticated', user: res.user });
     // 로그인 직후 커플 상태 동기화

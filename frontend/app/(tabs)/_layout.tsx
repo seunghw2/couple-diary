@@ -26,21 +26,21 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: '달력',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📅" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🗓️" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="map"
         options={{
           title: '지도',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🗺️" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="📍" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: '설정',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="⚙️" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🎀" focused={focused} />,
         }}
       />
     </Tabs>

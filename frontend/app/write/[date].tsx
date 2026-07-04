@@ -301,7 +301,7 @@ export default function WriteScreen() {
             )}
 
             {/* 사진 업로드 */}
-            <Text style={[styles.sectionLabel, { marginTop: spacing.xl }]}>📎 오늘의 흔적</Text>
+            <Text style={[styles.sectionLabel, { marginTop: spacing.xl }]}>🌸 오늘의 흔적</Text>
             <View style={styles.photoRow}>
               {photoUrls.map((u, i) => (
                 <PhotoThumb key={u + i} url={u} seed={u} size={72} round={false} />

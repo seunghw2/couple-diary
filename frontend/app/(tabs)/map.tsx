@@ -7,7 +7,7 @@ export default function MapScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.center}>
-        <Text style={styles.emoji}>🗺️</Text>
+        <Text style={styles.emoji}>📍</Text>
         <Text style={styles.title}>우리의 지도</Text>
         <Text style={styles.sub}>일기에 남긴 장소들이 여기 모여요{'\n'}(준비 중)</Text>
       </View>

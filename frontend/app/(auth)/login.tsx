@@ -15,19 +15,18 @@ import { colors, font, radius, shadow, spacing } from '../../theme/theme';
 
 export default function LoginScreen() {
   const devLogin = useAuthStore((s) => s.devLogin);
-  const [email, setEmail] = useState('');
   const [nickname, setNickname] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canSubmit = email.trim().length > 0 && nickname.trim().length > 0;
+  const canSubmit = nickname.trim().length > 0;
 
   async function onLogin() {
     if (!canSubmit) return;
     setError(null);
     setLoading(true);
     try {
-      await devLogin(email.trim(), nickname.trim());
+      await devLogin(nickname.trim());
       // 이후 라우팅은 _layout 가드가 처리 (커플 미연결이면 connect로).
     } catch (e) {
       setError(e instanceof ApiException ? e.message : '로그인에 실패했어요. 백엔드 연결을 확인해 주세요.');
@@ -44,23 +43,12 @@ export default function LoginScreen() {
       >
         <View style={styles.container}>
           <View style={styles.hero}>
-            <Text style={styles.logo}>투데이 💗</Text>
+            <Text style={styles.logo}>love today 🩷</Text>
             <Text style={styles.tagline}>둘이 함께 쓰는 오늘의 일기</Text>
           </View>
 
           <View style={[styles.form, shadow]}>
-            <Text style={styles.fieldLabel}>이메일</Text>
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="you@example.com"
-              placeholderTextColor={colors.placeholder}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              style={styles.input}
-            />
-
-            <Text style={[styles.fieldLabel, { marginTop: spacing.lg }]}>닉네임</Text>
+            <Text style={styles.fieldLabel}>닉네임</Text>
             <TextInput
               value={nickname}
               onChangeText={setNickname}
@@ -78,7 +66,7 @@ export default function LoginScreen() {
               loading={loading}
               style={{ marginTop: spacing.xl }}
             />
-            <Text style={styles.devNote}>개발용 로그인 · 이메일/닉네임으로 바로 입장</Text>
+            <Text style={styles.devNote}>닉네임만 입력하면 바로 시작</Text>
           </View>
         </View>
       </KeyboardAvoidingView>

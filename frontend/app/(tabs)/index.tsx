@@ -78,13 +78,13 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* 헤더 */}
         <View style={styles.header}>
-          <Text style={styles.logo}>투데이 💗</Text>
+          <Text style={styles.logo}>love today 🩷</Text>
           <Pressable
             style={styles.dday}
             onPress={dday == null ? () => router.push('/(tabs)/settings') : undefined}
           >
             <Text style={styles.ddayText}>
-              🔥 {dday != null ? formatDday(dday) : '기념일 설정'}
+              💞 {dday != null ? formatDday(dday) : '기념일 설정'}
             </Text>
           </Pressable>
         </View>

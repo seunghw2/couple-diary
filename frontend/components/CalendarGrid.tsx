@@ -79,7 +79,7 @@ export function CalendarGrid({ year, month, entries, today, onPressDate }: Props
 /** 상태에 따른 대표 이모지. LOCKED=자물쇠, 그 외 하트. */
 function thumbEmoji(e: MonthEntrySummary): string {
   if (e.status === 'LOCKED') return '🔒';
-  return '💗';
+  return '🩷';
 }
 
 const CELL_W = `${100 / 7}%` as const;

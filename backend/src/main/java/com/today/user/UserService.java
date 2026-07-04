@@ -24,10 +24,19 @@ public class UserService {
 
     @Transactional
     public AuthResponse devLogin(DevLoginRequest req) {
-        User user = userRepository.findByEmail(req.email())
-                .orElseGet(() -> createUser(req.email(), req.nickname()));
+        // email이 없거나 빈 값이면 닉네임 기반 결정적 email 생성 → 같은 닉네임=같은 유저.
+        String email = (req.email() == null || req.email().isBlank())
+                ? emailFor(req.nickname())
+                : req.email().trim();
+        User user = userRepository.findByEmail(email)
+                .orElseGet(() -> createUser(email, req.nickname()));
         String token = jwtTokenProvider.createAccessToken(user.getId());
         return new AuthResponse(token, UserSummary.of(user));
+    }
+
+    /** 닉네임 기반 결정적 email. 기존 unique(email) 스키마 재사용. */
+    private String emailFor(String nickname) {
+        return nickname.trim() + "@today.local";
     }
 
     private User createUser(String email, String nickname) {
