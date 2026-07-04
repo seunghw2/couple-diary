@@ -28,6 +28,11 @@ export function dDay(anniversaryDate: string | null | undefined): number | null 
   return diff + 1;
 }
 
+/** D-day 표기. 양수(과거 기념일)=D+n, 음수(미래 기념일)=D-n. */
+export function formatDday(dday: number): string {
+  return dday >= 0 ? `D+${dday}` : `D${dday}`;
+}
+
 const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토'];
 
 export function weekdayKo(date: string): string {

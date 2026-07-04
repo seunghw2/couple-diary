@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { entryApi, MonthEntrySummary } from '../../lib/api';
-import { dDay, todayISO } from '../../lib/date';
+import { dDay, formatDday, todayISO } from '../../lib/date';
 import { useCoupleStore } from '../../store/useCoupleStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { CalendarGrid } from '../../components/CalendarGrid';
@@ -57,6 +57,7 @@ export default function HomeScreen() {
     [couple?.ddayCount, couple?.anniversaryDate]
   );
   const partnerName = partner?.nickname;
+  const todayEntry = entries[today];
 
   function shift(delta: number) {
     setCursor((c) => {
@@ -78,17 +79,32 @@ export default function HomeScreen() {
         {/* 헤더 */}
         <View style={styles.header}>
           <Text style={styles.logo}>투데이 💗</Text>
-          <View style={styles.dday}>
+          <Pressable
+            style={styles.dday}
+            onPress={dday == null ? () => router.push('/(tabs)/settings') : undefined}
+          >
             <Text style={styles.ddayText}>
-              🔥 {dday != null ? `D+${dday}` : '기념일 설정'}
+              🔥 {dday != null ? formatDday(dday) : '기념일 설정'}
             </Text>
-          </View>
+          </Pressable>
         </View>
 
         <Text style={styles.coupleLine}>
           {me?.nickname ?? '나'}
           {partnerName ? ` 💕 ${partnerName}` : ' · 상대 대기 중'}
         </Text>
+
+        {/* 상대가 기다려요 배너 */}
+        {todayEntry?.partnerWritten && !todayEntry?.mineWritten ? (
+          <Pressable
+            style={styles.waitBanner}
+            onPress={() => router.push({ pathname: '/write/[date]', params: { date: today } })}
+          >
+            <Text style={styles.waitBannerText}>
+              🧡 {partnerName ?? '상대'}님이 오늘 일기를 썼어요 — 내가 쓰면 열려요
+            </Text>
+          </Pressable>
+        ) : null}
 
         {/* 월 네비게이션 */}
         <View style={styles.monthNav}>
@@ -149,6 +165,16 @@ const styles = StyleSheet.create({
   },
   ddayText: { ...font.title, color: colors.primary },
   coupleLine: { ...font.label, color: colors.subText, marginTop: spacing.sm },
+  waitBanner: {
+    marginTop: spacing.md,
+    backgroundColor: '#FFF3E4',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.coralSofter,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  waitBannerText: { ...font.label, color: colors.primary },
   monthNav: {
     flexDirection: 'row',
     alignItems: 'center',

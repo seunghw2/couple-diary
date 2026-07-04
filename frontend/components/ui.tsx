@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   StyleProp,
   StyleSheet,
@@ -9,6 +10,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import { API_URL } from '../lib/config';
 import { colors, font, radius, seedGradient, shadow, spacing } from '../theme/theme';
 
 /** 화면 배경(크림). */
@@ -127,6 +129,48 @@ export function SeedThumb({
       {label ? <Text style={{ fontSize: size * 0.4 }}>{label}</Text> : null}
     </View>
   );
+}
+
+/** 실제 이미지 url 있으면 <Image>, 없으면 SeedThumb 그라데이션 폴백. */
+export function PhotoThumb({
+  url,
+  seed,
+  size = 56,
+  round = true,
+  label,
+  ring,
+  style,
+}: {
+  url?: string | null;
+  seed: string | null | undefined;
+  size?: number;
+  round?: boolean;
+  label?: string;
+  ring?: boolean;
+  style?: StyleProp<ViewStyle>;
+}) {
+  if (url) {
+    const uri = url.startsWith('http') ? url : `${API_URL}${url}`;
+    return (
+      <View
+        style={[
+          {
+            width: size,
+            height: size,
+            borderRadius: round ? size / 2 : radius.md,
+            borderWidth: ring ? 3 : 0,
+            borderColor: ring ? colors.primary : 'transparent',
+            backgroundColor: colors.border,
+            overflow: 'hidden',
+          },
+          style,
+        ]}
+      >
+        <Image source={{ uri }} style={{ width: '100%', height: '100%' }} />
+      </View>
+    );
+  }
+  return <SeedThumb seed={seed} size={size} round={round} label={label} ring={ring} style={style} />;
 }
 
 export function Badge({ text, color = colors.primary }: { text: string; color?: string }) {

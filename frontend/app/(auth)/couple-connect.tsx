@@ -12,6 +12,7 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiException } from '../../lib/api';
+import { confirmAsync } from '../../lib/dialog';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useCoupleStore } from '../../store/useCoupleStore';
 import { Button, Card } from '../../components/ui';
@@ -48,6 +49,11 @@ export default function CoupleConnectScreen() {
     await Clipboard.setStringAsync(myCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
+  }
+
+  async function onLogout() {
+    const ok = await confirmAsync('로그아웃', '정말 로그아웃할까요?', '로그아웃', true);
+    if (ok) logout();
   }
 
   async function onConnect() {
@@ -92,7 +98,7 @@ export default function CoupleConnectScreen() {
               value={partnerCode}
               onChangeText={setPartnerCode}
               placeholder="상대에게 받은 코드"
-              placeholderTextColor={colors.border}
+              placeholderTextColor={colors.placeholder}
               autoCapitalize="characters"
               style={styles.input}
             />
@@ -106,7 +112,7 @@ export default function CoupleConnectScreen() {
             />
           </Card>
 
-          <Pressable onPress={logout} style={{ marginTop: spacing.xl, alignSelf: 'center' }}>
+          <Pressable onPress={onLogout} style={{ marginTop: spacing.xl, alignSelf: 'center' }}>
             <Text style={styles.logout}>로그아웃</Text>
           </Pressable>
         </View>

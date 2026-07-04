@@ -16,6 +16,19 @@ export class ApiException extends Error {
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 type RequestOpts = { method?: Method; body?: unknown; auth?: boolean };
 
+// ── 401 전역 처리: 순환의존 없이 _layout에서 핸들러 등록 ──
+let unauthorizedHandler: (() => void) | null = null;
+
+/** 401 응답 시 호출될 콜백 등록 (앱 루트에서 로그아웃 처리용). */
+export function setOnUnauthorized(handler: (() => void) | null) {
+  unauthorizedHandler = handler;
+}
+
+async function handleUnauthorized() {
+  await tokenStore.clear();
+  unauthorizedHandler?.();
+}
+
 async function request<T = unknown>(path: string, opts: RequestOpts = {}): Promise<T> {
   const { method = 'GET', body, auth = true } = opts;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -29,6 +42,11 @@ async function request<T = unknown>(path: string, opts: RequestOpts = {}): Promi
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
+
+  if (res.status === 401 && auth) {
+    // 토큰 만료/무효 → 세션 정리 후 로그인으로 복귀
+    await handleUnauthorized();
+  }
 
   if (res.status === 204) return undefined as T;
 
@@ -55,7 +73,41 @@ export const api = {
   post: <T>(path: string, body?: unknown, auth = true) => request<T>(path, { method: 'POST', body, auth }),
   patch: <T>(path: string, body?: unknown, auth = true) => request<T>(path, { method: 'PATCH', body, auth }),
   put: <T>(path: string, body?: unknown, auth = true) => request<T>(path, { method: 'PUT', body, auth }),
+  del: <T = void>(path: string, auth = true) => request<T>(path, { method: 'DELETE', auth }),
 };
+
+// ─────────────────────────── 사진 업로드 (multipart) ───────────────────────────
+
+export type PickedImage = { uri: string; fileName?: string | null; mimeType?: string | null };
+
+/**
+ * POST /api/photos — multipart/form-data(field: `file`)로 업로드.
+ * 응답: { url: "/files/xxx.jpg" } (상대경로).
+ * 웹(blob:/data: uri)은 blob으로 변환해 append, 네이티브는 {uri,name,type} 객체.
+ */
+export async function uploadPhoto(image: PickedImage): Promise<{ url: string }> {
+  const token = await tokenStore.getToken();
+  const name = image.fileName ?? `photo-${Date.now()}.jpg`;
+  const type = image.mimeType ?? 'image/jpeg';
+
+  const form = new FormData();
+  if (image.uri.startsWith('blob:') || image.uri.startsWith('data:')) {
+    const blob = await (await fetch(image.uri)).blob();
+    (form as unknown as { append(k: string, v: unknown, n?: string): void }).append('file', blob, name);
+  } else {
+    form.append('file', { uri: image.uri, name, type } as unknown as Blob);
+  }
+
+  const res = await fetch(`${API_URL}/api/photos`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    body: form,
+  });
+
+  if (res.status === 401) await handleUnauthorized();
+  if (!res.ok) throw new ApiException(res.status, { message: '사진 업로드에 실패했어요' });
+  return (await res.json()) as { url: string };
+}
 
 // ─────────────────────────── 타입 (백엔드 계약) ───────────────────────────
 // JSON은 jackson non_null → null 필드는 아예 생략됨. 그래서 전부 optional.
@@ -128,6 +180,8 @@ export type AnswerView = {
 export type PhotoView = {
   id: number;
   colorSeed: string;
+  /** 실제 업로드된 이미지 상대경로(/files/...). 없으면 colorSeed 그라데이션 폴백. */
+  url?: string;
 };
 
 /** 한 사람이 쓴 일기 본문 (OPEN 상태). */
@@ -172,13 +226,14 @@ export type DayDetail = {
   comments: CommentView[];
 };
 
-/** 작성 요청 (UpsertEntryRequest). 요청은 photoSeeds(응답만 photos). */
+/** 작성 요청 (UpsertEntryRequest). 사진은 업로드 후 photoUrls로 전송. */
 export type UpsertEntryRequest = {
   mode: EntryMode;
   templateType?: string;
   questionIds?: number[];
   answers: AnswerView[];
-  photoSeeds: string[];
+  photoSeeds?: string[];
+  photoUrls?: string[];
   locationName?: string;
   rating?: number;
   mood?: string;
@@ -212,6 +267,7 @@ export const entryApi = {
   detail: (date: string) => api.get<DayDetail>(`/api/entries/${date}`),
   create: (date: string, payload: UpsertEntryRequest) =>
     api.post<DayDetail>(`/api/entries/${date}`, payload),
+  remove: (date: string) => api.del(`/api/entries/${date}`),
   comments: (date: string) => api.get<CommentView[]>(`/api/entries/${date}/comments`),
   addComment: (date: string, text: string) =>
     api.post<CommentView>(`/api/entries/${date}/comments`, { text }),

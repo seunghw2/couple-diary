@@ -14,7 +14,11 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@Table(name = "couples")
+@Table(name = "couples", uniqueConstraints = {
+        // 동시 connect 경합 방어: 한 사용자가 같은 슬롯으로 두 커플에 못 들어가게
+        @UniqueConstraint(name = "uk_couple_user1", columnNames = "user1_id"),
+        @UniqueConstraint(name = "uk_couple_user2", columnNames = "user2_id")
+})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Couple {
 

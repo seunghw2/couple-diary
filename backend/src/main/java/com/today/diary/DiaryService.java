@@ -14,12 +14,16 @@ import com.today.question.QuestionRepository;
 import com.today.user.User;
 import com.today.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,14 +39,22 @@ public class DiaryService {
     private final EntryAnswerRepository answerRepository;
     private final PhotoRepository photoRepository;
     private final CommentRepository commentRepository;
+    private final DiaryDayFactory dayFactory;
 
     private static final long EDIT_WINDOW_HOURS = 3;
+    private static final int MAX_PICK_QUESTIONS = 5;
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     // ================= 월간 목록 =================
     @Transactional(readOnly = true)
     public List<MonthEntrySummary> month(Long userId, int year, int month) {
         Couple couple = coupleService.requireCouple(userId);
-        YearMonth ym = YearMonth.of(year, month);
+        YearMonth ym;
+        try {
+            ym = YearMonth.of(year, month);
+        } catch (DateTimeException e) {
+            throw new ApiException(ErrorCode.INVALID_INPUT);
+        }
         LocalDate start = ym.atDay(1);
         LocalDate end = ym.atEndOfMonth();
 
@@ -121,8 +133,15 @@ public class DiaryService {
     }
 
     // ================= 작성/수정 upsert =================
-    @Transactional
+    // READ_COMMITTED: 동시 첫 작성 경합 시 DiaryDayFactory(REQUIRES_NEW)가 커밋한
+    // 행을 같은 트랜잭션의 재조회/응답 조회에서 볼 수 있어야 한다(MySQL RR 스냅샷 회피).
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public DayDetail upsert(Long userId, LocalDate date, UpsertEntryRequest req) {
+        // 미래 날짜(Asia/Seoul 기준) 작성 차단
+        if (date.isAfter(LocalDate.now(KST))) {
+            throw new ApiException(ErrorCode.INVALID_INPUT);
+        }
+
         Couple couple = coupleService.requireCouple(userId);
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
@@ -132,21 +151,16 @@ public class DiaryService {
 
         // DiaryDay 없으면 내가 첫 작성자 → mode/질문세트 확정
         if (day == null) {
-            List<Long> qIds = req.mode() == DiaryMode.QUESTION_PICK
-                    ? validateQuestionIds(req.questionIds()) : List.of();
-            day = DiaryDay.builder()
-                    .couple(couple)
-                    .date(date)
-                    .mode(req.mode())
-                    .templateType(req.mode() == DiaryMode.TEMPLATE ? req.templateType() : null)
-                    .questionIds(qIds)
-                    .build();
-            day = dayRepository.save(day);
+            day = createDay(couple, date, req);
         }
         // (있으면 기존 mode/질문세트를 따른다 — 요청의 mode/questionIds 무시)
 
+        // 답 입력의 질문 범위 검증 (저장 전에 수행)
+        validateAnswersAgainstDay(day, req.answers());
+
         DiaryEntry entry = entryRepository.findByDay_IdAndAuthor_Id(day.getId(), userId).orElse(null);
-        if (entry == null) {
+        boolean isNew = entry == null;
+        if (isNew) {
             entry = DiaryEntry.builder()
                     .day(day).author(author)
                     .rating(req.rating()).mood(req.mood()).locationName(req.locationName())
@@ -163,14 +177,23 @@ public class DiaryService {
             entry.setRating(req.rating());
             entry.setMood(req.mood());
             entry.setLocationName(req.locationName());
-            // 기존 답/사진 교체
-            answerRepository.deleteByEntry_Id(entry.getId());
-            photoRepository.deleteByEntry_Id(entry.getId());
-            answerRepository.flush();
-            photoRepository.flush();
+            // 부분 수정 지원: null = 변경 안 함(삭제 스킵), 빈 배열 = 전체 삭제
+            if (req.answers() != null) {
+                answerRepository.deleteByEntry_Id(entry.getId());
+                answerRepository.flush();
+            }
+            if (req.photoSeeds() != null) {
+                photoRepository.deleteByEntry_IdAndUrlIsNull(entry.getId());
+            }
+            if (req.photoUrls() != null) {
+                photoRepository.deleteByEntry_IdAndUrlIsNotNull(entry.getId());
+            }
+            if (req.photoSeeds() != null || req.photoUrls() != null) {
+                photoRepository.flush();
+            }
         }
 
-        // 답 저장
+        // 답 저장 (null이면 기존 유지)
         if (req.answers() != null) {
             for (AnswerInput a : req.answers()) {
                 if (a.text() == null || a.text().isBlank()) continue;
@@ -182,14 +205,91 @@ public class DiaryService {
                         .build());
             }
         }
-        // 사진 저장
+        // 사진 저장 (null이면 기존 유지)
         if (req.photoSeeds() != null) {
             for (String seed : req.photoSeeds()) {
                 photoRepository.save(Photo.builder().entry(entry).colorSeed(seed).build());
             }
         }
+        if (req.photoUrls() != null) {
+            for (String url : req.photoUrls()) {
+                if (url == null || url.isBlank()) continue;
+                photoRepository.save(Photo.builder().entry(entry).url(url).build());
+            }
+        }
 
         return detail(userId, date);
+    }
+
+    // ================= 일기 삭제 =================
+    @Transactional
+    public void deleteEntry(Long userId, LocalDate date) {
+        Couple couple = coupleService.requireCouple(userId);  // 커플 스코프 검증
+        DiaryDay day = dayRepository.findByCouple_IdAndDate(couple.getId(), date)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        DiaryEntry entry = entryRepository.findByDay_IdAndAuthor_Id(day.getId(), userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+
+        answerRepository.deleteByEntry_Id(entry.getId());
+        photoRepository.deleteByEntry_Id(entry.getId());
+        entryRepository.delete(entry);
+        entryRepository.flush();
+
+        // 양쪽 entry가 모두 없으면 DiaryDay(및 댓글)도 삭제
+        if (entryRepository.findByDay_Id(day.getId()).isEmpty()) {
+            commentRepository.deleteByDay_Id(day.getId());
+            dayRepository.delete(day);
+        }
+    }
+
+    // 첫 작성자용 DiaryDay 생성: 입력 검증 + 동시 생성 경합(uk_day_couple_date) 처리
+    private DiaryDay createDay(Couple couple, LocalDate date, UpsertEntryRequest req) {
+        List<Long> qIds;
+        if (req.mode() == DiaryMode.QUESTION_PICK) {
+            if (req.questionIds() == null || req.questionIds().isEmpty()
+                    || req.questionIds().size() > MAX_PICK_QUESTIONS) {
+                throw new ApiException(ErrorCode.INVALID_INPUT);
+            }
+            qIds = validateQuestionIds(req.questionIds());
+        } else {
+            if (req.templateType() == null || req.templateType().isBlank()) {
+                throw new ApiException(ErrorCode.INVALID_INPUT);
+            }
+            qIds = List.of();
+        }
+
+        Long dayId;
+        try {
+            dayId = dayFactory.create(couple, date, req.mode(),
+                    req.mode() == DiaryMode.TEMPLATE ? req.templateType() : null, qIds);
+        } catch (DataIntegrityViolationException e) {
+            // 상대가 같은 순간 먼저 생성함 → 기존 것을 사용 (get-or-create)
+            dayId = null;
+        }
+        return (dayId != null
+                ? dayRepository.findById(dayId)
+                : dayRepository.findByCouple_IdAndDate(couple.getId(), date))
+                .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT));
+    }
+
+    // QUESTION_PICK: answer.questionId는 그날 질문세트 안에 있어야 함
+    // TEMPLATE: questionId 있는 답 거부(promptKey만 허용)
+    private void validateAnswersAgainstDay(DiaryDay day, List<AnswerInput> answers) {
+        if (answers == null || answers.isEmpty()) return;
+        if (day.getMode() == DiaryMode.QUESTION_PICK) {
+            Set<Long> allowed = new HashSet<>(day.getQuestionIds());
+            for (AnswerInput a : answers) {
+                if (a.questionId() == null || !allowed.contains(a.questionId())) {
+                    throw new ApiException(ErrorCode.INVALID_INPUT);
+                }
+            }
+        } else {
+            for (AnswerInput a : answers) {
+                if (a.questionId() != null) {
+                    throw new ApiException(ErrorCode.INVALID_INPUT);
+                }
+            }
+        }
     }
 
     // ================= 댓글 =================
@@ -258,7 +358,7 @@ public class DiaryService {
                 .map(a -> new AnswerView(a.getQuestionId(), a.getPromptKey(), a.getText()))
                 .toList();
         List<PhotoView> photos = photoRepository.findByEntry_Id(e.getId()).stream()
-                .map(p -> new PhotoView(p.getId(), p.getColorSeed()))
+                .map(p -> new PhotoView(p.getId(), p.getColorSeed(), p.getUrl()))
                 .toList();
         boolean editable = e.getEditableAfter() == null || LocalDateTime.now().isBefore(e.getEditableAfter());
         return new EntryView(e.getId(), e.getAuthor().getId(), e.getRating(), e.getMood(),

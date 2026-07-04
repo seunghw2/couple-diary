@@ -34,6 +34,12 @@ public class DiaryController {
         return diaryService.upsert(SecurityUtil.currentUserId(), date, req);
     }
 
+    @DeleteMapping("/{date}")
+    @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        diaryService.deleteEntry(SecurityUtil.currentUserId(), date);
+    }
+
     @GetMapping("/{date}/comments")
     public List<CommentView> comments(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return diaryService.comments(SecurityUtil.currentUserId(), date);

@@ -1,7 +1,11 @@
 package com.today.diary;
 
 import com.today.question.QuestionDtos.QuestionResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,23 +23,28 @@ public class DiaryDtos {
     ) {}
 
     // ---- 작성/수정 요청 ----
-    public record AnswerInput(Long questionId, String promptKey, String text) {}
+    public record AnswerInput(
+            Long questionId,
+            String promptKey,
+            @Size(max = 2000) String text
+    ) {}
 
     public record UpsertEntryRequest(
             @NotNull DiaryMode mode,
             String templateType,
             List<Long> questionIds,
-            List<AnswerInput> answers,
+            List<@Valid AnswerInput> answers,
             List<String> photoSeeds,
-            String locationName,
-            Integer rating,
-            String mood
+            List<@Size(max = 500) String> photoUrls,
+            @Size(max = 100) String locationName,
+            @Min(1) @Max(5) Integer rating,
+            @Size(max = 100) String mood
     ) {}
 
     // ---- 상세 ----
     public record AnswerView(Long questionId, String promptKey, String text) {}
 
-    public record PhotoView(Long id, String colorSeed) {}
+    public record PhotoView(Long id, String colorSeed, String url) {}
 
     public record EntryView(
             Long id,

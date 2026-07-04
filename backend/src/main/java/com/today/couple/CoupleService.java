@@ -7,6 +7,7 @@ import com.today.user.User;
 import com.today.user.UserDtos.PartnerSummary;
 import com.today.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,7 +46,12 @@ public class CoupleService {
         }
 
         Couple couple = Couple.builder().user1(owner).user2(me).build();
-        coupleRepository.save(couple);
+        try {
+            coupleRepository.saveAndFlush(couple);
+        } catch (DataIntegrityViolationException e) {
+            // 동시 connect 경합: 둘 중 한쪽이 이미 다른 커플로 저장됨
+            throw new ApiException(ErrorCode.ALREADY_COUPLED);
+        }
         return toResponse(couple);
     }
 

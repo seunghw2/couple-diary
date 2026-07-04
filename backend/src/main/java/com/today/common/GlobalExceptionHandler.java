@@ -2,11 +2,14 @@ package com.today.common;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -39,6 +42,31 @@ public class GlobalExceptionHandler {
         ErrorCode ec = ErrorCode.INVALID_INPUT;
         return ResponseEntity.status(ec.getStatus())
                 .body(new ErrorResponse(ec.getCode(), e.getMessage(), null));
+    }
+
+    // 잘못된 경로 변수/파라미터 타입 (예: /api/entries/notadate)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        ErrorCode ec = ErrorCode.INVALID_INPUT;
+        return ResponseEntity.status(ec.getStatus())
+                .body(new ErrorResponse(ec.getCode(), ec.getMessage(), null));
+    }
+
+    // 요청 본문 파싱 실패 (enum/날짜 오타, 깨진 JSON 등)
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleNotReadable(HttpMessageNotReadableException e) {
+        ErrorCode ec = ErrorCode.INVALID_INPUT;
+        return ResponseEntity.status(ec.getStatus())
+                .body(new ErrorResponse(ec.getCode(), ec.getMessage(), null));
+    }
+
+    // DB 제약 위반 (유니크/FK 등) — 서비스에서 못 잡은 경우 400으로 매핑
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException e) {
+        log.warn("Data integrity violation: {}", e.getMessage());
+        ErrorCode ec = ErrorCode.INVALID_INPUT;
+        return ResponseEntity.status(ec.getStatus())
+                .body(new ErrorResponse(ec.getCode(), ec.getMessage(), null));
     }
 
     @ExceptionHandler(AccessDeniedException.class)

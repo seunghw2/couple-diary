@@ -13,6 +13,8 @@ export const colors = {
   text: '#5A4038',
   subText: '#7A5A4E',
   border: '#F1E2D6',
+  placeholder: '#B39685', // 입력 placeholder — border보다 진한 subText 계열
+
   // 보조 (파트너/블러 등)
   partner: '#9B8CFF',
   partnerSoft: '#C7BEFF',

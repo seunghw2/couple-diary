@@ -62,6 +62,8 @@ public class SecurityConfig {
                                 "/api/health",
                                 "/actuator/**"
                         ).permitAll()
+                        // 업로드 사진 정적 서빙: UUID 파일명 난독화로 MVP에서는 공개 GET 허용
+                        .requestMatchers(HttpMethod.GET, "/files/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> {

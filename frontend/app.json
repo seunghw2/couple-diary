@@ -32,7 +32,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "apiUrl": "http://localhost:8083"
+      "apiUrl": "https://today-api.hammerslog.trade"
     }
   }
 }

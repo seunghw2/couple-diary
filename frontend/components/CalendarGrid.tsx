@@ -1,10 +1,11 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MonthEntrySummary } from '../lib/api';
 import { buildMonthGrid } from '../lib/date';
-import { Badge, SeedThumb } from './ui';
+import { Badge, PhotoThumb } from './ui';
 import { colors, font, radius, spacing } from '../theme/theme';
 
 const WEEK_HEADERS = ['일', '월', '화', '수', '목', '금', '토'];
+const THUMB_SIZE = 34;
 
 type Props = {
   year: number;
@@ -37,9 +38,12 @@ export function CalendarGrid({ year, month, entries, today, onPressDate }: Props
           const e = entries[date];
           const isToday = date === today;
           const hasContent = !!e && e.status !== 'EMPTY';
+          // 서버가 thumbSeed에 실제 이미지 경로(/files/...)를 줄 수도 있음
+          const thumbUrl = e?.thumbSeed?.startsWith('/files/') ? e.thumbSeed : undefined;
 
           return (
             <Pressable key={date} style={styles.cell} onPress={() => onPressDate(date)}>
+              {/* 날짜 숫자 + 마커가 반드시 같은 칸(dayWrap) 안에 들어가는 콘텐츠 기반 높이 레이아웃 */}
               <View style={[styles.dayWrap, isToday && styles.todayWrap]}>
                 <Text style={[styles.dayNum, isToday && { color: colors.primary, fontWeight: '800' }]}>
                   {cell.day}
@@ -47,7 +51,13 @@ export function CalendarGrid({ year, month, entries, today, onPressDate }: Props
 
                 {hasContent ? (
                   <View>
-                    <SeedThumb seed={e.thumbSeed ?? date} size={40} ring={isToday} label={thumbEmoji(e)} />
+                    <PhotoThumb
+                      url={thumbUrl}
+                      seed={e.thumbSeed ?? date}
+                      size={THUMB_SIZE}
+                      ring={isToday}
+                      label={thumbEmoji(e)}
+                    />
                     {e.photoCount > 0 ? (
                       <View style={styles.badge}>
                         <Badge text={`${e.photoCount}`} />
@@ -78,21 +88,22 @@ const styles = StyleSheet.create({
   weekRow: { flexDirection: 'row', marginBottom: spacing.sm },
   weekLabel: { width: CELL_W, textAlign: 'center', ...font.label, color: colors.subText },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
-  cell: { width: CELL_W, aspectRatio: 0.82, alignItems: 'center', justifyContent: 'flex-start', paddingVertical: 4 },
+  // aspectRatio를 쓰지 않고 내용(숫자+썸네일) 높이에 맞춰 셀 높이를 잡는다.
+  // 고정비율 셀보다 내용이 커져 아랫줄로 넘쳐 보이던 문제(스티커가 한 주 아래 칸에 보임) 방지.
+  cell: { width: CELL_W, alignItems: 'center', paddingVertical: 3 },
   dayWrap: {
     alignItems: 'center',
-    justifyContent: 'flex-start',
     borderRadius: radius.md,
-    paddingVertical: 4,
+    paddingVertical: 3,
     paddingHorizontal: 2,
     width: '92%',
   },
   todayWrap: { backgroundColor: '#FFEFE6' },
-  dayNum: { ...font.caption, color: colors.subText, marginBottom: 4 },
+  dayNum: { ...font.caption, lineHeight: 14, color: colors.subText, marginBottom: 3 },
   emptyCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: THUMB_SIZE,
+    height: THUMB_SIZE,
+    borderRadius: THUMB_SIZE / 2,
     borderWidth: 1.5,
     borderColor: colors.border,
     borderStyle: 'dashed',

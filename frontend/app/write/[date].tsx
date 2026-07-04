@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import {
   AnswerView,
   DayDetail,
@@ -20,10 +21,12 @@ import {
   UpsertEntryRequest,
   entryApi,
   questionApi,
+  uploadPhoto,
 } from '../../lib/api';
 import { formatKoLong, todayISO, weekdayKo } from '../../lib/date';
-import { FALLBACK_QUESTIONS, MOODS, TEMPLATE_PROMPTS, randomSeed } from '../../constants/content';
-import { Button, Card, SeedThumb, StarRating } from '../../components/ui';
+import { showAlert } from '../../lib/dialog';
+import { MOODS, TEMPLATE_PROMPTS } from '../../constants/content';
+import { Button, Card, PhotoThumb, StarRating } from '../../components/ui';
 import { colors, font, radius, shadow, spacing } from '../../theme/theme';
 
 type Step = 'mode' | 'form';
@@ -38,9 +41,11 @@ export default function WriteScreen() {
   const [step, setStep] = useState<Step>('mode');
   const [mode, setMode] = useState<FormMode>('TEMPLATE');
   const [loadingDetail, setLoadingDetail] = useState(true);
+  const [editExpired, setEditExpired] = useState(false); // 내 일기 수정 가능 시간(3시간) 경과
 
-  // 자유(질문) 관련
+  // 자유(질문) 관련 — 서버 질문 로드 실패 시 자유 모드 비활성화(폴백 없음)
   const [questions, setQuestions] = useState<QuestionResponse[]>([]);
+  const [questionsFailed, setQuestionsFailed] = useState(false);
   const [pickedIds, setPickedIds] = useState<string[]>([]); // 내가 고르는 3개(먼저 쓰는 사람)
   const [fixedQuestions, setFixedQuestions] = useState<QuestionResponse[] | null>(null); // 상대가 이미 고른 범위
 
@@ -49,17 +54,55 @@ export default function WriteScreen() {
   const [mood, setMood] = useState<string | null>(null);
   const [rating, setRating] = useState(0);
   const [location, setLocation] = useState('');
-  const [photoSeeds, setPhotoSeeds] = useState<string[]>([]);
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]); // 업로드 완료된 /files/... 경로
+  const [uploading, setUploading] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 진입 시: 상대가 먼저 QUESTION_PICK으로 질문을 골랐는지 detail로 판단
+  // 진입 시: 서버 질문 목록 로드 (실패 시 자유 모드 비활성화)
+  useEffect(() => {
+    (async () => {
+      try {
+        const qs = await questionApi.list();
+        if (qs.length > 0) {
+          setQuestions(qs);
+          setQuestionsFailed(false);
+        } else {
+          setQuestionsFailed(true);
+        }
+      } catch {
+        setQuestionsFailed(true);
+      }
+    })();
+  }, []);
+
+  // 진입 시: 내 일기(수정 진입) / 상대가 먼저 고른 질문 범위를 detail로 판단
   useEffect(() => {
     (async () => {
       try {
         const detail: DayDetail = await entryApi.detail(dateStr);
-        if (detail.mode === 'QUESTION_PICK' && detail.questions.length > 0) {
+        const mine = detail.myEntry;
+        if (mine) {
+          // 수정 진입: editable=false면 작성 화면 대신 안내
+          if (!mine.editable) {
+            setEditExpired(true);
+            return;
+          }
+          setMode(detail.mode);
+          if (detail.mode === 'QUESTION_PICK') setFixedQuestions(detail.questions);
+          const prefill: Record<string, string> = {};
+          for (const a of mine.answers) {
+            const key = a.promptKey ?? (a.questionId != null ? String(a.questionId) : null);
+            if (key) prefill[key] = a.text;
+          }
+          setAnswers(prefill);
+          setRating(mine.rating ?? 0);
+          setMood(mine.mood ?? null);
+          setLocation(mine.locationName ?? '');
+          setPhotoUrls(mine.photos.map((p) => p.url).filter((u): u is string => !!u));
+          setStep('form');
+        } else if (detail.mode === 'QUESTION_PICK' && detail.questions.length > 0) {
           // 상대가 고른 질문 범위 내에서 답만 작성
           setFixedQuestions(detail.questions);
           setMode('QUESTION_PICK');
@@ -73,26 +116,9 @@ export default function WriteScreen() {
     })();
   }, [dateStr]);
 
-  const loadQuestions = useCallback(async (): Promise<QuestionResponse[]> => {
-    try {
-      const qs = await questionApi.list();
-      if (qs.length > 0) {
-        setQuestions(qs);
-        return qs;
-      }
-    } catch {
-      /* fall through */
-    }
-    const fallback = FALLBACK_QUESTIONS as unknown as QuestionResponse[];
-    setQuestions(fallback);
-    return fallback;
-  }, []);
-
   function chooseMode(m: FormMode) {
+    if (m === 'FREE' && questionsFailed) return;
     setMode(m);
-    if (m === 'FREE') {
-      loadQuestions();
-    }
     setStep('form');
   }
 
@@ -108,9 +134,35 @@ export default function WriteScreen() {
     setAnswers((prev) => ({ ...prev, [key]: text }));
   }
 
-  function addPhoto() {
-    if (photoSeeds.length >= 6) return;
-    setPhotoSeeds((prev) => [...prev, randomSeed()]);
+  /** 갤러리에서 이미지 선택 → 서버 업로드 → url 목록에 추가. */
+  async function pickAndUploadPhoto() {
+    if (photoUrls.length >= 6 || uploading) return;
+    try {
+      if (Platform.OS !== 'web') {
+        const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!perm.granted) {
+          showAlert('사진 접근 권한이 필요해요', '설정에서 사진 접근을 허용해 주세요.');
+          return;
+        }
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.7,
+      });
+      if (result.canceled || result.assets.length === 0) return;
+      const asset = result.assets[0];
+      setUploading(true);
+      const { url } = await uploadPhoto({
+        uri: asset.uri,
+        fileName: asset.fileName,
+        mimeType: asset.mimeType,
+      });
+      setPhotoUrls((prev) => [...prev, url]);
+    } catch {
+      showAlert('사진 업로드에 실패했어요', '잠시 후 다시 시도해 주세요.');
+    } finally {
+      setUploading(false);
+    }
   }
 
   function buildAnswers(): AnswerView[] {
@@ -127,10 +179,11 @@ export default function WriteScreen() {
         : questions.filter((q) => pickedIds.includes(String(q.id)));
     return activeQs
       .filter((q) => (answers[String(q.id)] ?? '').trim().length > 0)
-      .map((q) => ({ questionId: Number(q.id), text: answers[String(q.id)].trim() }));
+      .map((q) => ({ questionId: q.id, text: answers[String(q.id)].trim() }));
   }
 
   function canSubmit(): boolean {
+    if (uploading) return false;
     if (mode === 'FREE' && !fixedQuestions && pickedIds.length !== 3) return false;
     return buildAnswers().length > 0;
   }
@@ -147,7 +200,7 @@ export default function WriteScreen() {
     const outMode: EntryMode = mode === 'FREE' ? 'QUESTION_PICK' : mode;
     const questionIds: number[] | undefined =
       outMode === 'QUESTION_PICK'
-        ? (fixedQuestions ? fixedQuestions.map((q) => Number(q.id)) : pickedIds.map(Number))
+        ? (fixedQuestions ? fixedQuestions.map((q) => q.id) : pickedIds.map(Number))
         : undefined;
 
     const payload: UpsertEntryRequest = {
@@ -155,7 +208,7 @@ export default function WriteScreen() {
       templateType: mode === 'TEMPLATE' ? 'default' : undefined,
       questionIds,
       answers: buildAnswers(),
-      photoSeeds,
+      photoUrls,
       locationName: location.trim() || undefined,
       rating: rating > 0 ? rating : undefined,
       mood: mood ?? undefined,
@@ -179,6 +232,21 @@ export default function WriteScreen() {
     );
   }
 
+  if (editExpired) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <View style={{ paddingHorizontal: spacing.xl }}>
+          <Card style={{ marginTop: spacing.xxl, alignItems: 'center' }}>
+            <Text style={{ fontSize: 44, marginBottom: spacing.md }}>⏰</Text>
+            <Text style={styles.expiredTitle}>수정 가능 시간(3시간)이 지났어요</Text>
+            <Text style={styles.expiredSub}>이미 쓴 일기는 3시간 안에만 고칠 수 있어요.</Text>
+            <Button label="돌아가기" onPress={() => router.back()} style={{ marginTop: spacing.lg, alignSelf: 'stretch' }} />
+          </Card>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
@@ -194,7 +262,7 @@ export default function WriteScreen() {
         </View>
 
         {step === 'mode' ? (
-          <ModeSelect onChoose={chooseMode} />
+          <ModeSelect onChoose={chooseMode} freeDisabled={questionsFailed} />
         ) : (
           <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
             {/* 기분 */}
@@ -232,14 +300,18 @@ export default function WriteScreen() {
               />
             )}
 
-            {/* 사진(색시드) */}
+            {/* 사진 업로드 */}
             <Text style={[styles.sectionLabel, { marginTop: spacing.xl }]}>📎 오늘의 흔적</Text>
             <View style={styles.photoRow}>
-              {photoSeeds.map((s, i) => (
-                <SeedThumb key={s + i} seed={s} size={72} round={false} label="📷" />
+              {photoUrls.map((u, i) => (
+                <PhotoThumb key={u + i} url={u} seed={u} size={72} round={false} />
               ))}
-              {photoSeeds.length < 6 ? (
-                <Pressable onPress={addPhoto} style={styles.addPhoto}>
+              {uploading ? (
+                <View style={styles.addPhoto}>
+                  <ActivityIndicator color={colors.primary} />
+                </View>
+              ) : photoUrls.length < 6 ? (
+                <Pressable onPress={pickAndUploadPhoto} style={styles.addPhoto}>
                   <Text style={{ fontSize: 28, color: colors.coralSoft }}>＋</Text>
                 </Pressable>
               ) : null}
@@ -250,7 +322,7 @@ export default function WriteScreen() {
               value={location}
               onChangeText={setLocation}
               placeholder="📍 장소 이름 (예: 성수동 · 대림창고)"
-              placeholderTextColor={colors.border}
+              placeholderTextColor={colors.placeholder}
               style={styles.locationInput}
             />
 
@@ -277,7 +349,7 @@ export default function WriteScreen() {
   );
 }
 
-function ModeSelect({ onChoose }: { onChoose: (m: FormMode) => void }) {
+function ModeSelect({ onChoose, freeDisabled }: { onChoose: (m: FormMode) => void; freeDisabled: boolean }) {
   return (
     <View style={styles.modeWrap}>
       <Text style={styles.modeHeading}>어떻게 기록할까요?</Text>
@@ -286,10 +358,16 @@ function ModeSelect({ onChoose }: { onChoose: (m: FormMode) => void }) {
         <Text style={styles.modeTitle}>템플릿으로 쓰기</Text>
         <Text style={styles.modeDesc}>정해진 빈칸을 채우며 가볍게</Text>
       </Pressable>
-      <Pressable style={[styles.modeCard, shadow]} onPress={() => onChoose('FREE')}>
+      <Pressable
+        style={[styles.modeCard, shadow, freeDisabled && { opacity: 0.5 }]}
+        disabled={freeDisabled}
+        onPress={() => onChoose('FREE')}
+      >
         <Text style={styles.modeEmoji}>💬</Text>
         <Text style={styles.modeTitle}>질문 골라 쓰기</Text>
-        <Text style={styles.modeDesc}>질문 8개 중 3개를 골라 서로 답하기</Text>
+        <Text style={styles.modeDesc}>
+          {freeDisabled ? '질문을 불러오지 못했어요' : '질문 8개 중 3개를 골라 서로 답하기'}
+        </Text>
       </Pressable>
     </View>
   );
@@ -312,7 +390,7 @@ function TemplateForm({
             value={answers[p.promptKey] ?? ''}
             onChangeText={(t) => onChange(p.promptKey, t)}
             placeholder={p.placeholder}
-            placeholderTextColor={colors.border}
+            placeholderTextColor={colors.placeholder}
             multiline
             style={styles.multiInput}
           />
@@ -333,7 +411,7 @@ function FixedQuestionForm({
 }) {
   return (
     <Card style={{ marginTop: spacing.lg }}>
-      <Text style={styles.formHeading}>💬 상대가 고른 질문에 답하기</Text>
+      <Text style={styles.formHeading}>💬 오늘의 질문에 답하기</Text>
       {questions.map((q, i) => (
         <View key={String(q.id)} style={i > 0 ? styles.formDivider : undefined}>
           <Text style={styles.promptLabel}>Q{i + 1}. {q.text}</Text>
@@ -341,7 +419,7 @@ function FixedQuestionForm({
             value={answers[String(q.id)] ?? ''}
             onChangeText={(t) => onChange(String(q.id), t)}
             placeholder="답을 적어봐..."
-            placeholderTextColor={colors.border}
+            placeholderTextColor={colors.placeholder}
             multiline
             style={styles.multiInput}
           />
@@ -367,6 +445,9 @@ function FreePickForm({
   return (
     <Card style={{ marginTop: spacing.lg }}>
       <Text style={styles.formHeading}>💬 질문 3개 고르기 ({picked.length}/3)</Text>
+      {questions.length === 0 ? (
+        <Text style={styles.error}>질문을 불러오지 못했어요</Text>
+      ) : null}
       <View style={styles.chipWrap}>
         {questions.map((q) => {
           const id = String(q.id);
@@ -389,7 +470,7 @@ function FreePickForm({
               value={answers[id] ?? ''}
               onChangeText={(t) => onChange(id, t)}
               placeholder="답을 적어봐..."
-              placeholderTextColor={colors.border}
+              placeholderTextColor={colors.placeholder}
               multiline
               style={styles.multiInput}
             />
@@ -495,4 +576,6 @@ const styles = StyleSheet.create({
   lockNote: { marginTop: spacing.lg, backgroundColor: '#FFF3E4' },
   lockNoteText: { ...font.body, color: colors.subText, lineHeight: 22 },
   subNote: { ...font.caption, textAlign: 'center', marginTop: spacing.sm },
+  expiredTitle: { ...font.title },
+  expiredSub: { ...font.caption, marginTop: spacing.xs },
 });

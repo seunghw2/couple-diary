@@ -54,7 +54,7 @@ export default function LoginScreen() {
               value={email}
               onChangeText={setEmail}
               placeholder="you@example.com"
-              placeholderTextColor={colors.border}
+              placeholderTextColor={colors.placeholder}
               autoCapitalize="none"
               keyboardType="email-address"
               style={styles.input}
@@ -65,7 +65,7 @@ export default function LoginScreen() {
               value={nickname}
               onChangeText={setNickname}
               placeholder="달콩"
-              placeholderTextColor={colors.border}
+              placeholderTextColor={colors.placeholder}
               style={styles.input}
             />
 

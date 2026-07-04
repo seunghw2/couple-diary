@@ -12,12 +12,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { CommentView, DayDetail, EntryView, entryApi, isLocked } from '../../lib/api';
-import { dDay, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
+import { CommentView, DayDetail, EntryView, QuestionResponse, entryApi, isLocked } from '../../lib/api';
+import { dDay, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
+import { confirmAsync, showAlert } from '../../lib/dialog';
 import { useCoupleStore } from '../../store/useCoupleStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { Button, Card, Pill, SeedThumb, StarRating } from '../../components/ui';
-import { MOODS } from '../../constants/content';
+import { Button, Card, PhotoThumb, Pill, SeedThumb, StarRating } from '../../components/ui';
 import { colors, font, radius, shadow, spacing } from '../../theme/theme';
 
 export default function EntryDetailScreen() {
@@ -33,6 +33,8 @@ export default function EntryDetailScreen() {
 
   const [commentText, setCommentText] = useState('');
   const [posting, setPosting] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -55,14 +57,40 @@ export default function EntryDetailScreen() {
     const text = commentText.trim();
     if (!text) return;
     setPosting(true);
+    setCommentError(null);
     try {
       const c = await entryApi.addComment(dateStr, text);
       setDetail((d) => (d ? { ...d, comments: [...d.comments, c] } : d));
       setCommentText('');
     } catch {
-      // 무시 (간단 처리)
+      setCommentError('댓글 등록에 실패했어요. 다시 시도해 주세요.');
     } finally {
       setPosting(false);
+    }
+  }
+
+  function onEditMine() {
+    const mine = detail?.myEntry;
+    if (!mine) return;
+    if (!mine.editable) {
+      showAlert('수정 가능 시간(3시간)이 지났어요', '이미 쓴 일기는 3시간 안에만 고칠 수 있어요.');
+      return;
+    }
+    router.push({ pathname: '/write/[date]', params: { date: dateStr } });
+  }
+
+  async function onDeleteMine() {
+    if (deleting) return;
+    const ok = await confirmAsync('일기 삭제', '이 날의 내 일기를 삭제할까요?', '삭제', true);
+    if (!ok) return;
+    setDeleting(true);
+    try {
+      await entryApi.remove(dateStr);
+      router.replace('/(tabs)');
+    } catch {
+      showAlert('삭제에 실패했어요', '잠시 후 다시 시도해 주세요.');
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -71,6 +99,7 @@ export default function EntryDetailScreen() {
   const mineWritten = !!detail?.myEntry;
   const partnerEntry = detail?.partnerEntry;
   const partnerOpen = partnerEntry && !isLocked(partnerEntry) ? partnerEntry : null;
+  const isFuture = dateStr > todayISO();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -83,7 +112,7 @@ export default function EntryDetailScreen() {
           <View style={{ alignItems: 'center' }}>
             <Text style={styles.dateTitle}>{formatKoShort(dateStr)}</Text>
             <Text style={styles.dateSub}>
-              {weekdayKo(dateStr)}요일{dday != null ? ` · D+${dday}` : ''}
+              {weekdayKo(dateStr)}요일{dday != null ? ` · ${formatDday(dday)}` : ''}
             </Text>
           </View>
           <View style={{ width: 24 }} />
@@ -94,13 +123,32 @@ export default function EntryDetailScreen() {
             <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xxl }} />
           ) : status === 'EMPTY' || !detail ? (
             <EmptyState
+              future={isFuture}
               onWrite={() => router.push({ pathname: '/write/[date]', params: { date: dateStr } })}
             />
           ) : (
             <>
               {/* 내 일기 */}
               {detail.myEntry ? (
-                <SideCard title="내가 쓴 일기" side={detail.myEntry} tone="coral" mode={detail.mode} />
+                <>
+                  <SideCard
+                    title="내가 쓴 일기"
+                    side={detail.myEntry}
+                    tone="coral"
+                    mode={detail.mode}
+                    questions={detail.questions}
+                  />
+                  <View style={styles.myActions}>
+                    <Button label="수정하기" variant="soft" onPress={onEditMine} style={{ flex: 1, height: 44 }} />
+                    <Button
+                      label="삭제"
+                      variant="ghost"
+                      onPress={onDeleteMine}
+                      loading={deleting}
+                      style={{ flex: 1, height: 44 }}
+                    />
+                  </View>
+                </>
               ) : null}
 
               {/* 상대 일기 — LOCKED면 블러 안내 */}
@@ -109,7 +157,13 @@ export default function EntryDetailScreen() {
                   onWrite={() => router.push({ pathname: '/write/[date]', params: { date: dateStr } })}
                 />
               ) : partnerOpen ? (
-                <SideCard title="상대가 쓴 일기" side={partnerOpen} tone="partner" mode={detail.mode} />
+                <SideCard
+                  title="상대가 쓴 일기"
+                  side={partnerOpen}
+                  tone="partner"
+                  mode={detail.mode}
+                  questions={detail.questions}
+                />
               ) : status === 'LOCKED' ? (
                 <Card style={styles.waitCard}>
                   <Text style={styles.waitText}>상대가 아직 오늘 일기를 안 썼어요 🔒{'\n'}상대가 쓰면 자동으로 열려요!</Text>
@@ -134,6 +188,7 @@ export default function EntryDetailScreen() {
                   {detail.comments.length === 0 ? (
                     <Text style={styles.noComment}>첫 댓글을 남겨보세요</Text>
                   ) : null}
+                  {commentError ? <Text style={styles.commentError}>{commentError}</Text> : null}
                 </View>
               ) : null}
             </>
@@ -147,7 +202,7 @@ export default function EntryDetailScreen() {
               value={commentText}
               onChangeText={setCommentText}
               placeholder="댓글 달기..."
-              placeholderTextColor={colors.border}
+              placeholderTextColor={colors.placeholder}
               style={styles.commentInput}
             />
             <Button label="등록" variant="soft" onPress={onComment} loading={posting} style={styles.commentBtn} />
@@ -158,7 +213,16 @@ export default function EntryDetailScreen() {
   );
 }
 
-function EmptyState({ onWrite }: { onWrite: () => void }) {
+function EmptyState({ future, onWrite }: { future: boolean; onWrite: () => void }) {
+  if (future) {
+    return (
+      <Card style={{ marginTop: spacing.xxl, alignItems: 'center' }}>
+        <Text style={{ fontSize: 44, marginBottom: spacing.md }}>🌙</Text>
+        <Text style={styles.emptyTitle}>아직 오지 않은 날이에요</Text>
+        <Text style={styles.emptySub}>그날이 되면 함께 기록해요</Text>
+      </Card>
+    );
+  }
   return (
     <Card style={{ marginTop: spacing.xxl, alignItems: 'center' }}>
       <Text style={{ fontSize: 44, marginBottom: spacing.md }}>✏️</Text>
@@ -190,11 +254,13 @@ function SideCard({
   side,
   tone,
   mode,
+  questions,
 }: {
   title: string;
   side: EntryView;
   tone: 'coral' | 'partner';
   mode: DayDetail['mode'];
+  questions: QuestionResponse[];
 }) {
   const accent = tone === 'coral' ? colors.primary : colors.partner;
   return (
@@ -210,12 +276,13 @@ function SideCard({
         {side.locationName ? <Pill tone="neutral">{`📍 ${side.locationName}`}</Pill> : null}
       </View>
 
-      {/* 사진 시드 썸네일 */}
+      {/* 사진: url 있으면 실제 이미지, 없으면 색시드 썸네일 */}
       {side.photos.length > 0 ? (
         <View style={styles.photoRow}>
           {side.photos.slice(0, 3).map((p, i) => (
-            <SeedThumb
+            <PhotoThumb
               key={p.id}
+              url={p.url}
               seed={p.colorSeed}
               size={90}
               round={false}
@@ -225,15 +292,23 @@ function SideCard({
         </View>
       ) : null}
 
-      {/* 답변들 */}
-      {side.answers.map((a, i) => (
-        <View key={i} style={{ marginTop: spacing.md }}>
-          {mode === 'QUESTION_PICK' && a.text ? (
-            <Text style={[styles.answerQ, { color: accent }]}>Q{i + 1}</Text>
-          ) : null}
-          <Text style={styles.answerText}>{a.text}</Text>
-        </View>
-      ))}
+      {/* 답변들 — 질문픽이면 질문 문장을 답 위에 표시 */}
+      {side.answers.map((a, i) => {
+        const question =
+          mode === 'QUESTION_PICK' && a.questionId != null
+            ? questions.find((q) => q.id === a.questionId)
+            : undefined;
+        return (
+          <View key={i} style={{ marginTop: spacing.md }}>
+            {mode === 'QUESTION_PICK' ? (
+              <Text style={[styles.answerQ, { color: accent }]}>
+                Q{i + 1}.{question ? ` ${question.text}` : ''}
+              </Text>
+            ) : null}
+            <Text style={styles.answerText}>{a.text}</Text>
+          </View>
+        );
+      })}
     </Card>
   );
 }
@@ -266,6 +341,8 @@ const styles = StyleSheet.create({
   emptyTitle: { ...font.title },
   emptySub: { ...font.caption, marginTop: spacing.xs },
 
+  myActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+
   lockedCard: { marginTop: spacing.lg, alignItems: 'center' },
   blurBox: { width: '100%', borderRadius: radius.md, backgroundColor: colors.bg, padding: spacing.xl, overflow: 'hidden' },
   blurText: { ...font.body, color: colors.coralSofter, letterSpacing: 2, textAlign: 'center', opacity: 0.6 },
@@ -288,6 +365,7 @@ const styles = StyleSheet.create({
 
   sectionLabel: { ...font.title, marginBottom: spacing.md },
   noComment: { ...font.caption, color: colors.subText },
+  commentError: { ...font.caption, color: colors.danger, marginTop: spacing.sm },
   commentRow: { marginBottom: spacing.sm, alignItems: 'flex-start' },
   commentBubble: { maxWidth: '80%', borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   commentMine: { backgroundColor: colors.coralSofter },
