@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 공개된 일기 상세</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#7FA8C9; --blue-soft:#9DBFD9; --blue-tint:#EAF1F7;
+    --coral:#FF8A6B; --coral-soft:#FFA98C; --coral-tint:#FFEDE6;
+    --cream:#FBF7F2; --card:#FFFFFF;
+    --ink:#3A3A42; --ink-soft:#8C8A92; --line:#EFE9E1;
+    --shadow-sm:0 3px 10px rgba(120,110,100,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:#E9E2D9;font-family:'Gothic A1',sans-serif;color:var(--ink);
+    display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:28px 0;
+  }
+  .phone{
+    width:390px;min-height:800px;background:var(--cream);border-radius:42px;overflow:hidden;
+    position:relative;box-shadow:0 24px 60px rgba(80,70,60,.28);display:flex;flex-direction:column;
+  }
+  .verlabel{
+    position:absolute;top:12px;left:50%;transform:translateX(-50%);
+    font-size:10px;letter-spacing:.4px;color:var(--ink-soft);
+    background:rgba(255,255,255,.7);padding:3px 10px;border-radius:20px;z-index:20;
+  }
+  .status{height:38px}
+
+  .navbar{display:flex;align-items:center;justify-content:space-between;padding:6px 20px 8px}
+  .navbar .back{font-size:20px;color:var(--ink)}
+  .navbar .date{font-size:14px;font-weight:700}
+  .navbar .more{font-size:18px;color:var(--ink-soft)}
+
+  .scroll{flex:1;overflow-y:auto;padding:0 20px 24px}
+
+  /* memory recap */
+  .recap{
+    background:linear-gradient(120deg,var(--blue-tint),var(--coral-tint));
+    border-radius:18px;padding:13px 16px;display:flex;align-items:center;gap:12px;
+    border:1px solid var(--line);margin-bottom:16px;
+  }
+  .recap .ic{font-size:22px}
+  .recap .r-tag{font-size:11px;font-weight:800;background:linear-gradient(120deg,var(--blue),var(--coral));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .recap .r-txt{font-size:12.5px;font-weight:600;margin-top:2px}
+
+  /* summary */
+  .summary{background:var(--card);border-radius:20px;padding:16px;box-shadow:var(--shadow-sm);border:1px solid var(--line);margin-bottom:16px}
+  .sm-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .chip{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;background:var(--cream);padding:7px 12px;border-radius:20px;border:1px solid var(--line)}
+  .chip .st{color:#F5B54B;letter-spacing:-1px}
+  .chip.loc{color:var(--blue)}
+  .chip.mood{color:var(--coral)}
+  .photo{
+    height:180px;border-radius:16px;position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#FFD3BE 0%,#FFB59A 30%,#A9C8E0 100%);
+    display:flex;align-items:flex-end;
+  }
+  .photo .p-emoji{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:60px;filter:drop-shadow(0 3px 6px rgba(0,0,0,.15))}
+  .photo .p-cap{position:relative;padding:10px 14px;color:#fff;font-size:12px;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.35);background:linear-gradient(transparent,rgba(0,0,0,.25));width:100%}
+
+  /* chat bubbles */
+  .thread{display:flex;flex-direction:column;gap:14px}
+  .msg{display:flex;gap:9px;max-width:88%}
+  .msg .av{width:34px;height:34px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid #fff;box-shadow:var(--shadow-sm)}
+  .msg .body{display:flex;flex-direction:column;gap:3px}
+  .msg .who{font-size:11px;font-weight:700;color:var(--ink-soft)}
+  .bubble{padding:11px 14px;border-radius:16px;font-size:13.5px;line-height:1.5}
+
+  /* 승환 = blue (left) */
+  .msg.sh .av{background:linear-gradient(135deg,var(--blue-soft),var(--blue));border-color:var(--blue)}
+  .msg.sh .who{color:var(--blue)}
+  .msg.sh .bubble{background:var(--blue-tint);border-top-left-radius:5px;color:#2C3E4C}
+
+  /* 수정 = coral (right) */
+  .msg.su{flex-direction:row-reverse;align-self:flex-end;text-align:right}
+  .msg.su .av{background:linear-gradient(135deg,var(--coral-soft),var(--coral));border-color:var(--coral)}
+  .msg.su .who{color:var(--coral)}
+  .msg.su .body{align-items:flex-end}
+  .msg.su .bubble{background:var(--coral-tint);border-top-right-radius:5px;color:#5A392E}
+
+  .bubble .photo-in{height:110px;border-radius:12px;margin-top:8px;background:linear-gradient(135deg,#C7DEF0,#9DBFD9);display:flex;align-items:center;justify-content:center;font-size:34px}
+
+  /* heart reaction */
+  .reactbar{
+    margin:20px 0 4px;display:flex;flex-direction:column;align-items:center;gap:10px;
+  }
+  .hearts{display:flex;gap:10px}
+  .heart{
+    width:46px;height:46px;border-radius:50%;background:var(--card);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:var(--shadow-sm);
+  }
+  .heart.on{background:linear-gradient(120deg,var(--blue),var(--coral));border:none}
+  .react-cnt{font-size:12px;color:var(--ink-soft);font-weight:600}
+  .react-cnt b{color:var(--coral)}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="verlabel">듀오톤 코럴×블루 · 공개된 일기 상세</div>
+    <div class="status"></div>
+
+    <div class="navbar">
+      <div class="back">‹</div>
+      <div class="date">7월 3일 (목)</div>
+      <div class="more">⋯</div>
+    </div>
+
+    <div class="scroll">
+      <div class="recap">
+        <div class="ic">🎞️</div>
+        <div>
+          <div class="r-tag">1년 전 오늘</div>
+          <div class="r-txt">작년 이맘때, 을지로에서 처음 노가리 골목 갔던 밤이에요</div>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="sm-row">
+          <div class="chip"><span class="st">★★★★★</span></div>
+          <div class="chip loc">📍 한강 반포지구</div>
+          <div class="chip mood">🥰 설렘</div>
+        </div>
+        <div class="photo">
+          <div class="p-emoji">🌉</div>
+          <div class="p-cap">노을 지던 반포대교, 치킨에 맥주 한 잔</div>
+        </div>
+      </div>
+
+      <div class="thread">
+        <div class="msg sh">
+          <div class="av">🧑🏻</div>
+          <div class="body">
+            <div class="who">승환</div>
+            <div class="bubble">오늘 한강 진짜 좋았다. 돗자리 펴자마자 노을 딱 지는데 타이밍 미쳤음 ㅋㅋ 네 표정 보니까 더 좋더라.</div>
+          </div>
+        </div>
+
+        <div class="msg su">
+          <div class="av">👩🏻</div>
+          <div class="body">
+            <div class="who">수정</div>
+            <div class="bubble">헐 나도 노을 보고 놀랐잖아 🥹 치킨도 완벽했고… 우리 다음엔 성수에서 자전거 타기로 한 거 잊지 마!</div>
+          </div>
+        </div>
+
+        <div class="msg sh">
+          <div class="av">🧑🏻</div>
+          <div class="body">
+            <div class="who">승환</div>
+            <div class="bubble">당연하지 ㅋㅋ 캘린더에 벌써 적어놨어. 오늘 사진 이거 진짜 잘 나옴
+              <div class="photo-in">📷</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="msg su">
+          <div class="av">👩🏻</div>
+          <div class="body">
+            <div class="who">수정</div>
+            <div class="bubble">인생샷이다 진짜… 오늘 별 다섯 개 확정 ⭐️ 고마워 오빠 💙🧡</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reactbar">
+        <div class="hearts">
+          <div class="heart on">💙</div>
+          <div class="heart on">🧡</div>
+          <div class="heart">➕</div>
+        </div>
+        <div class="react-cnt">두 사람 모두 하트를 남겼어요 · <b>오늘도 함께 채운 하루</b></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

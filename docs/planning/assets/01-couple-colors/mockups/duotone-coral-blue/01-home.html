@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 1-A 스티커 달력 홈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#7FA8C9;        /* 승환 */
+    --blue-soft:#9DBFD9;
+    --blue-tint:#EAF1F7;
+    --coral:#FF8A6B;       /* 수정 */
+    --coral-soft:#FFA98C;
+    --coral-tint:#FFEDE6;
+    --cream:#FBF7F2;
+    --card:#FFFFFF;
+    --ink:#3A3A42;
+    --ink-soft:#8C8A92;
+    --line:#EFE9E1;
+    --shadow:0 8px 24px rgba(120,110,100,.10);
+    --shadow-sm:0 3px 10px rgba(120,110,100,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:#E9E2D9;
+    font-family:'Gothic A1',sans-serif;
+    color:var(--ink);
+    display:flex;justify-content:center;align-items:flex-start;
+    min-height:100vh;padding:28px 0;
+  }
+  .phone{
+    width:390px;min-height:800px;background:var(--cream);
+    border-radius:42px;overflow:hidden;position:relative;
+    box-shadow:0 24px 60px rgba(80,70,60,.28);
+    display:flex;flex-direction:column;
+  }
+  .verlabel{
+    position:absolute;top:12px;left:50%;transform:translateX(-50%);
+    font-size:10px;letter-spacing:.4px;color:var(--ink-soft);
+    background:rgba(255,255,255,.7);padding:3px 10px;border-radius:20px;z-index:20;
+  }
+  .status{height:38px}
+
+  /* ---- Header ---- */
+  header{padding:14px 22px 10px}
+  .toprow{display:flex;justify-content:space-between;align-items:center}
+  .logo{font-family:'Jua',sans-serif;font-size:26px;color:var(--ink);letter-spacing:.5px}
+  .logo b{color:var(--coral)}
+  .logo .b2{color:var(--blue)}
+  .couple{display:flex;align-items:center;gap:0}
+  .avatar{
+    width:40px;height:40px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:19px;
+    border:2.5px solid #fff;box-shadow:var(--shadow-sm);
+  }
+  .av-sh{background:linear-gradient(135deg,#9DBFD9,#7FA8C9);border-color:var(--blue);margin-right:-12px;z-index:2}
+  .av-su{background:linear-gradient(135deg,#FFA98C,#FF8A6B);border-color:var(--coral);z-index:1}
+
+  .dday{
+    margin-top:14px;
+    background:linear-gradient(100deg,var(--blue) 0%,var(--blue-soft) 40%,var(--coral-soft) 62%,var(--coral) 100%);
+    border-radius:20px;padding:13px 18px;color:#fff;
+    display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 8px 20px rgba(255,138,107,.22);
+  }
+  .dday .names{font-weight:700;font-size:15px}
+  .dday .names span{opacity:.9;font-weight:500}
+  .dday .count{font-weight:800;font-size:22px;font-family:'Jua',sans-serif;letter-spacing:.5px}
+  .dday .count small{font-size:12px;font-weight:600;opacity:.9}
+
+  /* ---- memory banner ---- */
+  .memory{
+    margin:14px 22px 0;background:var(--card);border-radius:18px;
+    padding:12px 14px;display:flex;align-items:center;gap:12px;
+    box-shadow:var(--shadow-sm);border:1px solid var(--line);
+  }
+  .memory .thumb{
+    width:46px;height:46px;border-radius:14px;flex:none;
+    background:linear-gradient(135deg,#FFD9C7,#B9D3E6);
+    display:flex;align-items:center;justify-content:center;font-size:22px;
+  }
+  .memory .m-txt{flex:1}
+  .memory .m-tag{font-size:11px;color:var(--coral);font-weight:700}
+  .memory .m-title{font-size:13.5px;font-weight:600;margin-top:2px}
+  .memory .m-sub{font-size:11.5px;color:var(--ink-soft);margin-top:1px}
+  .memory .arrow{color:var(--ink-soft);font-size:16px}
+
+  /* ---- month bar ---- */
+  .monthbar{display:flex;align-items:center;justify-content:center;gap:16px;margin:18px 0 8px}
+  .monthbar .mo{font-size:19px;font-weight:800}
+  .monthbar .nav{color:var(--ink-soft);font-size:16px;width:26px;height:26px;display:flex;align-items:center;justify-content:center}
+
+  /* ---- calendar ---- */
+  .cal{padding:0 16px}
+  .dow{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px}
+  .dow span{text-align:center;font-size:11px;font-weight:700;color:var(--ink-soft);padding:4px 0}
+  .dow .sun{color:var(--coral)}
+  .dow .sat{color:var(--blue)}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .cell{
+    aspect-ratio:1/1.08;border-radius:14px;background:var(--card);
+    border:1px solid var(--line);position:relative;
+    display:flex;flex-direction:column;align-items:center;padding-top:6px;
+    box-shadow:var(--shadow-sm);
+  }
+  .cell .dnum{font-size:11px;font-weight:600;color:var(--ink-soft)}
+  .cell .emoji{font-size:19px;line-height:1;margin-top:2px}
+  .cell .stars{font-size:8px;color:#F5B54B;letter-spacing:-1px;margin-top:1px}
+  .cell.empty{background:transparent;border:1px dashed #E4DBCF;box-shadow:none}
+  .cell.future{background:#FCFAF6;border-color:#F1EBE2;box-shadow:none}
+  .cell.future .dnum{color:#C8C2B8}
+  .cell.out{visibility:hidden}
+
+  /* fill dots (bottom) */
+  .fill{position:absolute;bottom:6px;display:flex;gap:3px}
+  .dot{width:6px;height:6px;border-radius:50%}
+  .dot.blue{background:var(--blue)}
+  .dot.coral{background:var(--coral)}
+  /* half-fill: 둘 다 작성 → 배경 하프 */
+  .cell.both{
+    background:linear-gradient(105deg,var(--blue-tint) 0 50%,var(--coral-tint) 50% 100%);
+    border-color:#E7DFD5;
+  }
+  .cell.only-sh{background:var(--blue-tint);border-color:#DCE7F0}
+  .cell.only-su{background:var(--coral-tint);border-color:#F5DED4}
+
+  /* today */
+  .cell.today{
+    border:2px solid transparent;
+    background:
+      linear-gradient(var(--card),var(--card)) padding-box,
+      linear-gradient(120deg,var(--blue),var(--coral)) border-box;
+    box-shadow:0 6px 16px rgba(255,138,107,.22);
+  }
+  .cell.today .dnum{color:var(--coral);font-weight:800}
+  .cell.today .todaytag{
+    position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+    font-size:8px;font-weight:800;color:#fff;padding:2px 7px;border-radius:10px;
+    background:linear-gradient(120deg,var(--blue),var(--coral));white-space:nowrap;
+  }
+
+  /* ---- progress ---- */
+  .progress{margin:18px 22px 0;background:var(--card);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow-sm);border:1px solid var(--line)}
+  .progress .p-top{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;margin-bottom:8px}
+  .progress .p-top b{font-size:14px}
+  .progress .p-top .frac b{color:var(--coral)}
+  .bar{height:9px;border-radius:20px;background:#F0EAE1;overflow:hidden}
+  .bar span{display:block;height:100%;width:66%;border-radius:20px;
+    background:linear-gradient(90deg,var(--blue),var(--coral))}
+
+  /* ---- tabbar ---- */
+  .tabbar{
+    margin-top:auto;display:flex;justify-content:space-around;align-items:center;
+    padding:12px 20px 26px;background:var(--card);border-top:1px solid var(--line);
+  }
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--ink-soft);font-weight:600}
+  .tab .ic{font-size:20px;filter:grayscale(1);opacity:.55}
+  .tab.on{color:var(--coral)}
+  .tab.on .ic{filter:none;opacity:1}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="verlabel">듀오톤 코럴×블루 · 1-A 스티커 달력 홈</div>
+    <div class="status"></div>
+
+    <header>
+      <div class="toprow">
+        <div class="logo"><span class="b2">투</span><b>데</b>이</div>
+        <div class="couple">
+          <div class="avatar av-sh">🧑🏻</div>
+          <div class="avatar av-su">👩🏻</div>
+        </div>
+      </div>
+
+      <div class="dday">
+        <div class="names">승환 <span>&amp;</span> 수정</div>
+        <div class="count">D+<span>428</span> <small>일째</small></div>
+      </div>
+    </header>
+
+    <div class="memory">
+      <div class="thumb">🌸</div>
+      <div class="m-txt">
+        <div class="m-tag">1년 전 오늘</div>
+        <div class="m-title">성수 골목 데이트, 벚꽃 폈던 날</div>
+        <div class="m-sub">둘 다 ★★★★★ · 기분 최고였어요</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
+
+    <div class="monthbar">
+      <div class="nav">‹</div>
+      <div class="mo">2026년 7월</div>
+      <div class="nav">›</div>
+    </div>
+
+    <div class="cal">
+      <div class="dow">
+        <span class="sun">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span class="sat">토</span>
+      </div>
+      <div class="grid">
+        <!-- week 1 : starts Wed(1일) -->
+        <div class="cell out"></div>
+        <div class="cell out"></div>
+        <div class="cell both"><span class="dnum">1</span><span class="emoji">😊</span><span class="fill"><span class="dot blue"></span><span class="dot coral"></span></span></div>
+        <div class="cell only-su"><span class="dnum">2</span><span class="emoji">🥰</span><span class="fill"><span class="dot coral"></span></span></div>
+        <div class="cell both"><span class="dnum">3</span><span class="emoji">😋</span><span class="fill"><span class="dot blue"></span><span class="dot coral"></span></span></div>
+        <div class="cell only-sh"><span class="dnum">4</span><span class="emoji">😌</span><span class="fill"><span class="dot blue"></span></span></div>
+        <div class="cell both"><span class="dnum">5</span><span class="emoji">😍</span><span class="fill"><span class="dot blue"></span><span class="dot coral"></span></span></div>
+
+        <!-- week 2 -->
+        <div class="cell both"><span class="dnum">6</span><span class="emoji">😊</span><span class="fill"><span class="dot blue"></span><span class="dot coral"></span></span></div>
+        <div class="cell"><span class="dnum">7</span></div>
+        <div class="cell only-sh"><span class="dnum">8</span><span class="emoji">😅</span><span class="fill"><span class="dot blue"></span></span></div>
+        <div class="cell both"><span class="dnum">9</span><span class="emoji">🥰</span><span class="fill"><span class="dot blue"></span><span class="dot coral"></span></span></div>
+        <div class="cell only-su"><span class="dnum">10</span><span class="emoji">😆</span><span class="fill"><span class="dot coral"></span></span></div>
+        <div class="cell both"><span class="dnum">11</span><span class="emoji">😍</span><span class="fill"><span class="dot blue"></span><span class="dot coral"></span></span></div>
+        <div class="cell both"><span class="dnum">12</span><span class="emoji">😴</span><span class="fill"><span class="dot blue"></span><span class="dot coral"></span></span></div>
+
+        <!-- week 3 : today = 4th? no, today=4 already used. Make today = 15 (per 2026-07-04 note we keep July but highlight 4 above). Use 15 as today.-->
+        <div class="cell only-su"><span class="dnum">13</span><span class="emoji">😊</span><span class="fill"><span class="dot coral"></span></span></div>
+        <div class="cell both"><span class="dnum">14</span><span class="emoji">🥰</span><span class="fill"><span class="dot blue"></span><span class="dot coral"></span></span></div>
+        <div class="cell today"><span class="todaytag">오늘</span><span class="dnum">15</span><span class="emoji">✍️</span></div>
+        <div class="cell future"><span class="dnum">16</span></div>
+        <div class="cell future"><span class="dnum">17</span></div>
+        <div class="cell future"><span class="dnum">18</span></div>
+        <div class="cell future"><span class="dnum">19</span></div>
+
+        <!-- week 4 -->
+        <div class="cell future"><span class="dnum">20</span></div>
+        <div class="cell future"><span class="dnum">21</span></div>
+        <div class="cell future"><span class="dnum">22</span></div>
+        <div class="cell future"><span class="dnum">23</span></div>
+        <div class="cell future"><span class="dnum">24</span></div>
+        <div class="cell future"><span class="dnum">25</span></div>
+        <div class="cell future"><span class="dnum">26</span></div>
+
+        <!-- week 5 -->
+        <div class="cell future"><span class="dnum">27</span></div>
+        <div class="cell future"><span class="dnum">28</span></div>
+        <div class="cell future"><span class="dnum">29</span></div>
+        <div class="cell future"><span class="dnum">30</span></div>
+        <div class="cell future"><span class="dnum">31</span></div>
+        <div class="cell out"></div>
+        <div class="cell out"></div>
+      </div>
+    </div>
+
+    <div class="progress">
+      <div class="p-top">
+        <b>이번 달 함께 채움</b>
+        <div class="frac"><b>9</b> / 14일</div>
+      </div>
+      <div class="bar"><span></span></div>
+    </div>
+
+    <nav class="tabbar">
+      <div class="tab on"><span class="ic">📅</span>달력</div>
+      <div class="tab"><span class="ic">🗺️</span>지도</div>
+      <div class="tab"><span class="ic">⚙️</span>설정</div>
+    </nav>
+  </div>
+</body>
+</html>
