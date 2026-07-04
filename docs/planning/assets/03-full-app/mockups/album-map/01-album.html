@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 앨범</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Gothic A1', sans-serif;
+    background:#F2E6DC;
+    display:flex; flex-direction:column; align-items:center;
+    padding:40px 0 60px; color:#5A4038;
+  }
+  .screen-label {
+    font-size:12px; font-weight:600; color:#9C7A6B;
+    letter-spacing:.06em; margin-bottom:12px;
+  }
+  .phone {
+    width:390px; height:844px; background:#FFF6EF;
+    border-radius:44px; overflow:hidden; position:relative;
+    box-shadow:0 24px 60px rgba(90,64,56,.18), 0 4px 14px rgba(90,64,56,.10);
+    display:flex; flex-direction:column;
+  }
+  /* status bar */
+  .statusbar {
+    height:48px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px 0 32px; font-size:14px; font-weight:700; color:#5A4038;
+    flex-shrink:0;
+  }
+  .statusbar .icons { display:flex; gap:6px; align-items:center; font-size:12px; letter-spacing:-1px; }
+
+  /* header */
+  .header { padding:8px 22px 4px; flex-shrink:0; }
+  .header .logo { font-family:'Jua'; font-size:15px; color:#FF8E72; margin-bottom:4px; }
+  .header h1 { font-size:22px; font-weight:800; letter-spacing:-.02em; }
+  .header .count { font-size:13px; color:#7A5A4E; margin-top:4px; font-weight:500; }
+  .header .count b { color:#FF8E72; font-weight:700; }
+
+  /* filter chips */
+  .chips { display:flex; gap:8px; padding:14px 22px 12px; flex-shrink:0; }
+  .chip {
+    padding:8px 16px; border-radius:20px; font-size:13px; font-weight:600;
+    background:#FFFDFA; color:#7A5A4E; border:1px solid #F3E0D4;
+    box-shadow:0 2px 6px rgba(90,64,56,.05);
+  }
+  .chip.active {
+    background:#FF8E72; color:#fff; border-color:#FF8E72;
+    box-shadow:0 4px 12px rgba(255,142,114,.35);
+  }
+
+  /* scroll area */
+  .scroll { flex:1; overflow-y:auto; padding:0 18px 110px; }
+  .scroll::-webkit-scrollbar { display:none; }
+
+  .month {
+    display:flex; align-items:baseline; gap:8px;
+    padding:14px 4px 10px;
+  }
+  .month h2 { font-size:15px; font-weight:800; }
+  .month span { font-size:12px; color:#B08A7A; font-weight:500; }
+
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .ph {
+    aspect-ratio:1/1; border-radius:16px; position:relative; overflow:hidden;
+    box-shadow:0 3px 8px rgba(90,64,56,.08);
+  }
+  .ph .badge {
+    position:absolute; left:6px; bottom:6px;
+    background:rgba(90,64,56,.55); backdrop-filter:blur(3px);
+    color:#FFF6EF; font-size:9px; font-weight:600;
+    padding:3px 7px; border-radius:10px; display:flex; align-items:center; gap:2px;
+    max-width:calc(100% - 12px); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .ph .fav {
+    position:absolute; right:6px; top:6px; font-size:11px;
+    filter:drop-shadow(0 1px 2px rgba(90,64,56,.35));
+  }
+  .ph .play {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  }
+  .ph .play span {
+    width:30px; height:30px; border-radius:50%;
+    background:rgba(255,253,250,.85); color:#FF8E72;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; padding-left:2px;
+    box-shadow:0 2px 8px rgba(90,64,56,.2);
+  }
+
+  /* warm-tone photo gradients */
+  .g1 { background:linear-gradient(135deg,#FFC7B0 0%,#FF8E72 60%,#E96F55 100%); }
+  .g2 { background:linear-gradient(160deg,#FFE3C8 0%,#FFB98F 55%,#E8926B 100%); }
+  .g3 { background:linear-gradient(145deg,#F7D9B8 0%,#E8AE84 50%,#B97B5C 100%); }
+  .g4 { background:linear-gradient(150deg,#FFD9C4 0%,#F5A98A 45%,#C97F63 100%); }
+  .g5 { background:linear-gradient(140deg,#FCE8D5 0%,#F2BE9A 55%,#D68F6C 100%); }
+  .g6 { background:linear-gradient(155deg,#FFCDB5 0%,#EE9B78 50%,#A66A52 100%); }
+  .g7 { background:linear-gradient(130deg,#FFE9DA 0%,#FFC0A0 50%,#EE8C68 100%); }
+  .g8 { background:linear-gradient(165deg,#F3CDAE 0%,#D99C77 55%,#96604A 100%); }
+  .g9 { background:linear-gradient(140deg,#FFD2BC 10%,#FB9C77 60%,#D46E52 100%); }
+  .g10 { background:linear-gradient(150deg,#FBE2CC 0%,#EFB48D 50%,#C5825F 100%); }
+  .g11 { background:linear-gradient(135deg,#FFC9AE 0%,#F09070 55%,#B4664E 100%); }
+  .g12 { background:linear-gradient(160deg,#FFEBDD 0%,#FFC4A6 45%,#E58A66 100%); }
+  .g13 { background:linear-gradient(145deg,#F6D4B4 0%,#E3A377 55%,#AD6F52 100%); }
+  .g14 { background:linear-gradient(150deg,#FFDECA 0%,#F8A985 50%,#D57A5B 100%); }
+
+  /* sun/scene accents inside thumbnails */
+  .ph::after {
+    content:""; position:absolute; width:22px; height:22px; border-radius:50%;
+    background:rgba(255,251,246,.5); top:14%; right:16%;
+    box-shadow:0 0 14px 6px rgba(255,251,246,.35);
+  }
+  .ph.no-sun::after { display:none; }
+
+  /* bottom tab bar */
+  .tabbar {
+    position:absolute; left:0; right:0; bottom:0;
+    background:rgba(255,253,250,.96); backdrop-filter:blur(10px);
+    border-top:1px solid #F6E5D9;
+    display:flex; align-items:flex-start; justify-content:space-around;
+    padding:10px 8px 24px; z-index:20;
+  }
+  .tab {
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    font-size:10px; font-weight:600; color:#C4A294; width:60px;
+  }
+  .tab .ic { font-size:20px; line-height:1; }
+  .tab.active { color:#FF8E72; }
+  .tab.write .ic {
+    width:44px; height:44px; margin-top:-22px; border-radius:50%;
+    background:linear-gradient(145deg,#FFA98C,#FF8E72);
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:22px; box-shadow:0 6px 16px rgba(255,142,114,.45);
+  }
+</style>
+</head>
+<body>
+<div class="screen-label">01 · 앨범 탭 — 월별 사진 그리드</div>
+<div class="phone">
+  <div class="statusbar">
+    <span>9:41</span>
+    <span class="icons">▮▮▮▮ ⏻ 🔋</span>
+  </div>
+
+  <div class="header">
+    <div class="logo">투데이</div>
+    <h1>우리의 앨범</h1>
+    <div class="count">사진 <b>128장</b> · 일기에서 자동으로 모였어요</div>
+  </div>
+
+  <div class="chips">
+    <div class="chip active">전체</div>
+    <div class="chip">즐겨찾기</div>
+    <div class="chip">영상</div>
+  </div>
+
+  <div class="scroll">
+    <div class="month"><h2>2026년 7월</h2><span>사진 9장</span></div>
+    <div class="grid">
+      <div class="ph g1"><div class="badge">📍 한강공원</div></div>
+      <div class="ph g2 no-sun"><div class="fav">🧡</div></div>
+      <div class="ph g3"></div>
+      <div class="ph g4 no-sun"><div class="badge">📍 성수동</div></div>
+      <div class="ph g5"><div class="play"><span>▶</span></div></div>
+      <div class="ph g6 no-sun"></div>
+      <div class="ph g7"><div class="badge">📍 을지로</div><div class="fav">🧡</div></div>
+      <div class="ph g8 no-sun"></div>
+      <div class="ph g9"></div>
+    </div>
+
+    <div class="month"><h2>2026년 6월</h2><span>사진 14장</span></div>
+    <div class="grid">
+      <div class="ph g10 no-sun"><div class="badge">📍 강릉 안목해변</div></div>
+      <div class="ph g11"></div>
+      <div class="ph g12 no-sun"><div class="fav">🧡</div></div>
+      <div class="ph g13"><div class="play"><span>▶</span></div></div>
+      <div class="ph g14 no-sun"></div>
+      <div class="ph g2"><div class="badge">📍 성수동</div></div>
+      <div class="ph g6"></div>
+      <div class="ph g4 no-sun"></div>
+      <div class="ph g1 no-sun"><div class="badge">📍 한강공원</div></div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab"><span class="ic">🗓️</span>캘린더</div>
+    <div class="tab active"><span class="ic">🖼️</span>앨범</div>
+    <div class="tab write"><span class="ic">＋</span>기록</div>
+    <div class="tab"><span class="ic">💬</span>대화</div>
+    <div class="tab"><span class="ic">👤</span>마이</div>
+  </div>
+</div>
+</body>
+</html>

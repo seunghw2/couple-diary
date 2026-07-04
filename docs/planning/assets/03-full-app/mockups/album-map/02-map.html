@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 지도</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Gothic A1', sans-serif;
+    background:#F2E6DC;
+    display:flex; flex-direction:column; align-items:center;
+    padding:40px 0 60px; color:#5A4038;
+  }
+  .screen-label {
+    font-size:12px; font-weight:600; color:#9C7A6B;
+    letter-spacing:.06em; margin-bottom:12px;
+  }
+  .phone {
+    width:390px; height:844px; background:#FFF6EF;
+    border-radius:44px; overflow:hidden; position:relative;
+    box-shadow:0 24px 60px rgba(90,64,56,.18), 0 4px 14px rgba(90,64,56,.10);
+    display:flex; flex-direction:column;
+  }
+  .statusbar {
+    height:48px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px 0 32px; font-size:14px; font-weight:700; color:#5A4038;
+    flex-shrink:0; position:relative; z-index:30;
+  }
+  .statusbar .icons { display:flex; gap:6px; align-items:center; font-size:12px; letter-spacing:-1px; }
+
+  .header { padding:8px 22px 0; flex-shrink:0; position:relative; z-index:30; }
+  .header .logo { font-family:'Jua'; font-size:15px; color:#FF8E72; margin-bottom:4px; }
+  .header h1 { font-size:22px; font-weight:800; letter-spacing:-.02em; }
+
+  /* segment toggle: 앨범 | 지도 */
+  .segment {
+    margin:12px 22px 14px; display:flex; background:#FBEADF;
+    border-radius:16px; padding:4px; flex-shrink:0; position:relative; z-index:30;
+  }
+  .segment div {
+    flex:1; text-align:center; padding:9px 0; font-size:13px; font-weight:700;
+    border-radius:12px; color:#A87F6F;
+  }
+  .segment .on {
+    background:#FFFDFA; color:#FF8E72;
+    box-shadow:0 3px 8px rgba(90,64,56,.10);
+  }
+
+  /* ---- map ---- */
+  .map {
+    flex:1; position:relative; overflow:hidden;
+    background:
+      radial-gradient(circle at 22% 30%, #FFF3E6 0%, transparent 45%),
+      radial-gradient(circle at 78% 65%, #FDEBDC 0%, transparent 50%),
+      linear-gradient(160deg,#FFF9F1 0%,#FBEDDF 100%);
+  }
+  /* soft district blobs */
+  .blob { position:absolute; border-radius:50%; opacity:.5; }
+  .b1 { width:180px; height:130px; background:#F8E3D0; left:6%; top:8%; border-radius:48% 60% 55% 45%; }
+  .b2 { width:150px; height:110px; background:#FAE6D2; right:4%; top:22%; border-radius:60% 45% 55% 50%; }
+  .b3 { width:200px; height:140px; background:#F6DFCC; left:18%; bottom:6%; border-radius:52% 58% 46% 55%; }
+
+  /* Han river curve */
+  .river {
+    position:absolute; left:-40px; right:-40px; top:44%; height:64px;
+    background:linear-gradient(180deg,#CFE4E4 0%,#BFD9DA 100%);
+    border-radius:100% 60% 80% 100% / 70px 40px 60px 50px;
+    transform:rotate(-7deg); opacity:.85;
+    box-shadow:inset 0 3px 8px rgba(140,170,170,.25);
+  }
+  .river2 {
+    position:absolute; left:-30px; width:220px; top:41.5%; height:34px;
+    background:#C7DEDF; border-radius:0 80% 100% 0 / 0 30px 34px 0;
+    transform:rotate(4deg); opacity:.8;
+  }
+
+  /* roads */
+  .road { position:absolute; background:#F0DCC9; border-radius:4px; }
+  .r1 { width:2.5px; height:60%; left:30%; top:0; transform:rotate(9deg); }
+  .r2 { width:2.5px; height:70%; left:62%; top:-4%; transform:rotate(-6deg); }
+  .r3 { width:80%; height:2.5px; left:8%; top:24%; transform:rotate(-3deg); }
+  .r4 { width:90%; height:2.5px; left:2%; top:66%; transform:rotate(2deg); }
+  .r5 { width:60%; height:2px; left:32%; top:80%; transform:rotate(-8deg); opacity:.8; }
+  .r6 { width:2px; height:40%; left:84%; top:52%; transform:rotate(12deg); opacity:.8; }
+
+  /* district labels */
+  .dlabel { position:absolute; font-size:10px; font-weight:600; color:#C6A28F; letter-spacing:.08em; }
+
+  /* heart pins */
+  .pin { position:absolute; display:flex; flex-direction:column; align-items:center; z-index:10; }
+  .pin .heart {
+    width:40px; height:40px; position:relative;
+    display:flex; align-items:center; justify-content:center;
+    filter:drop-shadow(0 5px 8px rgba(233,111,85,.4));
+  }
+  .pin .heart::before {
+    content:"❤"; font-size:38px; color:#FF8E72; position:absolute;
+    -webkit-text-stroke:1px #F27C5E;
+  }
+  .pin .num {
+    position:relative; z-index:2; color:#fff; font-size:12px; font-weight:800;
+    margin-top:-4px;
+  }
+  .pin .name {
+    margin-top:2px; background:#FFFDFA; color:#5A4038;
+    font-size:10px; font-weight:700; padding:3px 9px; border-radius:10px;
+    box-shadow:0 2px 6px rgba(90,64,56,.15); white-space:nowrap;
+  }
+  .pin.small .heart { transform:scale(.82); }
+  .pin.big .heart { transform:scale(1.15); }
+
+  /* mini pin for 강릉 corner card */
+  .farcard {
+    position:absolute; right:14px; top:14px; z-index:12;
+    background:#FFFDFA; border-radius:14px; padding:8px 12px;
+    box-shadow:0 4px 12px rgba(90,64,56,.12);
+    display:flex; align-items:center; gap:7px;
+    font-size:11px; font-weight:700; color:#5A4038;
+  }
+  .farcard .mini { color:#FF8E72; font-size:15px; }
+  .farcard span b { color:#FF8E72; }
+  .farcard small { display:block; font-size:9px; font-weight:500; color:#A87F6F; }
+
+  /* ---- bottom sheet ---- */
+  .sheet {
+    position:absolute; left:0; right:0; bottom:0; z-index:20;
+    background:#FFFDFA; border-radius:28px 28px 0 0;
+    box-shadow:0 -10px 30px rgba(90,64,56,.14);
+    padding:10px 22px 108px;
+  }
+  .sheet .handle {
+    width:44px; height:5px; border-radius:3px; background:#F0DBCC;
+    margin:2px auto 14px;
+  }
+  .sheet h3 { font-size:16px; font-weight:800; }
+  .sheet h3 b { color:#FF8E72; }
+  .sheet .sub { font-size:12px; color:#A87F6F; margin-top:3px; font-weight:500; }
+
+  .place {
+    display:flex; align-items:center; gap:12px;
+    background:#FFF6EF; border:1px solid #F8E6D8;
+    border-radius:18px; padding:12px 14px; margin-top:12px;
+  }
+  .place .thumb {
+    width:46px; height:46px; border-radius:14px; flex-shrink:0;
+    box-shadow:0 3px 7px rgba(90,64,56,.12);
+  }
+  .t1 { background:linear-gradient(135deg,#FFC7B0,#FF8E72); }
+  .t2 { background:linear-gradient(150deg,#F7D9B8,#D68F6C); }
+  .place .info { flex:1; min-width:0; }
+  .place .info .nm { font-size:14px; font-weight:700; }
+  .place .info .meta { font-size:11px; color:#A87F6F; margin-top:3px; font-weight:500; }
+  .place .cnt {
+    background:#FFE3D6; color:#F2764F; font-size:11px; font-weight:800;
+    padding:5px 10px; border-radius:12px; flex-shrink:0;
+  }
+
+  /* bottom tab bar */
+  .tabbar {
+    position:absolute; left:0; right:0; bottom:0;
+    background:rgba(255,253,250,.96); backdrop-filter:blur(10px);
+    border-top:1px solid #F6E5D9;
+    display:flex; align-items:flex-start; justify-content:space-around;
+    padding:10px 8px 24px; z-index:40;
+  }
+  .tab {
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    font-size:10px; font-weight:600; color:#C4A294; width:60px;
+  }
+  .tab .ic { font-size:20px; line-height:1; }
+  .tab.active { color:#FF8E72; }
+  .tab.write .ic {
+    width:44px; height:44px; margin-top:-22px; border-radius:50%;
+    background:linear-gradient(145deg,#FFA98C,#FF8E72);
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:22px; box-shadow:0 6px 16px rgba(255,142,114,.45);
+  }
+</style>
+</head>
+<body>
+<div class="screen-label">02 · 지도 뷰 — 우리가 함께 간 곳</div>
+<div class="phone">
+  <div class="statusbar">
+    <span>9:41</span>
+    <span class="icons">▮▮▮▮ ⏻ 🔋</span>
+  </div>
+
+  <div class="header">
+    <div class="logo">투데이</div>
+    <h1>추억이 쌓인 곳</h1>
+  </div>
+
+  <div class="segment">
+    <div>앨범</div>
+    <div class="on">지도</div>
+  </div>
+
+  <div class="map">
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+    <div class="road r1"></div><div class="road r2"></div><div class="road r3"></div>
+    <div class="road r4"></div><div class="road r5"></div><div class="road r6"></div>
+    <div class="river2"></div>
+    <div class="river"></div>
+
+    <div class="dlabel" style="left:12%; top:10%;">마포</div>
+    <div class="dlabel" style="right:10%; top:58%;">송파</div>
+    <div class="dlabel" style="left:46%; top:49%;">한강</div>
+
+    <!-- pins: 성수 5 · 을지로 3 · 한강 7 · 강릉 2 -->
+    <div class="pin" style="left:60%; top:16%;">
+      <div class="heart"><span class="num">5</span></div>
+      <div class="name">성수</div>
+    </div>
+    <div class="pin small" style="left:34%; top:24%;">
+      <div class="heart"><span class="num">3</span></div>
+      <div class="name">을지로</div>
+    </div>
+    <div class="pin big" style="left:42%; top:36.5%;">
+      <div class="heart"><span class="num">7</span></div>
+      <div class="name">한강</div>
+    </div>
+
+    <div class="farcard">
+      <span class="mini">❤</span>
+      <span>강릉 <b>2곳</b><small>지도 밖 · 탭해서 이동</small></span>
+    </div>
+  </div>
+
+  <div class="sheet">
+    <div class="handle"></div>
+    <h3>우리가 함께 간 곳 <b>23곳</b></h3>
+    <div class="sub">일기에 기록된 데이트 장소예요</div>
+
+    <div class="place">
+      <div class="thumb t1"></div>
+      <div class="info">
+        <div class="nm">한강공원 잠원지구</div>
+        <div class="meta">마지막 방문 · 2026.07.12 · 피크닉 일기</div>
+      </div>
+      <div class="cnt">7회</div>
+    </div>
+    <div class="place">
+      <div class="thumb t2"></div>
+      <div class="info">
+        <div class="nm">성수동 카페거리</div>
+        <div class="meta">마지막 방문 · 2026.06.28 · 베이글 투어</div>
+      </div>
+      <div class="cnt">5회</div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab"><span class="ic">🗓️</span>캘린더</div>
+    <div class="tab active"><span class="ic">🖼️</span>앨범</div>
+    <div class="tab write"><span class="ic">＋</span>기록</div>
+    <div class="tab"><span class="ic">💬</span>대화</div>
+    <div class="tab"><span class="ic">👤</span>마이</div>
+  </div>
+</div>
+</body>
+</html>

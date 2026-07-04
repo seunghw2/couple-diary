@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 설정</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Gothic A1', sans-serif;
+    background:#EFE6DD;
+    display:flex; flex-direction:column; align-items:center;
+    padding:40px 0 60px; color:#5A4038;
+  }
+  .screen-label {
+    font-size:12px; font-weight:600; color:#9B8478;
+    letter-spacing:.06em; margin-bottom:10px;
+  }
+  .phone {
+    width:390px; height:844px; background:#FFF6EF;
+    border-radius:44px; overflow:hidden; position:relative;
+    box-shadow:0 24px 60px rgba(90,64,56,.22), 0 2px 8px rgba(90,64,56,.10);
+    display:flex; flex-direction:column;
+  }
+  .statusbar {
+    height:48px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px; font-size:14px; font-weight:700; color:#5A4038; flex-shrink:0;
+  }
+  .statusbar .icons { display:flex; gap:6px; align-items:center; }
+  .sig { width:16px; height:10px; display:flex; align-items:flex-end; gap:1.5px; }
+  .sig i { width:2.5px; background:#5A4038; border-radius:1px; }
+  .sig i:nth-child(1){height:4px} .sig i:nth-child(2){height:6px} .sig i:nth-child(3){height:8px} .sig i:nth-child(4){height:10px}
+  .wifi { font-size:11px; }
+  .batt { width:22px; height:11px; border:1.5px solid #5A4038; border-radius:3px; position:relative; }
+  .batt::after { content:''; position:absolute; inset:1.5px; right:5px; background:#5A4038; border-radius:1px; }
+  .batt::before { content:''; position:absolute; right:-4px; top:2.5px; width:2px; height:4px; background:#5A4038; border-radius:0 1px 1px 0; }
+
+  .navbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 20px 12px; flex-shrink:0;
+  }
+  .navbar .back { font-size:20px; font-weight:700; color:#7A5A4E; width:40px; }
+  .navbar .title { font-size:17px; font-weight:800; }
+  .navbar .spacer { width:40px; }
+
+  .content { flex:1; overflow-y:auto; padding:2px 20px 28px; }
+
+  .section-label {
+    font-size:12px; font-weight:800; color:#B0715B; letter-spacing:.04em;
+    margin:18px 0 8px 8px;
+  }
+  .section-label:first-child { margin-top:4px; }
+  .group {
+    background:#FFFDFA; border-radius:20px; overflow:hidden;
+    box-shadow:0 4px 14px rgba(90,64,56,.06);
+  }
+  .row {
+    display:flex; align-items:center; gap:12px;
+    padding:15px 18px; border-bottom:1px solid #FBEADF;
+  }
+  .row:last-child { border-bottom:none; }
+  .row .txt { flex:1; }
+  .row .t { font-size:14.5px; font-weight:700; }
+  .row .s { font-size:11.5px; color:#A98D80; margin-top:3px; }
+  .chev { color:#D9C3B7; font-size:16px; font-weight:700; }
+  .value { font-size:13px; font-weight:700; color:#FF8E72; }
+  .value .caret { color:#D9C3B7; margin-left:2px; font-size:11px; }
+
+  /* coral toggle */
+  .toggle {
+    width:46px; height:27px; border-radius:14px; position:relative; flex-shrink:0;
+    background:linear-gradient(135deg,#FF8E72,#FFA98C);
+    box-shadow:inset 0 1px 2px rgba(90,64,56,.08);
+  }
+  .toggle::after {
+    content:''; position:absolute; top:3px; right:3px;
+    width:21px; height:21px; border-radius:50%; background:#FFFDFA;
+    box-shadow:0 1px 3px rgba(90,64,56,.25);
+  }
+  .toggle.off { background:#EBD9CC; }
+  .toggle.off::after { right:auto; left:3px; }
+
+  .badge-time {
+    display:inline-block; font-size:11px; font-weight:800; color:#FF8E72;
+    background:#FFF0E8; border-radius:8px; padding:2px 7px; margin-left:6px; vertical-align:1px;
+  }
+  .kakao {
+    width:36px; height:36px; border-radius:12px; background:#FEE500;
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; flex-shrink:0;
+  }
+  .linked { font-size:11px; font-weight:800; color:#6BA05F; background:#F0F6EC; border-radius:8px; padding:3px 8px; }
+
+  .row.danger .t { color:#E2574C; }
+  .row.danger .s { color:#D89890; }
+
+  .footer-note {
+    text-align:center; font-size:11px; color:#C9B2A5; margin-top:20px; line-height:1.7;
+  }
+  .footer-note .ver { font-family:'Jua',sans-serif; color:#D9A794; font-size:12px; }
+</style>
+</head>
+<body>
+  <div class="screen-label">03 · 설정</div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">
+        <span class="sig"><i></i><i></i><i></i><i></i></span>
+        <span class="wifi">&#9679;&#9679;&#9679;</span>
+        <span class="batt"></span>
+      </span>
+    </div>
+
+    <div class="navbar">
+      <span class="back">&#8249;</span>
+      <span class="title">설정</span>
+      <span class="spacer"></span>
+    </div>
+
+    <div class="content">
+      <div class="section-label">알림</div>
+      <div class="group">
+        <div class="row">
+          <div class="txt"><div class="t">일기 리마인드 <span class="badge-time">매일 21:00</span></div><div class="s">오늘의 일기를 잊지 않게 알려드려요</div></div>
+          <div class="toggle"></div>
+        </div>
+        <div class="row">
+          <div class="txt"><div class="t">상대 작성 알림</div><div class="s">수정님이 일기를 쓰면 바로 알려드려요</div></div>
+          <div class="toggle"></div>
+        </div>
+        <div class="row">
+          <div class="txt"><div class="t">기념일 알림</div><div class="s">기념일 하루 전 · 당일 아침에 알림</div></div>
+          <div class="toggle"></div>
+        </div>
+      </div>
+
+      <div class="section-label">일기</div>
+      <div class="group">
+        <div class="row">
+          <div class="txt"><div class="t">수정 가능 시간</div><div class="s">작성 후 이 시간 안에만 고칠 수 있어요</div></div>
+          <span class="value">3시간 <span class="caret">&#9660;</span></span>
+        </div>
+        <div class="row">
+          <div class="txt"><div class="t">템플릿 관리</div><div class="s">질문 템플릿 5개 사용 중</div></div>
+          <span class="chev">&#8250;</span>
+        </div>
+      </div>
+
+      <div class="section-label">계정</div>
+      <div class="group">
+        <div class="row">
+          <div class="kakao">&#128172;</div>
+          <div class="txt"><div class="t">카카오 계정</div><div class="s">seu*****2@kakao.com</div></div>
+          <span class="linked">연결됨</span>
+        </div>
+        <div class="row">
+          <div class="txt"><div class="t">데이터 내보내기</div><div class="s">우리의 일기를 PDF · 파일로 저장</div></div>
+          <span class="chev">&#8250;</span>
+        </div>
+      </div>
+
+      <div class="section-label">커플</div>
+      <div class="group">
+        <div class="row">
+          <div class="txt"><div class="t">커플 연결 관리</div><div class="s">수정님과 연결 · D+412</div></div>
+          <span class="chev">&#8250;</span>
+        </div>
+        <div class="row danger">
+          <div class="txt"><div class="t">연결 해제</div><div class="s">해제해도 일기는 30일간 안전하게 보관돼요</div></div>
+          <span class="chev">&#8250;</span>
+        </div>
+      </div>
+
+      <div class="footer-note">
+        <span class="ver">투데이</span> · 버전 2.4.1<br>
+        이용약관 · 개인정보 처리방침
+      </div>
+    </div>
+  </div>
+</body>
+</html>

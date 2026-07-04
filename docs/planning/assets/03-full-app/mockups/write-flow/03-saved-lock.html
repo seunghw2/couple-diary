@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 저장 완료</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Gothic A1', sans-serif;
+    background: #EDE4DB;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 40px 0 80px;
+    color: #5A4038;
+  }
+  .screen-label { font-size: 12px; font-weight: 600; color: #8A7365; letter-spacing: 0.06em; margin-bottom: 12px; }
+  .phone {
+    width: 390px; height: 844px; background: #FFF6EF;
+    border-radius: 44px; overflow: hidden; position: relative;
+    box-shadow: 0 24px 60px rgba(90,64,56,0.18), 0 0 0 10px #3B2E29;
+    display: flex; flex-direction: column;
+  }
+  .statusbar {
+    height: 48px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px; font-size: 14px; font-weight: 700; color: #5A4038; position: relative; z-index: 3;
+  }
+  .statusbar .icons { display: flex; gap: 6px; align-items: center; }
+  .sig { width: 17px; height: 11px; display: flex; align-items: flex-end; gap: 1.5px; }
+  .sig i { width: 2.8px; background: #5A4038; border-radius: 1px; display: block; }
+  .sig i:nth-child(1){height:4px}.sig i:nth-child(2){height:6px}.sig i:nth-child(3){height:8px}.sig i:nth-child(4){height:11px}
+  .wifi { width: 16px; height: 11px; background: #5A4038; clip-path: polygon(50% 100%, 0 0, 100% 0); border-radius: 2px; }
+  .batt { width: 24px; height: 12px; border: 1.5px solid #5A4038; border-radius: 3.5px; position: relative; }
+  .batt::before { content:''; position: absolute; left: 1.5px; top: 1.5px; bottom: 1.5px; width: 14px; background: #5A4038; border-radius: 1.5px; }
+  .batt::after { content:''; position: absolute; right: -4px; top: 3px; width: 2px; height: 4px; background: #5A4038; border-radius: 0 2px 2px 0; }
+
+  /* confetti */
+  .confetti { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+  .cf { position: absolute; border-radius: 2px; opacity: .75; }
+  .cf.c1 { width: 8px; height: 12px; background: #FFC7B0; left: 12%; top: 14%; transform: rotate(24deg); }
+  .cf.c2 { width: 7px; height: 7px; background: #FFA98C; border-radius: 50%; left: 84%; top: 12%; }
+  .cf.c3 { width: 9px; height: 13px; background: #F8D8A8; left: 74%; top: 22%; transform: rotate(-30deg); }
+  .cf.c4 { width: 6px; height: 6px; background: #FF8E72; border-radius: 50%; left: 20%; top: 26%; }
+  .cf.c5 { width: 8px; height: 12px; background: #E8C9E0; left: 9%; top: 40%; transform: rotate(50deg); }
+  .cf.c6 { width: 7px; height: 11px; background: #B8D8C7; left: 88%; top: 37%; transform: rotate(-18deg); }
+  .cf.c7 { width: 6px; height: 6px; background: #F8D8A8; border-radius: 50%; left: 16%; top: 58%; }
+  .cf.c8 { width: 8px; height: 12px; background: #FFC7B0; left: 86%; top: 56%; transform: rotate(35deg); }
+  .cf.c9 { width: 6px; height: 10px; background: #FFA98C; left: 28%; top: 9%; transform: rotate(-45deg); }
+  .cf.c10 { width: 6px; height: 6px; background: #B8D8C7; border-radius: 50%; left: 64%; top: 8%; }
+  .cf.c11 { width: 7px; height: 11px; background: #E8C9E0; left: 78%; top: 70%; transform: rotate(12deg); }
+  .cf.c12 { width: 6px; height: 6px; background: #FF8E72; border-radius: 50%; left: 10%; top: 72%; }
+
+  .main {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    padding: 26px 26px 0; position: relative; z-index: 2;
+  }
+  .top-title { text-align: center; margin-bottom: 26px; }
+  .top-title .big { font-family: 'Jua'; font-size: 24px; color: #5A4038; }
+  .top-title .sub { font-size: 13px; color: #9B7A6A; margin-top: 7px; font-weight: 500; }
+
+  /* lock card */
+  .lock-card {
+    width: 100%; background: #FFFDFA; border-radius: 28px;
+    padding: 34px 26px 28px; text-align: center;
+    box-shadow: 0 14px 36px rgba(90,64,56,0.10);
+  }
+
+  /* envelope illustration */
+  .env-wrap { width: 150px; height: 118px; margin: 0 auto 6px; position: relative; }
+  .env-body {
+    position: absolute; left: 7px; right: 7px; bottom: 8px; height: 84px;
+    background: linear-gradient(180deg, #FFDCCB, #FFC7B0);
+    border-radius: 14px;
+    box-shadow: 0 10px 22px rgba(255,142,114,0.28);
+  }
+  .env-flap {
+    position: absolute; left: 7px; right: 7px; bottom: 44px; height: 56px;
+    background: linear-gradient(180deg, #FFB598, #FFA98C);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    border-radius: 14px 14px 0 0;
+  }
+  .env-lock {
+    position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%);
+    width: 44px; height: 38px; background: #5A4038; border-radius: 12px; z-index: 2;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 14px rgba(90,64,56,0.35);
+  }
+  .env-lock::before {
+    content: ''; position: absolute; top: -16px; width: 26px; height: 26px;
+    border: 5px solid #5A4038; border-bottom: none; border-radius: 14px 14px 0 0;
+  }
+  .env-lock .keyhole { width: 9px; height: 13px; background: #FFC7B0; border-radius: 50% 50% 3px 3px; }
+  .env-check {
+    position: absolute; right: 6px; top: 24px; z-index: 3;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, #8FCBA8, #6FB58C);
+    color: #FFF; font-size: 16px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 5px 12px rgba(111,181,140,0.45), 0 0 0 4px #FFFDFA;
+  }
+
+  .lock-title { font-size: 18px; font-weight: 800; color: #5A4038; margin-top: 14px; }
+  .lock-desc { font-size: 13.5px; color: #8A6A5C; margin-top: 9px; line-height: 1.65; font-weight: 500; }
+  .lock-desc b { color: #FF8E72; font-weight: 700; }
+
+  /* status rows */
+  .status { margin-top: 22px; display: flex; flex-direction: column; gap: 9px; }
+  .st-row {
+    display: flex; align-items: center; gap: 11px;
+    background: #FFF6EF; border-radius: 16px; padding: 12px 15px; text-align: left;
+  }
+  .st-ava {
+    width: 34px; height: 34px; border-radius: 50%; flex: none;
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+    background: linear-gradient(135deg, #FFC7B0, #FFA98C);
+  }
+  .st-ava.her { background: linear-gradient(135deg, #F3E0EE, #E0C4D8); }
+  .st-name { font-size: 13.5px; font-weight: 700; color: #5A4038; flex: 1; }
+  .st-badge { font-size: 11.5px; font-weight: 700; padding: 6px 11px; border-radius: 12px; }
+  .st-badge.done { background: #E4F2E8; color: #4E8C67; }
+  .st-badge.wait { background: #FFEDE4; color: #E07856; }
+
+  /* poke button */
+  .poke-btn {
+    width: 100%; margin-top: 22px; padding: 16px 0; border: none; border-radius: 20px;
+    background: linear-gradient(135deg, #FF9E7E, #FF8E72);
+    color: #FFF; font-family: 'Gothic A1'; font-size: 15.5px; font-weight: 800; letter-spacing: 0.02em;
+    box-shadow: 0 8px 22px rgba(255,142,114,0.45);
+  }
+  .poke-sub { font-size: 11px; color: #B08A78; margin-top: 9px; font-weight: 500; }
+
+  /* footer note */
+  .footer-note {
+    margin-top: auto; margin-bottom: 34px;
+    display: flex; align-items: center; gap: 8px;
+    background: #FFFBF6; border: 1px solid #F3E2D6; border-radius: 16px;
+    padding: 12px 16px; font-size: 12px; color: #9B7A6A; font-weight: 500;
+  }
+  .footer-note .ic { font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="screen-label">03 · 저장 완료 · 잠금 대기</div>
+<div class="phone">
+  <div class="confetti">
+    <div class="cf c1"></div><div class="cf c2"></div><div class="cf c3"></div><div class="cf c4"></div>
+    <div class="cf c5"></div><div class="cf c6"></div><div class="cf c7"></div><div class="cf c8"></div>
+    <div class="cf c9"></div><div class="cf c10"></div><div class="cf c11"></div><div class="cf c12"></div>
+  </div>
+
+  <div class="statusbar">
+    <span>9:41</span>
+    <span class="icons"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="wifi"></span><span class="batt"></span></span>
+  </div>
+
+  <div class="main">
+    <div class="top-title">
+      <div class="big">오늘의 일기 도착!</div>
+      <div class="sub">7월 15일 화요일 · 승환님의 기록</div>
+    </div>
+
+    <div class="lock-card">
+      <div class="env-wrap">
+        <div class="env-flap"></div>
+        <div class="env-body"></div>
+        <div class="env-lock"><div class="keyhole"></div></div>
+        <div class="env-check">✓</div>
+      </div>
+
+      <div class="lock-title">내 일기가 안전하게 저장됐어요</div>
+      <div class="lock-desc"><b>수정님</b>이 쓰면 서로 공개돼요<br>그때까지 봉투 속에서 기다리는 중 💌</div>
+
+      <div class="status">
+        <div class="st-row">
+          <div class="st-ava">🐻</div>
+          <div class="st-name">승환</div>
+          <div class="st-badge done">작성 완료 ✓</div>
+        </div>
+        <div class="st-row">
+          <div class="st-ava her">🐰</div>
+          <div class="st-name">수정</div>
+          <div class="st-badge wait">아직 안 썼어요</div>
+        </div>
+      </div>
+
+      <button class="poke-btn">수정님 콕 찌르기 👉</button>
+      <div class="poke-sub">카카오톡으로 살짝 알림을 보내요</div>
+    </div>
+
+    <div class="footer-note">
+      <span class="ic">⏰</span>
+      <span>작성한 일기는 <b style="color:#FF8E72; font-weight:700;">3시간 뒤</b>부터 수정할 수 있어요</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

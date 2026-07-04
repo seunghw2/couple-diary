@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 일기 작성</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Gothic A1', sans-serif;
+    background: #EDE4DB;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 40px 0 80px;
+    color: #5A4038;
+  }
+  .screen-label {
+    font-size: 12px; font-weight: 600; color: #8A7365;
+    letter-spacing: 0.06em; margin-bottom: 12px;
+  }
+  .phone {
+    width: 390px; background: #FFF6EF;
+    border-radius: 44px; overflow: hidden;
+    box-shadow: 0 24px 60px rgba(90,64,56,0.18), 0 0 0 10px #3B2E29;
+    position: relative;
+  }
+  /* status bar */
+  .statusbar {
+    height: 48px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px; font-size: 14px; font-weight: 700; color: #5A4038;
+    background: #FFF6EF;
+  }
+  .statusbar .icons { display: flex; gap: 6px; align-items: center; }
+  .sig { width: 17px; height: 11px; display: flex; align-items: flex-end; gap: 1.5px; }
+  .sig i { width: 2.8px; background: #5A4038; border-radius: 1px; display: block; }
+  .sig i:nth-child(1){height:4px}.sig i:nth-child(2){height:6px}.sig i:nth-child(3){height:8px}.sig i:nth-child(4){height:11px}
+  .wifi { width: 16px; height: 11px; position: relative; }
+  .wifi::before { content:''; position: absolute; inset: 0; border-radius: 50% 50% 0 0;
+    background: radial-gradient(circle at 50% 100%, #5A4038 0 18%, transparent 19% 42%, #5A4038 43% 62%, transparent 63% 82%, #5A4038 83%);
+    clip-path: polygon(50% 100%, 0 0, 100% 0); }
+  .batt { width: 24px; height: 12px; border: 1.5px solid #5A4038; border-radius: 3.5px; position: relative; }
+  .batt::before { content:''; position: absolute; left: 1.5px; top: 1.5px; bottom: 1.5px; width: 14px; background: #5A4038; border-radius: 1.5px; }
+  .batt::after { content:''; position: absolute; right: -4px; top: 3px; width: 2px; height: 4px; background: #5A4038; border-radius: 0 2px 2px 0; }
+
+  .content { padding: 8px 20px 130px; height: 720px; overflow-y: auto; }
+  .content::-webkit-scrollbar { display: none; }
+
+  /* header */
+  .header { display: flex; align-items: center; justify-content: space-between; padding: 6px 2px 16px; }
+  .header .back {
+    width: 36px; height: 36px; border-radius: 12px; background: #FFFDFA;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(90,64,56,0.08); font-size: 16px; color: #7A5A4E;
+  }
+  .header .titles { text-align: center; }
+  .header .date { font-size: 12px; font-weight: 600; color: #B08A78; letter-spacing: 0.04em; }
+  .header .title { font-family: 'Jua'; font-size: 19px; color: #5A4038; margin-top: 2px; }
+  .header .spacer { width: 36px; }
+
+  /* template chips */
+  .section-label { font-size: 12.5px; font-weight: 700; color: #7A5A4E; margin: 4px 2px 10px; letter-spacing: 0.02em; }
+  .chips { display: flex; gap: 8px; margin-bottom: 20px; }
+  .chip {
+    padding: 9px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    background: #FFFDFA; color: #7A5A4E; border: 1px solid #F3E2D6;
+    box-shadow: 0 2px 6px rgba(90,64,56,0.05);
+  }
+  .chip.active {
+    background: #FF8E72; color: #FFF; border-color: #FF8E72;
+    box-shadow: 0 4px 12px rgba(255,142,114,0.35);
+  }
+
+  /* template form card */
+  .card {
+    background: #FFFDFA; border-radius: 22px; padding: 22px 20px;
+    box-shadow: 0 6px 20px rgba(90,64,56,0.07);
+    margin-bottom: 18px;
+  }
+  .tpl-line { font-size: 15px; font-weight: 500; color: #5A4038; line-height: 2.5; margin-bottom: 14px; }
+  .tpl-line:last-child { margin-bottom: 0; }
+  .blank {
+    display: inline-block; min-width: 110px; padding: 7px 14px; margin: 0 4px;
+    border-radius: 12px; font-size: 14px; font-weight: 600;
+    background: #FFF1E8; border: 1.5px dashed #FFC7B0; color: #5A4038;
+    line-height: 1.4; vertical-align: middle;
+  }
+  .blank.filled { background: #FFEDE4; border: 1.5px solid #FFC7B0; color: #5A4038; }
+  .blank.empty { color: #C7A897; font-weight: 500; }
+  .blank.long { display: block; min-height: 58px; margin: 8px 0 0; padding: 12px 14px; }
+  .cursor { display: inline-block; width: 1.5px; height: 15px; background: #FF8E72; vertical-align: -2px; animation: blink 1.1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* rating & mood card */
+  .row-card { background: #FFFDFA; border-radius: 22px; padding: 18px 20px; box-shadow: 0 6px 20px rgba(90,64,56,0.07); margin-bottom: 18px; }
+  .row-card .row-label { font-size: 12.5px; font-weight: 700; color: #7A5A4E; margin-bottom: 12px; }
+  .stars { display: flex; gap: 8px; align-items: center; }
+  .star { font-size: 27px; color: #F0E0D5; line-height: 1; }
+  .star.on { color: #FFB35C; text-shadow: 0 2px 6px rgba(255,179,92,0.35); }
+  .stars .score { margin-left: auto; font-size: 13px; font-weight: 700; color: #FF8E72; }
+
+  .moods { display: flex; gap: 8px; flex-wrap: wrap; }
+  .mood {
+    padding: 9px 14px; border-radius: 18px; font-size: 13px; font-weight: 600;
+    background: #FFF6EF; color: #7A5A4E; border: 1px solid #F3E2D6;
+  }
+  .mood.active { background: #FFA98C; color: #FFF; border-color: #FFA98C; box-shadow: 0 4px 10px rgba(255,169,140,0.35); }
+
+  /* photos */
+  .photos { display: flex; gap: 10px; }
+  .photo {
+    width: 86px; height: 86px; border-radius: 16px; position: relative;
+    box-shadow: 0 4px 10px rgba(90,64,56,0.12);
+  }
+  .photo.p1 { background: linear-gradient(135deg, #FFD9A8 0%, #FF9E7A 55%, #E86F5C 100%); }
+  .photo.p2 { background: linear-gradient(160deg, #B8D8C7 0%, #8FB9A8 45%, #5E8C7B 100%); }
+  .photo .del {
+    position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%;
+    background: #5A4038; color: #FFF6EF; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .photo-add {
+    width: 86px; height: 86px; border-radius: 16px;
+    border: 1.8px dashed #E8CDBC; background: #FFFBF6;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    color: #C7A897;
+  }
+  .photo-add .plus { font-size: 22px; font-weight: 400; line-height: 1; }
+  .photo-add .txt { font-size: 10.5px; font-weight: 600; }
+
+  /* location chip */
+  .loc-row {
+    display: flex; align-items: center; gap: 10px;
+    background: #FFFDFA; border-radius: 18px; padding: 14px 16px;
+    box-shadow: 0 6px 20px rgba(90,64,56,0.07); margin-bottom: 18px;
+  }
+  .loc-pin {
+    width: 34px; height: 34px; border-radius: 12px; background: #FFEDE4;
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .loc-text { flex: 1; }
+  .loc-text .name { font-size: 14px; font-weight: 700; color: #5A4038; }
+  .loc-text .sub { font-size: 11.5px; color: #B08A78; margin-top: 2px; }
+  .loc-change { font-size: 12.5px; font-weight: 700; color: #FF8E72; padding: 8px 12px; border-radius: 12px; background: #FFF1E8; }
+
+  /* bottom fixed */
+  .bottom {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 14px 20px 26px;
+    background: linear-gradient(to top, #FFF6EF 78%, rgba(255,246,239,0));
+  }
+  .save-btn {
+    width: 100%; padding: 17px 0; border: none; border-radius: 20px;
+    background: linear-gradient(135deg, #FF9E7E, #FF8E72);
+    color: #FFF; font-family: 'Gothic A1'; font-size: 16px; font-weight: 800;
+    letter-spacing: 0.03em;
+    box-shadow: 0 8px 22px rgba(255,142,114,0.45);
+  }
+  .save-note {
+    text-align: center; font-size: 11px; color: #B08A78; margin-top: 10px; font-weight: 500;
+  }
+  .save-note b { color: #FF8E72; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="screen-label">01 · 오늘 일기 작성</div>
+<div class="phone">
+  <div class="statusbar">
+    <span>9:41</span>
+    <span class="icons"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="wifi"></span><span class="batt"></span></span>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <div class="back">‹</div>
+      <div class="titles">
+        <div class="date">7월 15일 화요일</div>
+        <div class="title">오늘의 기록</div>
+      </div>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="section-label">템플릿 고르기</div>
+    <div class="chips">
+      <div class="chip">데일리</div>
+      <div class="chip active">데이트</div>
+      <div class="chip">여행</div>
+      <div class="chip">자유</div>
+    </div>
+
+    <div class="card">
+      <div class="tpl-line">오늘 우리는 <span class="blank filled">성수 카페거리</span> 에서</div>
+      <div class="tpl-line">가장 좋았던 순간은
+        <span class="blank empty long">창가 자리에서 나눠 먹던 크로플…<span class="cursor"></span></span>
+      </div>
+      <div class="tpl-line">상대에게 한마디
+        <span class="blank empty long">수정님에게 하고 싶은 말을 남겨보세요</span>
+      </div>
+    </div>
+
+    <div class="row-card">
+      <div class="row-label">오늘 데이트는 몇 점?</div>
+      <div class="stars">
+        <span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star">★</span>
+        <span class="score">4.0</span>
+      </div>
+    </div>
+
+    <div class="row-card">
+      <div class="row-label">오늘 기분</div>
+      <div class="moods">
+        <div class="mood active">🥰 좋았어</div>
+        <div class="mood">💗 설렜어</div>
+        <div class="mood">🌧 아쉬웠어</div>
+        <div class="mood">😴 피곤했어</div>
+      </div>
+    </div>
+
+    <div class="row-card">
+      <div class="row-label">사진</div>
+      <div class="photos">
+        <div class="photo p1"><div class="del">×</div></div>
+        <div class="photo p2"><div class="del">×</div></div>
+        <div class="photo-add"><div class="plus">＋</div><div class="txt">추가</div></div>
+      </div>
+    </div>
+
+    <div class="loc-row">
+      <div class="loc-pin">📍</div>
+      <div class="loc-text">
+        <div class="name">성수 · 대림창고</div>
+        <div class="sub">서울 성동구 성수이로 78</div>
+      </div>
+      <div class="loc-change">변경</div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <button class="save-btn">저장하기</button>
+    <div class="save-note"><b>수정님</b>이 아직 안 썼어요 · 저장하면 잠금 상태로 기다려요 🔒</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 04 기념일 설정</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Gothic A1', sans-serif;
+    background:linear-gradient(160deg, #FFEDE2 0%, #FFF6EF 45%, #FFE3D4 100%);
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; padding:48px 20px; color:#5A4038;
+  }
+  .frame-label { font-size:12px; font-weight:600; color:#B08A7A; letter-spacing:.08em; margin-bottom:10px; }
+  .phone {
+    width:390px; height:844px; background:#FFFBF6; border-radius:46px;
+    box-shadow:0 24px 60px rgba(122,90,78,.22), 0 4px 14px rgba(122,90,78,.10);
+    overflow:hidden; position:relative; display:flex; flex-direction:column;
+    border:1px solid rgba(255,255,255,.8);
+  }
+  .statusbar {
+    height:47px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px 0 32px; font-size:14px; font-weight:600; color:#5A4038; flex-shrink:0;
+  }
+  .statusbar .icons { display:flex; align-items:center; gap:6px; }
+  .sig { display:flex; align-items:flex-end; gap:1.5px; height:11px; }
+  .sig i { width:3px; background:#5A4038; border-radius:1px; display:block; }
+  .sig i:nth-child(1){height:4px}.sig i:nth-child(2){height:6px}
+  .sig i:nth-child(3){height:8px}.sig i:nth-child(4){height:11px}
+  .wifi { width:16px; height:12px; position:relative; }
+  .wifi::before { content:""; position:absolute; inset:0;
+    background:radial-gradient(circle at 50% 100%, #5A4038 0 18%, transparent 19% 36%, #5A4038 37% 54%, transparent 55% 72%, #5A4038 73% 90%, transparent 91%);
+    -webkit-mask:conic-gradient(from -45deg at 50% 100%, #000 0 90deg, transparent 90deg); }
+  .batt { width:25px; height:12px; border:1.5px solid #5A4038; border-radius:4px; position:relative; }
+  .batt::before { content:""; position:absolute; inset:1.5px; right:5px; background:#5A4038; border-radius:1.5px; }
+  .batt::after { content:""; position:absolute; right:-4px; top:3px; width:2px; height:5px; background:#5A4038; border-radius:0 2px 2px 0; }
+
+  .screen { flex:1; display:flex; flex-direction:column; padding:8px 28px 32px; }
+
+  .topnav { display:flex; align-items:center; justify-content:space-between; height:36px; }
+  .back { width:34px; height:34px; border-radius:12px; background:#FFF0E7; border:none;
+    display:flex; align-items:center; justify-content:center; color:#7A5A4E; font-size:16px; cursor:pointer; }
+  .steps { display:flex; align-items:center; gap:8px; }
+  .step { width:8px; height:8px; border-radius:50%; background:#F1D8CB; }
+  .step.done { background:#FFC7B0; }
+  .step.now { width:24px; border-radius:5px; background:#FF8E72; }
+  .step-num { font-size:12px; font-weight:700; color:#B08A7A; }
+
+  .header { margin-top:22px; }
+  .header h1 { font-size:24px; font-weight:800; line-height:1.4; letter-spacing:-.01em; }
+  .header h1 b { color:#FF8E72; }
+  .header p { margin-top:8px; font-size:13.5px; color:#7A5A4E; line-height:1.6; }
+
+  .section-label { margin:24px 4px 10px; font-size:13.5px; font-weight:700; }
+  .section-label .opt { font-size:11.5px; font-weight:500; color:#B08A7A; margin-left:5px; }
+
+  /* date spinner */
+  .picker { background:#FFFDFA; border:1.5px solid #FFE3D6; border-radius:22px;
+    padding:14px 12px; box-shadow:0 8px 20px rgba(122,90,78,.08);
+    position:relative; display:flex; height:172px; overflow:hidden; }
+  .picker::before { content:""; position:absolute; left:12px; right:12px; top:50%;
+    transform:translateY(-50%); height:44px; background:#FFF0E7; border-radius:14px; z-index:0; }
+  .col { flex:1; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:8px; position:relative; z-index:1; }
+  .col span { font-size:15px; font-weight:500; color:#D8BCAC; height:30px;
+    display:flex; align-items:center; }
+  .col span.faint { color:#EBD8CC; font-size:13.5px; }
+  .col span.sel { font-size:18px; font-weight:800; color:#FF8E72; height:44px; }
+
+  /* D-day preview */
+  .dday { margin-top:16px; border-radius:20px; padding:18px 20px; text-align:center;
+    background:linear-gradient(135deg,#FF8E72 0%,#FFA98C 100%);
+    box-shadow:0 12px 26px rgba(255,142,114,.35); color:#fff; position:relative; overflow:hidden; }
+  .dday::before { content:""; position:absolute; width:120px; height:120px; border-radius:50%;
+    background:rgba(255,255,255,.12); top:-58px; right:-34px; }
+  .dday::after { content:""; position:absolute; width:80px; height:80px; border-radius:50%;
+    background:rgba(255,255,255,.10); bottom:-44px; left:-22px; }
+  .dday .small { font-size:12.5px; font-weight:600; opacity:.92; }
+  .dday .big { margin-top:6px; font-size:21px; font-weight:800; letter-spacing:-.01em; }
+  .dday .big em { font-family:'Jua',sans-serif; font-style:normal; font-size:26px; }
+
+  /* birthdays */
+  .bday-row { display:flex; gap:12px; }
+  .bday { flex:1; background:#FFFDFA; border:1.5px solid #EFD9CD; border-radius:18px;
+    padding:14px 16px; cursor:pointer; }
+  .bday .who { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; }
+  .mini-av { width:26px; height:26px; border-radius:50%; position:relative; overflow:hidden; flex-shrink:0; }
+  .mini-av::before { content:""; position:absolute; top:4px; left:50%; transform:translateX(-50%);
+    width:10px; height:10px; border-radius:50%; background:#FFF6EF; }
+  .mini-av::after { content:""; position:absolute; top:15px; left:50%; transform:translateX(-50%);
+    width:17px; height:12px; border-radius:8px 8px 0 0; background:#FFF6EF; }
+  .av-a { background:linear-gradient(180deg,#FF8E72,#FFC7B0); }
+  .av-b { background:linear-gradient(180deg,#FFA98C,#FFDCCB); }
+  .bday .val { margin-top:9px; font-size:14px; font-weight:600; }
+  .bday .val.set { color:#5A4038; }
+  .bday .val.empty { color:#CDAF9F; font-weight:500; }
+
+  .start-btn { margin-top:auto; height:56px; border:none; border-radius:18px; cursor:pointer;
+    background:linear-gradient(180deg,#FF8E72,#FF9F80); color:#fff;
+    font-family:'Gothic A1',sans-serif; font-size:16px; font-weight:700;
+    box-shadow:0 10px 22px rgba(255,142,114,.35); }
+  .skip { margin-top:12px; text-align:center; font-size:12.5px; font-weight:600;
+    color:#B08A7A; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+
+  .home-ind { width:134px; height:5px; border-radius:3px; background:#E8D3C8; margin:12px auto 0; }
+</style>
+</head>
+<body>
+  <div class="frame-label">온보딩 · 04 기념일 설정 (3/3)</div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">
+        <span class="sig"><i></i><i></i><i></i><i></i></span>
+        <span class="wifi"></span>
+        <span class="batt"></span>
+      </span>
+    </div>
+
+    <div class="screen">
+      <div class="topnav">
+        <button class="back">‹</button>
+        <div class="steps">
+          <span class="step done"></span>
+          <span class="step done"></span>
+          <span class="step now"></span>
+        </div>
+        <span class="step-num">3 / 3</span>
+      </div>
+
+      <div class="header">
+        <h1>두 사람의<br><b>특별한 날</b>을 알려주세요</h1>
+        <p>기념일이 다가오면 투데이가 미리 챙겨드려요</p>
+      </div>
+
+      <div class="section-label">우리가 만난 날</div>
+      <div class="picker">
+        <div class="col">
+          <span class="faint">2023년</span>
+          <span>2024년</span>
+          <span class="sel">2025년</span>
+          <span>2026년</span>
+        </div>
+        <div class="col">
+          <span class="faint">3월</span>
+          <span>4월</span>
+          <span class="sel">5월</span>
+          <span>6월</span>
+        </div>
+        <div class="col">
+          <span class="faint">16일</span>
+          <span>17일</span>
+          <span class="sel">18일</span>
+          <span>19일</span>
+        </div>
+      </div>
+
+      <div class="dday">
+        <div class="small">승환 🧡 수정</div>
+        <div class="big">오늘로 <em>D+412일</em>이에요 🧡</div>
+      </div>
+
+      <div class="section-label">생일<span class="opt">선택</span></div>
+      <div class="bday-row">
+        <div class="bday">
+          <div class="who"><span class="mini-av av-a"></span>승환</div>
+          <div class="val set">3월 24일</div>
+        </div>
+        <div class="bday">
+          <div class="who"><span class="mini-av av-b"></span>수정</div>
+          <div class="val empty">생일 입력하기</div>
+        </div>
+      </div>
+
+      <button class="start-btn">시작하기</button>
+      <div class="skip">나중에 설정할게요</div>
+
+      <div class="home-ind"></div>
+    </div>
+  </div>
+</body>
+</html>

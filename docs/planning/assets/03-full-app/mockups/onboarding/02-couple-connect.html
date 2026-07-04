@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 02 커플 연결</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Gothic A1', sans-serif;
+    background:linear-gradient(160deg, #FFEDE2 0%, #FFF6EF 45%, #FFE3D4 100%);
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; padding:48px 20px; color:#5A4038;
+  }
+  .frame-label { font-size:12px; font-weight:600; color:#B08A7A; letter-spacing:.08em; margin-bottom:10px; }
+  .phone {
+    width:390px; height:844px; background:#FFFBF6; border-radius:46px;
+    box-shadow:0 24px 60px rgba(122,90,78,.22), 0 4px 14px rgba(122,90,78,.10);
+    overflow:hidden; position:relative; display:flex; flex-direction:column;
+    border:1px solid rgba(255,255,255,.8);
+  }
+  .statusbar {
+    height:47px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px 0 32px; font-size:14px; font-weight:600; color:#5A4038; flex-shrink:0;
+  }
+  .statusbar .icons { display:flex; align-items:center; gap:6px; }
+  .sig { display:flex; align-items:flex-end; gap:1.5px; height:11px; }
+  .sig i { width:3px; background:#5A4038; border-radius:1px; display:block; }
+  .sig i:nth-child(1){height:4px}.sig i:nth-child(2){height:6px}
+  .sig i:nth-child(3){height:8px}.sig i:nth-child(4){height:11px}
+  .wifi { width:16px; height:12px; position:relative; }
+  .wifi::before { content:""; position:absolute; inset:0;
+    background:radial-gradient(circle at 50% 100%, #5A4038 0 18%, transparent 19% 36%, #5A4038 37% 54%, transparent 55% 72%, #5A4038 73% 90%, transparent 91%);
+    -webkit-mask:conic-gradient(from -45deg at 50% 100%, #000 0 90deg, transparent 90deg); }
+  .batt { width:25px; height:12px; border:1.5px solid #5A4038; border-radius:4px; position:relative; }
+  .batt::before { content:""; position:absolute; inset:1.5px; right:5px; background:#5A4038; border-radius:1.5px; }
+  .batt::after { content:""; position:absolute; right:-4px; top:3px; width:2px; height:5px; background:#5A4038; border-radius:0 2px 2px 0; }
+
+  .screen { flex:1; display:flex; flex-direction:column; padding:8px 24px 32px; overflow:hidden; }
+
+  .header { text-align:center; margin-top:6px; }
+  .header .logo-sm { font-family:'Jua',sans-serif; font-size:20px; color:#FF8E72; }
+  .header h1 { font-size:23px; font-weight:800; margin-top:14px; letter-spacing:-.01em; }
+  .header p { font-size:13.5px; color:#7A5A4E; margin-top:8px; line-height:1.6; }
+
+  /* waiting profile */
+  .me-card { margin-top:22px; display:flex; align-items:center; gap:14px;
+    background:#FFFDFA; border:1px solid #FFE3D6; border-radius:20px; padding:14px 18px;
+    box-shadow:0 6px 16px rgba(122,90,78,.07); }
+  .avatar { width:52px; height:52px; border-radius:50%; position:relative; flex-shrink:0;
+    background:linear-gradient(180deg, #FF8E72 0%, #FFC7B0 100%); overflow:hidden; }
+  .avatar::before { content:""; position:absolute; top:9px; left:50%; transform:translateX(-50%);
+    width:20px; height:20px; border-radius:50%; background:#FFF6EF; }
+  .avatar::after { content:""; position:absolute; top:31px; left:50%; transform:translateX(-50%);
+    width:34px; height:26px; border-radius:16px 16px 0 0; background:#FFF6EF; }
+  .me-card .info { flex:1; }
+  .me-card .name { font-size:16px; font-weight:700; }
+  .me-card .wait { display:flex; align-items:center; gap:6px; margin-top:4px;
+    font-size:12px; color:#B08A7A; font-weight:500; }
+  .dot { width:7px; height:7px; border-radius:50%; background:#FFB84D; box-shadow:0 0 0 3px rgba(255,184,77,.2); }
+  .slot { width:52px; height:52px; border-radius:50%; border:2px dashed #F1CDBC;
+    display:flex; align-items:center; justify-content:center; font-size:18px; color:#E5B8A4;
+    background:#FFF6EF; flex-shrink:0; }
+  .link-line { flex:0 0 26px; height:2px; background:repeating-linear-gradient(90deg,#F1CDBC 0 5px, transparent 5px 10px); }
+
+  /* invite code */
+  .section-label { margin:26px 4px 10px; font-size:13px; font-weight:700; color:#7A5A4E; }
+  .code-card { background:#FFFDFA; border:1.5px solid #FFD6C3; border-radius:22px;
+    padding:22px 20px 18px; text-align:center;
+    box-shadow:0 10px 24px rgba(255,142,114,.12); }
+  .code-card .hint { font-size:12px; color:#B08A7A; font-weight:500; }
+  .code { margin-top:8px; font-size:30px; font-weight:800; letter-spacing:.14em; color:#FF8E72; }
+  .code-btns { display:flex; gap:10px; margin-top:18px; }
+  .cbtn { flex:1; height:46px; border-radius:14px; border:none; cursor:pointer;
+    font-family:'Gothic A1',sans-serif; font-size:14px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; gap:7px; }
+  .cbtn.copy { background:#FFF0E7; color:#7A5A4E; border:1px solid #FFE0D0; }
+  .cbtn.kakao { background:#FEE500; color:#3C1E1E; }
+  .kakao-sym { width:16px; height:15px; position:relative; flex-shrink:0; }
+  .kakao-sym .bubble { width:16px; height:13px; background:#3C1E1E; border-radius:8px; display:block; }
+  .kakao-sym .tail { position:absolute; left:3px; bottom:-1px; width:0; height:0;
+    border-left:3px solid transparent; border-right:4px solid transparent;
+    border-top:6px solid #3C1E1E; transform:rotate(18deg); }
+
+  /* divider */
+  .divider { display:flex; align-items:center; gap:14px; margin:24px 6px; }
+  .divider .line { flex:1; height:1px; background:#EFD9CD; }
+  .divider span { font-size:12px; font-weight:600; color:#B08A7A; }
+
+  /* partner code input */
+  .input-row { display:flex; gap:10px; }
+  .code-input { flex:1; height:54px; border-radius:16px; border:1.5px solid #EFD9CD;
+    background:#FFFDFA; padding:0 18px; font-family:'Gothic A1',sans-serif;
+    font-size:15px; font-weight:600; color:#5A4038; letter-spacing:.08em; outline:none; }
+  .code-input::placeholder { color:#CDAF9F; font-weight:500; letter-spacing:.02em; }
+  .connect-btn { width:104px; height:54px; border-radius:16px; border:none; cursor:pointer;
+    background:linear-gradient(180deg,#FF8E72,#FF9F80); color:#fff;
+    font-family:'Gothic A1',sans-serif; font-size:15px; font-weight:700;
+    box-shadow:0 8px 18px rgba(255,142,114,.35); }
+
+  .notice { margin-top:auto; background:#FFF0E7; border-radius:16px; padding:14px 16px;
+    display:flex; gap:10px; align-items:flex-start; }
+  .notice .ico { font-size:15px; line-height:1.5; }
+  .notice p { font-size:12.5px; color:#7A5A4E; line-height:1.65; }
+  .notice b { color:#FF8E72; }
+
+  .home-ind { width:134px; height:5px; border-radius:3px; background:#E8D3C8; margin:14px auto 0; }
+</style>
+</head>
+<body>
+  <div class="frame-label">온보딩 · 02 커플 연결</div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">
+        <span class="sig"><i></i><i></i><i></i><i></i></span>
+        <span class="wifi"></span>
+        <span class="batt"></span>
+      </span>
+    </div>
+
+    <div class="screen">
+      <div class="header">
+        <div class="logo-sm">투데이</div>
+        <h1>둘을 이어볼까요?</h1>
+        <p>연인을 초대하거나, 받은 코드를 입력해 주세요</p>
+      </div>
+
+      <div class="me-card">
+        <div class="avatar"></div>
+        <div class="info">
+          <div class="name">승환</div>
+          <div class="wait"><span class="dot"></span>연결 대기 중…</div>
+        </div>
+        <div class="link-line"></div>
+        <div class="slot">?</div>
+      </div>
+
+      <div class="section-label">내 초대코드</div>
+      <div class="code-card">
+        <div class="hint">이 코드를 연인에게 보내 주세요</div>
+        <div class="code">TWODAY-3F7K</div>
+        <div class="code-btns">
+          <button class="cbtn copy">⧉ 복사하기</button>
+          <button class="cbtn kakao">
+            <span class="kakao-sym"><span class="bubble"></span><span class="tail"></span></span>
+            카카오톡 공유
+          </button>
+        </div>
+      </div>
+
+      <div class="divider"><span class="line"></span><span>또는</span><span class="line"></span></div>
+
+      <div class="section-label" style="margin-top:0">상대방 코드 입력</div>
+      <div class="input-row">
+        <input class="code-input" placeholder="받은 코드를 입력하세요">
+        <button class="connect-btn">연결하기</button>
+      </div>
+
+      <div class="notice">
+        <span class="ico">🧡</span>
+        <p>연결되면 두 사람의 일기장이 <b>하나로 묶여요</b>.<br>둘 다 그날 일기를 써야 서로의 글을 볼 수 있어요.</p>
+      </div>
+
+      <div class="home-ind"></div>
+    </div>
+  </div>
+</body>
+</html>

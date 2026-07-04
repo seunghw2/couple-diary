@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 사진 뷰어</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Gothic A1', sans-serif;
+    background:#F2E6DC;
+    display:flex; flex-direction:column; align-items:center;
+    padding:40px 0 60px; color:#5A4038;
+  }
+  .screen-label {
+    font-size:12px; font-weight:600; color:#9C7A6B;
+    letter-spacing:.06em; margin-bottom:12px;
+  }
+  .phone {
+    width:390px; height:844px;
+    border-radius:44px; overflow:hidden; position:relative;
+    box-shadow:0 24px 60px rgba(90,64,56,.25), 0 4px 14px rgba(90,64,56,.12);
+  }
+
+  /* ---- full-screen photo: warm sunset over Han river, couple silhouette ---- */
+  .photo {
+    position:absolute; inset:0;
+    background:
+      radial-gradient(circle at 50% 38%, #FFE3B8 0%, #FFC08F 22%, transparent 46%),
+      linear-gradient(180deg,#FFD9A8 0%, #FFB183 34%, #F58A64 56%, #C96B54 74%, #8A4E42 100%);
+  }
+  .sun {
+    position:absolute; left:50%; top:33%; transform:translateX(-50%);
+    width:88px; height:88px; border-radius:50%;
+    background:radial-gradient(circle,#FFF4D8 0%,#FFDFA4 70%);
+    box-shadow:0 0 60px 24px rgba(255,224,168,.55);
+  }
+  .water {
+    position:absolute; left:0; right:0; top:52%; height:20%;
+    background:linear-gradient(180deg, rgba(255,190,140,.55), rgba(190,110,90,.35));
+  }
+  .glint { position:absolute; background:rgba(255,240,210,.5); height:3px; border-radius:2px; }
+  .gl1 { width:70px; left:44%; top:55%; }
+  .gl2 { width:44px; left:48%; top:59%; opacity:.7; }
+  .gl3 { width:90px; left:40%; top:63%; opacity:.5; }
+  .skyline { position:absolute; left:0; right:0; top:46.5%; height:6%; display:flex; align-items:flex-end; gap:5px; padding:0 12px; opacity:.55; }
+  .skyline div { background:#9C5B49; border-radius:2px 2px 0 0; }
+  /* couple silhouette on grass */
+  .ground {
+    position:absolute; left:0; right:0; bottom:0; height:26%;
+    background:linear-gradient(180deg,#7A4438 0%, #5A3028 100%);
+    border-radius:100% 100% 0 0 / 60px 60px 0 0;
+  }
+  .couple { position:absolute; left:50%; bottom:20%; transform:translateX(-50%); display:flex; align-items:flex-end; gap:2px; }
+  .person { position:relative; }
+  .person .head { width:20px; height:20px; border-radius:50%; background:#402420; margin:0 auto 0; }
+  .person .body { width:30px; height:46px; background:#402420; border-radius:14px 14px 8px 8px; margin-top:-3px; }
+  .person.p2 .head { width:18px; height:18px; }
+  .person.p2 .body { width:27px; height:42px; }
+  .person.p2 { transform:rotate(4deg); margin-left:-7px; }
+  .person.p1 { transform:rotate(-3deg); }
+  .heartfloat {
+    position:absolute; left:50%; bottom:29%; transform:translateX(-50%);
+    font-size:15px; color:#FFC7B0; opacity:.9;
+  }
+
+  /* ---- overlays (rose-brown translucent) ---- */
+  .top-ov {
+    position:absolute; left:0; right:0; top:0; z-index:10;
+    padding:14px 20px 26px;
+    background:linear-gradient(180deg, rgba(90,64,56,.62) 0%, rgba(90,64,56,.28) 62%, transparent 100%);
+    color:#FFF6EF;
+  }
+  .statusbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 10px 0 12px; font-size:14px; font-weight:700; height:34px;
+  }
+  .statusbar .icons { display:flex; gap:6px; font-size:12px; letter-spacing:-1px; }
+  .top-row {
+    display:flex; align-items:center; justify-content:space-between; margin-top:6px;
+  }
+  .close {
+    width:38px; height:38px; border-radius:50%;
+    background:rgba(255,246,239,.18); backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; color:#FFF6EF;
+  }
+  .date-wrap { text-align:center; }
+  .date-wrap .d { font-size:16px; font-weight:800; letter-spacing:.02em; }
+  .date-wrap .n { font-size:11px; font-weight:500; opacity:.85; margin-top:2px; }
+  .spacer38 { width:38px; }
+
+  .bottom-ov {
+    position:absolute; left:0; right:0; bottom:0; z-index:10;
+    padding:70px 22px 34px;
+    background:linear-gradient(0deg, rgba(74,48,40,.82) 0%, rgba(74,48,40,.45) 55%, transparent 100%);
+    color:#FFF6EF;
+  }
+  .loc-row { display:flex; align-items:center; justify-content:space-between; }
+  .loc-chip {
+    display:inline-flex; align-items:center; gap:5px;
+    background:rgba(255,246,239,.16); backdrop-filter:blur(6px);
+    border:1px solid rgba(255,246,239,.28);
+    padding:8px 14px; border-radius:20px;
+    font-size:12px; font-weight:700;
+  }
+  .acts { display:flex; gap:10px; }
+  .act {
+    width:40px; height:40px; border-radius:50%;
+    background:rgba(255,246,239,.16); backdrop-filter:blur(6px);
+    border:1px solid rgba(255,246,239,.22);
+    display:flex; align-items:center; justify-content:center; font-size:16px;
+  }
+  .act.liked { background:#FF8E72; border-color:#FF8E72; box-shadow:0 4px 14px rgba(255,142,114,.5); }
+
+  .diary-btn {
+    margin-top:14px; width:100%;
+    background:#FFFDFA; color:#5A4038;
+    border:none; border-radius:20px; padding:15px 0;
+    font-family:'Gothic A1'; font-size:14px; font-weight:800;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    box-shadow:0 6px 18px rgba(60,36,28,.3);
+  }
+  .diary-btn span { color:#FF8E72; }
+
+  .dots { display:flex; justify-content:center; gap:6px; margin-top:16px; }
+  .dot { width:6px; height:6px; border-radius:3px; background:rgba(255,246,239,.4); }
+  .dot.on { width:18px; background:#FFC7B0; }
+</style>
+</head>
+<body>
+<div class="screen-label">03 · 사진 뷰어 — 한강 노을 피크닉</div>
+<div class="phone">
+
+  <div class="photo">
+    <div class="sun"></div>
+    <div class="skyline">
+      <div style="width:14px;height:26px;"></div>
+      <div style="width:10px;height:38px;"></div>
+      <div style="width:18px;height:20px;"></div>
+      <div style="width:9px;height:44px;"></div>
+      <div style="width:15px;height:30px;"></div>
+      <div style="width:11px;height:24px;"></div>
+      <div style="width:16px;height:40px;"></div>
+      <div style="width:10px;height:28px;"></div>
+      <div style="width:14px;height:34px;"></div>
+      <div style="width:9px;height:22px;"></div>
+      <div style="width:17px;height:42px;"></div>
+      <div style="width:12px;height:27px;"></div>
+      <div style="width:15px;height:36px;"></div>
+    </div>
+    <div class="water"></div>
+    <div class="glint gl1"></div><div class="glint gl2"></div><div class="glint gl3"></div>
+    <div class="ground"></div>
+    <div class="heartfloat">🧡</div>
+    <div class="couple">
+      <div class="person p1"><div class="head"></div><div class="body"></div></div>
+      <div class="person p2"><div class="head"></div><div class="body"></div></div>
+    </div>
+  </div>
+
+  <div class="top-ov">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">▮▮▮▮ ⏻ 🔋</span>
+    </div>
+    <div class="top-row">
+      <div class="close">✕</div>
+      <div class="date-wrap">
+        <div class="d">2026.07.12</div>
+        <div class="n">승환의 일기 · 3 / 6</div>
+      </div>
+      <div class="spacer38"></div>
+    </div>
+  </div>
+
+  <div class="bottom-ov">
+    <div class="loc-row">
+      <div class="loc-chip">📍 한강공원 잠원지구</div>
+      <div class="acts">
+        <div class="act liked">🤍</div>
+        <div class="act">⬇</div>
+      </div>
+    </div>
+    <button class="diary-btn">이 날의 일기 보기 <span>→</span></button>
+    <div class="dots">
+      <div class="dot"></div><div class="dot"></div><div class="dot on"></div>
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

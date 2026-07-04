@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 7월의 우리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Gothic A1', sans-serif;
+    background: #EFE6DD;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0 60px;
+    color: #5A4038;
+  }
+  .screen-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #7A5A4E;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+  .phone {
+    width: 390px;
+    background: #FFF6EF;
+    border-radius: 44px;
+    box-shadow: 0 24px 60px rgba(90, 64, 56, 0.18);
+    overflow: hidden;
+  }
+  .statusbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 28px 8px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .statusbar .icons { display: flex; gap: 6px; align-items: center; }
+  .sig { display: flex; gap: 2px; align-items: flex-end; height: 11px; }
+  .sig span { width: 3px; background: #5A4038; border-radius: 1px; }
+  .sig span:nth-child(1){height:4px} .sig span:nth-child(2){height:6px}
+  .sig span:nth-child(3){height:8px} .sig span:nth-child(4){height:11px}
+  .wifi { font-size: 12px; }
+  .batt {
+    width: 24px; height: 12px;
+    border: 1.5px solid #5A4038; border-radius: 4px;
+    position: relative;
+  }
+  .batt::after {
+    content: ''; position: absolute; inset: 2px 6px 2px 2px;
+    background: #5A4038; border-radius: 1.5px;
+  }
+  .batt::before {
+    content: ''; position: absolute; right: -4px; top: 3px;
+    width: 2px; height: 5px; background: #5A4038; border-radius: 0 2px 2px 0;
+  }
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px 6px;
+  }
+  .nav .back {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    background: #FFFDFA;
+    box-shadow: 0 2px 8px rgba(90,64,56,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .nav .title {
+    font-family: 'Jua', sans-serif;
+    font-size: 18px;
+    color: #FF8E72;
+  }
+  .nav .spacer { width: 36px; }
+  .content { padding: 6px 20px 28px; }
+
+  /* 헤더 카피 */
+  .recap-head { text-align: center; margin: 14px 0 20px; }
+  .recap-head .month {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    color: #E0714F;
+    background: #FFE9DE;
+    padding: 5px 13px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .recap-head h1 {
+    font-family: 'Jua', sans-serif;
+    font-size: 27px;
+    color: #5A4038;
+  }
+  .recap-head p {
+    margin-top: 7px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #A9836F;
+  }
+
+  /* 카드 스택 */
+  .stack { position: relative; padding-bottom: 4px; }
+  .stack::before, .stack::after {
+    content: '';
+    position: absolute;
+    left: 14px; right: 14px;
+    height: 24px;
+    background: #FBEFE3;
+    border: 1px solid #F3E3D6;
+    border-radius: 22px;
+    bottom: -7px;
+    z-index: 0;
+  }
+  .stack::before {
+    left: 26px; right: 26px;
+    bottom: -13px;
+    background: #F6E7D8;
+  }
+  .stack-card {
+    position: relative;
+    z-index: 1;
+    background: #FFFDFA;
+    border: 1px solid #F3E3D6;
+    border-radius: 24px;
+    padding: 20px 18px;
+    box-shadow: 0 12px 28px rgba(154, 110, 92, 0.12);
+  }
+
+  /* 통계 그리드 */
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .stat {
+    background: #FFF6EF;
+    border-radius: 18px;
+    padding: 14px 14px 12px;
+  }
+  .stat .emo { font-size: 17px; }
+  .stat .num {
+    font-family: 'Jua', sans-serif;
+    font-size: 23px;
+    color: #FF8E72;
+    margin-top: 5px;
+  }
+  .stat .num small {
+    font-family: 'Gothic A1', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #C99A82;
+    margin-left: 2px;
+  }
+  .stat .lab { font-size: 11.5px; font-weight: 700; color: #7A5A4E; margin-top: 3px; }
+
+  /* 베스트 데이트 */
+  .best {
+    margin-top: 14px;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid #F3E3D6;
+  }
+  .best .photo {
+    height: 148px;
+    position: relative;
+    background:
+      radial-gradient(140px 100px at 70% 26%, rgba(255, 214, 178, 0.9), rgba(255, 214, 178, 0) 70%),
+      radial-gradient(180px 130px at 22% 78%, rgba(240, 150, 112, 0.7), rgba(240, 150, 112, 0) 72%),
+      linear-gradient(140deg, #FFC7A3 0%, #F09A72 52%, #D97B5C 100%);
+  }
+  .best .photo::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,246,239,0.06) 30%, rgba(88,48,32,0.38) 100%);
+  }
+  .best .ribbon {
+    position: absolute;
+    top: 12px; left: 12px;
+    z-index: 2;
+    background: rgba(255, 251, 246, 0.94);
+    color: #E0714F;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 6px 11px;
+    border-radius: 999px;
+    box-shadow: 0 3px 8px rgba(120, 66, 44, 0.18);
+  }
+  .best .photo-title {
+    position: absolute;
+    left: 15px; bottom: 12px;
+    z-index: 2;
+    color: #FFF6EC;
+  }
+  .best .photo-title b { font-size: 17px; font-weight: 800; text-shadow: 0 1px 5px rgba(80,40,25,0.45); }
+  .best .photo-title span {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 600;
+    margin-top: 3px;
+    opacity: 0.95;
+    text-shadow: 0 1px 4px rgba(80,40,25,0.45);
+  }
+  .best .why {
+    background: #FFF6EF;
+    padding: 11px 15px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #7A5A4E;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .best .why .stars { color: #FFB067; letter-spacing: 1.5px; }
+
+  /* 기분 분포 */
+  .mood { margin-top: 16px; }
+  .mood h3 {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #5A4038;
+    margin-bottom: 11px;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .mood h3 span { font-size: 11px; font-weight: 600; color: #B79A8D; }
+  .mood-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 8px;
+  }
+  .mood-row .m-label {
+    width: 74px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #7A5A4E;
+    flex-shrink: 0;
+  }
+  .mood-row .bar {
+    flex: 1;
+    height: 12px;
+    background: #F6E9DD;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .mood-row .bar i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+  }
+  .mood-row .pct {
+    width: 34px;
+    text-align: right;
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #C99A82;
+    flex-shrink: 0;
+  }
+  .b1 { width: 60%; background: linear-gradient(90deg, #FF8E72, #FFA98C); }
+  .b2 { width: 25%; background: linear-gradient(90deg, #FFA98C, #FFC7B0); }
+  .b3 { width: 10%; background: #FFC7B0; }
+  .b4 { width: 5%;  background: #F1D8C6; }
+
+  /* 하단 버튼 */
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+  }
+  .btn {
+    flex: 1;
+    padding: 15px 0;
+    border-radius: 18px;
+    border: none;
+    font-family: 'Gothic A1', sans-serif;
+    font-size: 14.5px;
+    font-weight: 800;
+  }
+  .btn.primary {
+    background: linear-gradient(135deg, #FF8E72 0%, #FFA98C 100%);
+    color: #FFFBF6;
+    box-shadow: 0 10px 22px rgba(255, 142, 114, 0.35);
+  }
+  .btn.ghost {
+    background: #FFFDFA;
+    border: 1.5px solid #F0DCCD;
+    color: #7A5A4E;
+  }
+  .footnote {
+    text-align: center;
+    font-size: 11.5px;
+    color: #B79A8D;
+    margin-top: 14px;
+  }
+  .home-indicator {
+    width: 134px; height: 5px;
+    background: #D9C4B6;
+    border-radius: 3px;
+    margin: 10px auto 12px;
+  }
+</style>
+</head>
+<body>
+  <div class="screen-label">03 · 월말 결산 — “7월의 우리”</div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="icons">
+        <div class="sig"><span></span><span></span><span></span><span></span></div>
+        <span class="wifi">&#9679;&#9679;&#9679;</span>
+        <div class="batt"></div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <div class="back">&#8249;</div>
+      <div class="title">월말 결산</div>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="content">
+      <div class="recap-head">
+        <span class="month">MONTHLY RECAP · 2026. 07</span>
+        <h1>7월의 우리</h1>
+        <p>7월의 우리, 참 자주 웃었어요 &#127774;</p>
+      </div>
+
+      <div class="stack">
+        <div class="stack-card">
+          <!-- 요약 통계 -->
+          <div class="stats">
+            <div class="stat">
+              <div class="emo">&#128221;</div>
+              <div class="num">24<small>편</small></div>
+              <div class="lab">함께 쓴 일기</div>
+            </div>
+            <div class="stat">
+              <div class="emo">&#128247;</div>
+              <div class="num">47<small>장</small></div>
+              <div class="lab">남긴 사진</div>
+            </div>
+            <div class="stat">
+              <div class="emo">&#128205;</div>
+              <div class="num">6<small>곳</small></div>
+              <div class="lab">새로운 장소</div>
+            </div>
+            <div class="stat">
+              <div class="emo">&#11088;</div>
+              <div class="num">4.2<small>점</small></div>
+              <div class="lab">평균 별점</div>
+            </div>
+          </div>
+
+          <!-- 베스트 데이트 -->
+          <div class="best">
+            <div class="photo">
+              <span class="ribbon">&#127942; 이번 달 베스트 데이트</span>
+              <div class="photo-title">
+                <b>성수 팝업 데이트</b>
+                <span>7월 12일 (일) · 성수동</span>
+              </div>
+            </div>
+            <div class="why">
+              <span>둘 다 별 5개를 준 유일한 날이에요</span>
+              <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+            </div>
+          </div>
+
+          <!-- 기분 분포 -->
+          <div class="mood">
+            <h3>이번 달 우리 기분 <span>일기 24편 기준</span></h3>
+            <div class="mood-row">
+              <span class="m-label">&#128522; 좋았어</span>
+              <div class="bar"><i class="b1"></i></div>
+              <span class="pct">60%</span>
+            </div>
+            <div class="mood-row">
+              <span class="m-label">&#129505; 설렜어</span>
+              <div class="bar"><i class="b2"></i></div>
+              <span class="pct">25%</span>
+            </div>
+            <div class="mood-row">
+              <span class="m-label">&#128564; 피곤했어</span>
+              <div class="bar"><i class="b3"></i></div>
+              <span class="pct">10%</span>
+            </div>
+            <div class="mood-row">
+              <span class="m-label">&#128533; 아쉬웠어</span>
+              <div class="bar"><i class="b4"></i></div>
+              <span class="pct">5%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn ghost">카드로 저장하기</button>
+        <button class="btn primary">공유하기 &#129505;</button>
+      </div>
+      <div class="footnote">매달 말일 밤, 한 달의 우리가 카드로 도착해요</div>
+    </div>
+
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

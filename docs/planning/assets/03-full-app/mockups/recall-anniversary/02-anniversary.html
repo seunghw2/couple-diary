@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 기념일</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Gothic A1', sans-serif;
+    background: #EFE6DD;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0 60px;
+    color: #5A4038;
+  }
+  .screen-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #7A5A4E;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+  .phone {
+    width: 390px;
+    background: #FFF6EF;
+    border-radius: 44px;
+    box-shadow: 0 24px 60px rgba(90, 64, 56, 0.18);
+    overflow: hidden;
+  }
+  .statusbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 28px 8px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .statusbar .icons { display: flex; gap: 6px; align-items: center; }
+  .sig { display: flex; gap: 2px; align-items: flex-end; height: 11px; }
+  .sig span { width: 3px; background: #5A4038; border-radius: 1px; }
+  .sig span:nth-child(1){height:4px} .sig span:nth-child(2){height:6px}
+  .sig span:nth-child(3){height:8px} .sig span:nth-child(4){height:11px}
+  .wifi { font-size: 12px; }
+  .batt {
+    width: 24px; height: 12px;
+    border: 1.5px solid #5A4038; border-radius: 4px;
+    position: relative;
+  }
+  .batt::after {
+    content: ''; position: absolute; inset: 2px 6px 2px 2px;
+    background: #5A4038; border-radius: 1.5px;
+  }
+  .batt::before {
+    content: ''; position: absolute; right: -4px; top: 3px;
+    width: 2px; height: 5px; background: #5A4038; border-radius: 0 2px 2px 0;
+  }
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px 6px;
+  }
+  .nav .back {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    background: #FFFDFA;
+    box-shadow: 0 2px 8px rgba(90,64,56,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .nav .title {
+    font-family: 'Jua', sans-serif;
+    font-size: 18px;
+    color: #FF8E72;
+  }
+  .nav .spacer { width: 36px; }
+  .content { padding: 8px 20px 28px; }
+
+  /* D-day 대형 카드 */
+  .dday-card {
+    background: linear-gradient(150deg, #FF8E72 0%, #FFA98C 62%, #FFC7B0 100%);
+    border-radius: 26px;
+    padding: 26px 22px 22px;
+    color: #FFFBF6;
+    box-shadow: 0 16px 32px rgba(255, 142, 114, 0.38);
+    position: relative;
+    overflow: hidden;
+  }
+  .dday-card::before {
+    content: '';
+    position: absolute;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(255, 251, 246, 0.14);
+    top: -70px; right: -50px;
+  }
+  .dday-card::after {
+    content: '';
+    position: absolute;
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    background: rgba(255, 251, 246, 0.1);
+    bottom: -46px; left: -30px;
+  }
+  .dday-eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    opacity: 0.92;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .dday-main {
+    font-family: 'Jua', sans-serif;
+    font-size: 44px;
+    margin: 8px 0 2px;
+    text-shadow: 0 2px 8px rgba(190, 92, 66, 0.25);
+  }
+  .dday-main small {
+    font-family: 'Gothic A1', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    opacity: 0.95;
+    margin-left: 6px;
+  }
+  .dday-since {
+    font-size: 12.5px;
+    font-weight: 600;
+    opacity: 0.9;
+    margin-bottom: 14px;
+  }
+  .dday-progress {
+    position: relative;
+    background: rgba(255, 251, 246, 0.32);
+    border-radius: 999px;
+    height: 10px;
+    overflow: hidden;
+  }
+  .dday-progress .fill {
+    width: 82.4%;
+    height: 100%;
+    background: #FFFBF6;
+    border-radius: 999px;
+  }
+  .dday-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    font-weight: 700;
+    margin-top: 8px;
+    opacity: 0.95;
+  }
+  .dday-next {
+    margin-top: 14px;
+    background: rgba(255, 251, 246, 0.2);
+    border: 1px solid rgba(255, 251, 246, 0.34);
+    border-radius: 14px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 섹션 */
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin: 24px 4px 12px;
+  }
+  .section-head h2 { font-size: 16px; font-weight: 800; color: #5A4038; }
+  .section-head span { font-size: 12px; font-weight: 600; color: #B79A8D; }
+
+  /* 기념일 리스트 */
+  .anni-item {
+    background: #FFFDFA;
+    border: 1px solid #F3E3D6;
+    border-radius: 20px;
+    padding: 15px 16px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 14px rgba(154, 110, 92, 0.07);
+  }
+  .anni-item .icon {
+    width: 44px; height: 44px;
+    border-radius: 15px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .icon.coral { background: #FFE9DE; }
+  .icon.peach { background: #FFF1E4; }
+  .icon.done  { background: #F4EAE2; filter: grayscale(0.15); }
+  .anni-item .info { flex: 1; min-width: 0; }
+  .anni-item .name { font-size: 14.5px; font-weight: 700; color: #5A4038; }
+  .anni-item .name .auto-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    color: #E0714F;
+    background: #FFE9DE;
+    border-radius: 999px;
+    padding: 2px 7px;
+    margin-left: 5px;
+    vertical-align: 1px;
+  }
+  .anni-item .date { font-size: 11.5px; font-weight: 600; color: #B79A8D; margin-top: 3px; }
+  .anni-item .right { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; }
+  .dbadge {
+    font-size: 13px;
+    font-weight: 800;
+    padding: 4px 11px;
+    border-radius: 999px;
+  }
+  .dbadge.hot { background: linear-gradient(135deg, #FF8E72, #FFA98C); color: #FFFBF6; box-shadow: 0 4px 10px rgba(255,142,114,0.3); }
+  .dbadge.soft { background: #FFF1E4; color: #E0714F; }
+  .dbadge.past { background: #F4EAE2; color: #A78D80; }
+
+  /* 토글 */
+  .toggle {
+    width: 40px; height: 23px;
+    border-radius: 999px;
+    position: relative;
+    background: #EBDACB;
+    transition: background .2s;
+  }
+  .toggle .knob {
+    position: absolute;
+    top: 2.5px; left: 3px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #FFFDFA;
+    box-shadow: 0 2px 5px rgba(90,64,56,0.22);
+  }
+  .toggle.on { background: #FF8E72; }
+  .toggle.on .knob { left: auto; right: 3px; }
+  .toggle-label { font-size: 9.5px; font-weight: 700; color: #C9B2A5; }
+
+  .anni-item.past-item { opacity: 0.78; }
+  .anni-item.past-item .name { color: #8A7266; }
+
+  /* 추가 버튼 & 안내 */
+  .add-btn {
+    width: 100%;
+    margin-top: 6px;
+    padding: 15px;
+    border-radius: 18px;
+    border: 1.5px dashed #F0C9B4;
+    background: #FFFBF6;
+    color: #FF8E72;
+    font-family: 'Gothic A1', sans-serif;
+    font-size: 14.5px;
+    font-weight: 800;
+  }
+  .auto-note {
+    margin-top: 14px;
+    background: #FFF1E4;
+    border-radius: 16px;
+    padding: 13px 15px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .auto-note .emo { font-size: 15px; }
+  .auto-note p {
+    font-size: 12px;
+    font-weight: 600;
+    color: #7A5A4E;
+    line-height: 1.65;
+  }
+  .auto-note b { color: #E0714F; }
+  .home-indicator {
+    width: 134px; height: 5px;
+    background: #D9C4B6;
+    border-radius: 3px;
+    margin: 10px auto 12px;
+  }
+</style>
+</head>
+<body>
+  <div class="screen-label">02 · 기념일 관리 — D-day</div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="icons">
+        <div class="sig"><span></span><span></span><span></span><span></span></div>
+        <span class="wifi">&#9679;&#9679;&#9679;</span>
+        <div class="batt"></div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <div class="back">&#8249;</div>
+      <div class="title">우리의 기념일</div>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="content">
+      <!-- 대형 D-day 카드 -->
+      <div class="dday-card">
+        <div class="dday-eyebrow">&#129505; 승환 &amp; 수정</div>
+        <div class="dday-main">D+412<small>만난 지 412일째</small></div>
+        <div class="dday-since">2025년 5월 16일부터, 우리</div>
+        <div class="dday-progress"><div class="fill"></div></div>
+        <div class="dday-progress-label"><span>400일</span><span>500일까지 88일</span></div>
+        <div class="dday-next"><span>&#127873; 다음 기념일 · 500일</span><span>10월 1일 (일)</span></div>
+      </div>
+
+      <!-- 다가오는 기념일 -->
+      <div class="section-head">
+        <h2>다가오는 기념일</h2>
+        <span>알림은 하루 전 저녁에 와요</span>
+      </div>
+
+      <div class="anni-item">
+        <div class="icon coral">&#127881;</div>
+        <div class="info">
+          <div class="name">500일 <span class="auto-tag">자동</span></div>
+          <div class="date">2026년 10월 1일 (일)</div>
+        </div>
+        <div class="right">
+          <span class="dbadge hot">D-88</span>
+          <div class="toggle on"><div class="knob"></div></div>
+        </div>
+      </div>
+
+      <div class="anni-item">
+        <div class="icon peach">&#127874;</div>
+        <div class="info">
+          <div class="name">수정 생일</div>
+          <div class="date">2026년 7월 27일 (월)</div>
+        </div>
+        <div class="right">
+          <span class="dbadge hot">D-23</span>
+          <div class="toggle on"><div class="knob"></div></div>
+        </div>
+      </div>
+
+      <div class="anni-item">
+        <div class="icon peach">&#128149;</div>
+        <div class="info">
+          <div class="name">승환 생일</div>
+          <div class="date">2026년 11월 9일 (월)</div>
+        </div>
+        <div class="right">
+          <span class="dbadge soft">D-127</span>
+          <div class="toggle"><div class="knob"></div></div>
+        </div>
+      </div>
+
+      <div class="anni-item past-item">
+        <div class="icon done">&#128197;</div>
+        <div class="info">
+          <div class="name">1주년 <span class="auto-tag">자동</span></div>
+          <div class="date">2026년 5월 16일 (토) · 함께 보냈어요</div>
+        </div>
+        <div class="right">
+          <span class="dbadge past">지남 · +49일</span>
+          <span class="toggle-label">추억 보기 &#8250;</span>
+        </div>
+      </div>
+
+      <button class="add-btn">+ 기념일 추가</button>
+
+      <div class="auto-note">
+        <span class="emo">&#10024;</span>
+        <p><b>100일 단위 기념일은 자동으로 만들어져요.</b><br>
+        처음 만난 날만 등록하면 500일, 600일, 2주년까지 투데이가 미리 챙겨드릴게요.</p>
+      </div>
+    </div>
+
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

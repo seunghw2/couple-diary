@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 1년 전 오늘</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Gothic A1', sans-serif;
+    background: #EFE6DD;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0 60px;
+    color: #5A4038;
+  }
+  .screen-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #7A5A4E;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+  .phone {
+    width: 390px;
+    background: #FFF6EF;
+    border-radius: 44px;
+    box-shadow: 0 24px 60px rgba(90, 64, 56, 0.18);
+    overflow: hidden;
+    position: relative;
+  }
+  /* 상태바 */
+  .statusbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 28px 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #5A4038;
+  }
+  .statusbar .icons { display: flex; gap: 6px; align-items: center; }
+  .sig { display: flex; gap: 2px; align-items: flex-end; height: 11px; }
+  .sig span { width: 3px; background: #5A4038; border-radius: 1px; }
+  .sig span:nth-child(1){height:4px} .sig span:nth-child(2){height:6px}
+  .sig span:nth-child(3){height:8px} .sig span:nth-child(4){height:11px}
+  .wifi { font-size: 12px; }
+  .batt {
+    width: 24px; height: 12px;
+    border: 1.5px solid #5A4038; border-radius: 4px;
+    position: relative;
+  }
+  .batt::after {
+    content: ''; position: absolute; inset: 2px 6px 2px 2px;
+    background: #5A4038; border-radius: 1.5px;
+  }
+  .batt::before {
+    content: ''; position: absolute; right: -4px; top: 3px;
+    width: 2px; height: 5px; background: #5A4038; border-radius: 0 2px 2px 0;
+  }
+  /* 네비 */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px 6px;
+  }
+  .nav .back {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    background: #FFFDFA;
+    box-shadow: 0 2px 8px rgba(90,64,56,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: #5A4038;
+  }
+  .nav .title {
+    font-family: 'Jua', sans-serif;
+    font-size: 18px;
+    color: #FF8E72;
+  }
+  .nav .spacer { width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; font-size:15px; color:#B79A8D; }
+  .content { padding: 8px 20px 32px; }
+
+  /* 봉투 헤더 */
+  .envelope {
+    position: relative;
+    margin-top: 26px;
+  }
+  .flap {
+    position: absolute;
+    top: -22px; left: 24px; right: 24px;
+    height: 60px;
+    background: linear-gradient(180deg, #FFE3D4 0%, #FFD2BE 100%);
+    border-radius: 18px 18px 8px 8px;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    box-shadow: inset 0 -4px 10px rgba(199, 140, 116, 0.18);
+    z-index: 0;
+  }
+  .seal {
+    position: absolute;
+    top: 14px; left: 50%; transform: translateX(-50%);
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, #FF8E72, #FFA98C);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    box-shadow: 0 4px 10px rgba(255, 142, 114, 0.4);
+    z-index: 2;
+  }
+  .memory-card {
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(180deg, #FFFDFA 0%, #FFF9F1 100%);
+    border: 1px solid #F3E3D6;
+    border-radius: 24px;
+    padding: 40px 20px 24px;
+    box-shadow: 0 14px 34px rgba(154, 110, 92, 0.14);
+  }
+  .memory-eyebrow {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: #C99A82;
+    margin-bottom: 6px;
+  }
+  .memory-date {
+    text-align: center;
+    font-family: 'Jua', sans-serif;
+    font-size: 22px;
+    color: #5A4038;
+  }
+  .memory-sub {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #FF8E72;
+    margin-top: 4px;
+    margin-bottom: 18px;
+  }
+
+  /* 그날의 사진 (세피아 웜톤 그라데이션) */
+  .photo {
+    height: 210px;
+    border-radius: 18px;
+    background:
+      radial-gradient(120px 90px at 24% 30%, rgba(255, 224, 197, 0.9), rgba(255, 224, 197, 0) 70%),
+      radial-gradient(160px 120px at 78% 68%, rgba(226, 168, 134, 0.75), rgba(226, 168, 134, 0) 72%),
+      linear-gradient(150deg, #E9C6A6 0%, #D9A886 45%, #C08B6E 100%);
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 40px rgba(122, 78, 58, 0.28);
+  }
+  .photo::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,246,235,0.16) 0%, rgba(90,54,38,0.24) 100%);
+  }
+  .photo .caption {
+    position: absolute;
+    left: 14px; bottom: 12px;
+    z-index: 2;
+    color: #FFF6EC;
+    font-size: 13px;
+    font-weight: 700;
+    text-shadow: 0 1px 4px rgba(80,45,30,0.45);
+  }
+  .photo .badge {
+    position: absolute;
+    top: 12px; right: 12px;
+    z-index: 2;
+    background: rgba(255, 251, 246, 0.9);
+    color: #A66A4C;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 999px;
+  }
+
+  /* 메타: 별점 · 위치 */
+  .meta {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin: 14px 0 4px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #7A5A4E;
+  }
+  .meta .stars { color: #FFB067; letter-spacing: 2px; font-size: 13px; }
+  .meta .dot { color: #E4CDBF; }
+
+  .divider {
+    display: flex; align-items: center; gap: 10px;
+    margin: 16px 4px 14px;
+    color: #D8BCA9;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, transparent, #EBD6C6, transparent);
+  }
+
+  /* 말풍선 */
+  .bubble-row { display: flex; margin-bottom: 12px; }
+  .bubble-row.right { justify-content: flex-end; }
+  .bubble {
+    max-width: 78%;
+    padding: 12px 14px;
+    border-radius: 18px;
+    font-size: 13px;
+    line-height: 1.65;
+    color: #5A4038;
+    box-shadow: 0 3px 10px rgba(154, 110, 92, 0.08);
+  }
+  .bubble .who {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 800;
+    margin-bottom: 5px;
+  }
+  .bubble .who .avatar {
+    width: 20px; height: 20px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #fff;
+  }
+  .bubble.him {
+    background: #FFFDFA;
+    border: 1px solid #F3E3D6;
+    border-bottom-left-radius: 6px;
+  }
+  .bubble.him .who { color: #B0765C; }
+  .bubble.him .avatar { background: linear-gradient(135deg, #E0A487, #C98B6E); }
+  .bubble.her {
+    background: linear-gradient(180deg, #FFE9DE 0%, #FFDFD1 100%);
+    border: 1px solid #FFD2BE;
+    border-bottom-right-radius: 6px;
+  }
+  .bubble.her .who { color: #E0714F; justify-content: flex-end; }
+  .bubble.her .avatar { background: linear-gradient(135deg, #FF8E72, #FFA98C); }
+
+  /* 버튼 */
+  .actions { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+  .btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 18px;
+    font-family: 'Gothic A1', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
+    border: none;
+  }
+  .btn.primary {
+    background: linear-gradient(135deg, #FF8E72 0%, #FFA98C 100%);
+    color: #FFFBF6;
+    box-shadow: 0 10px 22px rgba(255, 142, 114, 0.35);
+  }
+  .btn.ghost {
+    background: #FFFDFA;
+    color: #7A5A4E;
+    border: 1.5px solid #F0DCCD;
+  }
+  .footnote {
+    text-align: center;
+    font-size: 11.5px;
+    color: #B79A8D;
+    margin-top: 14px;
+    line-height: 1.6;
+  }
+  .home-indicator {
+    width: 134px; height: 5px;
+    background: #D9C4B6;
+    border-radius: 3px;
+    margin: 10px auto 12px;
+  }
+</style>
+</head>
+<body>
+  <div class="screen-label">01 · 회고 — “1년 전 오늘” 상세</div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="icons">
+        <div class="sig"><span></span><span></span><span></span><span></span></div>
+        <span class="wifi">&#9679;&#9679;&#9679;</span>
+        <div class="batt"></div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <div class="back">&#8249;</div>
+      <div class="title">투데이</div>
+      <div class="spacer">&#8942;</div>
+    </div>
+
+    <div class="content">
+      <div class="envelope">
+        <div class="flap"></div>
+        <div class="seal">&#128140;</div>
+        <div class="memory-card">
+          <div class="memory-eyebrow">FROM OUR TIME CAPSULE</div>
+          <div class="memory-date">2025년 7월 15일</div>
+          <div class="memory-sub">1년 전 오늘, 우리가 남긴 하루예요</div>
+
+          <div class="photo">
+            <span class="badge">추억 1/3</span>
+            <span class="caption">한강 피크닉, 노을이 예뻤던 날</span>
+          </div>
+
+          <div class="meta">
+            <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+            <span class="dot">·</span>
+            <span>&#128205; 뚝섬한강공원</span>
+          </div>
+
+          <div class="divider">그날의 일기</div>
+
+          <div class="bubble-row">
+            <div class="bubble him">
+              <div class="who"><span class="avatar">승</span>승환</div>
+              돗자리 펴자마자 비 올까 봐 조마조마했는데, 결국 노을까지 다 봤다.
+              수정이가 싸온 김밥이 제일 맛있었음. 오늘 같은 날이 계속됐으면.
+            </div>
+          </div>
+          <div class="bubble-row right">
+            <div class="bubble her">
+              <div class="who">수정<span class="avatar">수</span></div>
+              김밥 옆구리 터진 거 놀리던 거 다 기억해 &#128580;
+              그래도 노을 보면서 어깨 기대고 있던 순간, 올해 제일 행복했어.
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn ghost">그날의 일기 전체 보기</button>
+            <button class="btn primary">수정님에게 이 추억 보내기 &#129505;</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="footnote">1년 전 오늘의 기록이 있는 날에만 열리는 편지예요</div>
+    </div>
+
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

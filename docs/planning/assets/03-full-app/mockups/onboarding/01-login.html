@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 01 로그인</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Gothic A1', sans-serif;
+    background:linear-gradient(160deg, #FFEDE2 0%, #FFF6EF 45%, #FFE3D4 100%);
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; padding:48px 20px; color:#5A4038;
+  }
+  .frame-label {
+    font-size:12px; font-weight:600; color:#B08A7A; letter-spacing:.08em;
+    margin-bottom:10px;
+  }
+  .phone {
+    width:390px; height:844px; background:#FFF6EF; border-radius:46px;
+    box-shadow:0 24px 60px rgba(122,90,78,.22), 0 4px 14px rgba(122,90,78,.10);
+    overflow:hidden; position:relative; display:flex; flex-direction:column;
+    border:1px solid rgba(255,255,255,.8);
+  }
+  /* status bar */
+  .statusbar {
+    height:47px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px 0 32px; font-size:14px; font-weight:600; color:#5A4038;
+    flex-shrink:0; position:relative; z-index:5;
+  }
+  .statusbar .icons { display:flex; align-items:center; gap:6px; }
+  .sig { display:flex; align-items:flex-end; gap:1.5px; height:11px; }
+  .sig i { width:3px; background:#5A4038; border-radius:1px; display:block; }
+  .sig i:nth-child(1){height:4px}.sig i:nth-child(2){height:6px}
+  .sig i:nth-child(3){height:8px}.sig i:nth-child(4){height:11px}
+  .wifi { width:16px; height:12px; position:relative; }
+  .wifi::before { content:""; position:absolute; inset:0;
+    background:radial-gradient(circle at 50% 100%, #5A4038 0 18%, transparent 19% 36%, #5A4038 37% 54%, transparent 55% 72%, #5A4038 73% 90%, transparent 91%);
+    -webkit-mask:conic-gradient(from -45deg at 50% 100%, #000 0 90deg, transparent 90deg); }
+  .batt { width:25px; height:12px; border:1.5px solid #5A4038; border-radius:4px; position:relative; }
+  .batt::before { content:""; position:absolute; inset:1.5px; right:5px; background:#5A4038; border-radius:1.5px; }
+  .batt::after { content:""; position:absolute; right:-4px; top:3px; width:2px; height:5px; background:#5A4038; border-radius:0 2px 2px 0; }
+
+  .screen { flex:1; display:flex; flex-direction:column; padding:0 28px 36px; position:relative; overflow:hidden; }
+
+  /* decorative blobs */
+  .blob { position:absolute; border-radius:50%; pointer-events:none; }
+  .blob.b1 { width:260px; height:260px; top:-70px; right:-90px;
+    background:radial-gradient(circle at 35% 35%, #FFC7B0 0%, rgba(255,199,176,0) 70%); opacity:.7; }
+  .blob.b2 { width:220px; height:220px; bottom:120px; left:-110px;
+    background:radial-gradient(circle at 60% 40%, #FFDCCB 0%, rgba(255,220,203,0) 70%); opacity:.8; }
+  .deco-heart { position:absolute; font-size:16px; opacity:.5; }
+  .dh1 { top:150px; left:36px; transform:rotate(-12deg); }
+  .dh2 { top:110px; right:52px; font-size:12px; transform:rotate(14deg); }
+  .dh3 { top:330px; right:34px; font-size:13px; transform:rotate(8deg); opacity:.35; }
+
+  /* hero */
+  .hero { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; position:relative; z-index:2; }
+
+  /* couple illustration: two circles leaning together */
+  .illust { position:relative; width:190px; height:130px; margin-bottom:34px; }
+  .person { position:absolute; bottom:0; width:88px; height:104px; border-radius:44px 44px 36px 36px;
+    box-shadow:0 10px 22px rgba(255,142,114,.28); }
+  .person .face { position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    width:52px; height:52px; border-radius:50%; background:#FFE9DD; }
+  .person .face::before, .person .face::after { content:""; position:absolute; top:24px;
+    width:5px; height:7px; border-radius:3px; background:#5A4038; }
+  .person .face::before { left:14px; } .person .face::after { right:14px; }
+  .person .smile { position:absolute; top:33px; left:50%; transform:translateX(-50%);
+    width:12px; height:6px; border-bottom:2.5px solid #5A4038; border-radius:0 0 10px 10px; }
+  .p-left { left:6px; transform:rotate(-7deg);
+    background:linear-gradient(180deg, #FF8E72 0%, #FFA98C 100%); }
+  .p-right { right:6px; transform:rotate(7deg);
+    background:linear-gradient(180deg, #FFA98C 0%, #FFC7B0 100%); }
+  .p-left .face { background:#FFEFE4; }
+  .heart-between { position:absolute; top:-4px; left:50%; transform:translateX(-50%);
+    width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+    background:#FFFDFA; border-radius:50%; box-shadow:0 6px 14px rgba(122,90,78,.15);
+    font-size:15px; }
+
+  .logo { font-family:'Jua', sans-serif; font-size:52px; color:#FF8E72; letter-spacing:.02em;
+    text-shadow:0 3px 0 rgba(255,142,114,.15); }
+  .tagline { margin-top:12px; font-size:15px; font-weight:500; color:#7A5A4E; line-height:1.6; }
+  .tagline b { color:#FF8E72; font-weight:700; }
+
+  /* buttons */
+  .actions { display:flex; flex-direction:column; gap:12px; position:relative; z-index:2; }
+  .btn { display:flex; align-items:center; justify-content:center; gap:10px;
+    height:56px; border-radius:18px; font-family:'Gothic A1',sans-serif;
+    font-size:16px; font-weight:700; cursor:pointer; border:none; }
+  .btn-kakao { background:#FEE500; color:#3C1E1E; box-shadow:0 8px 18px rgba(254,229,0,.35); }
+  .kakao-sym { width:20px; height:19px; position:relative; flex-shrink:0; }
+  .kakao-sym .bubble { width:20px; height:16px; background:#3C1E1E; border-radius:10px 10px 9px 9px; }
+  .kakao-sym .tail { position:absolute; left:4px; bottom:-1px; width:0; height:0;
+    border-left:4px solid transparent; border-right:5px solid transparent;
+    border-top:7px solid #3C1E1E; transform:rotate(18deg); }
+  .btn-apple { background:#111111; color:#FFFFFF; box-shadow:0 8px 18px rgba(17,17,17,.18); }
+  .apple-sym { font-size:19px; line-height:1; margin-top:-3px; }
+
+  .terms { margin-top:18px; text-align:center; font-size:11.5px; color:#B08A7A; line-height:1.7; position:relative; z-index:2; }
+  .terms a { color:#7A5A4E; text-decoration:underline; text-underline-offset:2px; }
+
+  .home-ind { width:134px; height:5px; border-radius:3px; background:#E8D3C8; margin:10px auto 0; }
+</style>
+</head>
+<body>
+  <div class="frame-label">온보딩 · 01 스플래시 + 로그인</div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">
+        <span class="sig"><i></i><i></i><i></i><i></i></span>
+        <span class="wifi"></span>
+        <span class="batt"></span>
+      </span>
+    </div>
+
+    <div class="screen">
+      <div class="blob b1"></div>
+      <div class="blob b2"></div>
+      <span class="deco-heart dh1">🧡</span>
+      <span class="deco-heart dh2">✦</span>
+      <span class="deco-heart dh3">🧡</span>
+
+      <div class="hero">
+        <div class="illust">
+          <div class="person p-left"><div class="face"><div class="smile"></div></div></div>
+          <div class="person p-right"><div class="face"><div class="smile"></div></div></div>
+          <div class="heart-between">🧡</div>
+        </div>
+        <div class="logo">투데이</div>
+        <p class="tagline">우리 둘의 오늘을 기록해요<br><b>둘 다 쓰면</b>, 서로의 하루가 열려요</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-kakao">
+          <span class="kakao-sym"><span class="bubble"></span><span class="tail"></span></span>
+          카카오로 시작하기
+        </button>
+        <button class="btn btn-apple">
+          <span class="apple-sym">&#63743;</span>
+          Apple로 계속하기
+        </button>
+      </div>
+
+      <p class="terms">시작하면 투데이의 <a href="#">이용약관</a> 및 <a href="#">개인정보 처리방침</a>에<br>동의하는 것으로 간주돼요</p>
+
+      <div class="home-ind"></div>
+    </div>
+  </div>
+</body>
+</html>
