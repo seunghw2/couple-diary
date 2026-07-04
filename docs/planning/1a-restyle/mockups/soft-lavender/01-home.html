@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 소프트 라벤더 · 홈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F1F6;
+    --paper:#FBFAFD;
+    --lav:#C9C0DD;
+    --lav-deep:#B7ABD0;
+    --lav-soft:#EEE9F5;
+    --lav-line:#E3DCEE;
+    --plum:#403A4C;
+    --plum-sub:#847C93;
+    --yellow:#F3D98B;
+    --rose:#D6A6AE;
+    --shadow:0 10px 30px rgba(64,58,76,.10);
+    --shadow-sm:0 4px 14px rgba(64,58,76,.07);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Gothic A1',sans-serif;
+    background:
+      radial-gradient(1100px 700px at 15% -10%, #EDE7F4 0%, transparent 55%),
+      radial-gradient(900px 600px at 110% 20%, #F0EBEF 0%, transparent 50%),
+      linear-gradient(160deg,#F6F3F8 0%,#EFEAF2 100%);
+    min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;
+    padding:34px 16px 60px;
+    color:var(--plum);
+  }
+  .verlabel{
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--plum-sub);background:rgba(255,255,255,.6);
+    padding:6px 14px;border-radius:999px;margin-bottom:18px;
+    border:1px solid var(--lav-line);font-weight:600;
+  }
+  .phone{
+    width:390px;background:var(--paper);border-radius:42px;
+    box-shadow:var(--shadow),0 0 0 1px rgba(255,255,255,.7) inset;
+    overflow:hidden;position:relative;
+  }
+  .status{
+    height:44px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 26px;font-size:13px;font-weight:700;color:var(--plum);
+  }
+  .status .dots{display:flex;gap:5px;align-items:center;font-size:11px;color:var(--plum-sub);}
+
+  /* Header */
+  .head{padding:6px 22px 16px;}
+  .toprow{display:flex;align-items:flex-end;justify-content:space-between;}
+  .logo{font-family:'Jua',sans-serif;font-size:30px;color:var(--plum);letter-spacing:.02em;}
+  .logo .dot{color:var(--lav-deep);}
+  .dday{
+    background:var(--lav-soft);border:1px solid var(--lav-line);
+    padding:7px 13px;border-radius:14px;text-align:right;box-shadow:var(--shadow-sm);
+  }
+  .dday b{display:block;font-size:15px;color:var(--plum);font-weight:800;}
+  .dday span{font-size:11px;color:var(--plum-sub);font-weight:600;}
+  .couple{margin-top:4px;font-size:12.5px;color:var(--plum-sub);font-weight:600;}
+  .couple b{color:var(--lav-deep);font-weight:800;}
+
+  /* year-ago banner */
+  .yearago{
+    margin:2px 22px 16px;
+    background:linear-gradient(135deg,#EFE9F6 0%,#F6EFEF 100%);
+    border:1px solid var(--lav-line);border-radius:20px;
+    padding:14px 16px;display:flex;align-items:center;gap:12px;
+    box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
+  }
+  .yearago::after{content:"🌙";position:absolute;right:-6px;bottom:-10px;font-size:56px;opacity:.10;}
+  .ya-badge{
+    flex-shrink:0;width:46px;height:46px;border-radius:14px;
+    background:#fff;display:flex;align-items:center;justify-content:center;
+    font-size:22px;box-shadow:var(--shadow-sm);
+  }
+  .ya-txt small{font-size:11px;color:var(--lav-deep);font-weight:800;letter-spacing:.04em;}
+  .ya-txt p{font-size:13.5px;color:var(--plum);font-weight:600;margin-top:2px;line-height:1.35;}
+  .ya-arrow{margin-left:auto;color:var(--lav-deep);font-size:18px;}
+
+  /* month bar */
+  .monthbar{display:flex;align-items:center;justify-content:center;gap:16px;padding:2px 22px 12px;}
+  .monthbar .arw{color:var(--plum-sub);font-size:16px;padding:4px;}
+  .monthbar b{font-size:18px;font-weight:800;color:var(--plum);}
+  .monthbar b span{color:var(--lav-deep);}
+
+  /* weekday header */
+  .weekhead{display:grid;grid-template-columns:repeat(7,1fr);padding:0 16px 6px;}
+  .weekhead div{text-align:center;font-size:11.5px;font-weight:700;color:var(--plum-sub);}
+  .weekhead .sun{color:var(--rose);}
+
+  /* grid */
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding:0 16px;}
+  .cell{
+    aspect-ratio:1/1.12;border-radius:15px;background:var(--lav-soft);
+    border:1px solid var(--lav-line);position:relative;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:4px 2px 3px;
+  }
+  .cell .dnum{font-size:10.5px;color:var(--plum-sub);font-weight:700;position:absolute;top:5px;left:7px;}
+  .cell .emo{font-size:19px;line-height:1;margin-top:6px;}
+  .cell .stars{font-size:7.5px;color:var(--yellow);letter-spacing:-.5px;margin-top:2px;}
+  .cell .stamp{position:absolute;bottom:3px;right:5px;font-size:9px;opacity:.85;}
+
+  /* filled = has entry */
+  .cell.filled{background:#fff;box-shadow:var(--shadow-sm);border-color:transparent;}
+  /* empty future */
+  .cell.future{background:#F7F4FA;border:1px dashed var(--lav-line);}
+  .cell.future .dnum{opacity:.5;}
+  .cell.blank{background:transparent;border:none;}
+  /* today */
+  .cell.today{
+    background:linear-gradient(160deg,#C9C0DD 0%,#B7ABD0 100%);
+    box-shadow:0 8px 20px rgba(150,133,180,.38);border:none;
+  }
+  .cell.today .dnum{color:#fff;opacity:.95;}
+  .cell.today .emo{filter:drop-shadow(0 1px 2px rgba(0,0,0,.12));}
+  .cell.today .stars{color:#FFF0C4;}
+  .cell.today::before{
+    content:"오늘";position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+    background:#fff;color:var(--lav-deep);font-size:8px;font-weight:800;
+    padding:2px 7px;border-radius:999px;box-shadow:var(--shadow-sm);letter-spacing:.03em;
+  }
+
+  /* progress */
+  .prog{margin:20px 20px 8px;background:var(--lav-soft);border:1px solid var(--lav-line);
+    border-radius:18px;padding:14px 16px;box-shadow:var(--shadow-sm);}
+  .prog .prow{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
+  .prog .prow b{font-size:13.5px;color:var(--plum);font-weight:800;}
+  .prog .prow b em{color:var(--lav-deep);font-style:normal;}
+  .prog .prow span{font-size:12px;color:var(--plum-sub);font-weight:600;}
+  .track{height:9px;background:#fff;border-radius:999px;overflow:hidden;}
+  .fill{height:100%;width:63%;border-radius:999px;
+    background:linear-gradient(90deg,#C9C0DD,#B7ABD0 70%,#D6A6AE);}
+
+  /* tabbar */
+  .tabbar{display:flex;justify-content:space-around;align-items:center;
+    padding:12px 20px 22px;margin-top:12px;border-top:1px solid var(--lav-line);background:var(--paper);}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;
+    font-size:10.5px;font-weight:700;color:var(--plum-sub);}
+  .tab .ic{font-size:19px;filter:grayscale(.2);}
+  .tab.active{color:var(--lav-deep);}
+  .tab.active .ic{filter:none;}
+  .tab.active::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--lav-deep);margin-top:1px;}
+</style>
+</head>
+<body>
+  <div class="verlabel">소프트 라벤더 · 1-A 홈 (달력)</div>
+  <div class="phone">
+    <div class="status">
+      <span>9:41</span>
+      <span class="dots">● ● ●  ⌁  ▮</span>
+    </div>
+
+    <div class="head">
+      <div class="toprow">
+        <div class="logo">투데이<span class="dot">.</span></div>
+        <div class="dday">
+          <b>D+412</b>
+          <span>우리의 412번째 밤</span>
+        </div>
+      </div>
+      <div class="couple"><b>승환</b> &amp; <b>수정</b> 의 교환일기</div>
+    </div>
+
+    <div class="yearago">
+      <div class="ya-badge">🌸</div>
+      <div class="ya-txt">
+        <small>1년 전 오늘</small>
+        <p>성수 골목 카페에서 처음 손잡던 날 🫶</p>
+      </div>
+      <div class="ya-arrow">›</div>
+    </div>
+
+    <div class="monthbar">
+      <span class="arw">‹</span>
+      <b>2026 · <span>7월</span></b>
+      <span class="arw">›</span>
+    </div>
+
+    <div class="weekhead">
+      <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+    </div>
+
+    <div class="grid">
+      <!-- week 1 (starts Wed Jul 1) -->
+      <div class="cell blank"></div>
+      <div class="cell blank"></div>
+      <div class="cell filled"><span class="dnum">1</span><span class="emo">😊</span><span class="stars">★★★★☆</span><span class="stamp">☕</span></div>
+      <div class="cell filled"><span class="dnum">2</span><span class="emo">🥰</span><span class="stars">★★★★★</span><span class="stamp">🌆</span></div>
+      <div class="cell today"><span class="dnum">3</span><span class="emo">😌</span><span class="stars">★★★★☆</span></div>
+      <div class="cell future"><span class="dnum">4</span></div>
+      <div class="cell future"><span class="dnum">5</span></div>
+      <!-- week 2 -->
+      <div class="cell future"><span class="dnum">6</span></div>
+      <div class="cell future"><span class="dnum">7</span></div>
+      <div class="cell future"><span class="dnum">8</span></div>
+      <div class="cell future"><span class="dnum">9</span></div>
+      <div class="cell future"><span class="dnum">10</span></div>
+      <div class="cell future"><span class="dnum">11</span></div>
+      <div class="cell future"><span class="dnum">12</span></div>
+      <!-- week 3 (fill some past-looking demo below is future; keep realistic: show past filled before today) -->
+      <div class="cell future"><span class="dnum">13</span></div>
+      <div class="cell future"><span class="dnum">14</span></div>
+      <div class="cell future"><span class="dnum">15</span></div>
+      <div class="cell future"><span class="dnum">16</span></div>
+      <div class="cell future"><span class="dnum">17</span></div>
+      <div class="cell future"><span class="dnum">18</span></div>
+      <div class="cell future"><span class="dnum">19</span></div>
+      <!-- week 4 -->
+      <div class="cell future"><span class="dnum">20</span></div>
+      <div class="cell future"><span class="dnum">21</span></div>
+      <div class="cell future"><span class="dnum">22</span></div>
+      <div class="cell future"><span class="dnum">23</span></div>
+      <div class="cell future"><span class="dnum">24</span></div>
+      <div class="cell future"><span class="dnum">25</span></div>
+      <div class="cell future"><span class="dnum">26</span></div>
+      <!-- week 5 -->
+      <div class="cell future"><span class="dnum">27</span></div>
+      <div class="cell future"><span class="dnum">28</span></div>
+      <div class="cell future"><span class="dnum">29</span></div>
+      <div class="cell future"><span class="dnum">30</span></div>
+      <div class="cell future"><span class="dnum">31</span></div>
+      <div class="cell blank"></div>
+      <div class="cell blank"></div>
+    </div>
+
+    <div class="prog">
+      <div class="prow">
+        <b>이번 달 채움 <em>19/31</em></b>
+        <span>이 페이스면 만점! ✨</span>
+      </div>
+      <div class="track"><div class="fill"></div></div>
+    </div>
+
+    <div class="tabbar">
+      <div class="tab active"><span class="ic">📅</span>달력</div>
+      <div class="tab"><span class="ic">🗺️</span>지도</div>
+      <div class="tab"><span class="ic">⚙️</span>설정</div>
+    </div>
+  </div>
+</body>
+</html>

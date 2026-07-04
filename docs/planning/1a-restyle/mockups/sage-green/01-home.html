@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 홈 (세이지 그린)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --cream: #F6F5EF;
+    --card: #FFFFFF;
+    --sage: #A3B18A;
+    --sage-deep: #8A9A7B;
+    --sage-soft: #DDE5D0;
+    --sage-mist: #EDF1E6;
+    --ink: #3A4A3A;
+    --ink-soft: #6C7A67;
+    --coral: #D68A6A;
+    --mustard: #C9A24B;
+    --line: #E8EBE1;
+    --shadow: 0 8px 24px rgba(90, 105, 80, 0.10);
+    --shadow-sm: 0 4px 12px rgba(90, 105, 80, 0.08);
+  }
+  body {
+    font-family: 'Gothic A1', sans-serif;
+    background: linear-gradient(160deg, #EAEDE2 0%, #E3E8D8 50%, #DDE3D2 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 0 48px;
+    color: var(--ink);
+  }
+  .verlabel {
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: #7C8A72;
+    background: rgba(255,255,255,0.6);
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+  .phone {
+    width: 390px;
+    background: var(--cream);
+    border-radius: 40px;
+    box-shadow: 0 24px 60px rgba(70, 85, 60, 0.22);
+    overflow: hidden;
+    position: relative;
+    padding-bottom: 78px;
+  }
+  .statusbar {
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .statusbar .dots { letter-spacing: 2px; font-size: 11px; }
+
+  /* Header */
+  .header {
+    padding: 6px 22px 14px;
+  }
+  .logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    font-family: 'Jua', sans-serif;
+    font-size: 27px;
+    color: var(--sage-deep);
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .logo .leaf { font-size: 20px; }
+  .dday {
+    background: var(--sage-soft);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 7px 13px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dday .names { color: var(--sage-deep); font-weight: 800; }
+  .dday .num { color: var(--coral); }
+
+  /* 1 year ago banner */
+  .throwback {
+    margin: 14px 22px 4px;
+    background: linear-gradient(120deg, #EDF1E6 0%, #E4EAD7 100%);
+    border: 1px solid #DBE2CD;
+    border-radius: 20px;
+    padding: 13px 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow-sm);
+  }
+  .throwback .tb-icon {
+    width: 42px; height: 42px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #C7D3AE, #A3B18A);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 21px;
+    flex-shrink: 0;
+  }
+  .throwback .tb-text { flex: 1; }
+  .throwback .tb-label {
+    font-size: 11px; font-weight: 700; color: var(--sage-deep);
+    letter-spacing: 0.3px; margin-bottom: 2px;
+  }
+  .throwback .tb-sub { font-size: 12.5px; color: var(--ink-soft); font-weight: 500; }
+  .throwback .tb-arrow { color: var(--sage); font-size: 18px; font-weight: 700; }
+
+  /* Month nav */
+  .month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 20px 22px 8px;
+  }
+  .month-nav .arrow {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #fff; box-shadow: var(--shadow-sm);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--sage-deep); font-size: 15px; font-weight: 700;
+  }
+  .month-title { font-size: 19px; font-weight: 800; color: var(--ink); }
+  .month-title small { font-size: 13px; font-weight: 500; color: var(--ink-soft); margin-left: 4px; }
+
+  /* Calendar */
+  .cal {
+    margin: 6px 16px 0;
+    background: var(--card);
+    border-radius: 26px;
+    padding: 16px 14px 18px;
+    box-shadow: var(--shadow);
+  }
+  .weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 8px;
+  }
+  .weekdays div {
+    text-align: center;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    padding-bottom: 2px;
+  }
+  .weekdays .sun { color: #C58873; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cell {
+    aspect-ratio: 1 / 1.12;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    position: relative;
+  }
+  .cell .dnum { font-size: 10px; font-weight: 600; color: var(--ink-soft); position: absolute; top: 5px; left: 7px; }
+  .cell.empty { }
+  .cell.filled {
+    background: var(--sage-mist);
+    border: 1px solid #E3E9D8;
+  }
+  .cell .emoji { font-size: 18px; line-height: 1; margin-top: 6px; }
+  .cell .stars { font-size: 7px; color: var(--mustard); letter-spacing: -0.5px; }
+  .cell .stamp {
+    position: absolute; bottom: 4px; right: 5px; font-size: 9px;
+  }
+  .cell.today {
+    background: linear-gradient(150deg, #B4C199, #97A87F);
+    border: none;
+    box-shadow: 0 6px 14px rgba(138, 154, 123, 0.45);
+  }
+  .cell.today .dnum { color: #fff; opacity: 0.9; }
+  .cell.today .stars { color: #FBEAB0; }
+  .cell.today .today-dot {
+    position: absolute; bottom: 5px; width: 5px; height: 5px; border-radius: 50%;
+    background: #fff; left: 50%; transform: translateX(-50%);
+  }
+  .cell.future .dnum { color: #C3CBBB; }
+  .cell.future { background: #FBFBF7; border: 1px dashed #E6EADD; }
+
+  /* Progress */
+  .progress-wrap {
+    margin: 18px 20px 6px;
+    background: #fff;
+    border-radius: 20px;
+    padding: 15px 18px;
+    box-shadow: var(--shadow-sm);
+  }
+  .progress-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .progress-top .pt-label { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .progress-top .pt-label .em { margin-right: 5px; }
+  .progress-top .pt-count { font-size: 13px; font-weight: 800; color: var(--sage-deep); }
+  .progress-top .pt-count small { color: var(--ink-soft); font-weight: 600; }
+  .bar {
+    height: 9px; border-radius: 10px; background: var(--sage-mist);
+    overflow: hidden;
+  }
+  .bar .fill {
+    height: 100%; width: 61%;
+    background: linear-gradient(90deg, #B4C199, #8A9A7B);
+    border-radius: 10px;
+  }
+
+  /* Tab bar */
+  .tabbar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 70px;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 24px 6px;
+  }
+  .tab {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 10.5px; font-weight: 600; color: #A7B29C;
+  }
+  .tab .ic { font-size: 21px; }
+  .tab.active { color: var(--sage-deep); }
+  .tab.active .ic {
+    background: var(--sage-soft);
+    padding: 6px 14px; border-radius: 14px;
+  }
+</style>
+</head>
+<body>
+  <div class="verlabel">세이지 그린 · 01 홈 · 월간 스티커 달력</div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="dots">● ● ●</span>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+      <div class="logo-row">
+        <div class="logo"><span class="leaf">🌿</span>투데이</div>
+        <div class="dday">
+          <span class="names">승환 &amp; 수정</span>
+          <span class="num">D+412</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1년 전 오늘 -->
+    <div class="throwback">
+      <div class="tb-icon">📸</div>
+      <div class="tb-text">
+        <div class="tb-label">1년 전 오늘</div>
+        <div class="tb-sub">성수에서 첫 데이트하던 날이에요</div>
+      </div>
+      <div class="tb-arrow">›</div>
+    </div>
+
+    <!-- Month nav -->
+    <div class="month-nav">
+      <div class="arrow">‹</div>
+      <div class="month-title">7월 <small>2026</small></div>
+      <div class="arrow">›</div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="cal">
+      <div class="weekdays">
+        <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+      </div>
+      <div class="grid">
+        <!-- Row 1 (starts Wed July 1) -->
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell filled"><span class="dnum">1</span><span class="emoji">😊</span><span class="stars">★★★★★</span><span class="stamp">🌸</span></div>
+        <div class="cell filled"><span class="dnum">2</span><span class="emoji">🥰</span><span class="stars">★★★★</span><span class="stamp">☕</span></div>
+        <div class="cell today"><span class="dnum">3</span><span class="emoji">😎</span><span class="stars">★★★★★</span><span class="today-dot"></span></div>
+        <div class="cell future"><span class="dnum">4</span></div>
+        <div class="cell future"><span class="dnum">5</span></div>
+
+        <!-- Row 2 -->
+        <div class="cell future"><span class="dnum">6</span></div>
+        <div class="cell future"><span class="dnum">7</span></div>
+        <div class="cell future"><span class="dnum">8</span></div>
+        <div class="cell future"><span class="dnum">9</span></div>
+        <div class="cell future"><span class="dnum">10</span></div>
+        <div class="cell future"><span class="dnum">11</span></div>
+        <div class="cell future"><span class="dnum">12</span></div>
+
+        <!-- Row 3 -->
+        <div class="cell future"><span class="dnum">13</span></div>
+        <div class="cell future"><span class="dnum">14</span></div>
+        <div class="cell future"><span class="dnum">15</span></div>
+        <div class="cell future"><span class="dnum">16</span></div>
+        <div class="cell future"><span class="dnum">17</span></div>
+        <div class="cell future"><span class="dnum">18</span></div>
+        <div class="cell future"><span class="dnum">19</span></div>
+
+        <!-- Row 4 -->
+        <div class="cell future"><span class="dnum">20</span></div>
+        <div class="cell future"><span class="dnum">21</span></div>
+        <div class="cell future"><span class="dnum">22</span></div>
+        <div class="cell future"><span class="dnum">23</span></div>
+        <div class="cell future"><span class="dnum">24</span></div>
+        <div class="cell future"><span class="dnum">25</span></div>
+        <div class="cell future"><span class="dnum">26</span></div>
+
+        <!-- Row 5 -->
+        <div class="cell future"><span class="dnum">27</span></div>
+        <div class="cell future"><span class="dnum">28</span></div>
+        <div class="cell future"><span class="dnum">29</span></div>
+        <div class="cell future"><span class="dnum">30</span></div>
+        <div class="cell future"><span class="dnum">31</span></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <div class="pt-label"><span class="em">🌱</span>이번 달 채움</div>
+        <div class="pt-count">3<small> / 31</small></div>
+      </div>
+      <div class="bar"><div class="fill" style="width:10%"></div></div>
+    </div>
+
+    <!-- Tab bar -->
+    <div class="tabbar">
+      <div class="tab active"><span class="ic">📅</span>달력</div>
+      <div class="tab"><span class="ic">🗺️</span>지도</div>
+      <div class="tab"><span class="ic">⚙️</span>설정</div>
+    </div>
+  </div>
+</body>
+</html>

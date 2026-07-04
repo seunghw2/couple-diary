@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 모노+포인트 · 일기 상세</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;500;700;900&family=Jua&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAFAF9;
+    --panel:#FFFFFF;
+    --grey1:#F4F4F5;
+    --grey2:#E7E5E4;
+    --line:#EBEAE8;
+    --ink:#2B2B2E;
+    --sub:#8A8A8F;
+    --faint:#BDBBB8;
+    --accent:#FF7A6B;
+    --accent-soft:#FFE7E2;
+    --accent-tint:#FFF2EF;
+    --radius:22px;
+    --shadow:0 10px 30px rgba(43,43,46,.06);
+    --shadow-sm:0 4px 14px rgba(43,43,46,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Gothic A1',sans-serif;
+    background:
+      radial-gradient(1200px 600px at 20% -10%, #F1F0EF 0%, transparent 60%),
+      radial-gradient(1000px 700px at 110% 20%, #F5EFEE 0%, transparent 55%),
+      #EFEEEC;
+    min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;
+    padding:34px 0 60px;color:var(--ink);
+  }
+  .veta{font-size:11px;letter-spacing:.14em;color:#9C9A97;text-transform:uppercase;margin-bottom:16px;font-weight:500;}
+  .veta b{color:var(--accent);font-weight:700;}
+
+  .phone{
+    width:390px;height:844px;background:var(--bg);
+    border-radius:44px;overflow:hidden;position:relative;
+    box-shadow:0 30px 70px rgba(43,43,46,.16),0 0 0 8px #1c1c1e,0 0 0 9px #2b2b2e;
+    display:flex;flex-direction:column;
+  }
+  .status{height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:13px;font-weight:700;flex-shrink:0;}
+  .status .dots{display:flex;gap:5px;align-items:center;}
+  .status .dots span{width:5px;height:5px;border-radius:50%;background:var(--ink);opacity:.7;}
+  .status .batt{width:22px;height:11px;border:1.5px solid var(--ink);border-radius:3px;position:relative;opacity:.7;}
+  .status .batt::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:5px;background:var(--ink);border-radius:0 1px 1px 0;}
+
+  /* nav */
+  .navbar{display:flex;align-items:center;justify-content:space-between;padding:6px 20px 10px;flex-shrink:0;}
+  .navbar .back{width:36px;height:36px;border-radius:12px;background:var(--panel);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink);box-shadow:var(--shadow-sm);}
+  .navbar .date{text-align:center;}
+  .navbar .date .day{font-size:15px;font-weight:900;letter-spacing:-.2px;}
+  .navbar .date .sub{font-size:10.5px;color:var(--sub);font-weight:500;}
+  .navbar .more{width:36px;height:36px;border-radius:12px;background:var(--panel);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--sub);box-shadow:var(--shadow-sm);}
+
+  .scroll{flex:1;overflow-y:auto;padding:2px 20px 24px;}
+  .scroll::-webkit-scrollbar{display:none;}
+
+  /* memory recall */
+  .recall{
+    display:flex;align-items:center;gap:12px;
+    background:linear-gradient(135deg,var(--accent-tint),#FFF8F6);
+    border:1px solid var(--accent-soft);border-radius:18px;
+    padding:11px 14px;margin-bottom:16px;box-shadow:var(--shadow-sm);
+  }
+  .recall .ic{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#FFD9CF,#FFBCAE);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 4px 10px rgba(255,122,107,.2);}
+  .recall .tag{font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.05em;}
+  .recall .t{font-size:12.5px;font-weight:500;color:var(--ink);line-height:1.35;}
+
+  /* summary chips */
+  .summary{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .chip{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:100px;padding:8px 13px;font-size:12px;font-weight:700;box-shadow:var(--shadow-sm);}
+  .chip .stars{color:var(--accent);letter-spacing:-1px;font-size:11px;}
+  .chip .pin{color:var(--accent);}
+  .chip.mood{background:var(--accent-tint);border-color:var(--accent-soft);color:var(--accent);}
+
+  /* photo */
+  .photo{
+    height:200px;border-radius:20px;margin-bottom:18px;overflow:hidden;position:relative;
+    background:linear-gradient(135deg,#FFD9CF 0%,#FFBCAE 45%,#E9AFA6 100%);
+    box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;
+  }
+  .photo .big{font-size:66px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.12));}
+  .photo .cap{position:absolute;left:14px;bottom:12px;background:rgba(43,43,46,.55);backdrop-filter:blur(6px);color:#fff;font-size:11px;font-weight:500;padding:5px 11px;border-radius:100px;}
+  .photo .cnt{position:absolute;right:14px;bottom:12px;background:rgba(255,255,255,.85);color:var(--ink);font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:100px;}
+
+  /* entries */
+  .entry{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:15px 16px;margin-bottom:12px;box-shadow:var(--shadow-sm);position:relative;}
+  .entry .head{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+  .entry .av{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .entry.him .av{background:linear-gradient(135deg,#EDEBE9,#DBD8D5);}
+  .entry.her .av{background:linear-gradient(135deg,var(--accent-soft),var(--accent-tint));}
+  .entry .who{font-size:13px;font-weight:900;}
+  .entry .time{font-size:10.5px;color:var(--faint);font-weight:500;}
+  .entry .badge{margin-left:auto;font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;}
+  .entry.him .badge{background:var(--grey1);color:var(--sub);}
+  .entry.her .badge{background:var(--accent-tint);color:var(--accent);}
+  .entry .body{font-size:13px;line-height:1.65;color:#3D3D40;}
+  .entry.her{border-color:var(--accent-soft);}
+  .entry .accent-line{position:absolute;left:0;top:16px;bottom:16px;width:3px;border-radius:100px;}
+  .entry.him .accent-line{background:var(--grey2);}
+  .entry.her .accent-line{background:var(--accent);}
+  .entry .inner{padding-left:8px;}
+
+  /* reactions */
+  .react{display:flex;align-items:center;gap:8px;margin-top:11px;padding-top:11px;border-top:1px dashed var(--line);}
+  .react .heart{display:flex;align-items:center;gap:6px;background:var(--accent-tint);border:1px solid var(--accent-soft);color:var(--accent);padding:6px 12px;border-radius:100px;font-size:12px;font-weight:700;}
+  .react .cmt{display:flex;align-items:center;gap:6px;background:var(--grey1);color:var(--sub);padding:6px 12px;border-radius:100px;font-size:12px;font-weight:700;}
+
+  /* footer reaction bar */
+  .heartline{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--panel);border:1px solid var(--line);border-radius:100px;
+    padding:11px;margin-top:6px;box-shadow:var(--shadow-sm);
+  }
+  .heartline span{font-size:12.5px;font-weight:700;color:var(--sub);}
+  .heartline .btns{display:flex;gap:6px;}
+  .heartline .b{width:34px;height:34px;border-radius:11px;background:var(--grey1);display:flex;align-items:center;justify-content:center;font-size:16px;}
+  .heartline .b.on{background:var(--accent);box-shadow:0 6px 14px rgba(255,122,107,.35);}
+</style>
+</head>
+<body>
+  <div class="veta">모노 + 포인트 · <b>02 · 공개된 일기 상세</b></div>
+  <div class="phone">
+    <div class="status">
+      <span>9:41</span>
+      <div class="dots"><span></span><span></span><span></span><div class="batt"></div></div>
+    </div>
+
+    <div class="navbar">
+      <div class="back">‹</div>
+      <div class="date">
+        <div class="day">7월 4일 토요일</div>
+        <div class="sub">승환 &amp; 수정의 하루</div>
+      </div>
+      <div class="more">⋯</div>
+    </div>
+
+    <div class="scroll">
+      <div class="recall">
+        <div class="ic">📸</div>
+        <div>
+          <div class="tag">1년 전 오늘</div>
+          <div class="t">작년 이맘때 을지로 골목 카페 탐방했었지 ☕</div>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="chip mood">🥰 최고의 하루</div>
+        <div class="chip"><span class="stars">★★★★★</span></div>
+        <div class="chip"><span class="pin">📍</span> 성수동</div>
+      </div>
+
+      <div class="photo">
+        <div class="big">🌆</div>
+        <div class="cap">성수 팝업 스토어 나들이</div>
+        <div class="cnt">1 / 3</div>
+      </div>
+
+      <div class="entry him">
+        <div class="accent-line"></div>
+        <div class="inner">
+          <div class="head">
+            <div class="av">🧢</div>
+            <div>
+              <div class="who">승환</div>
+              <div class="time">오후 9:12</div>
+            </div>
+            <div class="badge">그의 하루</div>
+          </div>
+          <div class="body">성수 팝업 줄 진짜 길었는데 수정이가 미리 예약해둬서 바로 들어갔다 😎 안에서 굿즈 구경하는 표정이 완전 신나 보여서 나도 덩달아 기분 좋았음. 저녁은 그 골목 파스타집, 강추.</div>
+        </div>
+      </div>
+
+      <div class="entry her">
+        <div class="accent-line"></div>
+        <div class="inner">
+          <div class="head">
+            <div class="av">🎀</div>
+            <div>
+              <div class="who">수정</div>
+              <div class="time">오후 10:03</div>
+            </div>
+            <div class="badge">그녀의 하루</div>
+          </div>
+          <div class="body">오빠가 사진 백 장 찍어줘서 인생샷 건짐 📷✨ 팝업도 좋았지만 사실 손잡고 성수 골목 걸었던 게 제일 좋았어. 다음엔 우리 을지로도 다시 가자! 오늘 완전 만점 데이트 💯</div>
+          <div class="react">
+            <div class="heart">❤️ 승환님이 좋아해요</div>
+            <div class="cmt">💬 답글 2</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="heartline">
+        <span>오늘 하루, 마음을 남겨보세요</span>
+        <div class="btns">
+          <div class="b on">❤️</div>
+          <div class="b">💬</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

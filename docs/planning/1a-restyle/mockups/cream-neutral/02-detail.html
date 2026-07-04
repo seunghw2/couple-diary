@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>투데이 · 크림 뉴트럴 · 상세</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --cream: #F7F3EC;
+    --cream-2: #FBF8F2;
+    --card: #FFFDF9;
+    --offwhite: #FCFAF5;
+    --brown: #4A3F35;
+    --brown-soft: #6B5D4F;
+    --camel: #B08968;
+    --camel-soft: #C9AD8E;
+    --terra: #C08268;
+    --sage: #97A488;
+    --line: #E6DDCE;
+    --muted: #9A8B79;
+    --shadow: 0 10px 30px rgba(74, 63, 53, 0.10);
+    --shadow-sm: 0 4px 14px rgba(74, 63, 53, 0.07);
+  }
+  body {
+    font-family: 'Gothic A1', sans-serif;
+    background: radial-gradient(circle at 20% 10%, #F3ECE0 0%, #E7DFD1 55%, #E0D6C4 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 34px 16px 60px;
+    color: var(--brown);
+  }
+  .screen-label {
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    color: #8B7A66;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(176,137,104,0.25);
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+  .phone {
+    width: 390px;
+    background: var(--cream);
+    border-radius: 42px;
+    box-shadow: var(--shadow), 0 0 0 10px #fff, 0 0 0 12px #E4DACB;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 810px;
+  }
+  .statusbar {
+    height: 44px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 26px; font-size: 13px; font-weight: 700; color: var(--brown);
+    background: var(--cream);
+  }
+  .statusbar .dots { font-size: 11px; letter-spacing: 1px; }
+
+  /* Top nav */
+  .topnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 18px 12px; background: var(--cream);
+  }
+  .topnav .back, .topnav .more {
+    width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--card); display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: var(--brown-soft); box-shadow: var(--shadow-sm);
+  }
+  .topnav .title { font-family: 'Jua', sans-serif; font-size: 16px; color: var(--brown); }
+
+  .scroll { flex: 1; overflow-y: auto; padding: 4px 18px 24px; }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* Throwback recall card */
+  .recall {
+    background: linear-gradient(125deg, #FBF6EC 0%, #F4EADA 100%);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 15px 18px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+    position: relative; overflow: hidden;
+  }
+  .recall::after {
+    content: ""; position: absolute; right: -20px; bottom: -22px;
+    width: 88px; height: 88px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(192,130,104,0.13), transparent 70%);
+  }
+  .recall .ic {
+    width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+    background: linear-gradient(145deg, #E7D4C2, #D8BFA6);
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .recall .l1 { font-size: 11px; font-weight: 700; color: var(--terra); letter-spacing: 0.3px; }
+  .recall .l2 { font-size: 14px; font-weight: 700; color: var(--brown); margin-top: 3px; }
+  .recall .l3 { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+  /* Meta row */
+  .meta {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 999px; padding: 7px 13px; font-size: 12px; font-weight: 600;
+    color: var(--brown-soft); box-shadow: var(--shadow-sm);
+  }
+  .chip .stars { color: var(--camel); letter-spacing: 0.5px; }
+  .chip.loc { color: var(--sage); }
+  .chip .mood-em { font-size: 14px; }
+
+  /* Photo */
+  .photo {
+    height: 210px; border-radius: 24px; margin-bottom: 18px;
+    background:
+      linear-gradient(140deg, rgba(255,255,255,0.15), rgba(74,63,53,0.10)),
+      linear-gradient(160deg, #E8D3BE 0%, #D8BFA6 45%, #B9A78E 100%);
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 14px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .photo::before {
+    content: "🌆"; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-58%); font-size: 62px; opacity: 0.85;
+    filter: drop-shadow(0 4px 8px rgba(74,63,53,0.2));
+  }
+  .photo .date-stamp {
+    background: rgba(255,253,249,0.9); backdrop-filter: blur(4px);
+    border-radius: 12px; padding: 6px 12px; font-size: 11px; font-weight: 700; color: var(--brown);
+    z-index: 1;
+  }
+  .photo .count {
+    background: rgba(74,63,53,0.55); color: #fff; border-radius: 999px;
+    padding: 5px 11px; font-size: 11px; font-weight: 600; z-index: 1;
+  }
+
+  .day-title { font-family: 'Jua', sans-serif; font-size: 20px; color: var(--brown); margin-bottom: 4px; padding: 0 2px; }
+  .day-sub { font-size: 12px; color: var(--muted); margin-bottom: 18px; padding: 0 2px; }
+
+  /* Entries */
+  .entry { display: flex; gap: 11px; margin-bottom: 16px; }
+  .entry .avatar {
+    width: 40px; height: 40px; border-radius: 14px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 19px;
+    box-shadow: var(--shadow-sm);
+  }
+  .entry.him .avatar { background: linear-gradient(145deg, #C9AD8E, #B08968); }
+  .entry.her .avatar { background: linear-gradient(145deg, #ABB79A, #97A488); }
+  .bubble {
+    flex: 1; background: var(--card); border: 1px solid var(--line);
+    border-radius: 20px; padding: 13px 16px; box-shadow: var(--shadow-sm);
+  }
+  .entry.her { flex-direction: row-reverse; }
+  .entry.her .bubble { background: #FAF7F0; }
+  .bubble .who { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .bubble .who .name { font-size: 12.5px; font-weight: 800; color: var(--brown); }
+  .entry.her .bubble .who .name { color: #6E7A5E; }
+  .bubble .who .time { font-size: 10.5px; color: var(--muted); font-weight: 600; }
+  .bubble .txt { font-size: 13.5px; line-height: 1.65; color: var(--brown-soft); }
+
+  /* Heart reaction */
+  .reactions {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin: 8px 0 4px;
+  }
+  .react-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 999px; padding: 9px 18px; font-size: 13px; font-weight: 700;
+    color: var(--brown); box-shadow: var(--shadow-sm);
+  }
+  .react-btn.on { background: linear-gradient(145deg, #F6E7D6, #EFD8C0); border-color: var(--camel-soft); color: var(--terra); }
+  .react-btn .h { font-size: 15px; }
+
+  /* Composer hint */
+  .composer {
+    margin-top: 14px;
+    background: var(--card); border: 1px dashed var(--camel-soft);
+    border-radius: 18px; padding: 13px 16px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12.5px; color: var(--muted); font-weight: 600;
+  }
+  .composer .plus {
+    width: 28px; height: 28px; border-radius: 10px; background: rgba(176,137,104,0.14);
+    display: flex; align-items: center; justify-content: center; color: var(--camel); font-size: 16px; flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+  <div class="screen-label">크림 뉴트럴 · 02 일기 상세 (공개)</div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="dots">◾ ◾ ◾ 100%</span>
+    </div>
+
+    <div class="topnav">
+      <div class="back">‹</div>
+      <div class="title">7월 14일 · 화</div>
+      <div class="more">⋯</div>
+    </div>
+
+    <div class="scroll">
+      <!-- Recall -->
+      <div class="recall">
+        <div class="ic">🕰️</div>
+        <div>
+          <div class="l1">1년 전 오늘</div>
+          <div class="l2">한강에서 치맥하던 날 🍗</div>
+          <div class="l3">그때도 딱 이런 노을이었는데</div>
+        </div>
+      </div>
+
+      <!-- Meta -->
+      <div class="meta">
+        <div class="chip"><span class="mood-em">😍</span>설렘</div>
+        <div class="chip"><span class="stars">★★★★★</span></div>
+        <div class="chip loc">📍 을지로 노가리 골목</div>
+      </div>
+
+      <!-- Photo -->
+      <div class="photo">
+        <div class="date-stamp">2026. 07. 14</div>
+        <div class="count">📷 1 / 4</div>
+      </div>
+
+      <div class="day-title">을지로 밤 산책</div>
+      <div class="day-sub">따뜻하고 시끌시끌했던 화요일 저녁</div>
+
+      <!-- Entry: 승환 -->
+      <div class="entry him">
+        <div class="avatar">🧑🏻</div>
+        <div class="bubble">
+          <div class="who"><span class="name">승환</span><span class="time">오후 10:12</span></div>
+          <div class="txt">퇴근하고 을지로에서 만났다. 골목마다 노가리집이 꽉 차 있어서 자리 잡는 데 한참 걸렸는데, 그 기다림도 왠지 좋았어. 수정이가 오늘 웃는 게 유독 예뻤던 하루.</div>
+        </div>
+      </div>
+
+      <!-- Entry: 수정 -->
+      <div class="entry her">
+        <div class="avatar">👩🏻</div>
+        <div class="bubble">
+          <div class="who"><span class="name">수정</span><span class="time">오후 11:03</span></div>
+          <div class="txt">노란 불빛 아래에서 마시니까 별거 아닌 얘기도 다 재밌더라. 집 가는 길에 손잡고 걸으면서 “우리 이런 저녁 자주 하자” 했던 거 꼭 지키기 🤍</div>
+        </div>
+      </div>
+
+      <!-- Reactions -->
+      <div class="reactions">
+        <div class="react-btn on"><span class="h">🤍</span> 2</div>
+        <div class="react-btn"><span class="h">💬</span> 답글</div>
+      </div>
+
+      <!-- Composer -->
+      <div class="composer">
+        <div class="plus">＋</div>
+        오늘의 한마디를 더 남겨볼까요?
+      </div>
+    </div>
+  </div>
+</body>
+</html>

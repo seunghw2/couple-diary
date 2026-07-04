@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 소프트 라벤더 · 일기 상세</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F1F6;
+    --paper:#FBFAFD;
+    --lav:#C9C0DD;
+    --lav-deep:#B7ABD0;
+    --lav-soft:#EEE9F5;
+    --lav-line:#E3DCEE;
+    --plum:#403A4C;
+    --plum-sub:#847C93;
+    --yellow:#F3D98B;
+    --rose:#D6A6AE;
+    --shadow:0 10px 30px rgba(64,58,76,.10);
+    --shadow-sm:0 4px 14px rgba(64,58,76,.07);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Gothic A1',sans-serif;
+    background:
+      radial-gradient(1100px 700px at 15% -10%, #EDE7F4 0%, transparent 55%),
+      radial-gradient(900px 600px at 110% 20%, #F0EBEF 0%, transparent 50%),
+      linear-gradient(160deg,#F6F3F8 0%,#EFEAF2 100%);
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;
+    padding:34px 16px 60px;color:var(--plum);
+  }
+  .verlabel{
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--plum-sub);
+    background:rgba(255,255,255,.6);padding:6px 14px;border-radius:999px;margin-bottom:18px;
+    border:1px solid var(--lav-line);font-weight:600;
+  }
+  .phone{
+    width:390px;background:var(--paper);border-radius:42px;
+    box-shadow:var(--shadow),0 0 0 1px rgba(255,255,255,.7) inset;
+    overflow:hidden;position:relative;
+  }
+  .status{height:44px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 26px;font-size:13px;font-weight:700;color:var(--plum);}
+  .status .dots{display:flex;gap:5px;align-items:center;font-size:11px;color:var(--plum-sub);}
+
+  /* nav */
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:4px 20px 12px;}
+  .nav .back{font-size:20px;color:var(--plum);width:38px;height:38px;border-radius:12px;
+    background:var(--lav-soft);display:flex;align-items:center;justify-content:center;border:1px solid var(--lav-line);}
+  .nav .date{text-align:center;}
+  .nav .date b{font-size:15px;font-weight:800;color:var(--plum);}
+  .nav .date span{display:block;font-size:11px;color:var(--plum-sub);font-weight:600;margin-top:1px;}
+  .nav .more{font-size:20px;color:var(--plum-sub);width:38px;text-align:center;}
+
+  .scroll{padding:0 18px 18px;}
+
+  /* year-ago recall card */
+  .recall{
+    background:linear-gradient(135deg,#EAE3F3 0%,#F5EEEE 100%);
+    border:1px solid var(--lav-line);border-radius:22px;padding:15px 16px;
+    display:flex;gap:13px;align-items:center;box-shadow:var(--shadow-sm);
+    position:relative;overflow:hidden;margin-bottom:16px;
+  }
+  .recall::after{content:"✨";position:absolute;right:8px;top:6px;font-size:16px;opacity:.5;}
+  .recall .r-ic{flex-shrink:0;width:50px;height:50px;border-radius:16px;background:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:var(--shadow-sm);}
+  .recall small{font-size:11px;font-weight:800;color:var(--lav-deep);letter-spacing:.05em;}
+  .recall p{font-size:13.5px;color:var(--plum);font-weight:600;margin-top:3px;line-height:1.4;}
+
+  /* summary meta */
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .chip{background:var(--lav-soft);border:1px solid var(--lav-line);border-radius:999px;
+    padding:8px 13px;font-size:12.5px;font-weight:700;color:var(--plum);
+    display:flex;align-items:center;gap:6px;box-shadow:var(--shadow-sm);}
+  .chip .st{color:var(--yellow);letter-spacing:-1px;font-size:13px;}
+  .chip.mood{background:#fff;}
+  .chip .pin{color:var(--rose);}
+
+  /* photo */
+  .photo{
+    height:220px;border-radius:24px;margin-bottom:18px;overflow:hidden;position:relative;
+    background:
+      radial-gradient(120px 90px at 30% 30%, rgba(255,255,255,.5), transparent 60%),
+      linear-gradient(150deg,#C9C0DD 0%,#D6A6AE 55%,#EAD9A8 120%);
+    box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;
+  }
+  .photo .big{font-size:64px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.14));}
+  .photo .cap{position:absolute;left:14px;bottom:12px;background:rgba(64,58,76,.42);
+    color:#fff;font-size:11.5px;font-weight:600;padding:6px 11px;border-radius:12px;backdrop-filter:blur(4px);}
+  .photo .cnt{position:absolute;right:12px;top:12px;background:rgba(255,255,255,.85);
+    color:var(--plum);font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;}
+
+  /* diary entries */
+  .entry{margin-bottom:16px;}
+  .ehead{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+  .avatar{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    font-size:16px;font-weight:800;color:#fff;box-shadow:var(--shadow-sm);}
+  .avatar.h{background:linear-gradient(160deg,#C9C0DD,#B7ABD0);}
+  .avatar.s{background:linear-gradient(160deg,#D6A6AE,#C9C0DD);}
+  .ehead b{font-size:13.5px;font-weight:800;color:var(--plum);}
+  .ehead span{font-size:11px;color:var(--plum-sub);font-weight:600;margin-left:auto;}
+  .bubble{border-radius:20px;padding:14px 16px;font-size:13.5px;line-height:1.62;
+    color:var(--plum);box-shadow:var(--shadow-sm);}
+  .bubble.h{background:var(--lav-soft);border:1px solid var(--lav-line);border-top-left-radius:8px;}
+  .bubble.s{background:#fff;border:1px solid var(--lav-line);border-top-right-radius:8px;}
+  .entry.right .ehead{flex-direction:row-reverse;}
+  .entry.right .ehead span{margin-left:0;margin-right:auto;}
+  .entry.right .bubble{margin-left:24px;}
+  .entry.left .bubble{margin-right:24px;}
+  .bubble .em{color:var(--lav-deep);font-weight:700;}
+
+  /* heart reaction */
+  .reactbar{display:flex;align-items:center;gap:10px;margin:6px 2px 0;padding:12px 4px 4px;}
+  .heart{background:#fff;border:1px solid var(--lav-line);border-radius:999px;
+    padding:9px 15px;display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800;
+    color:var(--plum);box-shadow:var(--shadow-sm);}
+  .heart .h{font-size:16px;}
+  .react-mini{display:flex;gap:5px;font-size:15px;}
+  .react-note{font-size:11.5px;color:var(--plum-sub);font-weight:600;margin-left:auto;}
+
+  /* footer input hint */
+  .replybar{margin:14px 4px 2px;background:var(--lav-soft);border:1px solid var(--lav-line);
+    border-radius:16px;padding:12px 15px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-sm);}
+  .replybar span{font-size:12.5px;color:var(--plum-sub);font-weight:600;}
+  .replybar .send{margin-left:auto;font-size:13px;font-weight:800;color:var(--lav-deep);}
+</style>
+</head>
+<body>
+  <div class="verlabel">소프트 라벤더 · 일기 상세</div>
+  <div class="phone">
+    <div class="status">
+      <span>9:41</span>
+      <span class="dots">● ● ●  ⌁  ▮</span>
+    </div>
+
+    <div class="nav">
+      <div class="back">‹</div>
+      <div class="date">
+        <b>7월 2일 수요일</b>
+        <span>승환 &amp; 수정 · D+411</span>
+      </div>
+      <div class="more">⋯</div>
+    </div>
+
+    <div class="scroll">
+      <div class="recall">
+        <div class="r-ic">🌷</div>
+        <div>
+          <small>1년 전 오늘</small>
+          <p>작년 이맘때 한강 돗자리에서 노을 보던 거 기억나? 그때도 딱 이런 하늘이었어.</p>
+        </div>
+      </div>
+
+      <div class="meta">
+        <div class="chip mood"><span class="st">★★★★★</span></div>
+        <div class="chip"><span class="pin">📍</span> 성수 · 을지로</div>
+        <div class="chip">🥰 설렘</div>
+      </div>
+
+      <div class="photo">
+        <div class="big">🌆</div>
+        <div class="cnt">📷 3</div>
+        <div class="cap">을지로 골목, 노을 질 무렵</div>
+      </div>
+
+      <div class="entry left">
+        <div class="ehead">
+          <div class="avatar h">승</div>
+          <b>승환</b>
+          <span>오후 9:12</span>
+        </div>
+        <div class="bubble h">
+          오늘 성수에서 만나서 을지로까지 걸었는데 하나도 안 힘들었어. 네가 자꾸 골목 사진 찍자고 멈춰서 그런가 봐 <span class="em">😌</span> 노가리 골목에서 먹은 소주 한잔이 진짜 완벽했다. 다음엔 여기 자주 오자.
+        </div>
+      </div>
+
+      <div class="entry right">
+        <div class="ehead">
+          <div class="avatar s">수</div>
+          <b>수정</b>
+          <span>오후 11:04</span>
+        </div>
+        <div class="bubble s">
+          나는 오빠가 사진 찍어준 그 골목샷이 제일 마음에 들어. 노을이랑 네온이 섞이는 순간 진짜 예뻤잖아 <span class="em">🫶</span> 오늘 별점 다섯 개 아깝지 않아. 우리 이런 밤을 계속 모으자.
+        </div>
+      </div>
+
+      <div class="reactbar">
+        <div class="heart"><span class="h">💜</span> 2</div>
+        <div class="react-mini">🥹 🫶 ✨</div>
+        <div class="react-note">두 사람 모두 하트를 눌렀어요</div>
+      </div>
+
+      <div class="replybar">
+        <span>오늘의 한마디를 남겨보기…</span>
+        <div class="send">보내기</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>투데이 · 크림 뉴트럴 · 홈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #EDE6DA;
+    --cream: #F7F3EC;
+    --cream-2: #FBF8F2;
+    --card: #FFFDF9;
+    --offwhite: #FCFAF5;
+    --brown: #4A3F35;
+    --brown-soft: #6B5D4F;
+    --camel: #B08968;
+    --camel-soft: #C9AD8E;
+    --terra: #C08268;
+    --sage: #97A488;
+    --line: #E6DDCE;
+    --muted: #9A8B79;
+    --shadow: 0 10px 30px rgba(74, 63, 53, 0.10);
+    --shadow-sm: 0 4px 14px rgba(74, 63, 53, 0.07);
+  }
+  body {
+    font-family: 'Gothic A1', sans-serif;
+    background: radial-gradient(circle at 20% 10%, #F3ECE0 0%, #E7DFD1 55%, #E0D6C4 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 34px 16px 60px;
+    color: var(--brown);
+  }
+  .screen-label {
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    color: #8B7A66;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(176,137,104,0.25);
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+  .phone {
+    width: 390px;
+    background: var(--cream);
+    border-radius: 42px;
+    box-shadow: var(--shadow), 0 0 0 10px #fff, 0 0 0 12px #E4DACB;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 810px;
+  }
+  .statusbar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--brown);
+    background: var(--cream);
+  }
+  .statusbar .dots { display: flex; gap: 4px; align-items: center; font-size: 11px; letter-spacing: 1px; }
+
+  .content { flex: 1; padding: 4px 20px 0; overflow: hidden; }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 2px 14px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .logo-mark {
+    width: 40px; height: 40px; border-radius: 14px;
+    background: linear-gradient(145deg, #C9AD8E, #B08968);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; box-shadow: var(--shadow-sm);
+  }
+  .logo-text { display: flex; flex-direction: column; line-height: 1.1; }
+  .logo-text .name { font-family: 'Jua', sans-serif; font-size: 22px; color: var(--brown); letter-spacing: 0.5px; }
+  .logo-text .sub { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 1px; }
+  .dday {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 8px 14px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+  }
+  .dday .num { font-family: 'Jua', sans-serif; font-size: 17px; color: var(--camel); }
+  .dday .cap { font-size: 10px; color: var(--muted); font-weight: 600; letter-spacing: 0.3px; }
+
+  /* Throwback banner */
+  .throwback {
+    background: linear-gradient(120deg, #FBF6EC 0%, #F5ECDD 100%);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 13px 16px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .throwback::after {
+    content: "";
+    position: absolute; right: -18px; top: -18px;
+    width: 76px; height: 76px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(192,130,104,0.14), transparent 70%);
+  }
+  .tb-icon {
+    width: 42px; height: 42px; border-radius: 13px; flex-shrink: 0;
+    background: linear-gradient(145deg, #E7D4C2, #D8BFA6);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+  }
+  .tb-text .l1 { font-size: 11px; color: var(--terra); font-weight: 700; letter-spacing: 0.3px; }
+  .tb-text .l2 { font-size: 13.5px; color: var(--brown); font-weight: 600; margin-top: 2px; }
+  .tb-arrow { margin-left: auto; color: var(--camel-soft); font-size: 18px; }
+
+  /* Calendar card */
+  .cal-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 26px;
+    padding: 18px 16px 16px;
+    box-shadow: var(--shadow);
+  }
+  .cal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 4px 12px;
+  }
+  .cal-head .month { font-family: 'Jua', sans-serif; font-size: 19px; color: var(--brown); }
+  .cal-head .month span { color: var(--camel); }
+  .cal-nav { display: flex; gap: 8px; }
+  .cal-nav button {
+    width: 30px; height: 30px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--offwhite); color: var(--brown-soft); font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 6px; }
+  .weekdays div { text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); padding: 4px 0; }
+  .weekdays .sun { color: #C0836B; }
+  .weekdays .sat { color: #8593A0; }
+
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cell {
+    aspect-ratio: 1 / 1.12;
+    border-radius: 13px;
+    background: var(--offwhite);
+    border: 1px solid #F0E9DB;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 4px;
+    position: relative;
+  }
+  .cell .d { font-size: 10px; font-weight: 700; color: #B7A996; }
+  .cell.empty { background: transparent; border: none; }
+  .cell.future { background: #FAF7F0; border-color: #F3EDE1; }
+  .cell.future .d { color: #CFC4B2; }
+  .cell .mood { font-size: 17px; line-height: 1; margin-top: 1px; }
+  .cell .stars { font-size: 7px; color: var(--camel); letter-spacing: -0.5px; margin-top: 1px; }
+  .cell .stamp {
+    position: absolute; bottom: 3px; right: 4px; font-size: 8px;
+  }
+  .cell.today {
+    background: linear-gradient(150deg, #F6E7D6, #EFD8C0);
+    border: 1.5px solid var(--camel);
+    box-shadow: 0 6px 14px rgba(176,137,104,0.28);
+  }
+  .cell.today .d { color: var(--brown); background: var(--camel); color: #fff; border-radius: 999px; width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; font-size: 9px; }
+  .cell.dot::before {
+    content: ""; position: absolute; top: 4px; left: 4px;
+    width: 5px; height: 5px; border-radius: 50%; background: var(--sage);
+  }
+
+  /* Progress */
+  .progress-wrap {
+    margin-top: 16px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .progress-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+  .progress-top .lbl { font-size: 12.5px; font-weight: 700; color: var(--brown); }
+  .progress-top .lbl .em { margin-right: 4px; }
+  .progress-top .cnt { font-size: 12.5px; font-weight: 700; color: var(--camel); }
+  .bar { height: 9px; border-radius: 999px; background: #EFE7D9; overflow: hidden; }
+  .bar > span {
+    display: block; height: 100%; width: 58%;
+    background: linear-gradient(90deg, #C9AD8E, #B08968);
+    border-radius: 999px;
+  }
+
+  /* Tab bar */
+  .tabbar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 12px 20px 22px;
+    background: var(--cream);
+    border-top: 1px solid var(--line);
+    margin-top: 14px;
+  }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 600; color: var(--muted); }
+  .tab .ic { font-size: 20px; opacity: 0.55; }
+  .tab.active { color: var(--camel); }
+  .tab.active .ic { opacity: 1; }
+  .tab.active .pill {
+    position: absolute; margin-top: -46px; width: 44px; height: 30px; border-radius: 12px;
+    background: rgba(176,137,104,0.14); z-index: 0;
+  }
+</style>
+</head>
+<body>
+  <div class="screen-label">크림 뉴트럴 · 01 홈 (스티커 달력)</div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="dots">◾ ◾ ◾ 100%</span>
+    </div>
+
+    <div class="content">
+      <!-- Header -->
+      <div class="header">
+        <div class="brand">
+          <div class="logo-mark">🤍</div>
+          <div class="logo-text">
+            <span class="name">투데이</span>
+            <span class="sub">승환 &amp; 수정</span>
+          </div>
+        </div>
+        <div class="dday">
+          <div class="num">D+412</div>
+          <div class="cap">우리 함께한 날</div>
+        </div>
+      </div>
+
+      <!-- Throwback -->
+      <div class="throwback">
+        <div class="tb-icon">🗓️</div>
+        <div class="tb-text">
+          <div class="l1">1년 전 오늘</div>
+          <div class="l2">성수 카페 데이트, 기억나?</div>
+        </div>
+        <div class="tb-arrow">›</div>
+      </div>
+
+      <!-- Calendar -->
+      <div class="cal-card">
+        <div class="cal-head">
+          <div class="month">2026 <span>7월</span></div>
+          <div class="cal-nav">
+            <button>‹</button>
+            <button>›</button>
+          </div>
+        </div>
+
+        <div class="weekdays">
+          <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
+        </div>
+
+        <div class="grid">
+          <!-- week 1 (June tail) -->
+          <div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell dot"><span class="d">1</span><span class="mood">😊</span><span class="stars">★★★★</span><span class="stamp">☕</span></div>
+          <div class="cell"><span class="d">2</span><span class="mood">🥰</span><span class="stars">★★★★★</span></div>
+          <div class="cell"><span class="d">3</span><span class="mood">😌</span><span class="stars">★★★</span><span class="stamp">🌿</span></div>
+          <div class="cell"><span class="d">4</span><span class="mood">😄</span><span class="stars">★★★★</span></div>
+          <div class="cell dot"><span class="d">5</span><span class="mood">🍜</span><span class="stars">★★★★</span><span class="stamp">🍜</span></div>
+
+          <!-- week 2 -->
+          <div class="cell"><span class="d">6</span><span class="mood">😴</span><span class="stars">★★★</span></div>
+          <div class="cell"><span class="d">7</span><span class="mood">🥰</span><span class="stars">★★★★★</span><span class="stamp">🎬</span></div>
+          <div class="cell"><span class="d">8</span><span class="mood">😊</span><span class="stars">★★★★</span></div>
+          <div class="cell dot"><span class="d">9</span><span class="mood">🌊</span><span class="stars">★★★★★</span><span class="stamp">🌊</span></div>
+          <div class="cell"><span class="d">10</span><span class="mood">😆</span><span class="stars">★★★★</span></div>
+          <div class="cell"><span class="d">11</span><span class="mood">😌</span><span class="stars">★★★</span></div>
+          <div class="cell"><span class="d">12</span><span class="mood">🥰</span><span class="stars">★★★★★</span><span class="stamp">🍷</span></div>
+
+          <!-- week 3 (today = 15) -->
+          <div class="cell"><span class="d">13</span><span class="mood">😊</span><span class="stars">★★★★</span></div>
+          <div class="cell"><span class="d">14</span><span class="mood">😍</span><span class="stars">★★★★★</span><span class="stamp">🌆</span></div>
+          <div class="cell today"><span class="d">15</span><span class="mood">✍️</span><span class="stars">오늘</span></div>
+          <div class="cell future"><span class="d">16</span></div>
+          <div class="cell future"><span class="d">17</span></div>
+          <div class="cell future"><span class="d">18</span></div>
+          <div class="cell future"><span class="d">19</span></div>
+
+          <!-- week 4 -->
+          <div class="cell future"><span class="d">20</span></div>
+          <div class="cell future"><span class="d">21</span></div>
+          <div class="cell future"><span class="d">22</span></div>
+          <div class="cell future"><span class="d">23</span></div>
+          <div class="cell future"><span class="d">24</span></div>
+          <div class="cell future"><span class="d">25</span></div>
+          <div class="cell future"><span class="d">26</span></div>
+
+          <!-- week 5 -->
+          <div class="cell future"><span class="d">27</span></div>
+          <div class="cell future"><span class="d">28</span></div>
+          <div class="cell future"><span class="d">29</span></div>
+          <div class="cell future"><span class="d">30</span></div>
+          <div class="cell future"><span class="d">31</span></div>
+          <div class="cell empty"></div><div class="cell empty"></div>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-wrap">
+        <div class="progress-top">
+          <div class="lbl"><span class="em">🌱</span>이번 달 우리 기록</div>
+          <div class="cnt">11 / 19</div>
+        </div>
+        <div class="bar"><span></span></div>
+      </div>
+    </div>
+
+    <!-- Tabbar -->
+    <div class="tabbar">
+      <div class="tab active"><span class="pill"></span><span class="ic">📅</span>달력</div>
+      <div class="tab"><span class="ic">📍</span>지도</div>
+      <div class="tab"><span class="ic">⚙️</span>설정</div>
+    </div>
+  </div>
+</body>
+</html>
