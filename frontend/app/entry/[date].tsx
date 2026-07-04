@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { Comment, EntryDetail, EntrySide, entryApi } from '../../lib/api';
+import { CommentView, DayDetail, EntryView, entryApi, isLocked } from '../../lib/api';
 import { dDay, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
 import { useCoupleStore } from '../../store/useCoupleStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -27,7 +27,7 @@ export default function EntryDetailScreen() {
   const couple = useCoupleStore((s) => s.couple);
   const me = useAuthStore((s) => s.user);
 
-  const [detail, setDetail] = useState<EntryDetail | null>(null);
+  const [detail, setDetail] = useState<DayDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,7 +57,7 @@ export default function EntryDetailScreen() {
     setPosting(true);
     try {
       const c = await entryApi.addComment(dateStr, text);
-      setDetail((d) => (d ? { ...d, comments: [...(d.comments ?? []), c] } : d));
+      setDetail((d) => (d ? { ...d, comments: [...d.comments, c] } : d));
       setCommentText('');
     } catch {
       // 무시 (간단 처리)
@@ -66,9 +66,11 @@ export default function EntryDetailScreen() {
     }
   }
 
-  const dday = dDay(couple?.anniversaryDate);
+  const dday = couple?.ddayCount ?? dDay(couple?.anniversaryDate);
   const status = detail?.status ?? 'EMPTY';
-  const mineWritten = !!detail?.mine;
+  const mineWritten = !!detail?.myEntry;
+  const partnerEntry = detail?.partnerEntry;
+  const partnerOpen = partnerEntry && !isLocked(partnerEntry) ? partnerEntry : null;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -97,8 +99,8 @@ export default function EntryDetailScreen() {
           ) : (
             <>
               {/* 내 일기 */}
-              {detail.mine ? (
-                <SideCard title="내가 쓴 일기" side={detail.mine} tone="coral" mode={detail.mode} />
+              {detail.myEntry ? (
+                <SideCard title="내가 쓴 일기" side={detail.myEntry} tone="coral" mode={detail.mode} />
               ) : null}
 
               {/* 상대 일기 — LOCKED면 블러 안내 */}
@@ -106,8 +108,8 @@ export default function EntryDetailScreen() {
                 <LockedPartner
                   onWrite={() => router.push({ pathname: '/write/[date]', params: { date: dateStr } })}
                 />
-              ) : detail.partner ? (
-                <SideCard title="상대가 쓴 일기" side={detail.partner} tone="partner" mode={detail.mode} />
+              ) : partnerOpen ? (
+                <SideCard title="상대가 쓴 일기" side={partnerOpen} tone="partner" mode={detail.mode} />
               ) : status === 'LOCKED' ? (
                 <Card style={styles.waitCard}>
                   <Text style={styles.waitText}>상대가 아직 오늘 일기를 안 썼어요 🔒{'\n'}상대가 쓰면 자동으로 열려요!</Text>
@@ -117,7 +119,7 @@ export default function EntryDetailScreen() {
               {/* 획득 스티커(OPEN) */}
               {status === 'OPEN' ? (
                 <View style={styles.stickerRow}>
-                  <SeedThumb seed={detail.thumbSeed ?? dateStr} size={48} label="💗" />
+                  <SeedThumb seed={dateStr} size={48} label="💗" />
                   <Text style={styles.stickerText}>이 날의 스티커를 획득했어요!</Text>
                 </View>
               ) : null}
@@ -126,10 +128,10 @@ export default function EntryDetailScreen() {
               {status === 'OPEN' ? (
                 <View style={{ marginTop: spacing.lg }}>
                   <Text style={styles.sectionLabel}>💬 댓글</Text>
-                  {(detail.comments ?? []).map((c) => (
-                    <CommentRow key={String(c.id)} comment={c} mine={String(c.userId) === String(me?.id)} />
+                  {detail.comments.map((c) => (
+                    <CommentRow key={c.id} comment={c} mine={c.authorId === me?.id} />
                   ))}
-                  {(detail.comments ?? []).length === 0 ? (
+                  {detail.comments.length === 0 ? (
                     <Text style={styles.noComment}>첫 댓글을 남겨보세요</Text>
                   ) : null}
                 </View>
@@ -190,9 +192,9 @@ function SideCard({
   mode,
 }: {
   title: string;
-  side: EntrySide;
+  side: EntryView;
   tone: 'coral' | 'partner';
-  mode: EntryDetail['mode'];
+  mode: DayDetail['mode'];
 }) {
   const accent = tone === 'coral' ? colors.primary : colors.partner;
   return (
@@ -209,15 +211,15 @@ function SideCard({
       </View>
 
       {/* 사진 시드 썸네일 */}
-      {side.photoSeeds.length > 0 ? (
+      {side.photos.length > 0 ? (
         <View style={styles.photoRow}>
-          {side.photoSeeds.slice(0, 3).map((s, i) => (
+          {side.photos.slice(0, 3).map((p, i) => (
             <SeedThumb
-              key={s + i}
-              seed={s}
+              key={p.id}
+              seed={p.colorSeed}
               size={90}
               round={false}
-              label={i === 2 && side.photoSeeds.length > 3 ? `+${side.photoSeeds.length - 2}` : '📷'}
+              label={i === 2 && side.photos.length > 3 ? `+${side.photos.length - 2}` : '📷'}
             />
           ))}
         </View>
@@ -236,11 +238,11 @@ function SideCard({
   );
 }
 
-function CommentRow({ comment, mine }: { comment: Comment; mine: boolean }) {
+function CommentRow({ comment, mine }: { comment: CommentView; mine: boolean }) {
   return (
     <View style={[styles.commentRow, mine && { alignItems: 'flex-end' }]}>
       <View style={[styles.commentBubble, mine ? styles.commentMine : styles.commentPartner]}>
-        <Text style={styles.commentAuthor}>{comment.nickname ?? (mine ? '나' : '상대')}</Text>
+        <Text style={styles.commentAuthor}>{comment.authorNickname ?? (mine ? '나' : '상대')}</Text>
         <Text style={styles.commentContent}>{comment.text}</Text>
       </View>
     </View>

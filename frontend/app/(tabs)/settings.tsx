@@ -7,7 +7,7 @@ import { Button, Card } from '../../components/ui';
 import { colors, font, radius, spacing } from '../../theme/theme';
 
 export default function SettingsScreen() {
-  const { user, logout } = useAuthStore();
+  const { user, partner, logout } = useAuthStore();
   const { couple, setAnniversary } = useCoupleStore();
   const [anniv, setAnniv] = useState(couple?.anniversaryDate ?? '');
   const [saving, setSaving] = useState(false);
@@ -55,7 +55,7 @@ export default function SettingsScreen() {
 
         <Card style={{ marginTop: spacing.lg }}>
           <Text style={styles.label}>상대</Text>
-          <Text style={styles.value}>{couple?.partner?.nickname ?? '연결 대기 중'}</Text>
+          <Text style={styles.value}>{partner?.nickname ?? '연결 대기 중'}</Text>
         </Card>
 
         <Card style={{ marginTop: spacing.lg }}>

@@ -58,84 +58,126 @@ export const api = {
 };
 
 // ─────────────────────────── 타입 (백엔드 계약) ───────────────────────────
+// JSON은 jackson non_null → null 필드는 아예 생략됨. 그래서 전부 optional.
 
-export type User = {
-  id: number | string;
+/** 내 계정 요약 (GET/PATCH /api/me, 로그인 응답). profileImage 없음. */
+export type UserSummary = {
+  id: number;
   email: string;
   nickname: string;
-  profileImage?: string | null;
+  avatarColor: string;
+  birthday?: string; // YYYY-MM-DD
+  inviteCode: string;
 };
 
-export type DevLoginResponse = { accessToken: string; user: User };
-
-export type Couple = {
-  id?: number | string;
-  connected: boolean;
-  me?: User;
-  partner?: User | null;
-  anniversaryDate?: string | null; // YYYY-MM-DD
-  inviteCode?: string | null;
+/** 상대 요약. */
+export type PartnerSummary = {
+  id: number;
+  nickname: string;
+  avatarColor: string;
 };
 
-export type Question = { id: number | string; promptKey?: string; text: string };
+export type DevLoginResponse = { accessToken: string; user: UserSummary };
+
+/** GET /api/me 래퍼. */
+export type MeResponse = {
+  user: UserSummary;
+  coupled: boolean;
+  coupleId?: number;
+  partner?: PartnerSummary;
+};
+
+/** GET/PUT/connect 커플 응답. user1=커플 생성자, user2=상대. */
+export type CoupleResponse = {
+  id: number;
+  user1: PartnerSummary;
+  user2: PartnerSummary;
+  anniversaryDate?: string; // YYYY-MM-DD
+  ddayCount?: number;
+};
+
+export type QuestionType = 'NORMAL' | 'INLINE_BLANK';
+
+export type QuestionResponse = {
+  id: number;
+  orderNo: number;
+  text: string;
+  type: QuestionType;
+};
 
 export type EntryStatus = 'EMPTY' | 'LOCKED' | 'OPEN';
 
-/** 캘린더 그리드용 요약. */
-export type EntrySummary = {
+/** 캘린더 그리드용 월 요약 (GET /api/entries?year=&month=). */
+export type MonthEntrySummary = {
   date: string; // YYYY-MM-DD
   status: EntryStatus;
   photoCount: number;
-  thumbSeed?: string | null;
+  thumbSeed?: string;
   mineWritten: boolean;
   partnerWritten: boolean;
 };
 
-export type EntryMode = 'TEMPLATE' | 'FREE' | 'QUESTION_PICK';
+export type EntryMode = 'TEMPLATE' | 'QUESTION_PICK';
 
-export type Answer = {
-  questionId?: number | string;
+export type AnswerView = {
+  questionId?: number;
   promptKey?: string;
   text: string;
 };
 
-/** 한 사람이 쓴 일기 본문. */
-export type EntrySide = {
-  userId?: number | string;
-  nickname?: string;
-  answers: Answer[];
-  photoSeeds: string[];
-  locationName?: string | null;
-  rating?: number | null; // 별점 1~5
-  mood?: string | null; // 이모지
+export type PhotoView = {
+  id: number;
+  colorSeed: string;
 };
 
-export type Comment = {
-  id: number | string;
-  userId: number | string;
-  nickname?: string;
+/** 한 사람이 쓴 일기 본문 (OPEN 상태). */
+export type EntryView = {
+  id: number;
+  authorId: number;
+  rating?: number; // 별점 1~5
+  mood?: string; // 이모지
+  locationName?: string;
+  answers: AnswerView[];
+  photos: PhotoView[];
+  createdAt: string;
+  editableAfter: string;
+  editable: boolean;
+};
+
+/** 상대 일기가 아직 안 열렸을 때. */
+export type LockedEntryView = { locked: true };
+
+/** partnerEntry가 잠금 상태인지 판별. */
+export function isLocked(v: EntryView | LockedEntryView | undefined): v is LockedEntryView {
+  return !!v && (v as LockedEntryView).locked === true;
+}
+
+export type CommentView = {
+  id: number;
+  authorId: number;
+  authorNickname?: string;
   text: string;
-  createdAt?: string;
+  createdAt: string;
 };
 
-/** 일기 상세. */
-export type EntryDetail = {
+/** 일기 상세 (GET/POST /api/entries/{date}). */
+export type DayDetail = {
   date: string;
   status: EntryStatus;
   mode: EntryMode;
-  templateType?: string | null;
-  questionIds?: (number | string)[];
-  mine?: EntrySide | null;
-  partner?: EntrySide | null;
-  comments?: Comment[];
-  thumbSeed?: string | null;
+  templateType?: string;
+  questions: QuestionResponse[];
+  myEntry?: EntryView;
+  partnerEntry?: EntryView | LockedEntryView;
+  comments: CommentView[];
 };
 
-export type CreateEntryPayload = {
+/** 작성 요청 (UpsertEntryRequest). 요청은 photoSeeds(응답만 photos). */
+export type UpsertEntryRequest = {
   mode: EntryMode;
   templateType?: string;
-  questionIds?: (number | string)[];
-  answers: Answer[];
+  questionIds?: number[];
+  answers: AnswerView[];
   photoSeeds: string[];
   locationName?: string;
   rating?: number;
@@ -147,30 +189,30 @@ export type CreateEntryPayload = {
 export const authApi = {
   devLogin: (email: string, nickname: string) =>
     api.post<DevLoginResponse>('/api/auth/dev-login', { email, nickname }, false),
-  me: () => api.get<User>('/api/me'),
-  updateMe: (patch: Partial<Pick<User, 'nickname' | 'profileImage'>>) =>
-    api.patch<User>('/api/me', patch),
+  me: () => api.get<MeResponse>('/api/me'),
+  updateMe: (patch: Partial<Pick<UserSummary, 'nickname' | 'avatarColor' | 'birthday'>>) =>
+    api.patch<UserSummary>('/api/me', patch),
 };
 
 export const coupleApi = {
-  get: () => api.get<Couple>('/api/couple'),
+  get: () => api.get<CoupleResponse>('/api/couple'),
   invite: () => api.post<{ inviteCode: string }>('/api/couple/invite'),
-  connect: (inviteCode: string) => api.post<Couple>('/api/couple/connect', { inviteCode }),
+  connect: (inviteCode: string) => api.post<CoupleResponse>('/api/couple/connect', { inviteCode }),
   setAnniversary: (anniversaryDate: string) =>
-    api.put<Couple>('/api/couple/anniversary', { anniversaryDate }),
+    api.put<CoupleResponse>('/api/couple/anniversary', { anniversaryDate }),
 };
 
 export const questionApi = {
-  list: () => api.get<Question[]>('/api/questions'),
+  list: () => api.get<QuestionResponse[]>('/api/questions'),
 };
 
 export const entryApi = {
   month: (year: number, month: number) =>
-    api.get<EntrySummary[]>(`/api/entries?year=${year}&month=${month}`),
-  detail: (date: string) => api.get<EntryDetail>(`/api/entries/${date}`),
-  create: (date: string, payload: CreateEntryPayload) =>
-    api.post<EntryDetail>(`/api/entries/${date}`, payload),
-  comments: (date: string) => api.get<Comment[]>(`/api/entries/${date}/comments`),
+    api.get<MonthEntrySummary[]>(`/api/entries?year=${year}&month=${month}`),
+  detail: (date: string) => api.get<DayDetail>(`/api/entries/${date}`),
+  create: (date: string, payload: UpsertEntryRequest) =>
+    api.post<DayDetail>(`/api/entries/${date}`, payload),
+  comments: (date: string) => api.get<CommentView[]>(`/api/entries/${date}/comments`),
   addComment: (date: string, text: string) =>
-    api.post<Comment>(`/api/entries/${date}/comments`, { text }),
+    api.post<CommentView>(`/api/entries/${date}/comments`, { text }),
 };

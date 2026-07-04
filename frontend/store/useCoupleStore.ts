@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { Couple, coupleApi } from '../lib/api';
+import { CoupleResponse, coupleApi } from '../lib/api';
+import { useAuthStore } from './useAuthStore';
 
 type CoupleState = {
-  couple: Couple | null;
+  couple: CoupleResponse | null;
   loading: boolean;
   loaded: boolean;
   refresh: () => Promise<void>;
@@ -12,41 +13,46 @@ type CoupleState = {
   reset: () => void;
 };
 
-export const useCoupleStore = create<CoupleState>((set, get) => ({
+export const useCoupleStore = create<CoupleState>((set) => ({
   couple: null,
   loading: false,
   loaded: false,
 
   refresh: async () => {
+    // 연결 여부는 me().coupled 로 판단. 미연결이면 /couple 조회 생략.
+    if (!useAuthStore.getState().coupled) {
+      set({ couple: null, loaded: true, loading: false });
+      return;
+    }
     set({ loading: true });
     try {
       const couple = await coupleApi.get();
       set({ couple, loaded: true });
     } catch {
-      // 미연결/에러 → connected=false 로 취급
-      set({ couple: { connected: false }, loaded: true });
+      set({ couple: null, loaded: true });
     } finally {
       set({ loading: false });
     }
   },
 
   invite: async () => {
-    // 이미 발급된 코드가 있으면 재사용
-    const existing = get().couple?.inviteCode;
+    // 초대코드는 내 계정(UserSummary.inviteCode)에 이미 있음.
+    const existing = useAuthStore.getState().user?.inviteCode;
     if (existing) return existing;
     const res = await coupleApi.invite();
-    set((s) => ({ couple: { ...(s.couple ?? { connected: false }), inviteCode: res.inviteCode } }));
     return res.inviteCode;
   },
 
   connect: async (inviteCode) => {
     const couple = await coupleApi.connect(inviteCode);
     set({ couple, loaded: true });
+    // 연결 성공 → 인증 스토어의 coupled/partner 갱신
+    await useAuthStore.getState().bootstrap();
   },
 
   setAnniversary: async (date) => {
     const couple = await coupleApi.setAnniversary(date);
-    set((s) => ({ couple: { ...(s.couple ?? { connected: true }), ...couple, anniversaryDate: date } }));
+    set({ couple, loaded: true });
   },
 
   reset: () => set({ couple: null, loaded: false }),

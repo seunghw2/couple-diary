@@ -13,11 +13,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
-  Answer,
-  CreateEntryPayload,
-  EntryDetail,
+  AnswerView,
+  DayDetail,
   EntryMode,
-  Question,
+  QuestionResponse,
+  UpsertEntryRequest,
   entryApi,
   questionApi,
 } from '../../lib/api';
@@ -27,6 +27,8 @@ import { Button, Card, SeedThumb, StarRating } from '../../components/ui';
 import { colors, font, radius, shadow, spacing } from '../../theme/theme';
 
 type Step = 'mode' | 'form';
+/** 화면 로컬 모드. 'FREE'=내가 질문 3개를 고르는 단계(제출 시 QUESTION_PICK으로 저장). */
+type FormMode = EntryMode | 'FREE';
 
 export default function WriteScreen() {
   const router = useRouter();
@@ -34,13 +36,13 @@ export default function WriteScreen() {
   const dateStr = date ?? todayISO();
 
   const [step, setStep] = useState<Step>('mode');
-  const [mode, setMode] = useState<EntryMode>('TEMPLATE');
+  const [mode, setMode] = useState<FormMode>('TEMPLATE');
   const [loadingDetail, setLoadingDetail] = useState(true);
 
   // 자유(질문) 관련
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<QuestionResponse[]>([]);
   const [pickedIds, setPickedIds] = useState<string[]>([]); // 내가 고르는 3개(먼저 쓰는 사람)
-  const [fixedQuestions, setFixedQuestions] = useState<Question[] | null>(null); // 상대가 이미 고른 범위
+  const [fixedQuestions, setFixedQuestions] = useState<QuestionResponse[] | null>(null); // 상대가 이미 고른 범위
 
   // 공통 입력
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -56,13 +58,10 @@ export default function WriteScreen() {
   useEffect(() => {
     (async () => {
       try {
-        const detail: EntryDetail = await entryApi.detail(dateStr);
-        if (detail.mode === 'QUESTION_PICK' && detail.questionIds && detail.questionIds.length > 0) {
+        const detail: DayDetail = await entryApi.detail(dateStr);
+        if (detail.mode === 'QUESTION_PICK' && detail.questions.length > 0) {
           // 상대가 고른 질문 범위 내에서 답만 작성
-          const qs = await loadQuestions();
-          const idset = new Set(detail.questionIds.map(String));
-          const fixed = qs.filter((q) => idset.has(String(q.id)));
-          setFixedQuestions(fixed.length > 0 ? fixed : detail.questionIds.map((id) => ({ id, text: `질문 ${id}` })));
+          setFixedQuestions(detail.questions);
           setMode('QUESTION_PICK');
           setStep('form');
         }
@@ -74,7 +73,7 @@ export default function WriteScreen() {
     })();
   }, [dateStr]);
 
-  const loadQuestions = useCallback(async (): Promise<Question[]> => {
+  const loadQuestions = useCallback(async (): Promise<QuestionResponse[]> => {
     try {
       const qs = await questionApi.list();
       if (qs.length > 0) {
@@ -84,12 +83,12 @@ export default function WriteScreen() {
     } catch {
       /* fall through */
     }
-    const fallback = FALLBACK_QUESTIONS as unknown as Question[];
+    const fallback = FALLBACK_QUESTIONS as unknown as QuestionResponse[];
     setQuestions(fallback);
     return fallback;
   }, []);
 
-  function chooseMode(m: EntryMode) {
+  function chooseMode(m: FormMode) {
     setMode(m);
     if (m === 'FREE') {
       loadQuestions();
@@ -114,7 +113,7 @@ export default function WriteScreen() {
     setPhotoSeeds((prev) => [...prev, randomSeed()]);
   }
 
-  function buildAnswers(): Answer[] {
+  function buildAnswers(): AnswerView[] {
     if (mode === 'TEMPLATE') {
       return TEMPLATE_PROMPTS.filter((p) => (answers[p.promptKey] ?? '').trim().length > 0).map((p) => ({
         promptKey: p.promptKey,
@@ -128,7 +127,7 @@ export default function WriteScreen() {
         : questions.filter((q) => pickedIds.includes(String(q.id)));
     return activeQs
       .filter((q) => (answers[String(q.id)] ?? '').trim().length > 0)
-      .map((q) => ({ questionId: q.id, text: answers[String(q.id)].trim() }));
+      .map((q) => ({ questionId: Number(q.id), text: answers[String(q.id)].trim() }));
   }
 
   function canSubmit(): boolean {
@@ -146,12 +145,12 @@ export default function WriteScreen() {
 
     // FREE에서 내가 먼저 고르면 서버엔 QUESTION_PICK으로 저장(상대가 범위 내 답).
     const outMode: EntryMode = mode === 'FREE' ? 'QUESTION_PICK' : mode;
-    const questionIds =
+    const questionIds: number[] | undefined =
       outMode === 'QUESTION_PICK'
-        ? (fixedQuestions ? fixedQuestions.map((q) => q.id) : pickedIds)
+        ? (fixedQuestions ? fixedQuestions.map((q) => Number(q.id)) : pickedIds.map(Number))
         : undefined;
 
-    const payload: CreateEntryPayload = {
+    const payload: UpsertEntryRequest = {
       mode: outMode,
       templateType: mode === 'TEMPLATE' ? 'default' : undefined,
       questionIds,
@@ -278,7 +277,7 @@ export default function WriteScreen() {
   );
 }
 
-function ModeSelect({ onChoose }: { onChoose: (m: EntryMode) => void }) {
+function ModeSelect({ onChoose }: { onChoose: (m: FormMode) => void }) {
   return (
     <View style={styles.modeWrap}>
       <Text style={styles.modeHeading}>어떻게 기록할까요?</Text>
@@ -328,7 +327,7 @@ function FixedQuestionForm({
   answers,
   onChange,
 }: {
-  questions: Question[];
+  questions: QuestionResponse[];
   answers: Record<string, string>;
   onChange: (key: string, text: string) => void;
 }) {
@@ -359,7 +358,7 @@ function FreePickForm({
   answers,
   onChange,
 }: {
-  questions: Question[];
+  questions: QuestionResponse[];
   picked: string[];
   onToggle: (id: string) => void;
   answers: Record<string, string>;

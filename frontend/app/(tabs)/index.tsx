@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { entryApi, EntrySummary } from '../../lib/api';
+import { entryApi, MonthEntrySummary } from '../../lib/api';
 import { dDay, todayISO } from '../../lib/date';
 import { useCoupleStore } from '../../store/useCoupleStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -14,13 +14,14 @@ export default function HomeScreen() {
   const router = useRouter();
   const couple = useCoupleStore((s) => s.couple);
   const me = useAuthStore((s) => s.user);
+  const partner = useAuthStore((s) => s.partner);
   const today = todayISO();
 
   const [cursor, setCursor] = useState(() => {
     const d = new Date();
     return { year: d.getFullYear(), month: d.getMonth() + 1 };
   });
-  const [entries, setEntries] = useState<Record<string, EntrySummary>>({});
+  const [entries, setEntries] = useState<Record<string, MonthEntrySummary>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +31,7 @@ export default function HomeScreen() {
       setError(null);
       try {
         const list = await entryApi.month(year, month);
-        const map: Record<string, EntrySummary> = {};
+        const map: Record<string, MonthEntrySummary> = {};
         for (const e of list) map[e.date] = e;
         setEntries(map);
       } catch {
@@ -50,8 +51,12 @@ export default function HomeScreen() {
     }, [cursor.year, cursor.month, load])
   );
 
-  const dday = useMemo(() => dDay(couple?.anniversaryDate), [couple?.anniversaryDate]);
-  const partnerName = couple?.partner?.nickname;
+  // 서버가 ddayCount를 주면 그대로, 없으면 anniversaryDate로 계산.
+  const dday = useMemo(
+    () => couple?.ddayCount ?? dDay(couple?.anniversaryDate),
+    [couple?.ddayCount, couple?.anniversaryDate]
+  );
+  const partnerName = partner?.nickname;
 
   function shift(delta: number) {
     setCursor((c) => {

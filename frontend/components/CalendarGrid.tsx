@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { EntrySummary } from '../lib/api';
+import { MonthEntrySummary } from '../lib/api';
 import { buildMonthGrid } from '../lib/date';
 import { Badge, SeedThumb } from './ui';
 import { colors, font, radius, spacing } from '../theme/theme';
@@ -9,7 +9,7 @@ const WEEK_HEADERS = ['일', '월', '화', '수', '목', '금', '토'];
 type Props = {
   year: number;
   month: number; // 1~12
-  entries: Record<string, EntrySummary>;
+  entries: Record<string, MonthEntrySummary>;
   today: string;
   onPressDate: (date: string) => void;
 };
@@ -67,7 +67,7 @@ export function CalendarGrid({ year, month, entries, today, onPressDate }: Props
 }
 
 /** 상태에 따른 대표 이모지. LOCKED=자물쇠, 그 외 하트. */
-function thumbEmoji(e: EntrySummary): string {
+function thumbEmoji(e: MonthEntrySummary): string {
   if (e.status === 'LOCKED') return '🔒';
   return '💗';
 }

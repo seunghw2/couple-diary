@@ -10,8 +10,8 @@ import { colors } from '../theme/theme';
 export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
-  const { status, bootstrap } = useAuthStore();
-  const { couple, loaded: coupleLoaded, refresh: refreshCouple, reset: resetCouple } = useCoupleStore();
+  const { status, coupled, bootstrap } = useAuthStore();
+  const { loaded: coupleLoaded, refresh: refreshCouple, reset: resetCouple } = useCoupleStore();
 
   // 앱 로드시 세션 확인
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function RootLayout() {
     // authenticated: 커플 상태 확정 전에는 대기
     if (!coupleLoaded) return;
 
-    const connected = couple?.connected === true;
+    const connected = coupled;
     // 현재 세그먼트 파악
     const second = segs[1] as string | undefined;
     const onConnectScreen = inAuth && second === 'couple-connect';
@@ -49,7 +49,7 @@ export default function RootLayout() {
     } else if (inAuth) {
       router.replace('/(tabs)');
     }
-  }, [status, coupleLoaded, couple?.connected, segments]);
+  }, [status, coupleLoaded, coupled, segments]);
 
   if (status === 'unknown') {
     return (
