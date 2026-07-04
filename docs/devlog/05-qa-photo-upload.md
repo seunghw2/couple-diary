@@ -19,6 +19,11 @@
 - `POST /api/photos`(multipart) → 로컬 디스크 `~/couple-diary-uploads`에 UUID 저장, `/files/**` 정적 서빙, `Photo.url` 컬럼.
 - 프론트: `expo-image-picker`로 갤러리 선택 → 업로드 → `photoUrls`로 전송, 상세/캘린더에 실제 이미지 렌더.
 
+## 화면 (실제 캡처 · 수정 반영)
+| 상세 (질문문장·수정하기·삭제 버튼) | 작성 (모드 선택) |
+|---|---|
+| ![](captures/app-03-detail.png) | ![](captures/app-04-write.png) |
+
 ## 검증
 - 백엔드 E2E: 업로드→저장→표시→삭제, 검증(별점 99·미래·잘못된 날짜·긴 텍스트 전부 400) 통과.
 - 프론트 tsc 0. 커밋: `217032f`

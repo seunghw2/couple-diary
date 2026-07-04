@@ -18,6 +18,11 @@ Expo Go에서 열면 **"Project is incompatible with this version of Expo Go"**.
 - Metro 매니페스트 `exposdk:54.0.0` + 번들 URL 포트 클린.
 - 커밋: `4de6267`
 
+## 화면 (실제 캡처 · SDK54 E2E)
+| 작성 | 설정 |
+|---|---|
+| ![](captures/app-04-write.png) | ![](captures/app-05-settings.png) |
+
 ## Expo Go 주소
 - 투데이: `exp://today-expo.hammerslog.trade` (named 터널, sudo 재시작 후 활성)
 - 참고 — gymtracker: `exp://expo.hammerslog.trade` / muscle game: `exp://…exp.direct`(ngrok)
