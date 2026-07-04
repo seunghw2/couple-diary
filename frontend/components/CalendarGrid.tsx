@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { MonthEntrySummary } from '../lib/api';
 import { buildMonthGrid } from '../lib/date';
 import { Badge, PhotoThumb } from './ui';
@@ -56,7 +57,7 @@ export function CalendarGrid({ year, month, entries, today, onPressDate }: Props
                       seed={e.thumbSeed ?? date}
                       size={THUMB_SIZE}
                       ring={isToday}
-                      label={thumbEmoji(e)}
+                      label={<ThumbIcon status={e.status} />}
                     />
                     {e.photoCount > 0 ? (
                       <View style={styles.badge}>
@@ -76,10 +77,16 @@ export function CalendarGrid({ year, month, entries, today, onPressDate }: Props
   );
 }
 
-/** 상태에 따른 대표 이모지. LOCKED=자물쇠, 그 외 하트. */
-function thumbEmoji(e: MonthEntrySummary): string {
-  if (e.status === 'LOCKED') return '🔒';
-  return '🩷';
+/** 상태에 따른 대표 아이콘. LOCKED=자물쇠, 그 외 하트. */
+function ThumbIcon({ status }: { status: MonthEntrySummary['status'] }) {
+  const locked = status === 'LOCKED';
+  return (
+    <Ionicons
+      name={locked ? 'lock-closed' : 'heart'}
+      size={THUMB_SIZE * 0.44}
+      color={colors.white}
+    />
+  );
 }
 
 const CELL_W = `${100 / 7}%` as const;

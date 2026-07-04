@@ -1,0 +1,240 @@
+package com.today.notification;
+
+import com.today.common.ApiException;
+import com.today.common.ErrorCode;
+import com.today.couple.Couple;
+import com.today.couple.CoupleRepository;
+import com.today.notification.NotificationDtos.NotificationListResponse;
+import com.today.notification.NotificationDtos.NotificationView;
+import com.today.user.User;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.MonthDay;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class NotificationService {
+
+    private final NotificationRepository notificationRepository;
+    private final CoupleRepository coupleRepository;
+
+    private static final int LIST_LIMIT = 50;
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final DateTimeFormatter MD = DateTimeFormatter.ofPattern("M월 d일");
+    private static final long POKE_COOLDOWN_HOURS = 1;
+    private static final int ANNIVERSARY_HORIZON_DAYS = 7;
+
+    // ===================== 트리거 헬퍼 (기존 서비스 트랜잭션 내에서 호출) =====================
+
+    /** 일기 저장 후 그날이 방금 OPEN이면 양쪽에 ENTRY_OPENED, 아직 LOCKED면 상대에게 PARTNER_WROTE. */
+    @Transactional
+    public void onEntryUpsert(User me, User partner, LocalDate date, boolean nowOpen) {
+        if (partner == null) return; // 커플 미연결/상대 없음
+
+        if (nowOpen) {
+            String md = date.format(MD);
+            String title = "일기가 열렸어요";
+            String body = "오늘(" + md + ") 일기가 열렸어요 💌";
+            // 이미 그 날짜 ENTRY_OPENED 있으면 중복 생성 금지 (수신자별 확인)
+            createIfAbsentEntryOpened(me, date, title, body);
+            createIfAbsentEntryOpened(partner, date, title, body);
+        } else {
+            // 아직 LOCKED: 상대에게 PARTNER_WROTE (같은 날짜 미읽음 있으면 skip)
+            if (notificationRepository.existsByRecipient_IdAndTypeAndEntryDateAndReadFlagFalse(
+                    partner.getId(), NotificationType.PARTNER_WROTE, date)) {
+                return;
+            }
+            notificationRepository.save(Notification.builder()
+                    .recipient(partner)
+                    .type(NotificationType.PARTNER_WROTE)
+                    .title("오늘 일기가 도착했어요")
+                    .body(me.getNickname() + "님이 오늘 일기를 썼어요 — 나도 쓰면 열려요")
+                    .entryDate(date)
+                    .build());
+        }
+    }
+
+    private void createIfAbsentEntryOpened(User recipient, LocalDate date, String title, String body) {
+        if (notificationRepository.existsByRecipient_IdAndTypeAndEntryDate(
+                recipient.getId(), NotificationType.ENTRY_OPENED, date)) {
+            return;
+        }
+        notificationRepository.save(Notification.builder()
+                .recipient(recipient)
+                .type(NotificationType.ENTRY_OPENED)
+                .title(title)
+                .body(body)
+                .entryDate(date)
+                .build());
+    }
+
+    /** 댓글 작성 후 그 일기의 상대 작성자에게 COMMENT 알림. */
+    @Transactional
+    public void onComment(User me, User recipient, LocalDate date, String commentText) {
+        if (recipient == null) return;
+        String preview = commentText == null ? "" : commentText.strip();
+        if (preview.length() > 20) preview = preview.substring(0, 20);
+        notificationRepository.save(Notification.builder()
+                .recipient(recipient)
+                .type(NotificationType.COMMENT)
+                .title("새 댓글")
+                .body(me.getNickname() + "님이 댓글을 남겼어요: " + preview)
+                .entryDate(date)
+                .build());
+    }
+
+    // ===================== 엔드포인트 =====================
+
+    @Transactional
+    public NotificationListResponse list(Long userId) {
+        // ANNIVERSARY 지연 생성 (커플 연결 시에만)
+        coupleRepository.findByMember(userId)
+                .ifPresent(couple -> generateUpcomingAnniversaries(couple));
+
+        List<Notification> items = notificationRepository
+                .findByRecipient_IdOrderByCreatedAtDesc(userId, PageRequest.of(0, LIST_LIMIT));
+        long unread = notificationRepository.countByRecipient_IdAndReadFlagFalse(userId);
+        List<NotificationView> views = items.stream().map(NotificationView::of).toList();
+        return new NotificationListResponse(views, unread);
+    }
+
+    @Transactional
+    public void markRead(Long userId, Long notificationId) {
+        Notification n = notificationRepository.findByIdAndRecipient_Id(notificationId, userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        n.setReadFlag(true);
+    }
+
+    @Transactional
+    public void markAllRead(Long userId) {
+        List<Notification> unread = notificationRepository.findByRecipient_IdAndReadFlagFalse(userId);
+        for (Notification n : unread) n.setReadFlag(true);
+    }
+
+    @Transactional
+    public void poke(Long userId) {
+        // 커플 미연결이면 400
+        Couple couple = coupleRepository.findByMember(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT));
+        User me = memberOf(couple, userId);
+        User partner = partnerOf(couple, userId);
+        if (partner == null) throw new ApiException(ErrorCode.INVALID_INPUT);
+
+        // 스팸 방지: 최근 1시간 내 상대에게 보낸 POKE 있으면 무시(중복 생성 안 함)
+        LocalDateTime since = LocalDateTime.now().minusHours(POKE_COOLDOWN_HOURS);
+        if (notificationRepository.existsByRecipient_IdAndTypeAndCreatedAtAfter(
+                partner.getId(), NotificationType.POKE, since)) {
+            return; // 200 + 무시
+        }
+        notificationRepository.save(Notification.builder()
+                .recipient(partner)
+                .type(NotificationType.POKE)
+                .title("콕!")
+                .body(me.getNickname() + "님이 콕 찔렀어요 👉 — 오늘 일기 쓰라고!")
+                .entryDate(null)
+                .build());
+    }
+
+    // ===================== ANNIVERSARY 생성 =====================
+
+    private void generateUpcomingAnniversaries(Couple couple) {
+        LocalDate today = LocalDate.now(KST);
+        LocalDate horizon = today.plusDays(ANNIVERSARY_HORIZON_DAYS);
+        User u1 = couple.getUser1();
+        User u2 = couple.getUser2();
+
+        List<Anniv> candidates = new ArrayList<>();
+
+        // 사귄 날 기준 100일 단위(100, 200, 300, ...) 다가오는 것
+        if (couple.getAnniversaryDate() != null) {
+            LocalDate base = couple.getAnniversaryDate();
+            // D-day 표기: 사귄 첫날이 1일 → n일째 = base + (n-1)일
+            for (int milestone = 100; milestone <= 100000; milestone += 100) {
+                LocalDate d = base.plusDays(milestone - 1L);
+                if (d.isBefore(today)) continue;
+                if (d.isAfter(horizon)) break;
+                candidates.add(new Anniv(d, milestone + "일"));
+            }
+        }
+
+        // 두 유저 생일 (올해/내년 중 다가오는 것)
+        addBirthday(candidates, u1, today, horizon);
+        addBirthday(candidates, u2, today, horizon);
+
+        for (Anniv a : candidates) {
+            long dday = ChronoUnit.DAYS.between(today, a.date);
+            String title = "D-" + dday + " " + a.name;
+            String body = a.name + "이(가) " + a.date.format(MD) + "에 다가와요";
+            createAnniversaryIfAbsent(u1, a.date, title, body);
+            createAnniversaryIfAbsent(u2, a.date, title, body);
+        }
+    }
+
+    private void addBirthday(List<Anniv> out, User u, LocalDate today, LocalDate horizon) {
+        if (u.getBirthday() == null) return;
+        MonthDay md;
+        try {
+            md = MonthDay.from(u.getBirthday());
+        } catch (Exception e) {
+            return;
+        }
+        LocalDate next = nextOccurrence(md, today);
+        if (!next.isAfter(horizon)) {
+            out.add(new Anniv(next, u.getNickname() + "님 생일"));
+        }
+    }
+
+    private LocalDate nextOccurrence(MonthDay md, LocalDate today) {
+        LocalDate thisYear = safeAtYear(md, today.getYear());
+        if (!thisYear.isBefore(today)) return thisYear;
+        return safeAtYear(md, today.getYear() + 1);
+    }
+
+    private LocalDate safeAtYear(MonthDay md, int year) {
+        // 2월 29일 등 비윤년 처리
+        try {
+            return md.atYear(year);
+        } catch (Exception e) {
+            return LocalDate.of(year, md.getMonthValue(), 28);
+        }
+    }
+
+    private void createAnniversaryIfAbsent(User recipient, LocalDate annivDate, String title, String body) {
+        // dedup: 같은 (type=ANNIVERSARY, entryDate=기념일날짜, recipient) 있으면 skip
+        if (notificationRepository.existsByRecipient_IdAndTypeAndEntryDate(
+                recipient.getId(), NotificationType.ANNIVERSARY, annivDate)) {
+            return;
+        }
+        notificationRepository.save(Notification.builder()
+                .recipient(recipient)
+                .type(NotificationType.ANNIVERSARY)
+                .title(title)
+                .body(body)
+                .entryDate(annivDate)
+                .build());
+    }
+
+    private User memberOf(Couple c, Long userId) {
+        if (c.getUser1().getId().equals(userId)) return c.getUser1();
+        if (c.getUser2().getId().equals(userId)) return c.getUser2();
+        return null;
+    }
+
+    private User partnerOf(Couple c, Long userId) {
+        if (c.getUser1().getId().equals(userId)) return c.getUser2();
+        if (c.getUser2().getId().equals(userId)) return c.getUser1();
+        return null;
+    }
+
+    private record Anniv(LocalDate date, String name) {}
+}

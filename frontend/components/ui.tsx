@@ -10,8 +10,24 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { API_URL } from '../lib/config';
 import { colors, font, radius, seedGradient, shadow, spacing } from '../theme/theme';
+
+/** 앱 전역 벡터 아이콘 래퍼 (Ionicons). 기본색=text, 강조는 color prop으로. */
+export function Icon({
+  name,
+  size = 18,
+  color = colors.text,
+  style,
+}: {
+  name: React.ComponentProps<typeof Ionicons>['name'];
+  size?: number;
+  color?: string;
+  style?: StyleProp<TextStyle>;
+}) {
+  return <Ionicons name={name} size={size} color={color} style={style} />;
+}
 
 /** 화면 배경(크림). */
 export function ScreenBg({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
@@ -29,13 +45,15 @@ type ButtonProps = {
   disabled?: boolean;
   loading?: boolean;
   variant?: 'primary' | 'soft' | 'ghost';
+  icon?: React.ComponentProps<typeof Ionicons>['name'];
   style?: StyleProp<ViewStyle>;
 };
 
 /** 코럴 CTA 버튼. */
-export function Button({ label, onPress, disabled, loading, variant = 'primary', style }: ButtonProps) {
+export function Button({ label, onPress, disabled, loading, variant = 'primary', icon, style }: ButtonProps) {
   const isPrimary = variant === 'primary';
   const isGhost = variant === 'ghost';
+  const labelColor = isPrimary ? colors.white : colors.primary;
   return (
     <Pressable
       onPress={onPress}
@@ -53,15 +71,10 @@ export function Button({ label, onPress, disabled, loading, variant = 'primary',
       {loading ? (
         <ActivityIndicator color={isPrimary ? colors.white : colors.primary} />
       ) : (
-        <Text
-          style={[
-            styles.btnLabel,
-            isPrimary && { color: colors.white },
-            (variant === 'soft' || isGhost) && { color: colors.primary },
-          ]}
-        >
-          {label}
-        </Text>
+        <View style={styles.btnContent}>
+          {icon ? <Ionicons name={icon} size={18} color={labelColor} /> : null}
+          <Text style={[styles.btnLabel, { color: labelColor }]}>{label}</Text>
+        </View>
       )}
     </Pressable>
   );
@@ -81,9 +94,11 @@ export function StarRating({
     <View style={{ flexDirection: 'row', gap: 2 }}>
       {[1, 2, 3, 4, 5].map((i) => (
         <Pressable key={i} disabled={!onChange} onPress={() => onChange?.(i)} hitSlop={4}>
-          <Text style={{ fontSize: size, color: i <= value ? colors.star : colors.border }}>
-            {i <= value ? '★' : '☆'}
-          </Text>
+          <Ionicons
+            name={i <= value ? 'star' : 'star-outline'}
+            size={size}
+            color={i <= value ? colors.star : colors.border}
+          />
         </Pressable>
       ))}
     </View>
@@ -102,7 +117,7 @@ export function SeedThumb({
   seed: string | null | undefined;
   size?: number;
   round?: boolean;
-  label?: string;
+  label?: ReactNode;
   ring?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
@@ -126,7 +141,11 @@ export function SeedThumb({
     >
       {/* 아래 반쪽에 두 번째 색을 겹쳐 유사 그라데이션 */}
       <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', backgroundColor: c2, opacity: 0.85 }} />
-      {label ? <Text style={{ fontSize: size * 0.4 }}>{label}</Text> : null}
+      {typeof label === 'string' || typeof label === 'number' ? (
+        <Text style={{ fontSize: size * 0.4, fontWeight: '700', color: colors.white }}>{label}</Text>
+      ) : (
+        label ?? null
+      )}
     </View>
   );
 }
@@ -145,7 +164,7 @@ export function PhotoThumb({
   seed: string | null | undefined;
   size?: number;
   round?: boolean;
-  label?: string;
+  label?: ReactNode;
   ring?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
@@ -209,6 +228,7 @@ const styles = StyleSheet.create({
   btnPrimary: { backgroundColor: colors.primary },
   btnSoft: { backgroundColor: colors.coralSofter },
   btnGhost: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: colors.coralSoft },
+  btnContent: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   btnLabel: { fontSize: 16, fontWeight: '700' },
   badge: {
     minWidth: 20,

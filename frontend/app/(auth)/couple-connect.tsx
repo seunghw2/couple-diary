@@ -15,7 +15,7 @@ import { ApiException } from '../../lib/api';
 import { confirmAsync } from '../../lib/dialog';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useCoupleStore } from '../../store/useCoupleStore';
-import { Button, Card } from '../../components/ui';
+import { Button, Card, Icon } from '../../components/ui';
 import { colors, font, radius, spacing } from '../../theme/theme';
 
 export default function CoupleConnectScreen() {
@@ -75,7 +75,7 @@ export default function CoupleConnectScreen() {
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <View style={styles.container}>
-          <Text style={styles.title}>커플 연결 💞</Text>
+          <Text style={styles.title}>커플 연결</Text>
           <Text style={styles.subtitle}>서로의 코드를 교환하면 일기가 이어져요</Text>
 
           <Card style={{ marginTop: spacing.xl }}>
@@ -85,7 +85,10 @@ export default function CoupleConnectScreen() {
             ) : myCode ? (
               <Pressable onPress={onCopy} style={styles.codeBox}>
                 <Text style={styles.code}>{myCode}</Text>
-                <Text style={styles.copyHint}>{copied ? '복사됨 ✓' : '탭하여 복사'}</Text>
+                <View style={styles.copyHintRow}>
+                  {copied ? <Icon name="checkmark" size={14} color={colors.primary} /> : null}
+                  <Text style={styles.copyHint}>{copied ? '복사됨' : '탭하여 복사'}</Text>
+                </View>
               </Pressable>
             ) : (
               <Text style={styles.error}>코드를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</Text>
@@ -136,7 +139,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   code: { fontSize: 26, fontWeight: '800', letterSpacing: 3, color: colors.text },
-  copyHint: { ...font.caption, color: colors.primary, marginTop: spacing.xs },
+  copyHintRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.xs },
+  copyHint: { ...font.caption, color: colors.primary },
   input: {
     backgroundColor: colors.bg,
     borderRadius: radius.md,

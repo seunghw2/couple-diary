@@ -8,6 +8,7 @@ import com.today.common.ErrorCode;
 import com.today.couple.Couple;
 import com.today.couple.CoupleService;
 import com.today.diary.DiaryDtos.*;
+import com.today.notification.NotificationService;
 import com.today.question.Question;
 import com.today.question.QuestionDtos.QuestionResponse;
 import com.today.question.QuestionRepository;
@@ -40,6 +41,7 @@ public class DiaryService {
     private final PhotoRepository photoRepository;
     private final CommentRepository commentRepository;
     private final DiaryDayFactory dayFactory;
+    private final NotificationService notificationService;
 
     private static final long EDIT_WINDOW_HOURS = 3;
     private static final int MAX_PICK_QUESTIONS = 5;
@@ -218,7 +220,31 @@ public class DiaryService {
             }
         }
 
+        // ===== 알림 트리거: 저장 후 그날 상태 재계산 =====
+        // 상대 entry 존재 여부로 OPEN/LOCKED 판정. isNew=이번에 내 entry가 처음 생김.
+        entryRepository.flush();
+        User partner = partnerOf(couple, userId);
+        boolean partnerWrote = partner != null
+                && entryRepository.findByDay_IdAndAuthor_Id(day.getId(), partner.getId()).isPresent();
+        boolean nowOpen = isNew && partnerWrote; // 방금 OPEN으로 전환
+        // isNew가 아니어도(수정) 이미 OPEN이면 재알림 금지 → PARTNER_WROTE는 아직 LOCKED일 때만
+        if (isNew) {
+            notificationService.onEntryUpsert(author, partner, date, nowOpen);
+        } else if (!partnerWrote) {
+            // 내 수정인데 상대 아직 미작성 → PARTNER_WROTE dedup은 서비스에서 미읽음 검사로 막음
+            notificationService.onEntryUpsert(author, partner, date, false);
+        }
+
         return detail(userId, date);
+    }
+
+    // 커플 두 멤버 중 나 아닌 쪽
+    private User partnerOf(Couple couple, Long userId) {
+        User u1 = couple.getUser1();
+        User u2 = couple.getUser2();
+        if (u1.getId().equals(userId)) return u2;
+        if (u2.getId().equals(userId)) return u1;
+        return null;
     }
 
     // ================= 일기 삭제 =================
@@ -307,6 +333,15 @@ public class DiaryService {
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
         Comment c = commentRepository.save(Comment.builder()
                 .day(day).author(author).text(req.text()).build());
+
+        // ===== 알림 트리거: 그 일기의 상대 작성자에게 COMMENT =====
+        // day의 두 entry 작성자 중 나 아닌 쪽이 recipient (OPEN이므로 둘 다 존재)
+        User recipient = entryRepository.findByDay_Id(day.getId()).stream()
+                .map(DiaryEntry::getAuthor)
+                .filter(u -> !u.getId().equals(userId))
+                .findFirst().orElse(null);
+        notificationService.onComment(author, recipient, date, req.text());
+
         return toCommentView(c);
     }
 

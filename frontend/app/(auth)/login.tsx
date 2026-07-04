@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiException } from '../../lib/api';
 import { useAuthStore } from '../../store/useAuthStore';
-import { Button } from '../../components/ui';
+import { Button, Icon } from '../../components/ui';
 import { colors, font, radius, shadow, spacing } from '../../theme/theme';
 
 export default function LoginScreen() {
@@ -43,7 +43,10 @@ export default function LoginScreen() {
       >
         <View style={styles.container}>
           <View style={styles.hero}>
-            <Text style={styles.logo}>love today 🩷</Text>
+            <View style={styles.logoRow}>
+              <Text style={styles.logo}>love today</Text>
+              <Icon name="heart" size={30} color={colors.primary} />
+            </View>
             <Text style={styles.tagline}>둘이 함께 쓰는 오늘의 일기</Text>
           </View>
 
@@ -78,6 +81,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   container: { flex: 1, paddingHorizontal: spacing.xl, justifyContent: 'center' },
   hero: { alignItems: 'center', marginBottom: spacing.xxl },
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   logo: { fontSize: 40, fontWeight: '800', color: colors.primary },
   tagline: { ...font.body, color: colors.subText, marginTop: spacing.sm },
   form: {

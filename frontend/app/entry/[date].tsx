@@ -15,9 +15,10 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { CommentView, DayDetail, EntryView, QuestionResponse, entryApi, isLocked } from '../../lib/api';
 import { dDay, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
 import { confirmAsync, showAlert } from '../../lib/dialog';
+import { moodIcon } from '../../constants/content';
 import { useCoupleStore } from '../../store/useCoupleStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { Button, Card, PhotoThumb, Pill, SeedThumb, StarRating } from '../../components/ui';
+import { Button, Card, Icon, PhotoThumb, Pill, SeedThumb, StarRating } from '../../components/ui';
 import { colors, font, radius, shadow, spacing } from '../../theme/theme';
 
 export default function EntryDetailScreen() {
@@ -107,7 +108,7 @@ export default function EntryDetailScreen() {
         {/* 헤더 */}
         <View style={styles.topBar}>
           <Pressable onPress={() => router.back()} hitSlop={12}>
-            <Text style={styles.back}>‹</Text>
+            <Icon name="chevron-back" size={28} color={colors.subText} />
           </Pressable>
           <View style={{ alignItems: 'center' }}>
             <Text style={styles.dateTitle}>{formatKoShort(dateStr)}</Text>
@@ -166,14 +167,15 @@ export default function EntryDetailScreen() {
                 />
               ) : status === 'LOCKED' ? (
                 <Card style={styles.waitCard}>
-                  <Text style={styles.waitText}>상대가 아직 오늘 일기를 안 썼어요 🔒{'\n'}상대가 쓰면 자동으로 열려요!</Text>
+                  <Icon name="lock-closed" size={22} color={colors.coralSoft} style={{ marginBottom: spacing.sm }} />
+                  <Text style={styles.waitText}>상대가 아직 오늘 일기를 안 썼어요{'\n'}상대가 쓰면 자동으로 열려요!</Text>
                 </Card>
               ) : null}
 
               {/* 획득 스티커(OPEN) */}
               {status === 'OPEN' ? (
                 <View style={styles.stickerRow}>
-                  <SeedThumb seed={dateStr} size={48} label="🩷" />
+                  <SeedThumb seed={dateStr} size={48} label={<Icon name="heart" size={22} color={colors.white} />} />
                   <Text style={styles.stickerText}>이 날의 스티커를 획득했어요!</Text>
                 </View>
               ) : null}
@@ -181,7 +183,10 @@ export default function EntryDetailScreen() {
               {/* 댓글 (OPEN에서만) */}
               {status === 'OPEN' ? (
                 <View style={{ marginTop: spacing.lg }}>
-                  <Text style={styles.sectionLabel}>💬 댓글</Text>
+                  <View style={styles.sectionLabelRow}>
+                    <Icon name="chatbubble-ellipses-outline" size={18} color={colors.text} />
+                    <Text style={styles.sectionLabel}>댓글</Text>
+                  </View>
                   {detail.comments.map((c) => (
                     <CommentRow key={c.id} comment={c} mine={c.authorId === me?.id} />
                   ))}
@@ -217,7 +222,7 @@ function EmptyState({ future, onWrite }: { future: boolean; onWrite: () => void 
   if (future) {
     return (
       <Card style={{ marginTop: spacing.xxl, alignItems: 'center' }}>
-        <Text style={{ fontSize: 44, marginBottom: spacing.md }}>🌙</Text>
+        <Icon name="moon-outline" size={40} color={colors.coralSoft} style={{ marginBottom: spacing.md }} />
         <Text style={styles.emptyTitle}>아직 오지 않은 날이에요</Text>
         <Text style={styles.emptySub}>그날이 되면 함께 기록해요</Text>
       </Card>
@@ -225,7 +230,7 @@ function EmptyState({ future, onWrite }: { future: boolean; onWrite: () => void 
   }
   return (
     <Card style={{ marginTop: spacing.xxl, alignItems: 'center' }}>
-      <Text style={{ fontSize: 44, marginBottom: spacing.md }}>✏️</Text>
+      <Icon name="create-outline" size={40} color={colors.coralSoft} style={{ marginBottom: spacing.md }} />
       <Text style={styles.emptyTitle}>아직 이 날의 일기가 없어요</Text>
       <Text style={styles.emptySub}>먼저 오늘을 기록해볼까요?</Text>
       <Button label="일기 쓰기" onPress={onWrite} style={{ marginTop: spacing.lg, alignSelf: 'stretch' }} />
@@ -239,7 +244,7 @@ function LockedPartner({ onWrite }: { onWrite: () => void }) {
       <View style={styles.blurBox}>
         <Text style={styles.blurText}>█████ ███ ██████{'\n'}███████ ████ ██</Text>
         <View style={styles.lockOverlay}>
-          <Text style={{ fontSize: 32 }}>🔒</Text>
+          <Icon name="lock-closed" size={30} color={colors.coralSoft} />
         </View>
       </View>
       <Text style={styles.lockedTitle}>상대의 일기는 잠겨 있어요</Text>
@@ -272,8 +277,24 @@ function SideCard({
 
       {/* 메타: 기분 / 위치 */}
       <View style={styles.metaRow}>
-        {side.mood ? <Pill tone={tone}>{`${side.mood} 기분`}</Pill> : null}
-        {side.locationName ? <Pill tone="neutral">{`📍 ${side.locationName}`}</Pill> : null}
+        {side.mood ? (
+          <Pill tone={tone}>
+            <View style={styles.pillRow}>
+              {moodIcon(side.mood) ? (
+                <Icon name={moodIcon(side.mood)!} size={14} color={colors.text} />
+              ) : null}
+              <Text style={styles.pillLabel}>기분</Text>
+            </View>
+          </Pill>
+        ) : null}
+        {side.locationName ? (
+          <Pill tone="neutral">
+            <View style={styles.pillRow}>
+              <Icon name="location-outline" size={14} color={colors.text} />
+              <Text style={styles.pillLabel}>{side.locationName}</Text>
+            </View>
+          </Pill>
+        ) : null}
       </View>
 
       {/* 사진: url 있으면 실제 이미지, 없으면 색시드 썸네일 */}
@@ -286,7 +307,11 @@ function SideCard({
               seed={p.colorSeed}
               size={90}
               round={false}
-              label={i === 2 && side.photos.length > 3 ? `+${side.photos.length - 2}` : '🌷'}
+              label={
+                i === 2 && side.photos.length > 3
+                  ? `+${side.photos.length - 2}`
+                  : <Icon name="image-outline" size={30} color={colors.white} />
+              }
             />
           ))}
         </View>
@@ -350,8 +375,11 @@ const styles = StyleSheet.create({
   lockedTitle: { ...font.title, marginTop: spacing.lg },
   lockedSub: { ...font.caption, marginTop: spacing.xs },
 
-  waitCard: { marginTop: spacing.lg, backgroundColor: '#FFF3E4' },
+  waitCard: { marginTop: spacing.lg, backgroundColor: '#FFF3E4', alignItems: 'center' },
   waitText: { ...font.body, color: colors.subText, textAlign: 'center', lineHeight: 22 },
+
+  pillRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  pillLabel: { ...font.label, color: colors.text },
 
   sideHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sideTitle: { ...font.title },
@@ -363,7 +391,8 @@ const styles = StyleSheet.create({
   stickerRow: { alignItems: 'center', marginTop: spacing.xl, gap: spacing.sm },
   stickerText: { ...font.label, color: colors.subText },
 
-  sectionLabel: { ...font.title, marginBottom: spacing.md },
+  sectionLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.md },
+  sectionLabel: { ...font.title },
   noComment: { ...font.caption, color: colors.subText },
   commentError: { ...font.caption, color: colors.danger, marginTop: spacing.sm },
   commentRow: { marginBottom: spacing.sm, alignItems: 'flex-start' },

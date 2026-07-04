@@ -45,7 +45,7 @@ export default function SettingsScreen() {
     setMsg(null);
     try {
       await setAnniversary(v);
-      setMsg('저장했어요 ✓');
+      setMsg('저장했어요');
     } catch {
       setMsg('저장에 실패했어요.');
     } finally {
@@ -64,7 +64,7 @@ export default function SettingsScreen() {
     try {
       const updated = await authApi.updateMe({ nickname: v });
       setUser(updated);
-      setNickMsg('저장했어요 ✓');
+      setNickMsg('저장했어요');
     } catch {
       setNickMsg('저장에 실패했어요.');
     } finally {
@@ -80,7 +80,7 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>설정 🎀</Text>
+        <Text style={styles.title}>설정</Text>
 
         <Card style={{ marginTop: spacing.xl }}>
           <Text style={styles.label}>내 정보</Text>

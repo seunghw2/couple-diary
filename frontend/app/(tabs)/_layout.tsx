@@ -1,9 +1,15 @@
 import { Tabs } from 'expo-router';
-import { Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/theme';
 
-function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
-  return <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.45 }}>{emoji}</Text>;
+function TabIcon({
+  name,
+  color,
+}: {
+  name: React.ComponentProps<typeof Ionicons>['name'];
+  color: string;
+}) {
+  return <Ionicons name={name} size={24} color={color} />;
 }
 
 export default function TabsLayout() {
@@ -26,21 +32,27 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: '달력',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🗓️" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => (
+            <TabIcon name={focused ? 'calendar' : 'calendar-outline'} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="map"
         options={{
           title: '지도',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📍" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => (
+            <TabIcon name={focused ? 'map' : 'map-outline'} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: '설정',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🎀" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => (
+            <TabIcon name={focused ? 'settings' : 'settings-outline'} color={color} />
+          ),
         }}
       />
     </Tabs>

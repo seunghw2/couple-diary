@@ -26,7 +26,7 @@ import {
 import { formatKoLong, todayISO, weekdayKo } from '../../lib/date';
 import { showAlert } from '../../lib/dialog';
 import { MOODS, TEMPLATE_PROMPTS } from '../../constants/content';
-import { Button, Card, PhotoThumb, StarRating } from '../../components/ui';
+import { Button, Card, Icon, PhotoThumb, StarRating } from '../../components/ui';
 import { colors, font, radius, shadow, spacing } from '../../theme/theme';
 
 type Step = 'mode' | 'form';
@@ -237,7 +237,7 @@ export default function WriteScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={{ paddingHorizontal: spacing.xl }}>
           <Card style={{ marginTop: spacing.xxl, alignItems: 'center' }}>
-            <Text style={{ fontSize: 44, marginBottom: spacing.md }}>⏰</Text>
+            <Icon name="time-outline" size={40} color={colors.coralSoft} style={{ marginBottom: spacing.md }} />
             <Text style={styles.expiredTitle}>수정 가능 시간(3시간)이 지났어요</Text>
             <Text style={styles.expiredSub}>이미 쓴 일기는 3시간 안에만 고칠 수 있어요.</Text>
             <Button label="돌아가기" onPress={() => router.back()} style={{ marginTop: spacing.lg, alignSelf: 'stretch' }} />
@@ -252,7 +252,7 @@ export default function WriteScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <View style={styles.topBar}>
           <Pressable onPress={() => (step === 'form' && !fixedQuestions ? setStep('mode') : router.back())} hitSlop={12}>
-            <Text style={styles.back}>‹</Text>
+            <Icon name="chevron-back" size={28} color={colors.subText} />
           </Pressable>
           <View style={{ alignItems: 'center' }}>
             <Text style={styles.title}>오늘의 일기</Text>
@@ -266,22 +266,31 @@ export default function WriteScreen() {
         ) : (
           <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
             {/* 기분 */}
-            <Text style={styles.sectionLabel}>🎨 오늘의 기분</Text>
+            <View style={styles.sectionLabelRow}>
+              <Icon name="happy-outline" size={18} color={colors.text} />
+              <Text style={styles.sectionLabel}>오늘의 기분</Text>
+            </View>
             <View style={styles.moodRow}>
-              {MOODS.map((m) => (
-                <Pressable
-                  key={m}
-                  onPress={() => setMood(m)}
-                  style={[styles.moodItem, mood === m && styles.moodSelected]}
-                >
-                  <Text style={{ fontSize: 26 }}>{m}</Text>
-                </Pressable>
-              ))}
+              {MOODS.map((m) => {
+                const on = mood === m.key;
+                return (
+                  <Pressable
+                    key={m.key}
+                    onPress={() => setMood(m.key)}
+                    style={[styles.moodItem, on && styles.moodSelected]}
+                  >
+                    <Icon name={m.icon} size={24} color={on ? colors.primary : colors.subText} />
+                  </Pressable>
+                );
+              })}
             </View>
 
             {/* 별점 */}
             <Card style={styles.ratingCard}>
-              <Text style={styles.ratingLabel}>⭐ 오늘 데이트 점수</Text>
+              <View style={[styles.sectionLabelRow, { marginTop: 0, marginBottom: 0 }]}>
+                <Icon name="star" size={18} color={colors.star} />
+                <Text style={styles.ratingLabel}>오늘 데이트 점수</Text>
+              </View>
               <StarRating value={rating} onChange={setRating} size={28} />
             </Card>
 
@@ -301,7 +310,10 @@ export default function WriteScreen() {
             )}
 
             {/* 사진 업로드 */}
-            <Text style={[styles.sectionLabel, { marginTop: spacing.xl }]}>🌸 오늘의 흔적</Text>
+            <View style={[styles.sectionLabelRow, { marginTop: spacing.xl }]}>
+              <Icon name="images-outline" size={18} color={colors.text} />
+              <Text style={styles.sectionLabel}>오늘의 흔적</Text>
+            </View>
             <View style={styles.photoRow}>
               {photoUrls.map((u, i) => (
                 <PhotoThumb key={u + i} url={u} seed={u} size={72} round={false} />
@@ -312,30 +324,37 @@ export default function WriteScreen() {
                 </View>
               ) : photoUrls.length < 6 ? (
                 <Pressable onPress={pickAndUploadPhoto} style={styles.addPhoto}>
-                  <Text style={{ fontSize: 28, color: colors.coralSoft }}>＋</Text>
+                  <Icon name="add" size={30} color={colors.coralSoft} />
                 </Pressable>
               ) : null}
             </View>
 
             {/* 위치 */}
-            <TextInput
-              value={location}
-              onChangeText={setLocation}
-              placeholder="📍 장소 이름 (예: 성수동 · 대림창고)"
-              placeholderTextColor={colors.placeholder}
-              style={styles.locationInput}
-            />
+            <View style={styles.locationRow}>
+              <Icon name="location-outline" size={18} color={colors.subText} />
+              <TextInput
+                value={location}
+                onChangeText={setLocation}
+                placeholder="장소 이름 (예: 성수동 · 대림창고)"
+                placeholderTextColor={colors.placeholder}
+                style={styles.locationInput}
+              />
+            </View>
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
             <Card style={styles.lockNote}>
-              <Text style={styles.lockNoteText}>
-                저장하면 잠금 상태로 대기해요 🔒{'\n'}둘 다 쓰면 서로의 글이 열려요!
-              </Text>
+              <View style={styles.lockNoteRow}>
+                <Icon name="lock-closed" size={16} color={colors.subText} style={{ marginTop: 2 }} />
+                <Text style={styles.lockNoteText}>
+                  저장하면 잠금 상태로 대기해요{'\n'}둘 다 쓰면 서로의 글이 열려요!
+                </Text>
+              </View>
             </Card>
 
             <Button
-              label="저장하고 잠금 대기 🔒"
+              label="저장하고 잠금 대기"
+              icon="lock-closed"
               onPress={onSubmit}
               loading={submitting}
               disabled={!canSubmit()}
@@ -354,7 +373,7 @@ function ModeSelect({ onChoose, freeDisabled }: { onChoose: (m: FormMode) => voi
     <View style={styles.modeWrap}>
       <Text style={styles.modeHeading}>어떻게 기록할까요?</Text>
       <Pressable style={[styles.modeCard, shadow]} onPress={() => onChoose('TEMPLATE')}>
-        <Text style={styles.modeEmoji}>📝</Text>
+        <Icon name="create-outline" size={30} color={colors.primary} style={styles.modeIcon} />
         <Text style={styles.modeTitle}>템플릿으로 쓰기</Text>
         <Text style={styles.modeDesc}>정해진 빈칸을 채우며 가볍게</Text>
       </Pressable>
@@ -363,7 +382,7 @@ function ModeSelect({ onChoose, freeDisabled }: { onChoose: (m: FormMode) => voi
         disabled={freeDisabled}
         onPress={() => onChoose('FREE')}
       >
-        <Text style={styles.modeEmoji}>💬</Text>
+        <Icon name="help-circle-outline" size={32} color={colors.primary} style={styles.modeIcon} />
         <Text style={styles.modeTitle}>질문 골라 쓰기</Text>
         <Text style={styles.modeDesc}>
           {freeDisabled ? '질문을 불러오지 못했어요' : '질문 8개 중 3개를 골라 서로 답하기'}
@@ -382,10 +401,16 @@ function TemplateForm({
 }) {
   return (
     <Card style={{ marginTop: spacing.lg }}>
-      <Text style={styles.formHeading}>✏️ 빈칸 채우기</Text>
+      <View style={styles.formHeadingRow}>
+        <Icon name="create-outline" size={18} color={colors.text} />
+        <Text style={styles.formHeading}>빈칸 채우기</Text>
+      </View>
       {TEMPLATE_PROMPTS.map((p, i) => (
         <View key={p.promptKey} style={i > 0 ? styles.formDivider : undefined}>
-          <Text style={styles.promptLabel}>{p.emoji} {p.label}</Text>
+          <View style={styles.promptLabelRow}>
+            <Icon name={p.icon} size={15} color={colors.primary} />
+            <Text style={styles.promptLabel}>{p.label}</Text>
+          </View>
           <TextInput
             value={answers[p.promptKey] ?? ''}
             onChangeText={(t) => onChange(p.promptKey, t)}
@@ -411,7 +436,10 @@ function FixedQuestionForm({
 }) {
   return (
     <Card style={{ marginTop: spacing.lg }}>
-      <Text style={styles.formHeading}>💬 오늘의 질문에 답하기</Text>
+      <View style={styles.formHeadingRow}>
+        <Icon name="chatbox-outline" size={18} color={colors.text} />
+        <Text style={styles.formHeading}>오늘의 질문에 답하기</Text>
+      </View>
       {questions.map((q, i) => (
         <View key={String(q.id)} style={i > 0 ? styles.formDivider : undefined}>
           <Text style={styles.promptLabel}>Q{i + 1}. {q.text}</Text>
@@ -444,7 +472,10 @@ function FreePickForm({
 }) {
   return (
     <Card style={{ marginTop: spacing.lg }}>
-      <Text style={styles.formHeading}>💬 질문 3개 고르기 ({picked.length}/3)</Text>
+      <View style={styles.formHeadingRow}>
+        <Icon name="help-circle-outline" size={18} color={colors.text} />
+        <Text style={styles.formHeading}>질문 3개 고르기 ({picked.length}/3)</Text>
+      </View>
       {questions.length === 0 ? (
         <Text style={styles.error}>질문을 불러오지 못했어요</Text>
       ) : null}
@@ -499,11 +530,18 @@ const styles = StyleSheet.create({
   modeWrap: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xl, gap: spacing.lg },
   modeHeading: { ...font.h2, marginBottom: spacing.sm },
   modeCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.xl },
-  modeEmoji: { fontSize: 34 },
+  modeIcon: { marginBottom: spacing.xs },
   modeTitle: { ...font.title, marginTop: spacing.sm },
   modeDesc: { ...font.caption, marginTop: spacing.xs },
 
-  sectionLabel: { ...font.title, marginTop: spacing.lg, marginBottom: spacing.md },
+  sectionLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  sectionLabel: { ...font.title },
   moodRow: { flexDirection: 'row', justifyContent: 'space-between' },
   moodItem: {
     width: 48,
@@ -526,9 +564,11 @@ const styles = StyleSheet.create({
   },
   ratingLabel: { ...font.title },
 
-  formHeading: { ...font.title, marginBottom: spacing.md },
+  formHeadingRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.md },
+  formHeading: { ...font.title },
   formDivider: { marginTop: spacing.lg, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.lg },
-  promptLabel: { ...font.label, color: colors.primary, marginBottom: spacing.sm },
+  promptLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: spacing.sm },
+  promptLabel: { ...font.label, color: colors.primary },
   multiInput: {
     ...font.body,
     minHeight: 48,
@@ -561,20 +601,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.card,
   },
-  locationInput: {
+  locationRow: {
     marginTop: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
     backgroundColor: colors.card,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
     paddingHorizontal: spacing.lg,
     height: 48,
+  },
+  locationInput: {
+    flex: 1,
     color: colors.text,
     ...font.body,
   },
   error: { ...font.caption, color: colors.danger, marginTop: spacing.md },
   lockNote: { marginTop: spacing.lg, backgroundColor: '#FFF3E4' },
-  lockNoteText: { ...font.body, color: colors.subText, lineHeight: 22 },
+  lockNoteRow: { flexDirection: 'row', gap: spacing.sm },
+  lockNoteText: { ...font.body, color: colors.subText, lineHeight: 22, flex: 1 },
   subNote: { ...font.caption, textAlign: 'center', marginTop: spacing.sm },
   expiredTitle: { ...font.title },
   expiredSub: { ...font.caption, marginTop: spacing.xs },
