@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>투데이 · 상세</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #EDE7E9;
+    --bg2: #E9E1E4;
+    --card: #FBF8F9;
+    --card-soft: #F5EEF0;
+    --ink: #463E44;
+    --ink-soft: #8B7E84;
+    --ink-faint: #B7ABB0;
+    --rose: #B79AA6;
+    --rose-2: #C9A9AF;
+    --rose-deep: #A07E8B;
+    --line: #E2D6DA;
+    --shadow: 0 8px 24px rgba(70, 62, 68, 0.08);
+    --shadow-soft: 0 4px 14px rgba(70, 62, 68, 0.06);
+  }
+  body {
+    font-family: 'Gothic A1', 'Noto Sans KR', sans-serif;
+    background: #d8ccd0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 28px 0;
+    color: var(--ink);
+  }
+  .screen-label {
+    position: fixed;
+    top: 10px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    letter-spacing: 0.4px;
+    color: #6c5f65;
+    background: rgba(255,255,255,0.65);
+    padding: 4px 12px;
+    border-radius: 20px;
+    z-index: 99;
+  }
+  .phone {
+    width: 390px;
+    min-height: 844px;
+    background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 30px 70px rgba(70,62,68,0.28);
+    display: flex;
+    flex-direction: column;
+  }
+  .statusbar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .statusbar .dots { display: flex; gap: 5px; align-items: center; }
+  .statusbar .dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--ink); opacity: .5; }
+  .content { flex: 1; padding: 0 22px 40px; overflow-y: auto; }
+
+  /* Top nav */
+  .topnav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 2px 14px;
+  }
+  .topnav .back {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--card);
+    box-shadow: var(--shadow-soft);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink); font-size: 17px;
+  }
+  .topnav .date {
+    text-align: center;
+    line-height: 1.25;
+  }
+  .topnav .date .d { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+  .topnav .date .w { font-size: 11px; color: var(--ink-soft); margin-top: 1px; }
+  .topnav .more {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--card);
+    box-shadow: var(--shadow-soft);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft); font-size: 16px;
+  }
+
+  /* Hero photo */
+  .hero {
+    position: relative;
+    height: 300px;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    background: linear-gradient(160deg, #e5d1c6 0%, #c9a9af 45%, #8f6f7c 100%);
+  }
+  .hero .silhouette {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60px 90px at 40% 62%, rgba(70,50,60,0.28), transparent 70%),
+      radial-gradient(ellipse 60px 90px at 60% 60%, rgba(70,50,60,0.22), transparent 70%),
+      radial-gradient(circle at 40% 40%, rgba(255,240,245,0.25), transparent 55%);
+  }
+  .hero .grain {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 55%, rgba(70,62,68,0.35) 100%);
+  }
+  .hero .meta {
+    position: absolute;
+    left: 18px; bottom: 16px; right: 18px;
+    color: #fff;
+  }
+  .hero .meta .place {
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    opacity: .95;
+  }
+  .hero .dots {
+    position: absolute;
+    bottom: 16px; right: 18px;
+    display: flex; gap: 5px;
+  }
+  .hero .dots i {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+  }
+  .hero .dots i.on { background: #fff; width: 16px; border-radius: 4px; }
+
+  /* Meta chips */
+  .chips {
+    display: flex;
+    gap: 8px;
+    margin: 16px 2px 4px;
+    font-size: 12.5px;
+  }
+  .chip {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 8px 12px;
+    color: var(--ink-soft);
+    font-weight: 500;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .chip b { color: var(--ink); font-weight: 700; }
+  .chip .stars { color: var(--rose-deep); letter-spacing: 1px; }
+
+  /* Entries */
+  .section-title {
+    margin: 24px 4px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  .entry {
+    display: flex;
+    gap: 11px;
+    margin-bottom: 14px;
+  }
+  .entry .av {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid var(--card);
+    box-shadow: var(--shadow-soft);
+  }
+  .entry .av.sh { background: radial-gradient(circle at 35% 30%, #d9bfc8, #a5808f); }
+  .entry .av.su { background: radial-gradient(circle at 35% 30%, #e6d3c9, #b79aa6); }
+  .entry .bubble {
+    flex: 1;
+    background: var(--card);
+    border-radius: 6px 18px 18px 18px;
+    padding: 13px 15px;
+    box-shadow: var(--shadow-soft);
+  }
+  .entry.right { flex-direction: row-reverse; }
+  .entry.right .bubble {
+    border-radius: 18px 6px 18px 18px;
+    background: var(--card-soft);
+  }
+  .entry .name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--rose-deep);
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .entry .name .time { font-size: 10.5px; color: var(--ink-faint); font-weight: 500; }
+  .entry .text {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  .entry .react {
+    margin-top: 9px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--card-soft);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 4px 10px;
+    font-size: 11.5px;
+    color: var(--rose-deep);
+    font-weight: 600;
+  }
+  .entry.right .react { background: var(--card); }
+  .entry .react svg { width: 13px; height: 13px; fill: var(--rose-deep); }
+
+  /* Compose bar */
+  .compose {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 2px 8px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 10px 12px 10px 16px;
+    box-shadow: var(--shadow-soft);
+  }
+  .compose .ph {
+    flex: 1;
+    font-size: 13px;
+    color: var(--ink-faint);
+  }
+  .compose .send {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--rose-deep);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 10px rgba(160,126,139,0.35);
+  }
+  .compose .send svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2; }
+</style>
+</head>
+<body>
+  <div class="screen-label">mauve-rose · 02 Detail (그날의 일기)</div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <div class="content">
+      <!-- Top nav -->
+      <div class="topnav">
+        <div class="back">‹</div>
+        <div class="date">
+          <div class="d">7월 6일</div>
+          <div class="w">일요일 · D+401</div>
+        </div>
+        <div class="more">⋯</div>
+      </div>
+
+      <!-- Hero photo -->
+      <div class="hero">
+        <div class="silhouette"></div>
+        <div class="grain"></div>
+        <div class="meta">
+          <div class="place">📍 한강 뚝섬 · 노을 피크닉</div>
+        </div>
+        <div class="dots"><i class="on"></i><i></i><i></i></div>
+      </div>
+
+      <!-- Meta chips -->
+      <div class="chips">
+        <div class="chip"><span class="stars">★★★★★</span></div>
+        <div class="chip">기분 <b>포근함</b></div>
+        <div class="chip">📷 <b>3</b>장</div>
+      </div>
+
+      <!-- Entries -->
+      <div class="section-title">우리의 하루</div>
+
+      <div class="entry">
+        <div class="av sh"></div>
+        <div class="bubble">
+          <div class="name">승환 <span class="time">오후 7:12</span></div>
+          <div class="text">돗자리 깔고 편의점 맥주 마시면서 노을 보는데, 수정이가 옆에서 웃는 게 노을보다 예뻤다. 다음엔 을지로 그 골목 가보자고 약속.</div>
+        </div>
+      </div>
+
+      <div class="entry right">
+        <div class="av su"></div>
+        <div class="bubble">
+          <div class="name">수정 <span class="time">오후 9:40</span></div>
+          <div class="text">바람 살짝 쌀쌀했는데 승환이가 겉옷 벗어줘서 하나도 안 추웠어. 오늘 사진들 진짜 다 잘 나왔다 🥹 이 날 오래오래 기억하고 싶어.</div>
+          <div class="react">
+            <svg viewBox="0 0 24 24"><path d="M20.8 6.6a5 5 0 00-8.8-2 5 5 0 00-8.8 2c0 4.2 5.6 7.9 8.8 10 3.2-2.1 8.8-5.8 8.8-10z"/></svg>
+            승환님이 좋아해요
+          </div>
+        </div>
+      </div>
+
+      <!-- Compose -->
+      <div class="compose">
+        <div class="ph">오늘 하루, 한 줄 남기기…</div>
+        <div class="send">
+          <svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-6-7-2z"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 포토 캘린더 홈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EFEDE8;
+    --bg2:#EDEAE5;
+    --card:#FAF8F5;
+    --ink:#3A3A38;
+    --ink-soft:#8A8479;
+    --ink-faint:#B4AEA3;
+    --taupe:#B7A592;
+    --taupe-d:#A8998A;
+    --coral:#D98E7A;
+    --line:#E2DDD4;
+    --shadow:0 10px 28px rgba(90,80,66,.12);
+    --shadow-sm:0 4px 14px rgba(90,80,66,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{
+    background:#DAD6CF;
+    font-family:'Gothic A1','Noto Sans KR',sans-serif;
+    color:var(--ink);
+    display:flex;flex-direction:column;align-items:center;
+    min-height:100vh;padding:26px 0 40px;
+  }
+  .label{
+    font-size:11px;letter-spacing:.14em;color:#8f887c;text-transform:uppercase;
+    margin-bottom:12px;font-weight:600;
+  }
+  .phone{
+    width:390px;min-height:812px;background:var(--bg);
+    border-radius:44px;overflow:hidden;position:relative;
+    box-shadow:0 30px 70px rgba(60,50,40,.3);
+    display:flex;flex-direction:column;
+  }
+  /* ---------- header ---------- */
+  .status{height:54px;}
+  .header{padding:6px 24px 10px;}
+  .top-row{display:flex;align-items:center;justify-content:space-between;}
+  .logo{
+    font-weight:800;font-size:23px;letter-spacing:-.5px;color:var(--ink);
+  }
+  .logo b{color:var(--taupe-d);}
+  .avatars{display:flex;align-items:center;}
+  .ava{
+    width:38px;height:38px;border-radius:50%;border:2.5px solid var(--bg);
+    box-shadow:var(--shadow-sm);
+  }
+  .ava.b{margin-left:-13px;}
+  .ava.s{background:linear-gradient(145deg,#C9B7A2,#A79079);}
+  .ava.j{background:linear-gradient(145deg,#E3B7A9,#C58C7C);}
+  .dday-pill{
+    margin-left:10px;background:var(--card);border:1px solid var(--line);
+    padding:6px 11px;border-radius:20px;font-size:12px;font-weight:700;
+    color:var(--taupe-d);box-shadow:var(--shadow-sm);white-space:nowrap;
+  }
+  .dday-pill span{color:var(--ink-soft);font-weight:500;}
+  .throwback{
+    margin-top:14px;background:transparent;
+    display:flex;align-items:center;gap:9px;
+    font-size:11.5px;color:var(--ink-soft);
+  }
+  .throwback .tb-thumb{
+    width:22px;height:22px;border-radius:50%;flex:none;
+    background:linear-gradient(145deg,#CDBBA6,#B79E85);
+    box-shadow:0 2px 6px rgba(90,80,66,.18);
+  }
+  .throwback b{color:var(--taupe-d);font-weight:700;}
+  /* ---------- month selector ---------- */
+  .month-bar{
+    padding:18px 24px 6px;display:flex;align-items:center;justify-content:space-between;
+  }
+  .month-title{
+    font-size:19px;font-weight:800;letter-spacing:-.4px;color:var(--ink);
+    display:flex;align-items:center;gap:6px;
+  }
+  .month-title .caret{font-size:12px;color:var(--taupe-d);margin-top:2px;}
+  .month-nav{display:flex;gap:6px;}
+  .month-nav button{
+    width:30px;height:30px;border-radius:50%;border:1px solid var(--line);
+    background:var(--card);color:var(--ink-soft);font-size:13px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  /* ---------- calendar ---------- */
+  .cal{padding:12px 18px 6px;}
+  .dow{
+    display:grid;grid-template-columns:repeat(7,1fr);
+    margin-bottom:8px;
+  }
+  .dow span{
+    text-align:center;font-size:11px;font-weight:700;color:var(--ink-soft);
+    letter-spacing:.02em;
+  }
+  .dow span.sun{color:var(--coral);}
+  .grid{
+    display:grid;grid-template-columns:repeat(7,1fr);
+    row-gap:12px;
+  }
+  .cell{
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    position:relative;
+  }
+  .disc{
+    width:40px;height:40px;border-radius:50%;position:relative;
+  }
+  /* empty day = dotted ring */
+  .disc.empty{
+    border:1.6px dashed #CFC8BC;background:rgba(255,255,255,.25);
+  }
+  /* photo day */
+  .disc.photo{
+    box-shadow:0 3px 9px rgba(90,80,66,.16);
+    border:2px solid var(--card);
+  }
+  .p1{background:linear-gradient(145deg,#D9C3A8,#B79A7C);}
+  .p2{background:linear-gradient(160deg,#E7C4B4,#C68C7B);}
+  .p3{background:linear-gradient(150deg,#C7CDBE,#95A487);}
+  .p4{background:linear-gradient(140deg,#D3C7B0,#A89272);}
+  .p5{background:linear-gradient(155deg,#E0C9C0,#B89C93);}
+  .p6{background:linear-gradient(150deg,#C9C0B4,#9E9282);}
+  .p7{background:linear-gradient(160deg,#DCC7AE,#C0A587);}
+  .p8{background:linear-gradient(145deg,#E4C7BC,#BE9385);}
+  /* count badge */
+  .badge{
+    position:absolute;top:-3px;right:-2px;
+    min-width:17px;height:17px;padding:0 4px;border-radius:9px;
+    background:var(--taupe-d);color:#fff;font-size:9.5px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;
+    border:1.5px solid var(--bg);
+  }
+  .num{
+    font-size:11px;font-weight:600;color:var(--ink-soft);
+  }
+  .cell.sun .num{color:var(--coral);}
+  .cell.other .disc.empty{opacity:.4;}
+  .cell.other .num{opacity:.4;}
+  /* today */
+  .cell.today .disc{
+    border:2px solid var(--taupe-d);
+    box-shadow:0 0 0 3px rgba(183,165,146,.25),0 4px 12px rgba(90,80,66,.2);
+  }
+  .cell.today .num{
+    color:var(--taupe-d);font-weight:800;
+  }
+  .today-dot{
+    width:4px;height:4px;border-radius:50%;background:var(--taupe-d);
+    position:absolute;bottom:-8px;
+  }
+  /* ---------- today button ---------- */
+  .today-btn-wrap{display:flex;justify-content:center;margin-top:14px;}
+  .today-btn{
+    background:var(--taupe-d);color:#fff;border:none;
+    padding:11px 26px;border-radius:24px;font-size:13.5px;font-weight:700;
+    box-shadow:0 8px 20px rgba(168,153,138,.4);cursor:pointer;
+    font-family:inherit;letter-spacing:.02em;
+  }
+  /* summary strip */
+  .strip{
+    margin:20px 24px 0;background:var(--card);border:1px solid var(--line);
+    border-radius:18px;padding:14px 16px;box-shadow:var(--shadow-sm);
+    display:flex;align-items:center;gap:13px;
+  }
+  .strip-thumb{
+    width:46px;height:46px;border-radius:14px;flex:none;
+    background:linear-gradient(150deg,#E7C4B4,#C68C7B);
+    box-shadow:var(--shadow-sm);
+  }
+  .strip-txt{flex:1;min-width:0;}
+  .strip-txt .st-title{font-size:13.5px;font-weight:700;color:var(--ink);}
+  .strip-txt .st-sub{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .strip-count{
+    font-size:11px;font-weight:700;color:var(--taupe-d);
+    background:rgba(183,165,146,.16);padding:5px 9px;border-radius:12px;white-space:nowrap;
+  }
+  /* ---------- tab bar ---------- */
+  .tabbar{
+    margin-top:auto;height:78px;background:var(--card);
+    border-top:1px solid var(--line);
+    display:grid;grid-template-columns:repeat(5,1fr);
+    align-items:center;padding-bottom:14px;
+  }
+  .tab{
+    display:flex;flex-direction:column;align-items:center;gap:5px;
+    font-size:10px;color:var(--ink-soft);font-weight:600;
+  }
+  .tab .ic{width:22px;height:22px;opacity:.6;}
+  .tab.active{color:var(--taupe-d);}
+  .tab.active .ic{opacity:1;}
+  .ic svg{width:100%;height:100%;}
+</style>
+</head>
+<body>
+  <div class="label">tone · greige (타페) — 01 홈 · 포토 캘린더</div>
+  <div class="phone">
+    <div class="status"></div>
+
+    <!-- header -->
+    <div class="header">
+      <div class="top-row">
+        <div class="logo">투<b>데</b>이</div>
+        <div class="avatars">
+          <div class="ava s"></div>
+          <div class="ava b j"></div>
+          <div class="dday-pill">D+<b>412</b> <span>승환 · 수정</span></div>
+        </div>
+      </div>
+      <div class="throwback">
+        <div class="tb-thumb"></div>
+        <div>1년 전 오늘 · <b>한강 피크닉</b> 하던 날이에요</div>
+      </div>
+    </div>
+
+    <!-- month selector -->
+    <div class="month-bar">
+      <div class="month-title">2026 · 7월의 우리 <span class="caret">▾</span></div>
+      <div class="month-nav">
+        <button>‹</button>
+        <button>›</button>
+      </div>
+    </div>
+
+    <!-- calendar -->
+    <div class="cal">
+      <div class="dow">
+        <span class="sun">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+      </div>
+      <div class="grid">
+        <!-- week 1: starts Wed (Jun 28~30 other month) -->
+        <div class="cell other sun"><div class="disc empty"></div><div class="num">28</div></div>
+        <div class="cell other"><div class="disc empty"></div><div class="num">29</div></div>
+        <div class="cell other"><div class="disc empty"></div><div class="num">30</div></div>
+        <div class="cell"><div class="disc photo p1"></div><div class="num">1</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">2</div></div>
+        <div class="cell"><div class="disc photo p2"></div><div class="num">3</div></div>
+        <div class="cell"><div class="disc photo p3"><div class="badge">2</div></div><div class="num">4</div></div>
+
+        <!-- week 2 -->
+        <div class="cell sun"><div class="disc empty"></div><div class="num">5</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">6</div></div>
+        <div class="cell"><div class="disc photo p4"></div><div class="num">7</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">8</div></div>
+        <div class="cell"><div class="disc photo p5"><div class="badge">3</div></div><div class="num">9</div></div>
+        <div class="cell"><div class="disc photo p6"></div><div class="num">10</div></div>
+        <div class="cell"><div class="disc photo p7"></div><div class="num">11</div></div>
+
+        <!-- week 3 -->
+        <div class="cell sun"><div class="disc photo p8"></div><div class="num">12</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">13</div></div>
+        <div class="cell"><div class="disc photo p2"></div><div class="num">14</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">15</div></div>
+        <div class="cell"><div class="disc photo p1"></div><div class="num">16</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">17</div></div>
+        <div class="cell today"><div class="disc photo p5"><div class="badge">4</div></div><div class="num">18</div><div class="today-dot"></div></div>
+
+        <!-- week 4 -->
+        <div class="cell sun"><div class="disc empty"></div><div class="num">19</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">20</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">21</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">22</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">23</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">24</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">25</div></div>
+
+        <!-- week 5 -->
+        <div class="cell sun"><div class="disc empty"></div><div class="num">26</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">27</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">28</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">29</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">30</div></div>
+        <div class="cell"><div class="disc empty"></div><div class="num">31</div></div>
+        <div class="cell other"><div class="disc empty"></div><div class="num">1</div></div>
+      </div>
+    </div>
+
+    <div class="today-btn-wrap">
+      <button class="today-btn">오늘로</button>
+    </div>
+
+    <!-- summary strip -->
+    <div class="strip">
+      <div class="strip-thumb"></div>
+      <div class="strip-txt">
+        <div class="st-title">오늘 · 성수 카페 데이트</div>
+        <div class="st-sub">승환님이 사진 4장을 올렸어요</div>
+      </div>
+      <div class="strip-count">사진 4</div>
+    </div>
+
+    <!-- tab bar -->
+    <div class="tabbar">
+      <div class="tab active">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div>
+        캘린더
+      </div>
+      <div class="tab">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="10" r="2"/><path d="M4 19l5-4 4 3 3-2 4 3"/></svg></div>
+        앨범
+      </div>
+      <div class="tab">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg></div>
+        기록
+      </div>
+      <div class="tab">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg></div>
+        대화
+      </div>
+      <div class="tab">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
+        우리
+      </div>
+    </div>
+  </div>
+</body>
+</html>

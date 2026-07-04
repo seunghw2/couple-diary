@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>투데이 · 홈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #EDE7E9;
+    --bg2: #E9E1E4;
+    --card: #FBF8F9;
+    --card-soft: #F5EEF0;
+    --ink: #463E44;
+    --ink-soft: #8B7E84;
+    --ink-faint: #B7ABB0;
+    --rose: #B79AA6;
+    --rose-2: #C9A9AF;
+    --rose-deep: #A07E8B;
+    --line: #E2D6DA;
+    --shadow: 0 8px 24px rgba(70, 62, 68, 0.08);
+    --shadow-soft: 0 4px 14px rgba(70, 62, 68, 0.06);
+  }
+  body {
+    font-family: 'Gothic A1', 'Noto Sans KR', sans-serif;
+    background: #d8ccd0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 28px 0;
+    color: var(--ink);
+  }
+  .screen-label {
+    position: fixed;
+    top: 10px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    letter-spacing: 0.4px;
+    color: #6c5f65;
+    background: rgba(255,255,255,0.65);
+    padding: 4px 12px;
+    border-radius: 20px;
+    z-index: 99;
+  }
+  .phone {
+    width: 390px;
+    min-height: 844px;
+    background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 30px 70px rgba(70,62,68,0.28);
+    display: flex;
+    flex-direction: column;
+  }
+  .statusbar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .statusbar .dots { display: flex; gap: 5px; align-items: center; }
+  .statusbar .dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--ink); opacity: .5; }
+  .content { flex: 1; padding: 0 22px 100px; overflow-y: auto; }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 2px 6px;
+  }
+  .logo {
+    font-family: 'Gothic A1', sans-serif;
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--ink);
+  }
+  .logo span { color: var(--rose-deep); }
+  .avatars { display: flex; align-items: center; }
+  .avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 2px solid var(--card);
+    box-shadow: 0 2px 6px rgba(70,62,68,0.12);
+  }
+  .avatar.a { background: radial-gradient(circle at 35% 30%, #d9bfc8, #a5808f); }
+  .avatar.b { background: radial-gradient(circle at 35% 30%, #e6d3c9, #b79aa6); margin-left: -12px; }
+  .dday {
+    margin-left: 10px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--rose-deep);
+    box-shadow: var(--shadow-soft);
+  }
+  .dday small { color: var(--ink-faint); font-weight: 500; }
+
+  /* Throwback */
+  .throwback {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 12px 2px 2px;
+    padding: 9px 12px;
+    background: rgba(251,248,249,0.55);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+  }
+  .throwback .mini {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #c9a9af, #8f6f7c);
+  }
+  .throwback .txt { font-size: 11.5px; color: var(--ink-soft); line-height: 1.4; }
+  .throwback .txt b { color: var(--ink); font-weight: 600; }
+  .throwback .arw { margin-left: auto; color: var(--ink-faint); font-size: 14px; }
+
+  /* Month selector */
+  .month-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 22px 4px 14px;
+  }
+  .month-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .month-title .caret { font-size: 13px; color: var(--rose); }
+  .month-nav { display: flex; gap: 8px; }
+  .month-nav button {
+    width: 30px; height: 30px;
+    border: none;
+    background: var(--card);
+    border-radius: 50%;
+    color: var(--ink-soft);
+    font-size: 14px;
+    box-shadow: var(--shadow-soft);
+    cursor: pointer;
+  }
+
+  /* Calendar card */
+  .cal-card {
+    background: var(--card);
+    border-radius: 26px;
+    padding: 18px 14px 20px;
+    box-shadow: var(--shadow);
+  }
+  .weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 10px;
+  }
+  .weekdays span {
+    text-align: center;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--ink-faint);
+    letter-spacing: 0.3px;
+  }
+  .weekdays span.sun { color: var(--rose-deep); }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    row-gap: 12px;
+  }
+  .cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+  .thumb {
+    position: relative;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+  }
+  /* empty (no photo) */
+  .thumb.empty {
+    border: 1.5px dashed var(--ink-faint);
+    opacity: .55;
+  }
+  /* photo thumbnails */
+  .thumb.photo { box-shadow: 0 3px 8px rgba(70,62,68,0.14); }
+  .p1 { background: radial-gradient(circle at 30% 25%, #e7cdd4, #a5808f); }
+  .p2 { background: linear-gradient(140deg, #d3b6a4, #96707c); }
+  .p3 { background: radial-gradient(circle at 65% 30%, #cdb6c4, #7d6070); }
+  .p4 { background: linear-gradient(150deg, #e5d1c6, #b79aa6 70%, #8f6f7c); }
+  .p5 { background: radial-gradient(circle at 40% 70%, #d8c2cb, #8a6d7a); }
+  .p6 { background: linear-gradient(135deg, #cabbc8, #a88f9c); }
+  .p7 { background: radial-gradient(circle at 50% 30%, #e0c8c1, #9e7d84); }
+  .badge {
+    position: absolute;
+    top: -3px; right: -4px;
+    min-width: 16px; height: 16px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: var(--rose-deep);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--card);
+  }
+  .daynum {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .cell.sun .daynum { color: var(--rose-deep); }
+  .cell.muted .daynum { color: var(--ink-faint); opacity: .5; }
+  .cell.muted .thumb.empty { opacity: .3; }
+  /* today */
+  .cell.today .thumb::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--rose-deep);
+  }
+  .cell.today .daynum {
+    color: #fff;
+    background: var(--rose-deep);
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-weight: 700;
+  }
+
+  /* Today button */
+  .today-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin: 20px auto 0;
+    width: 130px;
+    padding: 11px 0;
+    background: var(--rose-deep);
+    color: #fff;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 8px 18px rgba(160,126,139,0.35);
+    border: none;
+  }
+  .today-btn .dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; opacity: .85; }
+
+  /* Tab bar */
+  .tabbar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 76px;
+    background: rgba(251,248,249,0.94);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: 12px;
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+  .tab svg { width: 22px; height: 22px; stroke: var(--ink-faint); fill: none; stroke-width: 1.7; }
+  .tab.active { color: var(--rose-deep); font-weight: 700; }
+  .tab.active svg { stroke: var(--rose-deep); }
+</style>
+</head>
+<body>
+  <div class="screen-label">mauve-rose · 01 Home (포토 캘린더)</div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <div class="content">
+      <!-- Header -->
+      <div class="header">
+        <div class="logo">투<span>데</span>이</div>
+        <div class="avatars">
+          <div class="avatar a"></div>
+          <div class="avatar b"></div>
+          <div class="dday">D+<b>412</b> <small>승환·수정</small></div>
+        </div>
+      </div>
+
+      <!-- Throwback -->
+      <div class="throwback">
+        <div class="mini"></div>
+        <div class="txt"><b>1년 전 오늘</b> · 성수 골목 첫 데이트를 함께 봤어요</div>
+        <div class="arw">›</div>
+      </div>
+
+      <!-- Month selector -->
+      <div class="month-row">
+        <div class="month-title">2026 · 7월의 우리 <span class="caret">▾</span></div>
+        <div class="month-nav">
+          <button>‹</button>
+          <button>›</button>
+        </div>
+      </div>
+
+      <!-- Calendar -->
+      <div class="cal-card">
+        <div class="weekdays">
+          <span class="sun">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+        </div>
+        <div class="grid">
+          <!-- Week 1: starts Wed Jul 1 -->
+          <div class="cell muted sun"><div class="thumb empty"></div><div class="daynum">29</div></div>
+          <div class="cell muted"><div class="thumb empty"></div><div class="daynum">30</div></div>
+          <div class="cell"><div class="thumb photo p1"></div><div class="daynum">1</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">2</div></div>
+          <div class="cell"><div class="thumb photo p2"><div class="badge">2</div></div><div class="daynum">3</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">4</div></div>
+          <div class="cell"><div class="thumb photo p3"></div><div class="daynum">5</div></div>
+
+          <!-- Week 2 -->
+          <div class="cell sun"><div class="thumb photo p4"></div><div class="daynum">6</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">7</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">8</div></div>
+          <div class="cell"><div class="thumb photo p5"></div><div class="daynum">9</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">10</div></div>
+          <div class="cell"><div class="thumb photo p6"><div class="badge">3</div></div><div class="daynum">11</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">12</div></div>
+
+          <!-- Week 3 -->
+          <div class="cell sun"><div class="thumb empty"></div><div class="daynum">13</div></div>
+          <div class="cell"><div class="thumb photo p7"></div><div class="daynum">14</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">15</div></div>
+          <div class="cell"><div class="thumb photo p2"></div><div class="daynum">16</div></div>
+          <div class="cell today"><div class="thumb photo p1"></div><div class="daynum">17</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">18</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">19</div></div>
+
+          <!-- Week 4 -->
+          <div class="cell sun"><div class="thumb photo p5"><div class="badge">4</div></div><div class="daynum">20</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">21</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">22</div></div>
+          <div class="cell"><div class="thumb photo p3"></div><div class="daynum">23</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">24</div></div>
+          <div class="cell"><div class="thumb photo p6"></div><div class="daynum">25</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">26</div></div>
+
+          <!-- Week 5 -->
+          <div class="cell sun"><div class="thumb empty"></div><div class="daynum">27</div></div>
+          <div class="cell"><div class="thumb photo p4"></div><div class="daynum">28</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">29</div></div>
+          <div class="cell"><div class="thumb photo p7"><div class="badge">2</div></div><div class="daynum">30</div></div>
+          <div class="cell"><div class="thumb empty"></div><div class="daynum">31</div></div>
+          <div class="cell muted"><div class="thumb empty"></div><div class="daynum">1</div></div>
+          <div class="cell muted"><div class="thumb empty"></div><div class="daynum">2</div></div>
+        </div>
+      </div>
+
+      <!-- Today button -->
+      <button class="today-btn"><span class="dot"></span> Today</button>
+    </div>
+
+    <!-- Tab bar -->
+    <div class="tabbar">
+      <div class="tab active">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+        캘린더
+      </div>
+      <div class="tab">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="9.5" r="2"/><path d="M4 19l5-5 4 4 3-3 4 4"/></svg>
+        앨범
+      </div>
+      <div class="tab">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        기록
+      </div>
+      <div class="tab">
+        <svg viewBox="0 0 24 24"><path d="M20.8 6.6a5 5 0 00-8.8-2 5 5 0 00-8.8 2c0 4.2 5.6 7.9 8.8 10 3.2-2.1 8.8-5.8 8.8-10z"/></svg>
+        우리
+      </div>
+      <div class="tab">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+        마이
+      </div>
+    </div>
+  </div>
+</body>
+</html>
