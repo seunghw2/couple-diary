@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 타임라인 홈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4efe7;
+    --paper:#fbf8f2;
+    --ink:#4a423a;
+    --ink-soft:#8b8074;
+    --line:#d8cfc0;
+    --accent:#b98b6b;      /* warm caramel */
+    --accent-deep:#8a6247;
+    --rose:#c98d8d;
+    --sage:#9aa98c;
+    --gold:#c9a24b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Nanum Myeongjo',serif;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #efe6d8 0%, transparent 60%),
+      linear-gradient(160deg,#efe7db 0%, #e8ddcc 100%);
+    min-height:100vh;
+    display:flex;justify-content:center;align-items:flex-start;
+    padding:28px 16px 60px;
+    color:var(--ink);
+  }
+  .version-tag{
+    position:fixed;top:14px;left:14px;z-index:50;
+    font-family:'Nanum Pen Script',cursive;
+    font-size:16px;color:#a89982;
+    background:rgba(255,255,255,.6);
+    border:1px solid #e2d8c8;border-radius:20px;
+    padding:3px 12px;letter-spacing:.3px;
+  }
+
+  .phone{
+    width:390px;
+    background:var(--paper);
+    border-radius:38px;
+    box-shadow:0 30px 70px -20px rgba(74,66,58,.45), 0 0 0 1px rgba(255,255,255,.5) inset;
+    overflow:hidden;
+    position:relative;
+  }
+  .notch{height:26px;display:flex;justify-content:center;align-items:flex-start;}
+  .notch::after{content:"";width:120px;height:22px;background:#2c2620;border-radius:0 0 16px 16px;}
+
+  /* header */
+  .screen-label{
+    text-align:center;font-family:'Nanum Pen Script',cursive;
+    color:#b6a892;font-size:17px;letter-spacing:1px;margin-top:2px;
+  }
+  .top{
+    padding:6px 22px 14px;
+    text-align:center;
+  }
+  .top h1{
+    font-weight:800;font-size:27px;letter-spacing:2px;color:var(--ink);
+  }
+  .top .sub{
+    font-family:'Nanum Pen Script',cursive;font-size:19px;color:var(--accent-deep);
+    margin-top:2px;
+  }
+  .streak{
+    display:inline-flex;gap:6px;align-items:center;margin-top:8px;
+    font-size:12px;color:var(--ink-soft);
+    background:#f1e8da;border:1px solid var(--line);border-radius:14px;padding:3px 12px;
+  }
+
+  /* highlight cards */
+  .cards{padding:2px 18px 6px;display:flex;flex-direction:column;gap:12px;}
+  .card{
+    border-radius:20px;padding:16px 18px;position:relative;overflow:hidden;
+    box-shadow:0 8px 20px -12px rgba(74,66,58,.4);
+  }
+  .card .kick{font-family:'Nanum Pen Script',cursive;font-size:17px;letter-spacing:.5px;opacity:.9;}
+  .card .big{font-weight:800;font-size:22px;margin-top:2px;line-height:1.25;}
+  .card .meta{font-size:12.5px;margin-top:6px;opacity:.85;line-height:1.5;}
+
+  .card-dday{
+    background:linear-gradient(135deg,#c98d8d 0%, #b06d78 100%);
+    color:#fff5f2;
+  }
+  .card-dday .dchip{
+    position:absolute;top:14px;right:16px;
+    font-family:'Nanum Myeongjo';font-weight:800;font-size:30px;
+    letter-spacing:1px;text-shadow:0 2px 6px rgba(0,0,0,.15);
+  }
+  .card-dday .hearts{position:absolute;right:-8px;bottom:-14px;font-size:60px;opacity:.18;transform:rotate(-12deg);}
+
+  .card-recall{
+    background:linear-gradient(135deg,#f6efe1 0%, #efe3ce 100%);
+    color:var(--ink);border:1px solid #e6dac6;
+    display:flex;gap:14px;align-items:center;
+  }
+  .thumb{
+    width:64px;height:64px;border-radius:16px;flex:none;
+    background:linear-gradient(135deg,#e7c7a3,#cf9b6f);
+    display:flex;align-items:center;justify-content:center;font-size:30px;
+    box-shadow:0 6px 14px -6px rgba(138,98,71,.6), 0 0 0 3px #fff inset;
+  }
+  .card-recall .yrtag{
+    display:inline-block;font-family:'Nanum Pen Script',cursive;color:var(--accent-deep);
+    font-size:17px;
+  }
+
+  /* timeline */
+  .timeline{position:relative;padding:14px 0 26px;}
+  .timeline::before{
+    content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;
+    transform:translateX(-50%);
+    background:linear-gradient(#e5d9c6, #d6c8b1 40%, #d6c8b1 90%, transparent);
+  }
+  /* year divider */
+  .divider{
+    position:relative;text-align:center;margin:6px 0 18px;z-index:2;
+  }
+  .divider span{
+    font-weight:800;font-size:15px;letter-spacing:3px;color:var(--accent-deep);
+    background:var(--paper);padding:4px 16px;border:1px solid var(--line);border-radius:16px;
+    box-shadow:0 2px 8px -4px rgba(74,66,58,.3);
+  }
+  .month{
+    text-align:center;font-family:'Nanum Pen Script',cursive;color:#b6a892;
+    font-size:18px;letter-spacing:2px;margin:2px 0 12px;position:relative;z-index:2;
+  }
+  .month span{background:var(--paper);padding:0 12px;}
+
+  .node{
+    position:relative;display:flex;width:100%;margin-bottom:22px;z-index:2;
+    min-height:76px;
+  }
+  .node .dot{
+    position:absolute;left:50%;top:22px;transform:translateX(-50%);
+    width:14px;height:14px;border-radius:50%;
+    background:var(--accent);border:3px solid var(--paper);
+    box-shadow:0 0 0 2px var(--accent);
+  }
+  .node .dot.rose{background:var(--rose);box-shadow:0 0 0 2px var(--rose);}
+  .node .dot.sage{background:var(--sage);box-shadow:0 0 0 2px var(--sage);}
+
+  .entry{
+    width:calc(50% - 30px);
+    background:#fff;border:1px solid #ece2d1;border-radius:16px;
+    padding:11px 13px;box-shadow:0 8px 18px -14px rgba(74,66,58,.5);
+    position:relative;
+  }
+  .node.left .entry{margin-right:auto;}
+  .node.right .entry{margin-left:auto;}
+  /* connector nub */
+  .entry::after{
+    content:"";position:absolute;top:22px;width:18px;height:2px;background:#e2d7c4;
+  }
+  .node.left .entry::after{right:-18px;}
+  .node.right .entry::after{left:-18px;}
+
+  .entry .date{
+    font-family:'Nanum Pen Script',cursive;font-size:17px;color:var(--accent-deep);
+    display:flex;align-items:center;gap:5px;
+  }
+  .entry .mood{font-size:14px;}
+  .entry .mthumb{
+    width:100%;height:52px;border-radius:10px;margin:6px 0;
+    display:flex;align-items:center;justify-content:center;font-size:24px;
+  }
+  .t-cafe{background:linear-gradient(120deg,#e8d3b6,#d3ad7e);}
+  .t-night{background:linear-gradient(120deg,#8a86a8,#5f5b82);}
+  .t-park{background:linear-gradient(120deg,#bcd0a2,#8fa877);}
+  .t-home{background:linear-gradient(120deg,#e5b7b0,#cf9088);}
+  .t-sea{background:linear-gradient(120deg,#a8cdd6,#6fa3b0);}
+  .entry .cap{
+    font-size:12.5px;line-height:1.55;color:#6a6055;
+  }
+  .entry .stars{color:var(--gold);font-size:11px;letter-spacing:1px;margin-top:5px;}
+  .entry.locked{opacity:.62;filter:saturate(.5);}
+  .entry.locked .cap{filter:blur(2.4px);user-select:none;}
+  .entry .lockbadge{
+    position:absolute;top:8px;right:9px;font-size:12px;color:#a89a86;
+  }
+
+  .foot{
+    text-align:center;font-family:'Nanum Pen Script',cursive;color:#c3b6a0;
+    font-size:16px;padding:2px 0 18px;
+  }
+
+  /* bottom nav */
+  .nav{
+    display:flex;justify-content:space-around;align-items:center;
+    padding:12px 8px 20px;border-top:1px solid #ece2d1;background:var(--paper);
+  }
+  .nav a{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:#b3a793;text-decoration:none;}
+  .nav a.on{color:var(--accent-deep);}
+  .nav .ic{font-size:19px;}
+  .fab{
+    width:46px;height:46px;border-radius:50%;margin-top:-14px;
+    background:linear-gradient(135deg,#c98d8d,#b06d78);
+    color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 20px -8px rgba(176,109,120,.8);
+  }
+</style>
+</head>
+<body>
+  <div class="version-tag">3-B 타임라인 타임캡슐 · 홈</div>
+
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen-label">우리의 연대기</div>
+
+    <div class="top">
+      <h1>투데이</h1>
+      <div class="sub">두 사람의 오늘이 쌓이는 곳</div>
+      <div class="streak">🕯️ 함께한 지 <b style="color:var(--accent-deep)">&nbsp;367일</b>&nbsp;· 일기 214편</div>
+    </div>
+
+    <div class="cards">
+      <!-- D-day 강조 -->
+      <div class="card card-dday">
+        <div class="dchip">D-7</div>
+        <div class="hearts">💞</div>
+        <div class="kick">다가오는 기념일</div>
+        <div class="big">첫 만남 1주년</div>
+        <div class="meta">7월 11일 · 작년 오늘 우리가 처음 마주 본 카페에서 만나요</div>
+      </div>
+
+      <!-- n년 전 오늘 -->
+      <div class="card card-recall">
+        <div class="thumb">☕️</div>
+        <div>
+          <span class="yrtag">1년 전 오늘</span>
+          <div class="big" style="font-size:19px;">그날의 첫 대화</div>
+          <div class="meta">"긴장해서 아메리카노만 세 잔 마셨던 날" — 그때의 일기가 열려 있어요</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="timeline">
+      <div class="divider"><span>2026</span></div>
+      <div class="month"><span>7월 · 초여름</span></div>
+
+      <div class="node right">
+        <div class="dot"></div>
+        <div class="entry">
+          <div class="date">7.04 <span class="mood">🌿</span></div>
+          <div class="mthumb t-park">🌳</div>
+          <div class="cap">퇴근길에 만나 한강 벤치에 앉았다. 바람이 딱 좋았어.</div>
+          <div class="stars">★★★★☆</div>
+        </div>
+      </div>
+
+      <div class="node left">
+        <div class="dot rose"></div>
+        <div class="entry locked">
+          <div class="lockbadge">🔒</div>
+          <div class="date">7.03 <span class="mood">🙈</span></div>
+          <div class="mthumb t-home">🏠</div>
+          <div class="cap">오늘 내 일기를 써야 네 글이 열려. 아직 잠겨 있는 페이지.</div>
+          <div class="stars">★★★★★</div>
+        </div>
+      </div>
+
+      <div class="node right">
+        <div class="dot"></div>
+        <div class="entry">
+          <div class="date">7.01 <span class="mood">🌊</span></div>
+          <div class="mthumb t-sea">🌅</div>
+          <div class="cap">즉흥 바다 여행. 노을 앞에서 오래 말이 없었던 순간.</div>
+          <div class="stars">★★★★★</div>
+        </div>
+      </div>
+
+      <div class="month"><span>6월 · 장마</span></div>
+
+      <div class="node left">
+        <div class="dot sage"></div>
+        <div class="entry">
+          <div class="date">6.22 <span class="mood">☔️</span></div>
+          <div class="mthumb t-cafe">☕️</div>
+          <div class="cap">비 오는 날 창가 카페. 우산 하나로 버스정류장까지.</div>
+          <div class="stars">★★★★☆</div>
+        </div>
+      </div>
+
+      <div class="node right">
+        <div class="dot"></div>
+        <div class="entry">
+          <div class="date">6.09 <span class="mood">🌙</span></div>
+          <div class="mthumb t-night">🌃</div>
+          <div class="cap">야경 보러 남산. 케이블카에서 찍은 흔들린 사진마저 좋다.</div>
+          <div class="stars">★★★★★</div>
+        </div>
+      </div>
+
+      <div class="divider"><span>2025</span></div>
+      <div class="month"><span>7월 · 시작</span></div>
+
+      <div class="node left">
+        <div class="dot rose"></div>
+        <div class="entry">
+          <div class="date">7.11 <span class="mood">💗</span></div>
+          <div class="mthumb t-cafe">☕️</div>
+          <div class="cap">우리가 처음 만난 날. 여기서부터 모든 페이지가 시작됐다.</div>
+          <div class="stars">★★★★★</div>
+        </div>
+      </div>
+
+      <div class="foot">⌇ 여기가 우리 이야기의 첫 장 ⌇</div>
+    </div>
+
+    <div class="nav">
+      <a class="on"><span class="ic">🕯️</span>타임라인</a>
+      <a><span class="ic">🗓️</span>달력</a>
+      <div class="fab">✎</div>
+      <a><span class="ic">📍</span>지도</a>
+      <a><span class="ic">🎁</span>추억</a>
+    </div>
+  </div>
+</body>
+</html>

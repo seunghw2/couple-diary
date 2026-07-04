@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 폴라로이드 피드 — 작성</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    font-family:'Jua', sans-serif;
+    background:
+      radial-gradient(1200px 600px at 20% 0%, #ffe9ef 0%, transparent 60%),
+      radial-gradient(1000px 700px at 90% 30%, #e7f0ff 0%, transparent 55%),
+      linear-gradient(160deg, #fdf6f0 0%, #f4f0ff 100%);
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    padding:26px 0 60px; color:#4a4a55;
+  }
+  .verlabel {
+    font-family:'Gaegu', cursive; font-weight:700; font-size:13px; color:#b48;
+    background:#fff; border:1.5px dashed #f0b8c8; padding:5px 14px; border-radius:20px;
+    margin-bottom:14px; box-shadow:0 3px 10px rgba(200,120,150,.15);
+  }
+  .verlabel b { color:#e07a9a; }
+
+  .phone {
+    width:390px; background:#fbf7f2; border-radius:40px; overflow:hidden; position:relative;
+    box-shadow:0 30px 70px rgba(120,90,110,.28), 0 4px 12px rgba(0,0,0,.08);
+    border:9px solid #2b2530;
+  }
+  .notch { position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:140px; height:26px; background:#2b2530; border-radius:0 0 18px 18px; z-index:40; }
+
+  .topbar { padding:34px 20px 12px; display:flex; align-items:center; justify-content:space-between;
+    background:linear-gradient(180deg,#fff 0%, #fbf7f2 100%); }
+  .topbar .back { font-size:20px; color:#c25f82; }
+  .topbar .title { font-size:17px; color:#5a4a55; }
+  .topbar .save { font-family:'Gaegu',cursive; font-weight:700; font-size:14px; color:#fff;
+    background:linear-gradient(135deg,#ff9db0,#e07a9a); padding:6px 15px; border-radius:16px;
+    box-shadow:0 3px 8px rgba(224,122,154,.4); }
+
+  .body { padding:6px 20px 24px; }
+
+  /* photo uploader as polaroid */
+  .uploader {
+    background:#fff; padding:12px 12px 16px; border-radius:6px; width:250px; margin:8px auto 22px;
+    box-shadow:0 12px 26px rgba(90,70,90,.16); transform:rotate(-2deg); position:relative;
+  }
+  .uploader .shot { height:224px; border-radius:3px; position:relative; overflow:hidden;
+    background:linear-gradient(150deg,#ffc3a0 0%, #ff7eb3 100%);
+    display:flex; align-items:center; justify-content:center; }
+  .uploader .shot .em { font-size:66px; filter:drop-shadow(0 4px 8px rgba(0,0,0,.15)); }
+  .uploader .change { position:absolute; bottom:8px; right:8px; background:rgba(255,255,255,.92);
+    font-family:'Gaegu',cursive; font-size:11px; padding:4px 10px; border-radius:14px;
+    color:#6a5f6a; box-shadow:0 2px 6px rgba(0,0,0,.15); }
+  .uploader .memo { font-family:'Gaegu',cursive; text-align:center; color:#b8a; font-size:12px;
+    margin-top:9px; }
+
+  .field { margin-bottom:18px; }
+  .flabel { font-family:'Gaegu',cursive; font-weight:700; font-size:13px; color:#c25f82;
+    margin-bottom:7px; display:flex; align-items:center; gap:5px; }
+
+  /* template fill-in blanks */
+  .template {
+    background:#fff; border:1.5px solid #f2e3ea; border-radius:18px; padding:15px 16px;
+    font-family:'Gaegu',cursive; font-size:15px; line-height:2.1; color:#5a4a55;
+    box-shadow:0 4px 12px rgba(180,140,160,.1);
+  }
+  .blank { display:inline-block; min-width:66px; border-bottom:2px dashed #f0b8c8;
+    color:#c25f82; font-weight:700; text-align:center; padding:0 4px; }
+  .blank.empty { color:#d8c3d0; }
+
+  /* rating */
+  .rating { display:flex; gap:6px; font-size:30px; }
+  .rating .st { filter:grayscale(1) opacity(.4); }
+  .rating .st.on { filter:none; }
+
+  /* mood */
+  .moods { display:flex; gap:10px; flex-wrap:wrap; }
+  .mood { width:48px; height:48px; border-radius:16px; background:#fff; border:1.5px solid #f2e3ea;
+    display:flex; align-items:center; justify-content:center; font-size:24px;
+    box-shadow:0 3px 8px rgba(180,140,160,.1); }
+  .mood.sel { border:2.5px solid #e07a9a; background:#fff5f8; transform:scale(1.08);
+    box-shadow:0 5px 14px rgba(224,122,154,.3); }
+
+  /* location */
+  .locpill { display:flex; align-items:center; gap:8px; background:#fff; border:1.5px solid #f2e3ea;
+    border-radius:16px; padding:11px 14px; font-family:'Gaegu',cursive; color:#6a5f6a; font-size:14px;
+    box-shadow:0 3px 8px rgba(180,140,160,.1); }
+  .locpill .pin { font-size:18px; }
+  .locpill .chg { margin-left:auto; color:#c25f82; font-size:12px; }
+
+  /* partner lock waiting */
+  .waitcard {
+    margin-top:22px; background:linear-gradient(135deg,#f3edff 0%, #eef4ff 100%);
+    border:1.5px solid #d9d0f0; border-radius:20px; padding:16px; display:flex; gap:12px;
+    align-items:center; box-shadow:0 6px 16px rgba(140,120,190,.15); position:relative;
+  }
+  .waitcard .blur {
+    width:56px; height:56px; border-radius:14px; flex-shrink:0; position:relative; overflow:hidden;
+    background:linear-gradient(150deg,#a0e7e5,#6a8dff); filter:blur(4px);
+  }
+  .waitcard .lockic { position:absolute; left:22px; top:22px; font-size:22px; z-index:2; }
+  .waitcard .wtxt h4 { font-size:14px; color:#6a5aa0; }
+  .waitcard .wtxt p { font-family:'Gaegu',cursive; font-size:12px; color:#8a82a5; margin-top:3px; }
+  .waitcard .stat { font-family:'Gaegu',cursive; font-size:11px; color:#a99; margin-top:5px; }
+  .editnote { font-family:'Gaegu',cursive; text-align:center; font-size:12px; color:#b0a5b0;
+    margin-top:16px; }
+</style>
+</head>
+<body>
+  <div class="verlabel">3-A 폴라로이드 피드 · <b>오늘 일기 작성</b></div>
+
+  <div class="phone">
+    <div class="notch"></div>
+
+    <div class="topbar">
+      <span class="back">←</span>
+      <span class="title">오늘의 일기</span>
+      <span class="save">저장</span>
+    </div>
+
+    <div class="body">
+
+      <!-- 1. photo first -->
+      <div class="uploader">
+        <div class="shot">
+          <span class="em">🍜</span>
+          <div class="change">📷 사진 바꾸기</div>
+        </div>
+        <div class="memo">먼저 오늘의 한 컷을 골라줘</div>
+      </div>
+
+      <!-- 2. template blanks -->
+      <div class="field">
+        <div class="flabel">✏️ 템플릿 채우기</div>
+        <div class="template">
+          오늘 우리는 <span class="blank">연남동</span>에서
+          <span class="blank">라멘</span>을 먹었다.
+          기분은 <span class="blank">최고</span>였고,
+          가장 좋았던 순간은 <span class="blank empty">여기 채우기</span>.
+          다음엔 <span class="blank empty">…</span> 하고 싶어!
+        </div>
+      </div>
+
+      <!-- 3. rating -->
+      <div class="field">
+        <div class="flabel">⭐ 오늘 데이트 점수</div>
+        <div class="rating">
+          <span class="st on">⭐</span><span class="st on">⭐</span>
+          <span class="st on">⭐</span><span class="st on">⭐</span>
+          <span class="st on">⭐</span>
+        </div>
+      </div>
+
+      <!-- 4. mood -->
+      <div class="field">
+        <div class="flabel">💗 오늘의 기분</div>
+        <div class="moods">
+          <div class="mood sel">😊</div>
+          <div class="mood">🥰</div>
+          <div class="mood">😌</div>
+          <div class="mood">😴</div>
+          <div class="mood">😢</div>
+          <div class="mood">😤</div>
+        </div>
+      </div>
+
+      <!-- 5. location -->
+      <div class="field">
+        <div class="flabel">📍 데이트 위치</div>
+        <div class="locpill">
+          <span class="pin">📍</span>
+          <span>연남동 하카타분코</span>
+          <span class="chg">변경</span>
+        </div>
+      </div>
+
+      <!-- partner waiting / lock -->
+      <div class="waitcard">
+        <div class="blur"></div>
+        <div class="lockic">🔒</div>
+        <div class="wtxt">
+          <h4>🐻는 아직 쓰지 않았어요</h4>
+          <p>내가 저장해도, 둘 다 써야 서로 열려요</p>
+          <div class="stat">🐰 나 : 작성 중 · 🐻 상대 : 대기 중</div>
+        </div>
+      </div>
+
+      <div class="editnote">📝 저장 후 3시간 뒤부터 수정할 수 있어요</div>
+
+    </div>
+  </div>
+</body>
+</html>

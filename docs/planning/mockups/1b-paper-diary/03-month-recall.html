@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 월간 달력 & 회고</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Gaegu:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    font-family:'Gaegu',sans-serif;
+    background:
+      radial-gradient(circle at 20% 10%, #efe7d6 0%, transparent 45%),
+      radial-gradient(circle at 80% 90%, #e6dcc6 0%, transparent 45%),
+      linear-gradient(135deg,#e9e0cd,#ddd2ba);
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    padding:22px 0 40px;
+  }
+  .verlabel { font-size:12px; letter-spacing:1px; color:#8a7c5f; margin-bottom:12px; }
+  .verlabel b { color:#6b5d40; }
+
+  .phone {
+    width:390px; min-height:820px; position:relative;
+    background:linear-gradient(180deg,#fbf6ea,#f5edd9);
+    border-radius:30px; overflow:hidden;
+    box-shadow:0 26px 60px rgba(80,66,40,.35), inset 0 0 0 1px rgba(255,255,255,.4);
+  }
+  .phone::before {
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(160,140,100,.04) 0 1px, transparent 1px 3px),
+      radial-gradient(circle at 30% 20%, rgba(150,120,80,.06), transparent 60%);
+    mix-blend-mode:multiply;
+  }
+  /* dim behind popup */
+  .phone::after {
+    content:""; position:absolute; inset:0; background:rgba(90,72,44,.28); z-index:2;
+  }
+  .inner { position:relative; z-index:1; padding:16px; }
+
+  .top { text-align:center; margin-bottom:8px; }
+  .top .title { font-family:'Nanum Pen Script'; font-size:30px; color:#5b4a2c; }
+
+  /* ---- month calendar popup ---- */
+  .popup {
+    position:absolute; z-index:3; top:70px; left:20px; right:20px;
+    background:linear-gradient(180deg,#fffaee,#f4ead2);
+    border-radius:20px; padding:16px 14px 18px;
+    box-shadow:0 16px 40px rgba(70,55,30,.45);
+  }
+  .popup::after { content:""; position:absolute; inset:7px; border:2px dashed #d6c088; border-radius:14px; pointer-events:none; }
+
+  .cal-head { display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:12px; }
+  .cal-head .m { font-family:'Nanum Pen Script'; font-size:32px; color:#5b4a2c; }
+  .cal-head .arw { font-size:18px; color:#a48d5f; cursor:pointer; }
+
+  .dow-row { display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:4px; }
+  .dow-row span { text-align:center; font-family:'Gaegu'; font-size:12px; color:#a48d5f; }
+  .dow-row span:first-child{ color:#c08a86;} .dow-row span:last-child{ color:#6d8bb0;}
+
+  .grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+  .cell {
+    aspect-ratio:1/1; border-radius:9px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; position:relative;
+    font-family:'Nanum Pen Script'; font-size:16px; color:#6b5836;
+  }
+  .cell.out { color:#cabb96; }
+  .cell .st { font-size:12px; line-height:1; margin-top:1px; }
+  /* both wrote = filled paper */
+  .cell.both { background:#fce7c8; box-shadow:inset 0 0 0 1.3px #e3b874; }
+  /* only one wrote = dashed */
+  .cell.half { box-shadow:inset 0 0 0 1.3px #d8c288; }
+  .cell.today { background:#f6d9a6; box-shadow:0 0 0 2px #dd9f38; color:#7a5a25; }
+  .cell.anniv .st { font-size:13px; }
+
+  .legend { display:flex; justify-content:center; gap:14px; margin-top:12px; }
+  .legend span { font-family:'Gaegu'; font-size:11px; color:#8a7959; display:flex; align-items:center; gap:4px; }
+  .dot { width:11px; height:11px; border-radius:3px; display:inline-block; }
+  .dot.both{ background:#fce7c8; box-shadow:inset 0 0 0 1.2px #e3b874;}
+  .dot.half{ box-shadow:inset 0 0 0 1.2px #d8c288;}
+
+  /* ---- recall note stuck on top ---- */
+  .recall {
+    position:absolute; z-index:5; left:36px; right:36px; bottom:46px;
+    background:linear-gradient(180deg,#fff8e6,#fbeecb);
+    border-radius:6px; padding:16px 16px 18px; transform:rotate(-2.2deg);
+    box-shadow:0 14px 30px rgba(80,55,25,.4);
+  }
+  .recall::after { content:""; position:absolute; inset:5px; border:1.5px dashed #dcc48a; border-radius:4px; pointer-events:none; }
+  .recall .tape {
+    position:absolute; top:-14px; left:50%; transform:translateX(-50%) rotate(-3deg);
+    width:80px; height:26px; background:rgba(210,192,146,.6); box-shadow:0 2px 5px rgba(0,0,0,.15);
+  }
+  .recall .badge { font-family:'Nanum Pen Script'; font-size:24px; color:#b56a3e; text-align:center; }
+  .recall .badge .yr { color:#7a5a25; }
+  .recall .thumb {
+    width:64px; height:52px; float:left; margin:2px 12px 4px 0;
+    background:linear-gradient(135deg,#f6cfa8,#eaa574);
+    border:4px solid #fffdf6; box-shadow:0 4px 9px rgba(120,80,40,.28);
+    transform:rotate(-4deg); display:grid; place-items:center; font-size:24px;
+  }
+  .recall .body { font-family:'Gaegu'; font-size:15px; line-height:1.55; color:#4c4232; }
+  .recall .meta { clear:both; margin-top:8px; font-family:'Nanum Pen Script'; font-size:19px; color:#6b5836; }
+  .recall .meta .stars{ color:#e0a83c; }
+  .recall .open { display:block; text-align:center; margin-top:8px;
+    font-family:'Gaegu'; font-size:13px; color:#a9743e; }
+</style>
+</head>
+<body>
+  <div class="verlabel"><b>1-B 종이 다이어리</b> · 월간 달력 + n년 전 오늘 회고</div>
+
+  <div class="phone">
+    <div class="inner">
+      <div class="top"><span class="title">우리의 7월</span></div>
+    </div>
+
+    <!-- month calendar popup -->
+    <div class="popup">
+      <div class="cal-head">
+        <span class="arw">‹</span>
+        <span class="m">2026 · 7월</span>
+        <span class="arw">›</span>
+      </div>
+      <div class="dow-row"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+      <div class="grid">
+        <div class="cell out">28<span class="st">🌷</span></div>
+        <div class="cell both">29<span class="st">☕️</span></div>
+        <div class="cell both">30<span class="st">🌙</span></div>
+        <div class="cell both">1<span class="st">🍃</span></div>
+        <div class="cell half">2<span class="st">✏️</span></div>
+        <div class="cell both">3<span class="st">💗</span></div>
+        <div class="cell today">4<span class="st">✍️</span></div>
+
+        <div class="cell">5</div>
+        <div class="cell both">6<span class="st">🍜</span></div>
+        <div class="cell both anniv">7<span class="st">🎂</span></div>
+        <div class="cell half">8<span class="st">✏️</span></div>
+        <div class="cell">9</div>
+        <div class="cell both">10<span class="st">🎬</span></div>
+        <div class="cell both">11<span class="st">🌊</span></div>
+
+        <div class="cell both">12<span class="st">🌊</span></div>
+        <div class="cell">13</div>
+        <div class="cell both">14<span class="st">☔️</span></div>
+        <div class="cell">15</div>
+        <div class="cell both">16<span class="st">🍰</span></div>
+        <div class="cell half">17<span class="st">✏️</span></div>
+        <div class="cell">18</div>
+
+        <div class="cell">19</div>
+        <div class="cell both">20<span class="st">🚗</span></div>
+        <div class="cell">21</div>
+        <div class="cell both">22<span class="st">🌸</span></div>
+        <div class="cell">23</div>
+        <div class="cell both">24<span class="st">🍺</span></div>
+        <div class="cell">25</div>
+
+        <div class="cell">26</div>
+        <div class="cell">27</div>
+        <div class="cell out">28</div>
+        <div class="cell out">29</div>
+        <div class="cell out">30</div>
+        <div class="cell out">31</div>
+        <div class="cell out">1</div>
+      </div>
+
+      <div class="legend">
+        <span><i class="dot both"></i> 둘 다 씀</span>
+        <span><i class="dot half"></i> 한 명만</span>
+        <span>🎂 기념일</span>
+      </div>
+    </div>
+
+    <!-- recall note -->
+    <div class="recall">
+      <span class="tape"></span>
+      <div class="badge"><span class="yr">2년 전</span> 오늘, 우리는…</div>
+      <div class="thumb">🎡</div>
+      <div class="body">
+        에버랜드 처음 같이 간 날! 비 와서 우비 입고 뛰어다녔는데
+        지현이가 회전목마 앞에서 사진 찍자고 했던 거 기억나. 그때부터였나 봐 🎠
+      </div>
+      <div class="meta"><span class="stars">★★★★★</span> · 📍 에버랜드</div>
+      <span class="open">눌러서 그날 일기 펼쳐보기 →</span>
+    </div>
+  </div>
+</body>
+</html>

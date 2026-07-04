@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 타임캡슐</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4efe7; --paper:#fbf8f2; --ink:#4a423a; --ink-soft:#8b8074;
+    --line:#d8cfc0; --accent:#b98b6b; --accent-deep:#8a6247;
+    --rose:#c98d8d; --gold:#c9a24b; --sage:#9aa98c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Nanum Myeongjo',serif;
+    background:radial-gradient(1200px 600px at 50% -10%, #efe6d8 0%, transparent 60%),
+      linear-gradient(160deg,#efe7db 0%, #e8ddcc 100%);
+    min-height:100vh;display:flex;justify-content:center;align-items:flex-start;
+    padding:28px 16px 60px;color:var(--ink);
+  }
+  .version-tag{
+    position:fixed;top:14px;left:14px;z-index:50;font-family:'Nanum Pen Script',cursive;
+    font-size:16px;color:#a89982;background:rgba(255,255,255,.6);
+    border:1px solid #e2d8c8;border-radius:20px;padding:3px 12px;
+  }
+  .phone{
+    width:390px;background:var(--paper);border-radius:38px;
+    box-shadow:0 30px 70px -20px rgba(74,66,58,.45), 0 0 0 1px rgba(255,255,255,.5) inset;
+    overflow:hidden;position:relative;
+  }
+  .notch{height:26px;display:flex;justify-content:center;align-items:flex-start;}
+  .notch::after{content:"";width:120px;height:22px;background:#2c2620;border-radius:0 0 16px 16px;}
+  .screen-label{text-align:center;font-family:'Nanum Pen Script',cursive;color:#b6a892;font-size:17px;letter-spacing:1px;margin-top:2px;}
+
+  .top{padding:6px 22px 12px;text-align:center;}
+  .top h1{font-weight:800;font-size:24px;letter-spacing:2px;}
+  .top .sub{font-family:'Nanum Pen Script',cursive;font-size:18px;color:var(--accent-deep);margin-top:2px;}
+
+  .scroll{padding:0 16px 16px;}
+
+  /* 1년 전 오늘 — 열리는 감성 카드 */
+  .capsule{
+    position:relative;border-radius:22px;overflow:hidden;margin-bottom:16px;
+    background:linear-gradient(160deg,#3a3550 0%, #5a4a5e 55%, #7a5a58 100%);
+    color:#f6efe6;box-shadow:0 16px 34px -16px rgba(58,53,80,.7);
+    padding:18px 18px 20px;
+  }
+  .capsule .stars-bg{position:absolute;inset:0;opacity:.5;font-size:12px;color:#fff;
+    letter-spacing:14px;line-height:26px;padding:8px;pointer-events:none;
+    background:radial-gradient(circle at 80% 15%, rgba(255,255,255,.15), transparent 40%);}
+  .capsule .seal{
+    display:inline-flex;align-items:center;gap:6px;font-family:'Nanum Pen Script',cursive;font-size:17px;
+    background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:3px 12px;
+  }
+  .capsule .cap-date{font-weight:800;font-size:20px;margin:12px 0 3px;position:relative;}
+  .capsule .cap-when{font-size:12px;opacity:.75;margin-bottom:12px;}
+  .capsule .letter{
+    background:rgba(251,248,242,.96);color:#5a5147;border-radius:14px;padding:14px 15px;
+    font-size:13.5px;line-height:1.85;position:relative;box-shadow:0 8px 18px -10px rgba(0,0,0,.4);
+  }
+  .capsule .letter .q{font-family:'Nanum Pen Script',cursive;font-size:24px;color:var(--rose);line-height:0;}
+  .capsule .letter .sign{text-align:right;font-family:'Nanum Pen Script',cursive;font-size:18px;color:var(--accent-deep);margin-top:8px;}
+  .capsule .both{display:flex;gap:8px;margin-top:11px;}
+  .capsule .both .p{
+    flex:1;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:9px 11px;font-size:11.5px;line-height:1.5;
+  }
+  .capsule .both .p b{font-family:'Nanum Pen Script',cursive;font-size:15px;display:block;margin-bottom:2px;}
+
+  /* 기념일 타임라인 (D+ 진행) */
+  .sec-title{font-family:'Nanum Pen Script',cursive;font-size:20px;color:var(--accent-deep);margin:6px 4px 12px;letter-spacing:.5px;}
+  .aline{
+    background:#fff;border:1px solid #ece2d1;border-radius:18px;padding:16px 8px 16px 20px;margin-bottom:16px;
+    box-shadow:0 8px 18px -14px rgba(74,66,58,.5);position:relative;
+  }
+  .track{position:relative;padding-left:8px;}
+  .track::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:linear-gradient(#d9cbb4,#e6dcc9);}
+  .mile{position:relative;padding:0 0 16px 22px;}
+  .mile:last-child{padding-bottom:0;}
+  .mile .knob{position:absolute;left:-2px;top:3px;width:14px;height:14px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 0 0 2px var(--accent);}
+  .mile .knob.rose{background:var(--rose);box-shadow:0 0 0 2px var(--rose);}
+  .mile .knob.gold{background:var(--gold);box-shadow:0 0 0 2px var(--gold);}
+  .mile .knob.next{background:#fff;border:3px solid var(--rose);box-shadow:0 0 0 2px var(--rose);}
+  .mile .dd{font-weight:800;font-size:14px;color:var(--ink);}
+  .mile .nm{font-size:12.5px;color:#6a6055;margin-top:1px;}
+  .mile.upcoming .dd{color:var(--rose);}
+  .mile .badge{float:right;font-family:'Nanum Pen Script',cursive;font-size:16px;color:var(--rose);}
+
+  /* 연말 결산 */
+  .summary{
+    border-radius:20px;padding:18px;color:#4a423a;margin-bottom:14px;
+    background:linear-gradient(150deg,#f6ecd7,#efe0c4);border:1px solid #e6d7b8;
+    box-shadow:0 10px 22px -14px rgba(138,98,71,.5);
+  }
+  .summary .yr{font-family:'Nanum Pen Script',cursive;font-size:20px;color:var(--accent-deep);}
+  .summary h2{font-weight:800;font-size:19px;margin:1px 0 12px;}
+  .stats{display:flex;gap:9px;margin-bottom:13px;}
+  .stat{flex:1;background:rgba(255,255,255,.7);border-radius:14px;padding:10px 8px;text-align:center;border:1px solid #ecdcbf;}
+  .stat .n{font-weight:800;font-size:20px;color:var(--accent-deep);}
+  .stat .l{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .best{display:flex;gap:11px;align-items:center;background:rgba(255,255,255,.65);border-radius:14px;padding:11px 12px;border:1px solid #ecdcbf;}
+  .best .th{width:50px;height:50px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;font-size:26px;background:linear-gradient(135deg,#a8cdd6,#6fa3b0);box-shadow:0 0 0 3px #fff inset;}
+  .best .tx{font-size:12.5px;line-height:1.5;color:#5a5147;}
+  .best .tx b{font-family:'Nanum Pen Script',cursive;font-size:16px;color:var(--accent-deep);}
+
+  .foot{text-align:center;font-family:'Nanum Pen Script',cursive;color:#c3b6a0;font-size:16px;padding:2px 0 18px;}
+</style>
+</head>
+<body>
+  <div class="version-tag">3-B 타임라인 타임캡슐 · 회고</div>
+
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen-label">추억 타임캡슐</div>
+
+    <div class="top">
+      <h1>추억 서랍</h1>
+      <div class="sub">시간이 지날수록 예뻐지는 우리</div>
+    </div>
+
+    <div class="scroll">
+
+      <!-- 1년 전 오늘: 열리는 캡슐 -->
+      <div class="capsule">
+        <div class="stars-bg">· · ✧ · · · ✦ · · · · ✧ · · · ✦ · · ·</div>
+        <div class="seal">🎁 캡슐이 열렸어요</div>
+        <div class="cap-date">1년 전 오늘, 그날의 일기</div>
+        <div class="cap-when">2025년 7월 4일 · 함께한 지 D+24</div>
+
+        <div class="letter">
+          <span class="q">“</span> 아직 서로 존댓말이 어색한데, 오늘 처음으로 손을 잡았다.
+          영화관 팔걸이에서 우연인 척 스쳤던 손. 심장이 너무 크게 뛰어서 들킬까 봐 조마조마했던 하루.
+          이 마음이 1년 뒤엔 어떤 모양일까?
+          <div class="sign">— 그때의 나로부터</div>
+        </div>
+
+        <div class="both">
+          <div class="p"><b>그날 나</b>기분 🥰 · ★★★★★<br>"손 잡은 게 전부였는데 완벽했음"</div>
+          <div class="p"><b>그날 너</b>기분 😳 · ★★★★☆<br>"긴장해서 팝콘을 다 흘림…"</div>
+        </div>
+      </div>
+
+      <!-- 기념일 타임라인 -->
+      <div class="sec-title">✿ 우리의 기념일 여정</div>
+      <div class="aline">
+        <div class="track">
+          <div class="mile upcoming">
+            <div class="knob next"></div>
+            <span class="badge">D-7</span>
+            <div class="dd">첫 만남 1주년</div>
+            <div class="nm">2026.7.11 · 처음 만난 그 카페에서</div>
+          </div>
+          <div class="mile">
+            <div class="knob gold"></div>
+            <span class="badge" style="color:var(--gold)">D+300</span>
+            <div class="dd">300일</div>
+            <div class="nm">2026.5.7 · 케이크에 초 세 개</div>
+          </div>
+          <div class="mile">
+            <div class="knob rose"></div>
+            <div class="dd">100일</div>
+            <div class="nm">2025.10.18 · 첫 여행을 떠난 날</div>
+          </div>
+          <div class="mile">
+            <div class="knob"></div>
+            <div class="dd">D+1 · 시작</div>
+            <div class="nm">2025.7.11 · 모든 페이지의 첫 장</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 연말 결산 -->
+      <div class="sec-title">📖 지난 계절의 결산</div>
+      <div class="summary">
+        <div class="yr">2025 여름 → 2026 여름</div>
+        <h2>우리가 함께 쌓은 1년</h2>
+        <div class="stats">
+          <div class="stat"><div class="n">214</div><div class="l">함께 쓴 일기</div></div>
+          <div class="stat"><div class="n">4.6</div><div class="l">평균 데이트 ★</div></div>
+          <div class="stat"><div class="n">38</div><div class="l">가본 장소</div></div>
+        </div>
+        <div class="best">
+          <div class="th">🌅</div>
+          <div class="tx"><b>올해의 하루</b>둘 다 별 다섯을 준 날 — 즉흥 바다 여행.<br>"노을 앞에서 오래 말이 없었던 순간."</div>
+        </div>
+      </div>
+
+      <div class="foot">⌇ 다음 캡슐은 7월 11일에 열려요 ⌇</div>
+    </div>
+  </div>
+</body>
+</html>

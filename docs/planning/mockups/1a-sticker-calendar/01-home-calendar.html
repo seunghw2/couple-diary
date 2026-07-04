@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 스티커 달력 홈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Jua&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Jua', sans-serif;
+    background: linear-gradient(160deg, #ffe8f0 0%, #e8f3ff 50%, #f3ecff 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 0 40px;
+  }
+  .version-label {
+    font-family: 'Gaegu', cursive;
+    font-size: 13px;
+    color: #b98aa8;
+    background: #fff;
+    padding: 5px 14px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(200,150,180,.25);
+    margin-bottom: 14px;
+    letter-spacing: .3px;
+  }
+  .version-label b { color: #ff7eb3; }
+
+  /* phone frame */
+  .phone {
+    width: 390px;
+    background: #fff8fb;
+    border-radius: 44px;
+    box-shadow: 0 24px 60px rgba(180,140,170,.35), 0 0 0 10px #fff;
+    overflow: hidden;
+    position: relative;
+    padding-bottom: 84px;
+  }
+
+  /* status bar */
+  .statusbar {
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    font-family: 'Jua';
+    font-size: 14px;
+    color: #6b5a66;
+  }
+  .statusbar .dots { letter-spacing: 2px; font-size: 12px; }
+
+  /* header */
+  .app-header {
+    padding: 4px 22px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .app-title { font-size: 26px; color: #ff6fa5; }
+  .app-title .heart { font-size: 18px; }
+  .streak {
+    font-family: 'Gaegu';
+    font-size: 15px;
+    font-weight: 700;
+    background: #fff;
+    color: #ff8a3d;
+    padding: 6px 12px;
+    border-radius: 18px;
+    box-shadow: 0 3px 8px rgba(255,150,120,.25);
+  }
+
+  /* 1년 전 오늘 banner */
+  .memory-banner {
+    margin: 4px 18px 16px;
+    background: linear-gradient(120deg, #fff1cf, #ffe0ec);
+    border-radius: 22px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 6px 16px rgba(255,190,150,.28);
+    position: relative;
+    overflow: hidden;
+  }
+  .memory-banner::after {
+    content: "⏳";
+    position: absolute;
+    right: -6px; bottom: -12px;
+    font-size: 56px;
+    opacity: .18;
+    transform: rotate(-12deg);
+  }
+  .mb-thumb {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg,#ffb3d1,#ffd59e);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    box-shadow: 0 3px 8px rgba(255,150,180,.3);
+  }
+  .mb-text { flex: 1; }
+  .mb-label { font-family:'Gaegu'; font-weight:700; font-size:13px; color:#e0713f; }
+  .mb-quote { font-family:'Nanum Pen Script'; font-size:19px; color:#7a5a4f; line-height:1.1; }
+  .mb-go { font-size: 20px; color:#e07d9e; }
+
+  /* month nav */
+  .month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 6px;
+  }
+  .month-nav .arrow { font-size: 20px; color:#c9a7bd; padding: 4px 8px; }
+  .month-nav .cur { font-size: 22px; color:#5c4a58; }
+  .month-nav .cur small { font-family:'Gaegu'; font-size:14px; color:#b98aa8; }
+
+  /* weekday row */
+  .weekdays {
+    display: grid;
+    grid-template-columns: repeat(7,1fr);
+    padding: 6px 14px 2px;
+    font-family: 'Gaegu';
+    font-weight: 700;
+    font-size: 13px;
+    color: #b7a3b0;
+    text-align: center;
+  }
+  .weekdays .sun { color:#ff9aa8; }
+  .weekdays .sat { color:#9ab8ff; }
+
+  /* calendar grid */
+  .cal {
+    display: grid;
+    grid-template-columns: repeat(7,1fr);
+    gap: 5px;
+    padding: 4px 12px 8px;
+  }
+  .cell {
+    aspect-ratio: 1 / 1.12;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: inset 0 0 0 1.5px #f4e6ee;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 5px;
+  }
+  .cell.blank { background: transparent; box-shadow: none; }
+  .cell .num { font-family:'Gaegu'; font-weight:700; font-size:11px; color:#c3aebb; line-height:1; }
+  .cell.sun .num { color:#ffa9b5; }
+  .cell.sat .num { color:#a9c1ff; }
+
+  /* filled sticker cell */
+  .cell.filled {
+    background: linear-gradient(160deg,#fff, #fff6fb);
+    box-shadow: 0 4px 10px rgba(255,170,200,.25), inset 0 0 0 1.5px #ffe1ee;
+  }
+  .cell .sticker {
+    font-size: 22px;
+    margin-top: 3px;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,.08));
+  }
+  .cell .stars {
+    font-size: 8px;
+    color: #ffb03a;
+    letter-spacing: -1px;
+    margin-top: 1px;
+  }
+  /* stamp badge on filled days */
+  .cell .stamp {
+    position: absolute;
+    top: -6px; right: -4px;
+    font-size: 15px;
+    transform: rotate(14deg);
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,.12));
+  }
+
+  /* locked (내가 안씀 / 상대 대기) */
+  .cell.locked .sticker { filter: blur(3px) grayscale(.3); opacity:.75; }
+  .cell.locked::before {
+    content:"🔒";
+    position:absolute;
+    top:50%; left:50%;
+    transform: translate(-50%,-30%);
+    font-size:14px;
+    z-index:2;
+  }
+
+  /* today */
+  .cell.today {
+    box-shadow: 0 0 0 3px #ff8ab8, 0 6px 16px rgba(255,130,180,.4);
+    background: linear-gradient(160deg,#fff,#ffeef6);
+  }
+  .cell.today .num {
+    background:#ff6fa5; color:#fff; border-radius:8px; padding:1px 5px;
+  }
+  .cell.today .todo {
+    font-family:'Gaegu'; font-weight:700; font-size:9px; color:#ff6fa5; margin-top:auto; margin-bottom:5px;
+  }
+  .cell.today .pen { font-size:20px; margin-top:4px; animation: wiggle 1.6s ease-in-out infinite; }
+  @keyframes wiggle { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)} }
+
+  /* future empty */
+  .cell.future { opacity:.55; }
+  .cell.future .dot { width:5px;height:5px;border-radius:50%;background:#eadbe4;margin-top:auto;margin-bottom:8px; }
+
+  /* legend / collection progress */
+  .progress {
+    margin: 6px 18px 4px;
+    background:#fff;
+    border-radius:18px;
+    padding:12px 16px;
+    box-shadow:0 4px 12px rgba(200,160,190,.2);
+  }
+  .progress .row { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .progress .row b { font-family:'Gaegu'; font-weight:700; color:#7a6270; font-size:14px; }
+  .progress .row span { font-family:'Gaegu'; font-weight:700; color:#ff7eb3; font-size:14px; }
+  .bar { height:10px; background:#f3e6ee; border-radius:8px; overflow:hidden; }
+  .bar > i { display:block; height:100%; width:61%; border-radius:8px; background:linear-gradient(90deg,#ffb3d1,#ff8ab8,#ffb47e); }
+
+  /* tab bar */
+  .tabbar {
+    position:absolute; left:0; right:0; bottom:0;
+    height:78px;
+    background:rgba(255,255,255,.92);
+    backdrop-filter: blur(8px);
+    border-top:1.5px solid #f6e6ef;
+    display:flex;
+    align-items:center;
+    justify-content:space-around;
+    padding-bottom:14px;
+  }
+  .tab { text-align:center; font-family:'Gaegu'; font-weight:700; font-size:11px; color:#c6b0bf; }
+  .tab .ic { font-size:22px; display:block; margin-bottom:1px; filter:grayscale(.5) opacity(.6); }
+  .tab.active { color:#ff6fa5; }
+  .tab.active .ic { filter:none; }
+</style>
+</head>
+<body>
+  <div class="version-label">1-A <b>스티커 달력</b> · 홈</div>
+
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="dots">📶 🔋</span>
+    </div>
+
+    <div class="app-header">
+      <div class="app-title">투데이 <span class="heart">💗</span></div>
+      <div class="streak">🔥 D+128</div>
+    </div>
+
+    <!-- 1년 전 오늘 배너 -->
+    <div class="memory-banner">
+      <div class="mb-thumb">🌸</div>
+      <div class="mb-text">
+        <div class="mb-label">📮 1년 전 오늘</div>
+        <div class="mb-quote">"벚꽃 보러 석촌호수 갔던 날 기억나?"</div>
+      </div>
+      <div class="mb-go">›</div>
+    </div>
+
+    <!-- 월 네비 -->
+    <div class="month-nav">
+      <span class="arrow">‹</span>
+      <span class="cur">2026. 7 <small>💕</small></span>
+      <span class="arrow">›</span>
+    </div>
+
+    <!-- 요일 -->
+    <div class="weekdays">
+      <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
+    </div>
+
+    <!-- 달력 -->
+    <div class="cal">
+      <!-- 1일이 수요일 -->
+      <div class="cell blank"></div>
+      <div class="cell blank"></div>
+      <div class="cell blank"></div>
+      <!-- 1(수) filled -->
+      <div class="cell filled"><div class="num">1</div><div class="sticker">😊</div><div class="stars">★★★★☆</div><div class="stamp">🌷</div></div>
+      <!-- 2(목) filled -->
+      <div class="cell filled"><div class="num">2</div><div class="sticker">🥰</div><div class="stars">★★★★★</div><div class="stamp">🍰</div></div>
+      <!-- 3(금) locked: 상대 대기 -->
+      <div class="cell filled locked"><div class="num">3</div><div class="sticker">😴</div></div>
+      <!-- 4(토) filled -->
+      <div class="cell filled sat"><div class="num">4</div><div class="sticker">😆</div><div class="stars">★★★★☆</div><div class="stamp">🎡</div></div>
+
+      <!-- 2주차 -->
+      <div class="cell filled sun"><div class="num">5</div><div class="sticker">😌</div><div class="stars">★★★☆☆</div><div class="stamp">☕</div></div>
+      <div class="cell filled"><div class="num">6</div><div class="sticker">😍</div><div class="stars">★★★★★</div><div class="stamp">🌊</div></div>
+      <div class="cell"><div class="num">7</div></div>
+      <div class="cell filled"><div class="num">8</div><div class="sticker">🙂</div><div class="stars">★★★★☆</div><div class="stamp">🍜</div></div>
+      <div class="cell filled"><div class="num">9</div><div class="sticker">🥲</div><div class="stars">★★★☆☆</div><div class="stamp">🌧️</div></div>
+      <!-- 10 오늘 -->
+      <div class="cell today"><div class="num">10</div><div class="pen">✏️</div><div class="todo">오늘 쓰기</div></div>
+      <div class="cell future sat"><div class="num">11</div><div class="dot"></div></div>
+
+      <!-- 3주차 이후 미래 -->
+      <div class="cell future sun"><div class="num">12</div><div class="dot"></div></div>
+      <div class="cell future"><div class="num">13</div><div class="dot"></div></div>
+      <div class="cell future"><div class="num">14</div><div class="dot"></div></div>
+      <div class="cell future"><div class="num">15</div><div class="dot"></div></div>
+      <div class="cell future"><div class="num">16</div><div class="dot"></div></div>
+      <div class="cell future"><div class="num">17</div><div class="dot"></div></div>
+      <div class="cell future sat"><div class="num">18</div><div class="dot"></div></div>
+
+      <div class="cell future sun"><div class="num">19</div><div class="dot"></div></div>
+      <div class="cell future"><div class="num">20</div><div class="dot"></div></div>
+      <div class="cell future"><div class="num">21</div><div class="dot"></div></div>
+      <div class="cell future"><div class="num">22</div><div class="dot"></div></div>
+      <div class="cell future"><div class="num">23</div><div class="dot"></div></div>
+      <div class="cell future"><div class="num">24</div><div class="dot"></div></div>
+      <div class="cell future sat"><div class="num">25</div><div class="dot"></div></div>
+    </div>
+
+    <!-- 수집 진행도 -->
+    <div class="progress">
+      <div class="row"><b>이번 달 스티커 수집</b><span>11 / 18</span></div>
+      <div class="bar"><i></i></div>
+    </div>
+
+    <!-- 탭바 -->
+    <div class="tabbar">
+      <div class="tab active"><span class="ic">📅</span>달력</div>
+      <div class="tab"><span class="ic">🗺️</span>지도</div>
+      <div class="tab"><span class="ic">⚙️</span>설정</div>
+    </div>
+  </div>
+</body>
+</html>

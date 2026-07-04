@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 오늘 일기 쓰기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Gaegu:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    font-family:'Gaegu',sans-serif;
+    background:
+      radial-gradient(circle at 20% 10%, #efe7d6 0%, transparent 45%),
+      radial-gradient(circle at 80% 90%, #e6dcc6 0%, transparent 45%),
+      linear-gradient(135deg,#e9e0cd,#ddd2ba);
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    padding:22px 0 40px;
+  }
+  .verlabel { font-size:12px; letter-spacing:1px; color:#8a7c5f; margin-bottom:12px; }
+  .verlabel b { color:#6b5d40; }
+
+  .phone {
+    width:390px; min-height:820px; position:relative;
+    background:linear-gradient(180deg,#fbf6ea,#f5edd9);
+    border-radius:30px; overflow:hidden;
+    box-shadow:0 26px 60px rgba(80,66,40,.35), inset 0 0 0 1px rgba(255,255,255,.4);
+  }
+  .phone::before {
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(160,140,100,.04) 0 1px, transparent 1px 3px),
+      radial-gradient(circle at 30% 20%, rgba(150,120,80,.06), transparent 60%);
+    mix-blend-mode:multiply;
+  }
+  .inner { position:relative; z-index:1; padding:16px 16px 26px; }
+
+  .top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .top .x { font-size:22px; color:#9c8a63; cursor:pointer; }
+  .top .title { font-family:'Nanum Pen Script'; font-size:28px; color:#5b4a2c; }
+  .top .save { font-family:'Gaegu'; font-size:15px; color:#a9925f; }
+
+  /* lock banner */
+  .lock {
+    display:flex; align-items:center; gap:10px; margin-bottom:16px;
+    background:linear-gradient(135deg,#fdf3df,#f7e6c4);
+    border:1.5px dashed #d6b878; border-radius:14px; padding:11px 14px;
+    box-shadow:0 3px 9px rgba(150,120,60,.12);
+  }
+  .lock .ic { font-size:22px; }
+  .lock .txt { font-family:'Gaegu'; font-size:13.5px; color:#7a6738; line-height:1.35; }
+  .lock .txt b { color:#8a5a2c; }
+
+  /* paper sheet */
+  .sheet {
+    position:relative; background:#fffdf6; border-radius:12px; padding:20px 18px 22px;
+    box-shadow:0 6px 18px rgba(120,95,55,.16);
+    background-image:repeating-linear-gradient(180deg, transparent 0 29px, rgba(150,120,80,.11) 29px 30px);
+  }
+  .sheet::after { content:""; position:absolute; inset:6px; border:1.5px dashed #d6c396; border-radius:8px; pointer-events:none; }
+  /* red margin line */
+  .sheet::before { content:""; position:absolute; top:6px; bottom:6px; left:40px; width:1.5px; background:rgba(201,120,110,.35); }
+
+  .date-line { font-family:'Nanum Pen Script'; font-size:24px; color:#6b5836; margin-bottom:14px; padding-left:34px; }
+
+  .fld { margin:0 0 4px; padding-left:34px; }
+  .prompt { font-family:'Gaegu'; font-size:14px; color:#b19860; }
+  .blank {
+    font-family:'Nanum Pen Script'; font-size:23px; color:#4c4232; line-height:1.28;
+    border-bottom:1.5px dotted #cbb98a; min-height:34px; padding:2px 2px 0;
+  }
+  .blank.filled { color:#3f6b4a; }
+  .blank.empty { color:#c8b78a; }
+
+  /* pickers */
+  .pickrow { display:flex; gap:10px; margin:20px 0 6px; padding-left:34px; }
+  .pick {
+    flex:1; background:#fff8ea; border:1.5px dashed #cbb582; border-radius:14px;
+    padding:10px 8px; text-align:center;
+  }
+  .pick .lab { font-family:'Gaegu'; font-size:12px; color:#a48d5f; margin-bottom:4px; }
+  .stars { font-size:22px; letter-spacing:2px; color:#e0a83c; cursor:pointer; }
+  .stars .off { color:#e6d6ac; }
+  .moods { font-size:22px; letter-spacing:1px; }
+  .moods .on { filter:none; transform:scale(1.25); display:inline-block; }
+  .moods .dim { opacity:.35; }
+
+  /* photo + location */
+  .addrow { display:flex; gap:10px; margin:16px 0 6px; padding-left:34px; }
+  .addbtn {
+    flex:1; background:#fffdf6; border:1.5px dashed #cbb582; border-radius:14px;
+    padding:14px 8px; text-align:center; font-family:'Gaegu'; font-size:14px; color:#7d6c48; cursor:pointer;
+  }
+  .addbtn .ic { font-size:24px; display:block; margin-bottom:2px; }
+
+  /* photo preview taped */
+  .photo {
+    width:120px; height:96px; margin:20px auto 4px; position:relative;
+    background:linear-gradient(135deg,#d9e7cf,#bcd6b0);
+    border:6px solid #fffdf6; box-shadow:0 6px 14px rgba(90,110,70,.28);
+    transform:rotate(2.5deg); display:grid; place-items:center; font-size:34px;
+  }
+  .tape { position:absolute; width:48px; height:20px; background:rgba(214,196,150,.55); box-shadow:0 1px 3px rgba(0,0,0,.12); }
+  .tape.tl{ top:-11px; left:-6px; transform:rotate(-30deg);}
+
+  .loc-chip {
+    display:inline-flex; align-items:center; gap:5px; margin:14px 0 0 34px;
+    font-family:'Nanum Pen Script'; font-size:20px; color:#6b5836;
+    background:#fff8ea; border:1.5px solid #e4d3a5; border-radius:20px; padding:4px 14px;
+  }
+
+  .submit {
+    margin:26px 34px 0 34px; text-align:center;
+    font-family:'Nanum Pen Script'; font-size:26px; color:#fff;
+    background:linear-gradient(135deg,#f3c877,#dd9f38);
+    border-radius:16px; padding:12px; box-shadow:0 8px 16px rgba(190,140,50,.4); cursor:pointer;
+  }
+  .subhint { text-align:center; font-family:'Gaegu'; font-size:12px; color:#a99263; margin-top:8px; padding:0 34px; }
+</style>
+</head>
+<body>
+  <div class="verlabel"><b>1-B 종이 다이어리</b> · 오늘 일기 쓰기</div>
+
+  <div class="phone">
+    <div class="inner">
+      <div class="top">
+        <span class="x">✕</span>
+        <span class="title">오늘 일기</span>
+        <span class="save">임시저장</span>
+      </div>
+
+      <!-- waiting for partner -->
+      <div class="lock">
+        <span class="ic">🔒</span>
+        <div class="txt"><b>지현</b>이는 아직 오늘 일기를 안 썼어요.<br>내가 다 쓰면 서로의 페이지가 함께 열려요 🤍</div>
+      </div>
+
+      <!-- paper template -->
+      <div class="sheet">
+        <div class="date-line">7월 4일 토요일</div>
+
+        <div class="fld">
+          <div class="prompt">오늘 우리가 함께한 일은…</div>
+          <div class="blank filled">한강에서 자전거 타고 노을 봤다</div>
+        </div>
+        <div class="fld">
+          <div class="prompt">가장 좋았던 순간은…</div>
+          <div class="blank filled">돗자리 깔고 누워서 같이 하늘 본 거</div>
+        </div>
+        <div class="fld">
+          <div class="prompt">너에게 하고 싶은 말은…</div>
+          <div class="blank empty">여기를 눌러 손글씨로 채워보세요 ✍️</div>
+        </div>
+
+        <div class="pickrow">
+          <div class="pick">
+            <div class="lab">데이트 점수</div>
+            <div class="stars">★★★★<span class="off">★</span></div>
+          </div>
+          <div class="pick">
+            <div class="lab">오늘의 기분</div>
+            <div class="moods">
+              <span class="dim">😌</span><span class="on">😆</span><span class="dim">🥰</span><span class="dim">😴</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- taped photo preview -->
+        <div class="photo">
+          <span class="tape tl"></span>
+          🚲
+        </div>
+
+        <div class="loc-chip">📍 여의도 한강공원</div>
+
+        <div class="addrow">
+          <div class="addbtn"><span class="ic">📷</span>사진 더 붙이기</div>
+          <div class="addbtn"><span class="ic">📍</span>위치 바꾸기</div>
+        </div>
+
+        <div class="submit">오늘 일기 붙이기 🖋️</div>
+        <div class="subhint">완료하면 지현이 페이지도 함께 열려요. 수정은 3시간 뒤부터 가능해요.</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

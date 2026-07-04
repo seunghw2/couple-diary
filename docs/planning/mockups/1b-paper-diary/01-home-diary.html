@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 홈 다이어리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Gaegu:wght@300;400;700&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    font-family:'Gaegu',sans-serif;
+    background:
+      radial-gradient(circle at 20% 10%, #efe7d6 0%, transparent 45%),
+      radial-gradient(circle at 80% 90%, #e6dcc6 0%, transparent 45%),
+      linear-gradient(135deg,#e9e0cd,#ddd2ba);
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    padding:22px 0 40px;
+  }
+  .verlabel {
+    font-family:'Gaegu',sans-serif; font-size:12px; letter-spacing:1px;
+    color:#8a7c5f; margin-bottom:12px; text-align:center;
+  }
+  .verlabel b { color:#6b5d40; }
+
+  /* phone frame */
+  .phone {
+    width:390px; min-height:790px; position:relative;
+    background:linear-gradient(180deg,#fbf6ea,#f5edd9);
+    border-radius:30px; overflow:hidden;
+    box-shadow:0 26px 60px rgba(80,66,40,.35), inset 0 0 0 1px rgba(255,255,255,.4);
+  }
+  /* paper texture */
+  .phone::before {
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(160,140,100,.04) 0 1px, transparent 1px 3px),
+      radial-gradient(circle at 30% 20%, rgba(150,120,80,.06), transparent 60%),
+      radial-gradient(circle at 70% 80%, rgba(120,95,60,.05), transparent 55%);
+    mix-blend-mode:multiply;
+  }
+  .inner { position:relative; z-index:1; padding:16px 16px 26px; }
+
+  /* header */
+  .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .month-title { font-family:'Nanum Pen Script',cursive; font-size:34px; color:#5b4a2c; line-height:1; }
+  .month-title span { font-size:16px; color:#a08d63; display:block; font-family:'Gaegu'; letter-spacing:2px; }
+  .cal-btn {
+    font-family:'Gaegu'; font-size:14px; color:#6b5d40; background:#fff8ea;
+    border:1.5px dashed #c3ad7d; border-radius:12px; padding:7px 12px; cursor:pointer;
+  }
+
+  /* weekly strip */
+  .strip {
+    display:flex; gap:6px; margin:12px 0 18px; padding:12px 8px;
+    background:linear-gradient(180deg,#fff9ec,#f3e9d2);
+    border-radius:16px; position:relative;
+    box-shadow:inset 0 0 0 1.5px #e5d4a9, 0 3px 10px rgba(120,95,55,.12);
+  }
+  .strip::before, .strip::after {
+    content:""; position:absolute; top:4px; bottom:4px; left:5px; right:5px;
+    border:1.5px dashed #d8c288; border-radius:12px; pointer-events:none;
+  }
+  .day {
+    flex:1; text-align:center; padding:6px 0 8px; border-radius:12px; position:relative; cursor:pointer;
+  }
+  .day .dow { font-size:14px; color:#a48d5f; font-family:'Gaegu'; }
+  .day .num { font-family:'Nanum Pen Script'; font-size:22px; color:#5b4a2c; line-height:1; }
+  .day .stamp { font-size:15px; margin-top:2px; height:18px; }
+  .day.sat .dow{ color:#6d8bb0;} .day.sun .dow{ color:#c08a86;}
+  .day.sel {
+    background:linear-gradient(180deg,#fce7c8,#f6d9a6);
+    box-shadow:0 3px 8px rgba(180,140,70,.35), inset 0 0 0 1.5px #e3b874;
+  }
+  .day.sel .num{ color:#7a5a25; }
+
+  /* diary spread */
+  .spread { margin-top:4px; }
+  .spread-date {
+    font-family:'Nanum Pen Script'; font-size:26px; color:#6b5836; text-align:center;
+    margin-bottom:2px;
+  }
+  .spread-date small { font-family:'Gaegu'; font-size:13px; color:#ab9668; }
+
+  .entry {
+    position:relative; background:#fffdf6; border-radius:10px; padding:16px 16px 14px;
+    margin-top:20px;
+    box-shadow:0 4px 14px rgba(120,95,55,.14);
+    background-image:repeating-linear-gradient(180deg, transparent 0 27px, rgba(150,120,80,.12) 27px 28px);
+  }
+  /* stitch border */
+  .entry::after {
+    content:""; position:absolute; inset:5px; border:1.5px dashed #d6c396; border-radius:7px; pointer-events:none;
+  }
+  .who { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .ava { width:30px; height:30px; border-radius:50%; display:grid; place-items:center; font-size:16px;
+    box-shadow:0 2px 4px rgba(0,0,0,.12); }
+  .ava.me { background:#d7e6d0; } .ava.you { background:#f2d7d7; }
+  .who .nm { font-family:'Nanum Pen Script'; font-size:22px; color:#5b4a2c; }
+  .who .tm { font-family:'Gaegu'; font-size:12px; color:#b0a077; margin-left:auto; }
+  .body { font-family:'Gaegu'; font-size:16.5px; line-height:1.75; color:#4c4232; position:relative; }
+  .mood-row { margin-top:8px; font-family:'Gaegu'; font-size:14px; color:#7d6c48; }
+
+  /* taped photo */
+  .photo {
+    width:150px; height:118px; margin:16px auto 6px; position:relative;
+    background:linear-gradient(135deg,#fbe7d0,#f6cfa8);
+    border:6px solid #fffdf6; box-shadow:0 6px 14px rgba(120,80,40,.28);
+    transform:rotate(-3deg); display:grid; place-items:center; font-size:44px;
+  }
+  .tape {
+    position:absolute; width:56px; height:22px; background:rgba(214,196,150,.55);
+    box-shadow:0 1px 3px rgba(0,0,0,.12); z-index:3;
+  }
+  .tape.tl{ top:-12px; left:-8px; transform:rotate(-32deg);}
+  .tape.br{ bottom:-12px; right:-6px; transform:rotate(-28deg);}
+  .photo .cap { position:absolute; bottom:-26px; left:0; right:0; text-align:center;
+    font-family:'Nanum Pen Script'; font-size:18px; color:#8a6b3e; }
+
+  /* footer meta */
+  .meta {
+    margin-top:34px; display:flex; justify-content:space-around; align-items:center;
+    background:#fff8ea; border:1.5px dashed #cbb582; border-radius:14px; padding:12px 8px;
+  }
+  .meta .cell { text-align:center; }
+  .meta .lab { font-family:'Gaegu'; font-size:12px; color:#a48d5f; }
+  .stars { font-size:16px; letter-spacing:1px; color:#e0a83c; }
+  .mood-emo { font-size:24px; }
+  .loc { font-family:'Nanum Pen Script'; font-size:19px; color:#6b5836; }
+  .loc .pin{ font-size:15px; }
+
+  .fab {
+    position:absolute; right:20px; bottom:22px; z-index:5;
+    width:60px; height:60px; border-radius:50%;
+    background:linear-gradient(135deg,#f3c877,#e0a83c);
+    display:grid; place-items:center; font-size:26px; color:#fff;
+    box-shadow:0 8px 18px rgba(190,140,50,.5); border:2px solid #fff8ea; cursor:pointer;
+    font-family:'Gaegu';
+  }
+</style>
+</head>
+<body>
+  <div class="verlabel"><b>1-B 종이 다이어리</b> · 홈 (주간 스트립 + 일기 펼침면)</div>
+
+  <div class="phone">
+    <div class="inner">
+      <div class="top">
+        <div class="month-title">7월<span>2026 · July</span></div>
+        <button class="cal-btn">📅 월간 달력</button>
+      </div>
+
+      <!-- weekly strip -->
+      <div class="strip">
+        <div class="day sun"><div class="dow">일</div><div class="num">28</div><div class="stamp">🌷</div></div>
+        <div class="day"><div class="dow">월</div><div class="num">29</div><div class="stamp">☕️</div></div>
+        <div class="day"><div class="dow">화</div><div class="num">30</div><div class="stamp">🌙</div></div>
+        <div class="day"><div class="dow">수</div><div class="num">1</div><div class="stamp">🍃</div></div>
+        <div class="day"><div class="dow">목</div><div class="num">2</div><div class="stamp">🖤</div></div>
+        <div class="day sel"><div class="dow">금</div><div class="num">3</div><div class="stamp">💗</div></div>
+        <div class="day sat"><div class="dow">토</div><div class="num">4</div><div class="stamp">·</div></div>
+      </div>
+
+      <!-- diary spread -->
+      <div class="spread">
+        <div class="spread-date">7월 3일 금요일 <small>· 맑음 ☀️</small></div>
+
+        <!-- me -->
+        <div class="entry">
+          <div class="who">
+            <div class="ava me">🐻</div>
+            <div class="nm">승환</div>
+            <div class="tm">오후 11:12 작성</div>
+          </div>
+          <div class="body">
+            오늘 야근 끝나고 지친 채로 나왔는데 지현이가 회사 앞에 서 있었다.
+            깜짝 놀라서 웃음부터 났음. 손잡고 걸으면서 붕어빵 하나씩 나눠 먹었는데
+            그게 오늘 제일 행복했던 순간. 별거 아닌데 왜 이렇게 좋지 ㅋㅋ
+          </div>
+        </div>
+
+        <!-- taped photo -->
+        <div class="photo">
+          <span class="tape tl"></span>
+          <span class="tape br"></span>
+          🥐
+          <div class="cap">우리 붕어빵 🐟</div>
+        </div>
+
+        <!-- you -->
+        <div class="entry" style="margin-top:40px;">
+          <div class="who">
+            <div class="ava you">🐰</div>
+            <div class="nm">지현</div>
+            <div class="tm">오후 11:40 작성</div>
+          </div>
+          <div class="body">
+            서프라이즈 성공! 퇴근하는 얼굴 보러 갔는데 나 보고 눈 동그래지는 거
+            너무 귀여웠다. 붕어빵 팥 다 내가 먹어서 미안 ㅎㅎ 다음엔 슈크림도 사줘.
+            오늘도 무사히 하루 잘 버틴 우리, 수고했어 🤍
+          </div>
+        </div>
+
+        <!-- footer meta -->
+        <div class="meta">
+          <div class="cell">
+            <div class="lab">데이트 점수</div>
+            <div class="stars">★★★★☆</div>
+          </div>
+          <div class="cell">
+            <div class="lab">오늘의 기분</div>
+            <div class="mood-emo">🥰</div>
+          </div>
+          <div class="cell">
+            <div class="lab">우리가 있던 곳</div>
+            <div class="loc"><span class="pin">📍</span> 합정 붕어빵집</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fab">✏️</div>
+  </div>
+</body>
+</html>

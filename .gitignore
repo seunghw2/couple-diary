@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Node (앱 구현 단계 대비)
+node_modules/
+.expo/
+dist/
+*.log

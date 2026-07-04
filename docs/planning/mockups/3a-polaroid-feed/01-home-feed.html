@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 폴라로이드 피드 — 홈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    font-family:'Jua', sans-serif;
+    background:
+      radial-gradient(1200px 600px at 20% 0%, #ffe9ef 0%, transparent 60%),
+      radial-gradient(1000px 700px at 90% 30%, #e7f0ff 0%, transparent 55%),
+      linear-gradient(160deg, #fdf6f0 0%, #f4f0ff 100%);
+    min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:26px 0 60px; color:#4a4a55;
+  }
+  .verlabel {
+    font-family:'Gaegu', cursive; font-weight:700;
+    font-size:13px; color:#b48; letter-spacing:.3px;
+    background:#fff; border:1.5px dashed #f0b8c8;
+    padding:5px 14px; border-radius:20px; margin-bottom:14px;
+    box-shadow:0 3px 10px rgba(200,120,150,.15);
+  }
+  .verlabel b { color:#e07a9a; }
+
+  /* phone frame */
+  .phone {
+    width:390px; background:#fbf7f2;
+    border-radius:40px; overflow:hidden; position:relative;
+    box-shadow:0 30px 70px rgba(120,90,110,.28), 0 4px 12px rgba(0,0,0,.08);
+    border:9px solid #2b2530;
+  }
+  .notch { position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:140px; height:26px; background:#2b2530; border-radius:0 0 18px 18px; z-index:40; }
+
+  /* top bar */
+  .topbar {
+    padding:34px 22px 10px; display:flex; align-items:center; justify-content:space-between;
+    background:linear-gradient(180deg,#fff 0%, #fbf7f2 100%);
+    position:sticky; top:0; z-index:30;
+  }
+  .brand { display:flex; align-items:baseline; gap:7px; }
+  .brand .logo { font-size:22px; color:#e07a9a; }
+  .brand .sub { font-family:'Gaegu',cursive; font-size:12px; color:#a99; }
+  .avatars { display:flex; }
+  .av { width:32px; height:32px; border-radius:50%; border:2.5px solid #fff;
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+    box-shadow:0 2px 6px rgba(0,0,0,.12); }
+  .av.a { background:linear-gradient(135deg,#ffd6a5,#ffb3c1); }
+  .av.b { background:linear-gradient(135deg,#a5d8ff,#b8b3ff); margin-left:-10px; }
+
+  .feed { padding:6px 18px 18px; }
+
+  /* pinned memory card */
+  .pin {
+    background:linear-gradient(135deg,#fff5f8 0%, #f3edff 100%);
+    border:1.5px solid #f4d3e0; border-radius:22px;
+    padding:14px 16px; margin:10px 4px 22px;
+    box-shadow:0 10px 24px rgba(200,140,170,.18);
+    position:relative;
+  }
+  .pin::before { content:'📌'; position:absolute; top:-12px; left:16px; font-size:22px;
+    transform:rotate(-18deg); filter:drop-shadow(0 2px 2px rgba(0,0,0,.15)); }
+  .pin-row { display:flex; gap:12px; align-items:center; }
+  .pin-thumb {
+    width:56px; height:56px; border-radius:14px; flex-shrink:0;
+    background:linear-gradient(140deg,#ffd0a0,#ff9db0); display:flex;
+    align-items:center; justify-content:center; font-size:26px;
+    box-shadow:inset 0 0 0 3px #fff, 0 4px 10px rgba(0,0,0,.12);
+  }
+  .pin-txt h3 { font-size:15px; color:#c25f82; }
+  .pin-txt p { font-family:'Gaegu',cursive; font-size:13px; color:#8a7f8a; margin-top:3px; }
+  .dday { margin-left:auto; text-align:center; }
+  .dday .big { font-size:19px; color:#e07a9a; line-height:1; }
+  .dday .lbl { font-family:'Gaegu',cursive; font-size:11px; color:#aa9; }
+
+  .divider { text-align:center; font-family:'Gaegu',cursive; color:#c3b8c3;
+    font-size:13px; margin:4px 0 16px; }
+  .divider span { background:#fbf7f2; padding:0 12px; }
+  .divider { position:relative; }
+  .divider::before { content:''; position:absolute; left:20px; right:20px; top:50%;
+    height:1.5px; background:repeating-linear-gradient(90deg,#e5dbe5 0 6px, transparent 6px 12px); z-index:0; }
+  .divider span { position:relative; z-index:1; }
+
+  /* polaroid cards */
+  .polaroid {
+    background:#fff; padding:12px 12px 14px; border-radius:6px;
+    box-shadow:0 12px 26px rgba(90,70,90,.16), 0 2px 4px rgba(0,0,0,.06);
+    margin:0 auto 30px; width:264px; position:relative;
+    transition:transform .2s;
+  }
+  .polaroid:nth-child(odd){ transform:rotate(-2.4deg); }
+  .polaroid:nth-child(even){ transform:rotate(1.8deg); margin-left:auto; margin-right:14px; }
+  .polaroid:nth-child(3n){ transform:rotate(-1.2deg); }
+  .polaroid:active { transform:rotate(0) scale(1.02); }
+  .photo {
+    height:236px; border-radius:3px; position:relative; overflow:hidden;
+    display:flex; align-items:flex-end;
+  }
+  .p1 { background:linear-gradient(150deg,#ffc3a0 0%, #ff7eb3 100%); }
+  .p2 { background:linear-gradient(150deg,#a0e7e5 0%, #6a8dff 100%); }
+  .p3 { background:linear-gradient(150deg,#ffe29f 0%, #ff9a7a 100%); }
+  .p4 { background:linear-gradient(150deg,#c3aed6 0%, #7ec8e3 100%); }
+  .photo .emoji { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    font-size:64px; filter:drop-shadow(0 4px 8px rgba(0,0,0,.15)); }
+  .badges { position:absolute; top:8px; left:8px; right:8px; display:flex;
+    justify-content:space-between; align-items:flex-start; }
+  .badge { background:rgba(255,255,255,.9); border-radius:14px; padding:3px 9px;
+    font-size:11px; color:#6a5f6a; box-shadow:0 2px 6px rgba(0,0,0,.12);
+    display:flex; align-items:center; gap:3px; }
+  .badge.stars { color:#e8a13a; }
+  .caption { padding:11px 4px 2px; }
+  .caption .date { font-size:12px; color:#c25f82; }
+  .caption .line { font-family:'Gaegu',cursive; font-weight:700; font-size:15px;
+    color:#5a4a55; margin-top:3px; line-height:1.4; }
+  .caption .loc { font-family:'Gaegu',cursive; font-size:12px; color:#9a8f9a;
+    margin-top:5px; display:flex; align-items:center; gap:3px; }
+
+  .locked .photo { filter:blur(6px) saturate(.7); }
+  .locked-overlay { position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:6px; z-index:5;
+    background:rgba(60,50,60,.32); }
+  .locked-overlay .lk { font-size:34px; }
+  .locked-overlay .t { font-family:'Gaegu',cursive; font-weight:700; color:#fff;
+    font-size:13px; text-align:center; text-shadow:0 1px 4px rgba(0,0,0,.35); }
+
+  /* tab bar */
+  .tabbar {
+    position:sticky; bottom:0; display:flex; background:rgba(255,255,255,.96);
+    backdrop-filter:blur(8px); border-top:1.5px solid #f0e6ec; padding:9px 0 12px;
+    z-index:30;
+  }
+  .tab { flex:1; text-align:center; font-family:'Gaegu',cursive; font-size:11px; color:#bbb0bb; }
+  .tab .ic { font-size:21px; display:block; margin-bottom:2px; filter:grayscale(.4); opacity:.65; }
+  .tab.active { color:#e07a9a; }
+  .tab.active .ic { filter:none; opacity:1; }
+  .fab { position:absolute; bottom:64px; left:50%; transform:translateX(-50%);
+    width:60px; height:60px; border-radius:50%; z-index:35;
+    background:linear-gradient(135deg,#ff9db0,#e07a9a); color:#fff; font-size:30px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 8px 20px rgba(224,122,154,.5); border:3px solid #fff; }
+</style>
+</head>
+<body>
+  <div class="verlabel">3-A 폴라로이드 피드 · <b>홈 피드</b></div>
+
+  <div class="phone">
+    <div class="notch"></div>
+
+    <div class="topbar">
+      <div class="brand">
+        <span class="logo">투데이</span>
+        <span class="sub">two·today</span>
+      </div>
+      <div class="avatars">
+        <div class="av a">🐰</div>
+        <div class="av b">🐻</div>
+      </div>
+    </div>
+
+    <div class="feed">
+
+      <!-- pinned memory / d-day -->
+      <div class="pin">
+        <div class="pin-row">
+          <div class="pin-thumb">🎡</div>
+          <div class="pin-txt">
+            <h3>1년 전 오늘</h3>
+            <p>에버랜드에서 손 꼭 잡고 놀이기구!</p>
+          </div>
+          <div class="dday">
+            <div class="big">D-12</div>
+            <div class="lbl">500일 💖</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"><span>2026 · 7월</span></div>
+
+      <!-- card 1 -->
+      <div class="polaroid">
+        <div class="photo p1">
+          <div class="emoji">🍜</div>
+          <div class="badges">
+            <span class="badge stars">★★★★★</span>
+            <span class="badge">😊</span>
+          </div>
+        </div>
+        <div class="caption">
+          <div class="date">7월 3일 목요일</div>
+          <div class="line">라멘집 웨이팅 1시간… 근데 존맛이라 용서</div>
+          <div class="loc">📍 연남동 하카타분코</div>
+        </div>
+      </div>
+
+      <!-- card 2 : locked -->
+      <div class="polaroid locked">
+        <div class="photo p2">
+          <div class="emoji">🌊</div>
+        </div>
+        <div class="locked-overlay">
+          <div class="lk">🔒</div>
+          <div class="t">아직 잠긴 카드예요<br>둘 다 써야 열려요!</div>
+        </div>
+        <div class="caption">
+          <div class="date">7월 2일 수요일</div>
+          <div class="line">🐻가 오늘 일기를 기다리고 있어요</div>
+          <div class="loc">📍 을왕리 해수욕장</div>
+        </div>
+      </div>
+
+      <!-- card 3 -->
+      <div class="polaroid">
+        <div class="photo p3">
+          <div class="emoji">☕</div>
+          <div class="badges">
+            <span class="badge stars">★★★★☆</span>
+            <span class="badge">🥰</span>
+          </div>
+        </div>
+        <div class="caption">
+          <div class="date">6월 29일 일요일</div>
+          <div class="line">비 오는 날 카페 창가, 아무것도 안 해도 좋았어</div>
+          <div class="loc">📍 성수동 어니언</div>
+        </div>
+      </div>
+
+      <!-- card 4 -->
+      <div class="polaroid">
+        <div class="photo p4">
+          <div class="emoji">🎬</div>
+          <div class="badges">
+            <span class="badge stars">★★★☆☆</span>
+            <span class="badge">😴</span>
+          </div>
+        </div>
+        <div class="caption">
+          <div class="date">6월 25일 수요일</div>
+          <div class="line">영화는 좀 별로였지만 팝콘은 최고 ㅋㅋ</div>
+          <div class="loc">📍 CGV 용산아이파크몰</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="fab">✏️</div>
+
+    <div class="tabbar">
+      <div class="tab active"><span class="ic">📷</span>피드</div>
+      <div class="tab"><span class="ic">📅</span>달력</div>
+      <div class="tab"><span class="ic">🗺️</span>지도</div>
+      <div class="tab"><span class="ic">⚙️</span>설정</div>
+    </div>
+  </div>
+</body>
+</html>

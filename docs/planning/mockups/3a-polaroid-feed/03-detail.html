@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 폴라로이드 피드 — 상세</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    font-family:'Jua', sans-serif;
+    background:
+      radial-gradient(1200px 600px at 20% 0%, #ffe9ef 0%, transparent 60%),
+      radial-gradient(1000px 700px at 90% 30%, #e7f0ff 0%, transparent 55%),
+      linear-gradient(160deg, #fdf6f0 0%, #f4f0ff 100%);
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    padding:26px 0 60px; color:#4a4a55;
+  }
+  .verlabel {
+    font-family:'Gaegu', cursive; font-weight:700; font-size:13px; color:#b48;
+    background:#fff; border:1.5px dashed #f0b8c8; padding:5px 14px; border-radius:20px;
+    margin-bottom:14px; box-shadow:0 3px 10px rgba(200,120,150,.15);
+  }
+  .verlabel b { color:#e07a9a; }
+
+  .phone {
+    width:390px; background:#fbf7f2; border-radius:40px; overflow:hidden; position:relative;
+    box-shadow:0 30px 70px rgba(120,90,110,.28), 0 4px 12px rgba(0,0,0,.08);
+    border:9px solid #2b2530;
+  }
+  .notch { position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:140px; height:26px; background:#2b2530; border-radius:0 0 18px 18px; z-index:40; }
+
+  .topbar { padding:34px 20px 10px; display:flex; align-items:center; justify-content:space-between;
+    background:linear-gradient(180deg,#fff 0%, #fbf7f2 100%); }
+  .topbar .back { font-size:20px; color:#c25f82; }
+  .topbar .title { font-size:16px; color:#5a4a55; }
+  .topbar .more { font-size:20px; color:#c8b8c8; }
+
+  .body { padding:6px 20px 28px; }
+
+  /* memory retrospect ribbon */
+  .memory {
+    background:linear-gradient(135deg,#fff5f8 0%, #f3edff 100%);
+    border:1.5px solid #f4d3e0; border-radius:16px; padding:11px 14px;
+    display:flex; align-items:center; gap:10px; margin:6px 4px 18px;
+    box-shadow:0 6px 16px rgba(200,140,170,.15);
+  }
+  .memory .cap { font-size:22px; }
+  .memory .m { font-family:'Gaegu',cursive; font-size:13px; color:#8a7f8a; line-height:1.4; }
+  .memory .m b { color:#c25f82; }
+
+  /* big polaroid */
+  .bigpola {
+    background:#fff; padding:15px 15px 18px; border-radius:8px; width:300px; margin:0 auto 22px;
+    box-shadow:0 16px 34px rgba(90,70,90,.2), 0 3px 6px rgba(0,0,0,.06);
+    transform:rotate(-1.6deg); position:relative;
+  }
+  .bigpola::after { content:''; position:absolute; top:-8px; left:50%; transform:translateX(-50%) rotate(3deg);
+    width:80px; height:22px; background:rgba(255,240,200,.7); border:1px solid rgba(220,200,150,.5); }
+  .bigpola .photo { height:290px; border-radius:4px; position:relative; overflow:hidden;
+    background:linear-gradient(150deg,#ffc3a0 0%, #ff7eb3 100%);
+    display:flex; align-items:center; justify-content:center; }
+  .bigpola .photo .em { font-size:88px; filter:drop-shadow(0 5px 10px rgba(0,0,0,.18)); }
+  .bigpola .badges { position:absolute; top:10px; left:10px; right:10px; display:flex;
+    justify-content:space-between; }
+  .badge { background:rgba(255,255,255,.92); border-radius:14px; padding:4px 10px; font-size:12px;
+    color:#6a5f6a; box-shadow:0 2px 6px rgba(0,0,0,.12); }
+  .badge.stars { color:#e8a13a; }
+  .bigpola .hand { font-family:'Gaegu',cursive; font-weight:700; text-align:center; font-size:17px;
+    color:#5a4a55; margin-top:13px; }
+  .bigpola .loc { font-family:'Gaegu',cursive; text-align:center; font-size:13px; color:#9a8f9a;
+    margin-top:6px; display:flex; align-items:center; justify-content:center; gap:4px; }
+
+  /* two diaries crossing */
+  .diary { display:flex; gap:11px; margin-bottom:16px; }
+  .diary .av { width:38px; height:38px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:18px;
+    box-shadow:0 2px 6px rgba(0,0,0,.12); border:2px solid #fff; }
+  .av.a { background:linear-gradient(135deg,#ffd6a5,#ffb3c1); }
+  .av.b { background:linear-gradient(135deg,#a5d8ff,#b8b3ff); }
+  .diary.right { flex-direction:row-reverse; }
+  .bubble { border-radius:18px; padding:12px 14px; font-family:'Gaegu',cursive; font-size:14px;
+    line-height:1.6; color:#5a4a55; box-shadow:0 4px 12px rgba(180,140,160,.12); max-width:230px; }
+  .bubble .who { font-family:'Jua',sans-serif; font-size:12px; margin-bottom:4px; display:block; }
+  .bubble.a { background:#fff5ec; border-bottom-left-radius:4px; }
+  .bubble.a .who { color:#e08a5a; }
+  .bubble.b { background:#eef4ff; border-bottom-right-radius:4px; }
+  .bubble.b .who { color:#5a80d0; }
+
+  /* location pin card */
+  .mapcard { background:#fff; border:1.5px solid #f2e3ea; border-radius:18px; overflow:hidden;
+    margin-top:8px; box-shadow:0 4px 12px rgba(180,140,160,.1); }
+  .mapcard .map { height:96px; position:relative;
+    background:
+      linear-gradient(45deg, #e8f0e8 25%, transparent 25%) -10px 0,
+      linear-gradient(-45deg, #e8f0e8 25%, transparent 25%) -10px 0,
+      linear-gradient(135deg, #eef4ee 0%, #dfeadf 100%);
+    background-size:20px 20px, 20px 20px, cover; }
+  .mapcard .map .marker { position:absolute; top:34%; left:50%; transform:translate(-50%,-50%);
+    font-size:30px; filter:drop-shadow(0 3px 4px rgba(0,0,0,.2)); }
+  .mapcard .maprow { padding:11px 14px; font-family:'Gaegu',cursive; font-size:13px; color:#6a5f6a;
+    display:flex; align-items:center; gap:6px; }
+  .mapcard .maprow b { color:#c25f82; }
+
+  .reactbar { display:flex; justify-content:center; gap:14px; margin-top:20px; }
+  .react { background:#fff; border:1.5px solid #f2e3ea; border-radius:20px; padding:8px 16px;
+    font-family:'Gaegu',cursive; font-size:14px; color:#6a5f6a; display:flex; align-items:center; gap:5px;
+    box-shadow:0 3px 8px rgba(180,140,160,.1); }
+  .react.on { background:#fff5f8; border-color:#e07a9a; color:#c25f82; }
+</style>
+</head>
+<body>
+  <div class="verlabel">3-A 폴라로이드 피드 · <b>일기 상세</b></div>
+
+  <div class="phone">
+    <div class="notch"></div>
+
+    <div class="topbar">
+      <span class="back">←</span>
+      <span class="title">2026년 7월 3일 · 목요일</span>
+      <span class="more">⋯</span>
+    </div>
+
+    <div class="body">
+
+      <!-- n years ago retrospect -->
+      <div class="memory">
+        <span class="cap">🕰️</span>
+        <div class="m"><b>2년 전 오늘</b>, 우리는 처음으로 라멘 투어를 시작했어요.
+          그때도 웨이팅 1시간 ㅎㅎ</div>
+      </div>
+
+      <!-- big polaroid -->
+      <div class="bigpola">
+        <div class="photo">
+          <span class="em">🍜</span>
+          <div class="badges">
+            <span class="badge stars">★★★★★</span>
+            <span class="badge">😊 즐거움</span>
+          </div>
+        </div>
+        <div class="hand">라멘집 웨이팅 1시간… 근데 존맛이라 용서 🍜</div>
+        <div class="loc">📍 연남동 하카타분코</div>
+      </div>
+
+      <!-- crossing diaries -->
+      <div class="diary">
+        <div class="av a">🐰</div>
+        <div class="bubble a">
+          <span class="who">토끼의 일기</span>
+          줄 서는 동안 네가 계속 웃겨줘서 하나도 안 힘들었어.
+          츠케멘 국물 진한 거 완전 취향저격! 다음엔 곱빼기 도전 🔥
+        </div>
+      </div>
+
+      <div class="diary right">
+        <div class="av b">🐻</div>
+        <div class="bubble b">
+          <span class="who">곰돌이의 일기</span>
+          사실 배고파서 예민했는데(ㅋㅋ) 한 입 먹고 다 풀렸음.
+          토끼가 챠슈 나눠줘서 감동… 오늘도 별 다섯 개 확정 ⭐
+        </div>
+      </div>
+
+      <!-- location pin -->
+      <div class="mapcard">
+        <div class="map"><span class="marker">📍</span></div>
+        <div class="maprow">📍 <b>하카타분코</b> · 서울 마포구 연남동 · <span>&nbsp;3번째 방문</span></div>
+      </div>
+
+      <div class="reactbar">
+        <div class="react on">💗 좋아요</div>
+        <div class="react">💬 코멘트</div>
+        <div class="react">📌 추억핀</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

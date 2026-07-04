@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 오늘 일기 쓰기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Jua&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    font-family:'Jua',sans-serif;
+    background:linear-gradient(160deg,#ffe8f0 0%,#e8f3ff 50%,#f3ecff 100%);
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    padding:28px 0 40px;
+  }
+  .version-label {
+    font-family:'Gaegu',cursive; font-size:13px; color:#b98aa8; background:#fff;
+    padding:5px 14px; border-radius:20px; box-shadow:0 2px 8px rgba(200,150,180,.25);
+    margin-bottom:14px; letter-spacing:.3px;
+  }
+  .version-label b { color:#ff7eb3; }
+
+  .phone {
+    width:390px; background:#fff8fb; border-radius:44px;
+    box-shadow:0 24px 60px rgba(180,140,170,.35),0 0 0 10px #fff;
+    overflow:hidden; position:relative; padding-bottom:96px;
+  }
+  .statusbar {
+    height:46px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 24px; font-size:14px; color:#6b5a66;
+  }
+  .statusbar .dots { letter-spacing:2px; font-size:12px; }
+
+  /* nav header */
+  .nav {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:2px 20px 8px;
+  }
+  .nav .back { font-size:22px; color:#c9a7bd; }
+  .nav .ttl { font-size:19px; color:#5c4a58; }
+  .nav .ttl small { font-family:'Gaegu'; font-size:13px; color:#b98aa8; display:block; text-align:center; }
+  .nav .date-chip { font-family:'Gaegu'; font-weight:700; font-size:12px; color:#ff7eb3; background:#fff; padding:5px 10px; border-radius:14px; box-shadow:0 2px 6px rgba(255,150,180,.2);}
+
+  .scroll { padding:2px 18px 8px; }
+
+  /* 기분 이모지 선택 */
+  .section-label { font-family:'Gaegu'; font-weight:700; font-size:15px; color:#8a7280; margin:14px 4px 8px; display:flex; align-items:center; gap:6px;}
+  .mood-row { display:flex; gap:8px; justify-content:space-between; }
+  .mood {
+    flex:1; aspect-ratio:1; background:#fff; border-radius:18px; display:flex;
+    align-items:center; justify-content:center; font-size:26px;
+    box-shadow:inset 0 0 0 1.5px #f4e6ee;
+  }
+  .mood.sel {
+    box-shadow:0 0 0 3px #ff8ab8, 0 6px 14px rgba(255,130,180,.35);
+    background:linear-gradient(160deg,#fff,#ffeef6); transform:scale(1.06);
+  }
+
+  /* 별점 */
+  .rate-card {
+    background:#fff; border-radius:22px; padding:14px 18px; margin-top:6px;
+    box-shadow:0 4px 12px rgba(200,160,190,.2);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .rate-card .lab { font-family:'Gaegu'; font-weight:700; font-size:15px; color:#8a7280; }
+  .stars { font-size:28px; letter-spacing:2px; }
+  .stars .on { color:#ffb03a; } .stars .off { color:#ecdfe6; }
+
+  /* 템플릿 폼 */
+  .form-card {
+    background:#fff; border-radius:22px; padding:6px 4px; margin-top:8px;
+    box-shadow:0 4px 12px rgba(200,160,190,.2);
+  }
+  .field { padding:12px 16px; border-bottom:1.5px dashed #f2e6ee; }
+  .field:last-child { border-bottom:none; }
+  .field .q { font-family:'Gaegu'; font-weight:700; font-size:14px; color:#ff8fb0; margin-bottom:4px; }
+  .field .a {
+    font-family:'Nanum Pen Script'; font-size:22px; color:#5c4a58; line-height:1.2; min-height:24px;
+  }
+  .field .a.ph { color:#cbb9c5; }
+
+  /* 첨부: 사진/위치 */
+  .chips { display:flex; gap:10px; margin-top:12px; }
+  .chip {
+    flex:1; background:#fff; border-radius:18px; padding:12px; text-align:center;
+    box-shadow:0 4px 10px rgba(200,160,190,.18); font-family:'Gaegu'; font-weight:700;
+    font-size:13px; color:#9a8290;
+  }
+  .chip .ic { font-size:22px; display:block; margin-bottom:2px; }
+
+  /* 추가된 사진 미리보기 */
+  .photos { display:flex; gap:8px; margin-top:10px; }
+  .ph-thumb {
+    width:62px; height:62px; border-radius:14px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:26px;
+    box-shadow:0 3px 8px rgba(0,0,0,.08);
+  }
+  .ph-thumb.a1 { background:linear-gradient(135deg,#ffd6a5,#ffb3d1); }
+  .ph-thumb.a2 { background:linear-gradient(135deg,#a5d8ff,#c3b3ff); }
+  .ph-thumb.add { background:#fff; box-shadow:inset 0 0 0 2px #f0e0ea; color:#d3bccc; font-size:24px; }
+
+  /* 위치 태그 */
+  .loc-tag {
+    margin-top:10px; display:inline-flex; align-items:center; gap:6px;
+    background:linear-gradient(120deg,#e3f0ff,#f0e8ff); border-radius:16px;
+    padding:8px 12px; font-family:'Gaegu'; font-weight:700; font-size:13px; color:#6b7ba8;
+  }
+
+  /* 잠금 대기 안내 */
+  .lock-note {
+    margin:16px 2px 2px; background:linear-gradient(120deg,#fff3d9,#ffe6ef);
+    border-radius:20px; padding:14px 16px; display:flex; gap:12px; align-items:center;
+    box-shadow:0 5px 14px rgba(255,190,160,.25);
+  }
+  .lock-note .lk { font-size:28px; }
+  .lock-note .txt { flex:1; }
+  .lock-note .t1 { font-family:'Gaegu'; font-weight:700; font-size:14px; color:#e0813f; }
+  .lock-note .t2 { font-family:'Gaegu'; font-size:13px; color:#9a7d6f; line-height:1.25; }
+  .lock-note .av { display:flex; }
+  .lock-note .av span {
+    width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:13px; border:2px solid #fff; margin-left:-8px;
+  }
+  .av .me { background:#ffd0e0; } .av .you { background:#d6d0ff; filter:grayscale(.4) opacity(.8); }
+
+  /* 저장 버튼 (고정) */
+  .save-bar {
+    position:absolute; left:0; right:0; bottom:0; padding:14px 20px 26px;
+    background:linear-gradient(to top, #fff8fb 70%, rgba(255,248,251,0));
+  }
+  .save-btn {
+    width:100%; padding:16px; border:none; border-radius:22px;
+    background:linear-gradient(120deg,#ff8ab8,#ff9d6f); color:#fff;
+    font-family:'Jua'; font-size:18px; box-shadow:0 8px 20px rgba(255,130,150,.4);
+  }
+  .save-btn small { font-family:'Gaegu'; font-size:12px; opacity:.9; display:block; }
+</style>
+</head>
+<body>
+  <div class="version-label">1-A <b>스티커 달력</b> · 오늘 일기 쓰기</div>
+
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span class="dots">📶 🔋</span></div>
+
+    <div class="nav">
+      <span class="back">‹</span>
+      <div class="ttl">오늘의 일기<small>2026년 7월 10일 · 금요일</small></div>
+      <span class="date-chip">D+128</span>
+    </div>
+
+    <div class="scroll">
+      <!-- 기분 -->
+      <div class="section-label">🎨 오늘의 기분</div>
+      <div class="mood-row">
+        <div class="mood">😆</div>
+        <div class="mood sel">🥰</div>
+        <div class="mood">🙂</div>
+        <div class="mood">😌</div>
+        <div class="mood">🥲</div>
+        <div class="mood">😴</div>
+      </div>
+
+      <!-- 별점 -->
+      <div class="rate-card">
+        <span class="lab">⭐ 오늘 데이트 점수</span>
+        <span class="stars"><span class="on">★★★★</span><span class="off">★</span></span>
+      </div>
+
+      <!-- 템플릿 폼 -->
+      <div class="section-label">✏️ 빈칸 채우기</div>
+      <div class="form-card">
+        <div class="field">
+          <div class="q">📍 오늘 어디서 뭐 했어?</div>
+          <div class="a">성수동 카페 데이트! 요즘 핫하다는 대림창고 갔다가 소품샵 구경했어</div>
+        </div>
+        <div class="field">
+          <div class="q">💛 오늘 제일 좋았던 순간은?</div>
+          <div class="a">네가 골라준 라떼가 진짜 맛있어서 놀랐던 순간 ☕</div>
+        </div>
+        <div class="field">
+          <div class="q">💬 상대에게 한마디</div>
+          <div class="a ph">오늘도 고마워, 라고 적어볼까...</div>
+        </div>
+      </div>
+
+      <!-- 첨부 -->
+      <div class="section-label">📎 오늘의 흔적</div>
+      <div class="photos">
+        <div class="ph-thumb a1">☕</div>
+        <div class="ph-thumb a2">🛍️</div>
+        <div class="ph-thumb add">＋</div>
+      </div>
+      <div class="loc-tag">📍 성수동 · 대림창고</div>
+
+      <!-- 잠금 대기 안내 -->
+      <div class="lock-note">
+        <span class="lk">🔒</span>
+        <div class="txt">
+          <div class="t1">상대는 아직 오늘 일기를 안 썼어요</div>
+          <div class="t2">저장하면 잠금 상태로 대기해요.<br>둘 다 쓰면 서로의 글이 열려요!</div>
+        </div>
+        <div class="av"><span class="me">나</span><span class="you">💤</span></div>
+      </div>
+    </div>
+
+    <!-- 저장 -->
+    <div class="save-bar">
+      <button class="save-btn">저장하고 잠금 대기 🔐<small>상대가 쓰면 자동으로 열려요</small></button>
+    </div>
+  </div>
+</body>
+</html>

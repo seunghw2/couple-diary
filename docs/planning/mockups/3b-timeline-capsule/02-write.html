@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 오늘 일기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4efe7; --paper:#fbf8f2; --ink:#4a423a; --ink-soft:#8b8074;
+    --line:#d8cfc0; --accent:#b98b6b; --accent-deep:#8a6247;
+    --rose:#c98d8d; --gold:#c9a24b; --sage:#9aa98c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Nanum Myeongjo',serif;
+    background:radial-gradient(1200px 600px at 50% -10%, #efe6d8 0%, transparent 60%),
+      linear-gradient(160deg,#efe7db 0%, #e8ddcc 100%);
+    min-height:100vh;display:flex;justify-content:center;align-items:flex-start;
+    padding:28px 16px 60px;color:var(--ink);
+  }
+  .version-tag{
+    position:fixed;top:14px;left:14px;z-index:50;font-family:'Nanum Pen Script',cursive;
+    font-size:16px;color:#a89982;background:rgba(255,255,255,.6);
+    border:1px solid #e2d8c8;border-radius:20px;padding:3px 12px;
+  }
+  .phone{
+    width:390px;background:var(--paper);border-radius:38px;
+    box-shadow:0 30px 70px -20px rgba(74,66,58,.45), 0 0 0 1px rgba(255,255,255,.5) inset;
+    overflow:hidden;position:relative;
+  }
+  .notch{height:26px;display:flex;justify-content:center;align-items:flex-start;}
+  .notch::after{content:"";width:120px;height:22px;background:#2c2620;border-radius:0 0 16px 16px;}
+  .screen-label{text-align:center;font-family:'Nanum Pen Script',cursive;color:#b6a892;font-size:17px;letter-spacing:1px;margin-top:2px;}
+
+  .head{display:flex;align-items:center;justify-content:space-between;padding:4px 20px 8px;}
+  .head .x{font-size:20px;color:#b3a793;}
+  .head .today{text-align:center;}
+  .head .today .d{font-family:'Nanum Pen Script',cursive;font-size:16px;color:var(--accent-deep);}
+  .head .today .t{font-weight:800;font-size:20px;letter-spacing:1px;}
+  .head .save{font-family:'Nanum Myeongjo';font-weight:700;font-size:14px;color:#fff;
+    background:linear-gradient(135deg,#c98d8d,#b06d78);padding:6px 14px;border-radius:14px;
+    box-shadow:0 6px 14px -6px rgba(176,109,120,.7);}
+
+  /* lock-wait banner */
+  .waitbar{
+    margin:6px 16px 12px;padding:11px 14px;border-radius:16px;
+    background:linear-gradient(135deg,#efe3cd,#e6d6ba);border:1px dashed #cbb894;
+    display:flex;gap:11px;align-items:center;
+  }
+  .waitbar .ic{font-size:24px;}
+  .waitbar .tx{font-size:12.5px;line-height:1.5;color:#7c6c52;}
+  .waitbar .tx b{color:var(--accent-deep);}
+
+  .scroll{padding:0 16px 14px;}
+
+  .block{background:#fff;border:1px solid #ece2d1;border-radius:18px;padding:15px 16px;margin-bottom:13px;
+    box-shadow:0 8px 18px -14px rgba(74,66,58,.5);}
+  .block .lbl{font-family:'Nanum Pen Script',cursive;font-size:18px;color:var(--accent-deep);margin-bottom:9px;letter-spacing:.5px;display:flex;align-items:center;gap:6px;}
+
+  /* mood row */
+  .moods{display:flex;justify-content:space-between;}
+  .moods .m{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:23px;background:#f5efe3;border:1px solid transparent;transition:.2s;}
+  .moods .m.sel{background:#f6e6dd;border-color:var(--rose);transform:translateY(-2px);box-shadow:0 6px 12px -6px rgba(201,141,141,.7);}
+
+  /* stars */
+  .starrow{display:flex;gap:8px;font-size:30px;color:#e3d9c8;}
+  .starrow .on{color:var(--gold);text-shadow:0 2px 6px rgba(201,162,75,.4);}
+  .starnote{font-size:12px;color:var(--ink-soft);margin-top:6px;font-family:'Nanum Pen Script',cursive;font-size:15px;}
+
+  /* template fill-in */
+  .tmpl{font-size:15px;line-height:2.15;color:#5a5147;}
+  .fill{
+    display:inline-block;min-width:70px;border-bottom:2px dotted var(--accent);
+    color:var(--accent-deep);font-family:'Nanum Pen Script',cursive;font-size:19px;
+    padding:0 6px;text-align:center;
+  }
+  .fill.empty{color:#c9bba4;}
+  .swap{font-size:11px;color:#b3a793;margin-top:8px;font-family:'Nanum Pen Script',cursive;font-size:15px;}
+
+  /* free write */
+  .freewrite{
+    font-family:'Nanum Myeongjo';font-size:14px;line-height:1.85;color:#5a5147;
+    min-height:64px;
+  }
+  .freewrite .ph{color:#c4b7a1;}
+
+  /* photo + location */
+  .grid2{display:flex;gap:11px;}
+  .grid2 .block{flex:1;margin-bottom:13px;}
+  .photos{display:flex;gap:8px;}
+  .ph-slot{width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;}
+  .ph-1{background:linear-gradient(135deg,#e7c7a3,#cf9b6f);box-shadow:0 0 0 3px #fff inset;}
+  .ph-add{background:#f2ebde;border:1.5px dashed #cbbb9f;color:#b09b78;font-size:22px;}
+  .loc{display:flex;align-items:center;gap:8px;font-size:13px;color:#6a6055;background:#f5efe3;border:1px solid #e6dcc9;border-radius:12px;padding:9px 12px;}
+  .loc .pin{font-size:17px;}
+  .loc .name{font-weight:700;}
+  .loc .sub{font-size:11px;color:var(--ink-soft);}
+
+  .editnote{
+    text-align:center;font-size:12px;color:#a89a86;font-family:'Nanum Pen Script',cursive;font-size:15px;
+    padding:2px 20px 20px;line-height:1.5;
+  }
+</style>
+</head>
+<body>
+  <div class="version-tag">3-B 타임라인 타임캡슐 · 작성</div>
+
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen-label">오늘의 한 페이지</div>
+
+    <div class="head">
+      <div class="x">✕</div>
+      <div class="today">
+        <div class="d">2026 · 초여름</div>
+        <div class="t">7월 4일 (토)</div>
+      </div>
+      <div class="save">보관</div>
+    </div>
+
+    <!-- 상대 잠금 대기 -->
+    <div class="waitbar">
+      <div class="ic">🔒</div>
+      <div class="tx">지금 <b>지훈님</b>의 오늘 일기는 아직 잠겨 있어요.<br>
+        <b>내 일기를 보관하면</b> 서로의 페이지가 동시에 열려요.</div>
+    </div>
+
+    <div class="scroll">
+      <!-- 기분 -->
+      <div class="block">
+        <div class="lbl">🌤️ 오늘의 기분</div>
+        <div class="moods">
+          <div class="m">😊</div>
+          <div class="m sel">🥰</div>
+          <div class="m">😌</div>
+          <div class="m">🥲</div>
+          <div class="m">😴</div>
+          <div class="m">🌧️</div>
+        </div>
+      </div>
+
+      <!-- 데이트 점수 -->
+      <div class="block">
+        <div class="lbl">✦ 오늘 데이트 점수</div>
+        <div class="starrow">
+          <span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span><span>★</span>
+        </div>
+        <div class="starnote">별 넷 — 바람이 완벽했지만 벌레가 조금…</div>
+      </div>
+
+      <!-- 템플릿 빈칸 채우기 -->
+      <div class="block">
+        <div class="lbl">✎ 오늘의 문장 (빈칸 채우기)</div>
+        <div class="tmpl">
+          오늘 우리는 <span class="fill">한강 벤치</span> 에서
+          <span class="fill">노을</span> 을 봤다.
+          가장 좋았던 순간은 <span class="fill">네 어깨에 기댄 때</span> 였고,
+          너에게 가장 하고 싶은 말은 <span class="fill empty">여기 채우기</span> 이다.
+        </div>
+        <div class="swap">↻ 다른 템플릿으로 바꾸기 · 자유 작성으로 전환</div>
+      </div>
+
+      <!-- 자유 작성 -->
+      <div class="block">
+        <div class="lbl">🖋️ 조금 더 남기고 싶은 말</div>
+        <div class="freewrite">
+          퇴근하고 만나서 아무 계획 없이 벤치에 앉았는데, 그게 오늘의 전부였는데도 이상하게 꽉 찬 하루 같았어.
+          <span class="ph"> 계속 이어서 적어보기…</span>
+        </div>
+      </div>
+
+      <!-- 사진 + 위치 -->
+      <div class="grid2">
+        <div class="block">
+          <div class="lbl">📷 사진</div>
+          <div class="photos">
+            <div class="ph-slot ph-1">🌅</div>
+            <div class="ph-slot ph-add">＋</div>
+          </div>
+        </div>
+        <div class="block">
+          <div class="lbl">📍 위치</div>
+          <div class="loc">
+            <span class="pin">📍</span>
+            <div>
+              <div class="name">한강 뚝섬유원지</div>
+              <div class="sub">서울 광진구 · 저장됨</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="editnote">🕰️ 보관 후 3시간이 지나면 오탈자를 고칠 수 있어요.<br>그 전엔 오늘의 마음 그대로 잠겨요.</div>
+  </div>
+</body>
+</html>

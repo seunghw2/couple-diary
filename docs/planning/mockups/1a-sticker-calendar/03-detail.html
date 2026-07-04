@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 일기 상세</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Jua&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    font-family:'Jua',sans-serif;
+    background:linear-gradient(160deg,#ffe8f0 0%,#e8f3ff 50%,#f3ecff 100%);
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    padding:28px 0 40px;
+  }
+  .version-label {
+    font-family:'Gaegu',cursive; font-size:13px; color:#b98aa8; background:#fff;
+    padding:5px 14px; border-radius:20px; box-shadow:0 2px 8px rgba(200,150,180,.25);
+    margin-bottom:14px; letter-spacing:.3px;
+  }
+  .version-label b { color:#ff7eb3; }
+
+  .phone {
+    width:390px; background:#fff8fb; border-radius:44px;
+    box-shadow:0 24px 60px rgba(180,140,170,.35),0 0 0 10px #fff;
+    overflow:hidden; position:relative; padding-bottom:80px;
+  }
+  .statusbar {
+    height:46px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 24px; font-size:14px; color:#6b5a66;
+  }
+  .statusbar .dots { letter-spacing:2px; font-size:12px; }
+
+  .nav {
+    display:flex; align-items:center; justify-content:space-between; padding:2px 20px 6px;
+  }
+  .nav .back { font-size:22px; color:#c9a7bd; }
+  .nav .ttl { font-size:19px; color:#5c4a58; text-align:center; }
+  .nav .ttl small { font-family:'Gaegu'; font-size:12px; color:#b98aa8; display:block; }
+  .nav .more { font-size:20px; color:#c9a7bd; }
+
+  .scroll { padding:0 18px 10px; }
+
+  /* 1년 전 오늘 회고 카드 */
+  .memory-card {
+    background:linear-gradient(125deg,#fff1cf,#ffdfec);
+    border-radius:24px; padding:16px; margin:6px 0 14px;
+    box-shadow:0 8px 20px rgba(255,190,150,.3); position:relative; overflow:hidden;
+  }
+  .memory-card::after {
+    content:"📮"; position:absolute; right:-8px; bottom:-14px; font-size:70px; opacity:.15; transform:rotate(-10deg);
+  }
+  .mc-head { font-family:'Gaegu'; font-weight:700; font-size:14px; color:#e0713f; margin-bottom:8px; }
+  .mc-body { display:flex; gap:12px; align-items:center; }
+  .mc-thumb {
+    width:56px; height:56px; border-radius:16px; flex-shrink:0;
+    background:linear-gradient(135deg,#ffb3d1,#ffd59e); display:flex; align-items:center; justify-content:center; font-size:28px;
+    box-shadow:0 3px 8px rgba(255,150,180,.3);
+  }
+  .mc-quote { font-family:'Nanum Pen Script'; font-size:21px; color:#7a5a4f; line-height:1.15; }
+  .mc-sub { font-family:'Gaegu'; font-size:12px; color:#b58a72; margin-top:2px; }
+
+  /* 상단 요약 (기분·점수·위치) */
+  .summary {
+    background:#fff; border-radius:22px; padding:14px 16px; margin-bottom:12px;
+    box-shadow:0 4px 12px rgba(200,160,190,.2);
+  }
+  .summary .top { display:flex; align-items:center; justify-content:space-between; }
+  .summary .date { font-size:18px; color:#5c4a58; }
+  .summary .date small { font-family:'Gaegu'; font-size:12px; color:#b98aa8; display:block; }
+  .summary .stars { font-size:18px; letter-spacing:1px; }
+  .summary .stars .on{color:#ffb03a;} .summary .stars .off{color:#ecdfe6;}
+  .summary .meta { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .tag {
+    font-family:'Gaegu'; font-weight:700; font-size:12px; padding:6px 10px; border-radius:14px;
+  }
+  .tag.loc { background:linear-gradient(120deg,#e3f0ff,#f0e8ff); color:#6b7ba8; }
+  .tag.mood-me { background:#ffe4ef; color:#e07398; }
+  .tag.mood-you { background:#e7e2ff; color:#7c72c4; }
+
+  /* 사진 갤러리 */
+  .gallery { display:flex; gap:8px; margin-bottom:14px; }
+  .g-img {
+    flex:1; aspect-ratio:1; border-radius:18px; display:flex; align-items:center; justify-content:center;
+    font-size:30px; box-shadow:0 4px 10px rgba(0,0,0,.08);
+  }
+  .g-img.i1{background:linear-gradient(135deg,#ffd6a5,#ffb3d1);}
+  .g-img.i2{background:linear-gradient(135deg,#a5d8ff,#c3b3ff);}
+  .g-img.i3{background:linear-gradient(135deg,#b9f0d0,#a5d8ff); position:relative;}
+  .g-img.i3::after{content:"+2"; position:absolute; font-family:'Jua'; font-size:16px; color:#fff; background:rgba(90,120,120,.45); inset:0; border-radius:18px; display:flex; align-items:center; justify-content:center;}
+
+  /* 둘의 글 (교차) */
+  .entry { display:flex; gap:8px; margin-bottom:12px; }
+  .entry.you { flex-direction:row-reverse; }
+  .avatar {
+    width:40px; height:40px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:18px;
+    box-shadow:0 3px 8px rgba(0,0,0,.1);
+  }
+  .avatar.me { background:linear-gradient(135deg,#ffb3d1,#ffd0e0); }
+  .avatar.you { background:linear-gradient(135deg,#c3b3ff,#d6d0ff); }
+  .bubble {
+    flex:1; background:#fff; border-radius:20px; padding:13px 15px;
+    box-shadow:0 4px 12px rgba(200,160,190,.2);
+  }
+  .entry.me .bubble { border-top-left-radius:6px; background:linear-gradient(160deg,#fff,#fff4f9); }
+  .entry.you .bubble { border-top-right-radius:6px; background:linear-gradient(160deg,#fff,#f6f4ff); }
+  .bubble .who { font-family:'Gaegu'; font-weight:700; font-size:12px; margin-bottom:6px; }
+  .entry.me .who { color:#ff7eb3; } .entry.you .who { color:#8a7cd8; text-align:right; }
+  .qa { margin-bottom:8px; }
+  .qa:last-child { margin-bottom:0; }
+  .qa .q { font-family:'Gaegu'; font-weight:700; font-size:12px; color:#c3aebb; }
+  .qa .a { font-family:'Nanum Pen Script'; font-size:20px; color:#5c4a58; line-height:1.15; }
+  .entry.you .qa .q, .entry.you .qa .a { text-align:right; }
+
+  /* 하단 스티커 스탬프 결과 */
+  .stamp-result {
+    text-align:center; margin:8px 0 4px;
+  }
+  .stamp-result .big { font-size:38px; filter:drop-shadow(0 3px 4px rgba(0,0,0,.12)); }
+  .stamp-result .cap { font-family:'Gaegu'; font-weight:700; font-size:13px; color:#b98aa8; margin-top:2px; }
+
+  /* 반응(하트) 바 */
+  .react-bar {
+    display:flex; align-items:center; justify-content:center; gap:8px; margin-top:8px;
+  }
+  .react {
+    background:#fff; border-radius:20px; padding:8px 14px; font-family:'Gaegu'; font-weight:700; font-size:14px;
+    color:#9a8290; box-shadow:0 3px 8px rgba(200,160,190,.2);
+  }
+  .react.liked { background:#ffe4ef; color:#e07398; }
+
+  .tabbar {
+    position:absolute; left:0; right:0; bottom:0; height:74px;
+    background:rgba(255,255,255,.92); backdrop-filter:blur(8px);
+    border-top:1.5px solid #f6e6ef; display:flex; align-items:center; justify-content:space-around; padding-bottom:12px;
+  }
+  .tab { text-align:center; font-family:'Gaegu'; font-weight:700; font-size:11px; color:#c6b0bf; }
+  .tab .ic { font-size:22px; display:block; filter:grayscale(.5) opacity(.6);}
+  .tab.active { color:#ff6fa5; } .tab.active .ic { filter:none; }
+</style>
+</head>
+<body>
+  <div class="version-label">1-A <b>스티커 달력</b> · 일기 상세 (상호 공개)</div>
+
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span class="dots">📶 🔋</span></div>
+
+    <div class="nav">
+      <span class="back">‹</span>
+      <div class="ttl">7월 6일 <small>월요일 · D+124</small></div>
+      <span class="more">⋯</span>
+    </div>
+
+    <div class="scroll">
+      <!-- 1년 전 오늘 회고 -->
+      <div class="memory-card">
+        <div class="mc-head">📮 1년 전 오늘, 너희는…</div>
+        <div class="mc-body">
+          <div class="mc-thumb">🌊</div>
+          <div>
+            <div class="mc-quote">"강릉 바다 보러 갔던 첫 여행!"</div>
+            <div class="mc-sub">2025.7.6 · ★★★★★ · 안목해변</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 요약 -->
+      <div class="summary">
+        <div class="top">
+          <div class="date">오늘의 데이트<small>2026년 7월 6일</small></div>
+          <div class="stars"><span class="on">★★★★★</span></div>
+        </div>
+        <div class="meta">
+          <span class="tag loc">📍 을왕리 해수욕장</span>
+          <span class="tag mood-me">나 😍</span>
+          <span class="tag mood-you">너 🥰</span>
+        </div>
+      </div>
+
+      <!-- 사진 -->
+      <div class="gallery">
+        <div class="g-img i1">🌅</div>
+        <div class="g-img i2">🍤</div>
+        <div class="g-img i3">🌊</div>
+      </div>
+
+      <!-- 내 글 -->
+      <div class="entry me">
+        <div class="avatar me">🙋‍♀️</div>
+        <div class="bubble">
+          <div class="who">내가 쓴 일기</div>
+          <div class="qa">
+            <div class="q">오늘 어디서 뭐 했어?</div>
+            <div class="a">을왕리 가서 조개구이 먹고 노을까지 봤어. 완벽한 하루 🌅</div>
+          </div>
+          <div class="qa">
+            <div class="q">제일 좋았던 순간</div>
+            <div class="a">노을 지는 거 같이 보면서 아무 말 안 해도 좋았던 그 순간</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 너 글 (교차) -->
+      <div class="entry you">
+        <div class="avatar you">🙋‍♂️</div>
+        <div class="bubble">
+          <div class="who">상대가 쓴 일기</div>
+          <div class="qa">
+            <div class="q">오늘 어디서 뭐 했어?</div>
+            <div class="a">바다 드라이브! 네가 조개구이 처음 먹어본다고 신나 하던 거 귀여웠음 ㅋㅋ</div>
+          </div>
+          <div class="qa">
+            <div class="q">상대에게 한마디</div>
+            <div class="a">운전 오래 했는데 하나도 안 힘들었어. 또 가자 우리 🚗💨</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 스탬프 결과 -->
+      <div class="stamp-result">
+        <div class="big">🌊</div>
+        <div class="cap">이 날의 스티커를 획득했어요!</div>
+      </div>
+
+      <!-- 반응 -->
+      <div class="react-bar">
+        <div class="react liked">❤️ 나도 최고였어</div>
+        <div class="react">💬 댓글</div>
+      </div>
+    </div>
+
+    <div class="tabbar">
+      <div class="tab active"><span class="ic">📅</span>달력</div>
+      <div class="tab"><span class="ic">🗺️</span>지도</div>
+      <div class="tab"><span class="ic">⚙️</span>설정</div>
+    </div>
+  </div>
+</body>
+</html>
