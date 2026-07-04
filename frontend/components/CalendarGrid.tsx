@@ -52,13 +52,20 @@ export function CalendarGrid({ year, month, entries, today, onPressDate }: Props
 
                 {hasContent ? (
                   <View>
-                    <PhotoThumb
-                      url={thumbUrl}
-                      seed={e.thumbSeed ?? date}
-                      size={THUMB_SIZE}
-                      ring={isToday}
-                      label={<ThumbIcon status={e.status} />}
-                    />
+                    {thumbUrl ? (
+                      <PhotoThumb
+                        url={thumbUrl}
+                        seed={e.thumbSeed ?? date}
+                        size={THUMB_SIZE}
+                        ring={isToday}
+                        label={<ThumbIcon status={e.status} />}
+                      />
+                    ) : (
+                      // 실제 사진이 없는 스티커: 앱 코럴 톤으로 통일(보라 하드코딩 제거).
+                      <View style={[styles.stickerThumb, isToday && styles.stickerRing]}>
+                        <ThumbIcon status={e.status} />
+                      </View>
+                    )}
                     {e.photoCount > 0 ? (
                       <View style={styles.badge}>
                         <Badge text={`${e.photoCount}`} />
@@ -116,4 +123,14 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   badge: { position: 'absolute', top: -4, right: -4 },
+  // 코럴 스티커(사진 없을 때). 이전엔 seed 그라데이션이라 날짜에 따라 보라색이 나오기도 했음.
+  stickerThumb: {
+    width: THUMB_SIZE,
+    height: THUMB_SIZE,
+    borderRadius: THUMB_SIZE / 2,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stickerRing: { borderWidth: 3, borderColor: colors.coralSoft },
 });

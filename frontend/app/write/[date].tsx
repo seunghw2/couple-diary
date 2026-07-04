@@ -20,6 +20,7 @@ import {
   QuestionResponse,
   UpsertEntryRequest,
   entryApi,
+  locationApi,
   questionApi,
   uploadPhoto,
 } from '../../lib/api';
@@ -33,6 +34,26 @@ import { colors, font, radius, shadow, spacing } from '../../theme/theme';
 type Step = 'mode' | 'form';
 /** 화면 로컬 모드. 'FREE'=내가 질문 3개를 고르는 단계(제출 시 QUESTION_PICK으로 저장). */
 type FormMode = EntryMode | 'FREE';
+
+/** "기억에 남는 장면 2~3가지" 질문은 여러 입력 행을 제공. 텍스트로 식별. */
+const SCENE_MARKER = '기억에 남는 장면';
+function isSceneQuestion(text: string | undefined): boolean {
+  return !!text && text.includes(SCENE_MARKER);
+}
+
+/** 장면 여러 줄("1. …\n2. …")로 저장된 answer text → 개별 장면 배열로 분해(수정 진입 프리필용). */
+function splitScenes(text: string): string[] {
+  return text
+    .split('\n')
+    .map((line) => line.replace(/^\s*\d+\.\s*/, '').trim())
+    .filter((l) => l.length > 0);
+}
+
+/** 개별 장면 배열 → "1. …\n2. …" 한 덩어리로 합침. */
+function joinScenes(scenes: string[]): string {
+  const cleaned = scenes.map((s) => s.trim()).filter((s) => s.length > 0);
+  return cleaned.map((s, i) => `${i + 1}. ${s}`).join('\n');
+}
 
 export default function WriteScreen() {
   const router = useRouter();
@@ -52,9 +73,13 @@ export default function WriteScreen() {
 
   // 공통 입력
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  // 장면 질문(기억에 남는 장면) 전용: 질문 id → 장면 여러 개
+  const [scenes, setScenes] = useState<Record<string, string[]>>({});
   const [mood, setMood] = useState<string | null>(null);
   const [rating, setRating] = useState(0);
-  const [location, setLocation] = useState('');
+  const [locations, setLocations] = useState<string[]>([]); // 다중 장소 칩
+  const [locationInput, setLocationInput] = useState('');
+  const [prevLocations, setPrevLocations] = useState<string[]>([]); // 이전 장소 추천
   const [photoUrls, setPhotoUrls] = useState<string[]>([]); // 업로드 완료된 /files/... 경로
   const [uploading, setUploading] = useState(false);
 
@@ -74,6 +99,15 @@ export default function WriteScreen() {
         }
       } catch {
         setQuestionsFailed(true);
+      }
+    })();
+    // 이전에 쓴 장소 추천 로드 (실패해도 무시)
+    (async () => {
+      try {
+        const { locations: prev } = await locationApi.list();
+        setPrevLocations(prev ?? []);
+      } catch {
+        /* 무시 */
       }
     })();
   }, []);
@@ -100,7 +134,7 @@ export default function WriteScreen() {
           setAnswers(prefill);
           setRating(mine.rating ?? 0);
           setMood(mine.mood ?? null);
-          setLocation(mine.locationName ?? '');
+          setLocations(mine.locations ?? (mine.locationName ? [mine.locationName] : []));
           setPhotoUrls(mine.photos.map((p) => p.url).filter((u): u is string => !!u));
           setStep('form');
         } else if (detail.mode === 'QUESTION_PICK' && detail.questions.length > 0) {
@@ -116,6 +150,31 @@ export default function WriteScreen() {
       }
     })();
   }, [dateStr]);
+
+  // 수정 진입 시: 이미 저장된 장면 질문 답("1. …\n2. …")을 개별 장면 입력으로 분해.
+  // 질문 목록과 answers가 모두 준비된 뒤 한 번만 채운다.
+  useEffect(() => {
+    const pool = fixedQuestions ?? questions;
+    if (pool.length === 0) return;
+    setScenes((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const q of pool) {
+        const key = String(q.id);
+        if (!isSceneQuestion(q.text)) continue;
+        if (next[key]) continue; // 이미 편집 중이면 덮어쓰지 않음
+        const raw = answers[key];
+        if (raw && raw.trim()) {
+          const parts = splitScenes(raw);
+          next[key] = parts.length > 0 ? parts : [''];
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+    // answers는 최초 프리필 값만 참조하면 되므로 의존성에서 제외(무한루프 방지).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questions, fixedQuestions]);
 
   function chooseMode(m: FormMode) {
     if (m === 'FREE' && questionsFailed) return;
@@ -133,6 +192,46 @@ export default function WriteScreen() {
 
   function setAnswer(key: string, text: string) {
     setAnswers((prev) => ({ ...prev, [key]: text }));
+  }
+
+  function addLocation(name: string) {
+    const v = name.trim();
+    if (!v) return;
+    setLocations((prev) => (prev.includes(v) ? prev : [...prev, v]));
+    setLocationInput('');
+  }
+
+  function removeLocation(name: string) {
+    setLocations((prev) => prev.filter((l) => l !== name));
+  }
+
+  /** 장면 질문의 개별 행 값. 미초기화면 최소 2개(장면 1/2) 빈칸 제공. */
+  function sceneRows(key: string): string[] {
+    const rows = scenes[key];
+    if (rows && rows.length > 0) return rows;
+    return ['', ''];
+  }
+  function setScene(key: string, index: number, text: string) {
+    setScenes((prev) => {
+      const rows = [...(prev[key] ?? ['', ''])];
+      rows[index] = text;
+      return { ...prev, [key]: rows };
+    });
+  }
+  function addScene(key: string) {
+    setScenes((prev) => {
+      const rows = [...(prev[key] ?? ['', ''])];
+      if (rows.length >= 3) return prev; // 최대 3개
+      return { ...prev, [key]: [...rows, ''] };
+    });
+  }
+  function removeScene(key: string, index: number) {
+    setScenes((prev) => {
+      const rows = [...(prev[key] ?? ['', ''])];
+      if (rows.length <= 1) return prev;
+      rows.splice(index, 1);
+      return { ...prev, [key]: rows };
+    });
   }
 
   /** 갤러리에서 이미지 선택 → 서버 업로드 → url 목록에 추가. */
@@ -179,19 +278,31 @@ export default function WriteScreen() {
         ? fixedQuestions
         : questions.filter((q) => pickedIds.includes(String(q.id)));
     return activeQs
-      .filter((q) => (answers[String(q.id)] ?? '').trim().length > 0)
-      .map((q) => ({ questionId: q.id, text: answers[String(q.id)].trim() }));
+      .map((q) => {
+        const key = String(q.id);
+        // 장면 질문은 여러 행을 "1. …\n2. …"로 합침.
+        const text = isSceneQuestion(q.text)
+          ? joinScenes(scenes[key] ?? [])
+          : (answers[key] ?? '').trim();
+        return { questionId: q.id, text };
+      })
+      .filter((a) => a.text.length > 0);
   }
 
   function canSubmit(): boolean {
     if (uploading) return false;
+    if (!mood || rating === 0) return false; // 기분·별점 필수
     if (mode === 'FREE' && !fixedQuestions && pickedIds.length !== 3) return false;
     return buildAnswers().length > 0;
   }
 
   async function onSubmit() {
     if (!canSubmit()) {
-      setError(mode === 'FREE' && !fixedQuestions ? '질문 3개를 골라주세요.' : '한 칸 이상 적어주세요.');
+      if (!mood || rating === 0) {
+        setError('기분과 별점을 입력해주세요.');
+      } else {
+        setError(mode === 'FREE' && !fixedQuestions ? '질문 3개를 골라주세요.' : '한 칸 이상 적어주세요.');
+      }
       return;
     }
     setError(null);
@@ -210,7 +321,7 @@ export default function WriteScreen() {
       questionIds,
       answers: buildAnswers(),
       photoUrls,
-      locationName: location.trim() || undefined,
+      locations: locations.length > 0 ? locations : undefined,
       rating: rating > 0 ? rating : undefined,
       mood: mood ?? undefined,
     };
@@ -296,12 +407,23 @@ export default function WriteScreen() {
               </View>
               <StarRating value={rating} onChange={setRating} size={28} />
             </Card>
+            {!mood || rating === 0 ? (
+              <Text style={styles.requiredHint}>기분과 별점을 입력해주세요</Text>
+            ) : null}
 
             {/* 본문 폼 */}
             {mode === 'TEMPLATE' ? (
               <TemplateForm answers={answers} onChange={setAnswer} />
             ) : mode === 'QUESTION_PICK' && fixedQuestions ? (
-              <FixedQuestionForm questions={fixedQuestions} answers={answers} onChange={setAnswer} />
+              <FixedQuestionForm
+                questions={fixedQuestions}
+                answers={answers}
+                onChange={setAnswer}
+                sceneRows={sceneRows}
+                onSceneChange={setScene}
+                onSceneAdd={addScene}
+                onSceneRemove={removeScene}
+              />
             ) : (
               <FreePickForm
                 questions={questions}
@@ -309,6 +431,10 @@ export default function WriteScreen() {
                 onToggle={togglePick}
                 answers={answers}
                 onChange={setAnswer}
+                sceneRows={sceneRows}
+                onSceneChange={setScene}
+                onSceneAdd={addScene}
+                onSceneRemove={removeScene}
               />
             )}
 
@@ -332,17 +458,57 @@ export default function WriteScreen() {
               ) : null}
             </View>
 
-            {/* 위치 */}
+            {/* 위치 (다중) */}
+            <View style={[styles.sectionLabelRow, { marginTop: spacing.xl }]}>
+              <Icon name="location-outline" size={18} color={colors.text} />
+              <Text style={styles.sectionLabel}>다녀온 장소</Text>
+            </View>
+            {/* 추가된 장소 칩 */}
+            {locations.length > 0 ? (
+              <View style={styles.chipWrap}>
+                {locations.map((loc) => (
+                  <Pressable key={loc} onPress={() => removeLocation(loc)} style={[styles.chip, styles.chipOn]}>
+                    <View style={styles.locChipRow}>
+                      <Text style={[styles.chipText, { color: colors.white }]}>{loc}</Text>
+                      <Icon name="close" size={14} color={colors.white} />
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+            {/* 입력 + 추가 */}
             <View style={styles.locationRow}>
-              <Icon name="location-outline" size={18} color={colors.subText} />
+              <Icon name="add-circle-outline" size={18} color={colors.subText} />
               <TextInput
-                value={location}
-                onChangeText={setLocation}
-                placeholder="장소 이름 (예: 성수동 · 대림창고)"
+                value={locationInput}
+                onChangeText={setLocationInput}
+                onSubmitEditing={() => addLocation(locationInput)}
+                returnKeyType="done"
+                placeholder="장소 추가 (예: 성수동 · 대림창고)"
                 placeholderTextColor={colors.placeholder}
                 style={styles.locationInput}
               />
+              {locationInput.trim() ? (
+                <Pressable onPress={() => addLocation(locationInput)} hitSlop={8}>
+                  <Icon name="checkmark-circle" size={24} color={colors.primary} />
+                </Pressable>
+              ) : null}
             </View>
+            {/* 이전 장소 추천 */}
+            {prevLocations.filter((l) => !locations.includes(l)).length > 0 ? (
+              <>
+                <Text style={styles.prevLocLabel}>이전 장소</Text>
+                <View style={styles.chipWrap}>
+                  {prevLocations
+                    .filter((l) => !locations.includes(l))
+                    .map((loc) => (
+                      <Pressable key={loc} onPress={() => addLocation(loc)} style={styles.chip}>
+                        <Text style={styles.chipText}>{loc}</Text>
+                      </Pressable>
+                    ))}
+                </View>
+              </>
+            ) : null}
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -368,6 +534,77 @@ export default function WriteScreen() {
         )}
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+/**
+ * 여러 줄 답변 입력. 줄 겹침 방지를 위해 textAlignVertical:'top' + lineHeight 고정 +
+ * onContentSizeChange로 내용에 맞춰 높이 자동 확장(최소 48).
+ */
+function MultilineAnswerInput({
+  value,
+  onChangeText,
+  placeholder,
+}: {
+  value: string;
+  onChangeText: (t: string) => void;
+  placeholder: string;
+}) {
+  const [height, setHeight] = useState(48);
+  return (
+    <TextInput
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor={colors.placeholder}
+      multiline
+      textAlignVertical="top"
+      onContentSizeChange={(e) => setHeight(Math.max(48, e.nativeEvent.contentSize.height))}
+      style={[styles.multiInput, { height }]}
+    />
+  );
+}
+
+/** 장면 질문("기억에 남는 장면") 전용 다중 행 입력(장면 1/2/3). */
+function SceneInputs({
+  rows,
+  onChange,
+  onAdd,
+  onRemove,
+}: {
+  rows: string[];
+  onChange: (index: number, text: string) => void;
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+}) {
+  return (
+    <View>
+      {rows.map((val, i) => (
+        <View key={i} style={styles.sceneRow}>
+          <View style={styles.sceneNum}>
+            <Text style={styles.sceneNumText}>{i + 1}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <MultilineAnswerInput
+              value={val}
+              onChangeText={(t) => onChange(i, t)}
+              placeholder={`기억에 남는 장면 ${i + 1}`}
+            />
+          </View>
+          {rows.length > 1 ? (
+            <Pressable onPress={() => onRemove(i)} hitSlop={8} style={{ paddingTop: 12 }}>
+              <Icon name="remove-circle-outline" size={20} color={colors.coralSoft} />
+            </Pressable>
+          ) : null}
+        </View>
+      ))}
+      {rows.length < 3 ? (
+        <Pressable onPress={onAdd} style={styles.sceneAdd} hitSlop={6}>
+          <Icon name="add" size={16} color={colors.primary} />
+          <Text style={styles.sceneAddText}>장면 추가</Text>
+        </Pressable>
+      ) : null}
+    </View>
   );
 }
 
@@ -414,13 +651,10 @@ function TemplateForm({
             <Icon name={p.icon} size={15} color={colors.primary} />
             <Text style={styles.promptLabel}>{p.label}</Text>
           </View>
-          <TextInput
+          <MultilineAnswerInput
             value={answers[p.promptKey] ?? ''}
             onChangeText={(t) => onChange(p.promptKey, t)}
             placeholder={p.placeholder}
-            placeholderTextColor={colors.placeholder}
-            multiline
-            style={styles.multiInput}
           />
         </View>
       ))}
@@ -428,34 +662,54 @@ function TemplateForm({
   );
 }
 
+type SceneProps = {
+  sceneRows: (key: string) => string[];
+  onSceneChange: (key: string, index: number, text: string) => void;
+  onSceneAdd: (key: string) => void;
+  onSceneRemove: (key: string, index: number) => void;
+};
+
 function FixedQuestionForm({
   questions,
   answers,
   onChange,
+  sceneRows,
+  onSceneChange,
+  onSceneAdd,
+  onSceneRemove,
 }: {
   questions: QuestionResponse[];
   answers: Record<string, string>;
   onChange: (key: string, text: string) => void;
-}) {
+} & SceneProps) {
   return (
     <Card style={{ marginTop: spacing.lg }}>
       <View style={styles.formHeadingRow}>
         <Icon name="chatbox-outline" size={18} color={colors.text} />
         <Text style={styles.formHeading}>오늘의 질문에 답하기</Text>
       </View>
-      {questions.map((q, i) => (
-        <View key={String(q.id)} style={i > 0 ? styles.formDivider : undefined}>
-          <Text style={styles.promptLabel}>Q{i + 1}. {q.text}</Text>
-          <TextInput
-            value={answers[String(q.id)] ?? ''}
-            onChangeText={(t) => onChange(String(q.id), t)}
-            placeholder="답을 적어봐..."
-            placeholderTextColor={colors.placeholder}
-            multiline
-            style={styles.multiInput}
-          />
-        </View>
-      ))}
+      {questions.map((q, i) => {
+        const key = String(q.id);
+        return (
+          <View key={key} style={i > 0 ? styles.formDivider : undefined}>
+            <Text style={styles.promptLabel}>Q{i + 1}. {q.text}</Text>
+            {isSceneQuestion(q.text) ? (
+              <SceneInputs
+                rows={sceneRows(key)}
+                onChange={(idx, t) => onSceneChange(key, idx, t)}
+                onAdd={() => onSceneAdd(key)}
+                onRemove={(idx) => onSceneRemove(key, idx)}
+              />
+            ) : (
+              <MultilineAnswerInput
+                value={answers[key] ?? ''}
+                onChangeText={(t) => onChange(key, t)}
+                placeholder="답을 적어봐..."
+              />
+            )}
+          </View>
+        );
+      })}
     </Card>
   );
 }
@@ -466,13 +720,17 @@ function FreePickForm({
   onToggle,
   answers,
   onChange,
+  sceneRows,
+  onSceneChange,
+  onSceneAdd,
+  onSceneRemove,
 }: {
   questions: QuestionResponse[];
   picked: string[];
   onToggle: (id: string) => void;
   answers: Record<string, string>;
   onChange: (key: string, text: string) => void;
-}) {
+} & SceneProps) {
   return (
     <Card style={{ marginTop: spacing.lg }}>
       <View style={styles.formHeadingRow}>
@@ -500,14 +758,20 @@ function FreePickForm({
         return (
           <View key={id} style={styles.formDivider}>
             <Text style={styles.promptLabel}>Q{i + 1}. {q.text}</Text>
-            <TextInput
-              value={answers[id] ?? ''}
-              onChangeText={(t) => onChange(id, t)}
-              placeholder="답을 적어봐..."
-              placeholderTextColor={colors.placeholder}
-              multiline
-              style={styles.multiInput}
-            />
+            {isSceneQuestion(q.text) ? (
+              <SceneInputs
+                rows={sceneRows(id)}
+                onChange={(idx, t) => onSceneChange(id, idx, t)}
+                onAdd={() => onSceneAdd(id)}
+                onRemove={(idx) => onSceneRemove(id, idx)}
+              />
+            ) : (
+              <MultilineAnswerInput
+                value={answers[id] ?? ''}
+                onChangeText={(t) => onChange(id, t)}
+                placeholder="답을 적어봐..."
+              />
+            )}
           </View>
         );
       })}
@@ -577,8 +841,27 @@ const styles = StyleSheet.create({
     minHeight: 48,
     textAlignVertical: 'top',
     color: colors.text,
-    lineHeight: 22,
+    lineHeight: 21,
+    paddingTop: 8,
   },
+  requiredHint: { ...font.caption, color: colors.danger, marginTop: spacing.sm },
+
+  sceneRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, marginTop: spacing.sm },
+  sceneNum: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.coralSofter,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  sceneNumText: { ...font.caption, color: colors.text, fontWeight: '700' },
+  sceneAdd: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.sm, alignSelf: 'flex-start' },
+  sceneAddText: { ...font.label, color: colors.primary },
+
+  locChipRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  prevLocLabel: { ...font.label, color: colors.subText, marginTop: spacing.md, marginBottom: spacing.xs },
 
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.sm },
   chip: {

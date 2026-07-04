@@ -1,7 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
+  FlatList,
+  Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -11,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { API_URL } from '../../lib/config';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { CommentView, DayDetail, EntryView, QuestionResponse, entryApi, isLocked } from '../../lib/api';
 import { dDay, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
@@ -44,6 +49,15 @@ export default function EntryDetailScreen() {
   const [posting, setPosting] = useState(false);
   const [commentError, setCommentError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const scrollRef = useRef<ScrollView>(null);
+  // 사진 풀스크린 뷰어: 열 사진 url 목록 + 시작 인덱스
+  const [viewer, setViewer] = useState<{ urls: string[]; index: number } | null>(null);
+
+  function openPhotoViewer(urls: string[], index: number) {
+    if (urls.length === 0) return;
+    setViewer({ urls, index });
+  }
 
   // 캐시우선 + 백그라운드 갱신. 캐시 없을 때만 스피너.
   const load = useCallback(async () => {
@@ -86,6 +100,7 @@ export default function EntryDetailScreen() {
         return updated;
       });
       setCommentText('');
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
       invalidateAfterMutation(dateStr); // 알림 등 갱신
     } catch {
       setCommentError('댓글 등록에 실패했어요. 다시 시도해 주세요.');
@@ -129,7 +144,11 @@ export default function EntryDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+        style={{ flex: 1 }}
+      >
         {/* 헤더 */}
         <View style={styles.topBar}>
           <Pressable onPress={() => router.back()} hitSlop={12}>
@@ -144,7 +163,7 @@ export default function EntryDetailScreen() {
           <View style={{ width: 24 }} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <ScrollView ref={scrollRef} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           {loading ? (
             <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xxl }} />
           ) : status === 'EMPTY' || !detail ? (
@@ -163,6 +182,7 @@ export default function EntryDetailScreen() {
                     tone="coral"
                     mode={detail.mode}
                     questions={detail.questions}
+                    onOpenPhoto={openPhotoViewer}
                   />
                   <View style={styles.myActions}>
                     <Button label="수정하기" variant="soft" onPress={onEditMine} style={{ flex: 1, height: 44 }} />
@@ -191,6 +211,7 @@ export default function EntryDetailScreen() {
                   tone="partner"
                   mode={detail.mode}
                   questions={detail.questions}
+                  onOpenPhoto={openPhotoViewer}
                 />
               ) : status === 'LOCKED' ? (
                 <Card style={styles.waitCard}>
@@ -233,6 +254,7 @@ export default function EntryDetailScreen() {
             <TextInput
               value={commentText}
               onChangeText={setCommentText}
+              onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150)}
               placeholder="댓글 달기..."
               placeholderTextColor={colors.placeholder}
               style={styles.commentInput}
@@ -241,7 +263,46 @@ export default function EntryDetailScreen() {
           </View>
         ) : null}
       </KeyboardAvoidingView>
+
+      {/* 사진 풀스크린 뷰어 */}
+      <PhotoViewer viewer={viewer} onClose={() => setViewer(null)} />
     </SafeAreaView>
+  );
+}
+
+/** 풀스크린 사진 뷰어. 여러 장이면 좌우 스와이프. */
+function PhotoViewer({
+  viewer,
+  onClose,
+}: {
+  viewer: { urls: string[]; index: number } | null;
+  onClose: () => void;
+}) {
+  const win = Dimensions.get('window');
+  if (!viewer) return null;
+  const toUri = (u: string) => (u.startsWith('http') ? u : `${API_URL}${u}`);
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.viewerBg}>
+        <FlatList
+          data={viewer.urls}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          initialScrollIndex={viewer.index}
+          getItemLayout={(_, i) => ({ length: win.width, offset: win.width * i, index: i })}
+          keyExtractor={(u, i) => u + i}
+          renderItem={({ item }) => (
+            <View style={{ width: win.width, height: win.height, alignItems: 'center', justifyContent: 'center' }}>
+              <Image source={{ uri: toUri(item) }} style={{ width: win.width, height: win.height }} resizeMode="contain" />
+            </View>
+          )}
+        />
+        <Pressable onPress={onClose} style={styles.viewerClose} hitSlop={12}>
+          <Icon name="close" size={28} color={colors.white} />
+        </Pressable>
+      </View>
+    </Modal>
   );
 }
 
@@ -303,14 +364,22 @@ function SideCard({
   tone,
   mode,
   questions,
+  onOpenPhoto,
 }: {
   title: string;
   side: EntryView;
   tone: 'coral' | 'partner';
   mode: DayDetail['mode'];
   questions: QuestionResponse[];
+  onOpenPhoto: (urls: string[], index: number) => void;
 }) {
   const accent = tone === 'coral' ? colors.primary : colors.partner;
+  // 표시할 장소: locations[] 우선, 없으면 단일 locationName 폴백.
+  const locs = side.locations && side.locations.length > 0
+    ? side.locations
+    : side.locationName ? [side.locationName] : [];
+  // 실제 이미지 url이 있는 사진만 뷰어 대상.
+  const photoUrls = side.photos.map((p) => p.url).filter((u): u is string => !!u);
   return (
     <Card style={{ marginTop: spacing.lg }}>
       <View style={styles.sideHead}>
@@ -330,33 +399,42 @@ function SideCard({
             </View>
           </Pill>
         ) : null}
-        {side.locationName ? (
-          <Pill tone="neutral">
+        {locs.map((loc) => (
+          <Pill key={loc} tone="neutral">
             <View style={styles.pillRow}>
               <Icon name="location-outline" size={14} color={colors.text} />
-              <Text style={styles.pillLabel}>{side.locationName}</Text>
+              <Text style={styles.pillLabel}>{loc}</Text>
             </View>
           </Pill>
-        ) : null}
+        ))}
       </View>
 
       {/* 사진: url 있으면 실제 이미지, 없으면 색시드 썸네일 */}
       {side.photos.length > 0 ? (
         <View style={styles.photoRow}>
-          {side.photos.slice(0, 3).map((p, i) => (
-            <PhotoThumb
-              key={p.id}
-              url={p.url}
-              seed={p.colorSeed}
-              size={90}
-              round={false}
-              label={
-                i === 2 && side.photos.length > 3
-                  ? `+${side.photos.length - 2}`
-                  : <Icon name="image-outline" size={30} color={colors.white} />
-              }
-            />
-          ))}
+          {side.photos.slice(0, 3).map((p, i) => {
+            // 뷰어에서의 인덱스(url 있는 사진들 기준)
+            const viewerIndex = p.url ? photoUrls.indexOf(p.url) : -1;
+            return (
+              <Pressable
+                key={p.id}
+                disabled={viewerIndex < 0}
+                onPress={() => onOpenPhoto(photoUrls, Math.max(0, viewerIndex))}
+              >
+                <PhotoThumb
+                  url={p.url}
+                  seed={p.colorSeed}
+                  size={90}
+                  round={false}
+                  label={
+                    i === 2 && side.photos.length > 3
+                      ? `+${side.photos.length - 2}`
+                      : <Icon name="image-outline" size={30} color={colors.white} />
+                  }
+                />
+              </Pressable>
+            );
+          })}
         </View>
       ) : null}
 
@@ -465,4 +543,17 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   commentBtn: { height: 44, paddingHorizontal: spacing.lg },
+
+  viewerBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)' },
+  viewerClose: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 56 : 24,
+    right: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

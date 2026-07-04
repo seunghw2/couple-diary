@@ -190,7 +190,8 @@ export type EntryView = {
   authorId: number;
   rating?: number; // 별점 1~5
   mood?: string; // 이모지
-  locationName?: string;
+  locationName?: string; // locations[0]와 동일(하위호환)
+  locations?: string[]; // 다중 장소
   answers: AnswerView[];
   photos: PhotoView[];
   createdAt: string;
@@ -234,7 +235,7 @@ export type UpsertEntryRequest = {
   answers: AnswerView[];
   photoSeeds?: string[];
   photoUrls?: string[];
-  locationName?: string;
+  locations?: string[]; // 다중 장소
   rating?: number;
   mood?: string;
 };
@@ -259,6 +260,11 @@ export const coupleApi = {
 
 export const questionApi = {
   list: () => api.get<QuestionResponse[]>('/api/questions'),
+};
+
+/** 이전에 쓴 장소 추천 목록. */
+export const locationApi = {
+  list: () => api.get<{ locations: string[] }>('/api/locations'),
 };
 
 // ─────────────────────────── 알림 (인앱) ───────────────────────────
@@ -291,7 +297,7 @@ export const notificationApi = {
   read: (id: number) => api.post<void>(`/api/notifications/${id}/read`),
   readAll: () => api.post<void>('/api/notifications/read-all'),
   /** 콕 찌르기. 미연결 400, 1시간 dedup. */
-  poke: () => api.post<void>('/api/notifications/poke'),
+  poke: () => api.post<void>('/api/poke'),
 };
 
 export const entryApi = {
