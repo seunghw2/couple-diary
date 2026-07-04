@@ -18,6 +18,8 @@ import { confirmAsync, showAlert } from '../../lib/dialog';
 import { moodIcon } from '../../constants/content';
 import { useCoupleStore } from '../../store/useCoupleStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useNotifStore } from '../../store/useNotifStore';
+import { useDataCache, invalidateAfterMutation } from '../../store/useDataCache';
 import { Button, Card, Icon, PhotoThumb, Pill, SeedThumb, StarRating } from '../../components/ui';
 import { colors, font, radius, shadow, spacing } from '../../theme/theme';
 
@@ -27,32 +29,48 @@ export default function EntryDetailScreen() {
   const dateStr = date ?? todayISO();
   const couple = useCoupleStore((s) => s.couple);
   const me = useAuthStore((s) => s.user);
+  const poke = useNotifStore((s) => s.poke);
+  const loadDetail = useDataCache((s) => s.loadDetail);
+  const getDetail = useDataCache((s) => s.getDetail);
+  const setCacheDetail = useDataCache((s) => s.setDetail);
 
-  const [detail, setDetail] = useState<DayDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  // 캐시된 상세가 있으면 즉시 렌더(깜빡임 없음).
+  const [detail, setDetail] = useState<DayDetail | null>(() => getDetail(dateStr) ?? null);
+  const [loading, setLoading] = useState(!getDetail(dateStr));
   const [error, setError] = useState<string | null>(null);
+  const [poking, setPoking] = useState(false);
 
   const [commentText, setCommentText] = useState('');
   const [posting, setPosting] = useState(false);
   const [commentError, setCommentError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // 캐시우선 + 백그라운드 갱신. 캐시 없을 때만 스피너.
   const load = useCallback(async () => {
-    setLoading(true);
+    const cached = getDetail(dateStr);
+    if (cached) setDetail(cached);
+    else setLoading(true);
     setError(null);
-    try {
-      const d = await entryApi.detail(dateStr);
-      setDetail(d);
-    } catch {
-      // 404 등 = 아직 아무도 안 쓴 날
-      setDetail(null);
-      setError(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [dateStr]);
+    const d = await loadDetail(dateStr);
+    setDetail(d);
+    setLoading(false);
+  }, [dateStr, getDetail, loadDetail]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  async function onPoke() {
+    if (poking) return;
+    setPoking(true);
+    const res = await poke();
+    setPoking(false);
+    if (res.ok) {
+      showAlert('콕 찔렀어요!', '상대에게 알림이 갔어요');
+    } else if (res.reason === 'not-connected') {
+      showAlert('아직 보낼 수 없어요', '상대와 연결된 뒤 다시 시도해 주세요.');
+    } else {
+      showAlert('콕 찌르기에 실패했어요', '잠시 후 다시 시도해 주세요.');
+    }
+  }
 
   async function onComment() {
     const text = commentText.trim();
@@ -61,8 +79,14 @@ export default function EntryDetailScreen() {
     setCommentError(null);
     try {
       const c = await entryApi.addComment(dateStr, text);
-      setDetail((d) => (d ? { ...d, comments: [...d.comments, c] } : d));
+      setDetail((d) => {
+        if (!d) return d;
+        const updated = { ...d, comments: [...d.comments, c] };
+        setCacheDetail(dateStr, updated); // 캐시도 최신화
+        return updated;
+      });
       setCommentText('');
+      invalidateAfterMutation(dateStr); // 알림 등 갱신
     } catch {
       setCommentError('댓글 등록에 실패했어요. 다시 시도해 주세요.');
     } finally {
@@ -87,6 +111,7 @@ export default function EntryDetailScreen() {
     setDeleting(true);
     try {
       await entryApi.remove(dateStr);
+      invalidateAfterMutation(dateStr); // 해당 date detail + 그 달 month 무효화
       router.replace('/(tabs)');
     } catch {
       showAlert('삭제에 실패했어요', '잠시 후 다시 시도해 주세요.');
@@ -156,6 +181,8 @@ export default function EntryDetailScreen() {
               {status === 'LOCKED' && !mineWritten ? (
                 <LockedPartner
                   onWrite={() => router.push({ pathname: '/write/[date]', params: { date: dateStr } })}
+                  onPoke={onPoke}
+                  poking={poking}
                 />
               ) : partnerOpen ? (
                 <SideCard
@@ -238,7 +265,15 @@ function EmptyState({ future, onWrite }: { future: boolean; onWrite: () => void 
   );
 }
 
-function LockedPartner({ onWrite }: { onWrite: () => void }) {
+function LockedPartner({
+  onWrite,
+  onPoke,
+  poking,
+}: {
+  onWrite: () => void;
+  onPoke: () => void;
+  poking: boolean;
+}) {
   return (
     <Card style={[styles.lockedCard]}>
       <View style={styles.blurBox}>
@@ -250,6 +285,14 @@ function LockedPartner({ onWrite }: { onWrite: () => void }) {
       <Text style={styles.lockedTitle}>상대의 일기는 잠겨 있어요</Text>
       <Text style={styles.lockedSub}>내 일기를 쓰면 서로의 글이 열려요</Text>
       <Button label="내 일기 쓰기" onPress={onWrite} style={{ marginTop: spacing.md, alignSelf: 'stretch' }} />
+      <Button
+        label="콕 찌르기"
+        icon="hand-left-outline"
+        variant="ghost"
+        onPress={onPoke}
+        loading={poking}
+        style={{ marginTop: spacing.sm, alignSelf: 'stretch' }}
+      />
     </Card>
   );
 }

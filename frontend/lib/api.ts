@@ -261,6 +261,39 @@ export const questionApi = {
   list: () => api.get<QuestionResponse[]>('/api/questions'),
 };
 
+// ─────────────────────────── 알림 (인앱) ───────────────────────────
+
+export type NotificationType =
+  | 'PARTNER_WROTE'
+  | 'ENTRY_OPENED'
+  | 'COMMENT'
+  | 'POKE'
+  | 'ANNIVERSARY'
+  | 'COUPLE_CONNECTED';
+
+export type Notification = {
+  id: number;
+  type: NotificationType;
+  title: string;
+  body: string;
+  entryDate?: string; // YYYY-MM-DD
+  read: boolean;
+  createdAt: string;
+};
+
+export type NotificationListResponse = {
+  items: Notification[];
+  unreadCount: number;
+};
+
+export const notificationApi = {
+  list: () => api.get<NotificationListResponse>('/api/notifications'),
+  read: (id: number) => api.post<void>(`/api/notifications/${id}/read`),
+  readAll: () => api.post<void>('/api/notifications/read-all'),
+  /** 콕 찌르기. 미연결 400, 1시간 dedup. */
+  poke: () => api.post<void>('/api/notifications/poke'),
+};
+
 export const entryApi = {
   month: (year: number, month: number) =>
     api.get<MonthEntrySummary[]>(`/api/entries?year=${year}&month=${month}`),

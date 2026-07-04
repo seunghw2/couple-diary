@@ -1,11 +1,14 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { entryApi, MonthEntrySummary } from '../../lib/api';
+import { MonthEntrySummary } from '../../lib/api';
 import { dDay, formatDday, todayISO } from '../../lib/date';
+import { showAlert } from '../../lib/dialog';
 import { useCoupleStore } from '../../store/useCoupleStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useNotifStore } from '../../store/useNotifStore';
+import { useDataCache } from '../../store/useDataCache';
 import { CalendarGrid } from '../../components/CalendarGrid';
 import { Button, Icon } from '../../components/ui';
 import { colors, font, radius, shadow, spacing } from '../../theme/theme';
@@ -17,41 +20,54 @@ export default function HomeScreen() {
   const partner = useAuthStore((s) => s.partner);
   const today = todayISO();
 
+  const unreadCount = useNotifStore((s) => s.unreadCount);
+  const fetchNotif = useNotifStore((s) => s.fetch);
+  const poke = useNotifStore((s) => s.poke);
+
+  const loadMonth = useDataCache((s) => s.loadMonth);
+  const getMonth = useDataCache((s) => s.getMonth);
+
   const [cursor, setCursor] = useState(() => {
     const d = new Date();
     return { year: d.getFullYear(), month: d.getMonth() + 1 };
   });
-  const [entries, setEntries] = useState<Record<string, MonthEntrySummary>>({});
+  // 캐시된 월이 있으면 즉시 그것으로 렌더(깜빡임 없음).
+  const cachedMonth = getMonth(cursor.year, cursor.month);
+  const [entries, setEntries] = useState<Record<string, MonthEntrySummary>>(cachedMonth ?? {});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [poking, setPoking] = useState(false);
 
+  // 캐시우선 + 백그라운드 갱신. 캐시 없을 때만 스피너.
   const load = useCallback(
-    async (year: number, month: number) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const list = await entryApi.month(year, month);
-        const map: Record<string, MonthEntrySummary> = {};
-        for (const e of list) map[e.date] = e;
-        setEntries(map);
-      } catch {
-        setEntries({});
-        setError('이번 달 일기를 불러오지 못했어요.');
-      } finally {
-        setLoading(false);
-      }
+    async (year: number, month: number, force = false) => {
+      const cached = getMonth(year, month);
+      if (cached) setEntries(cached);
+      else setLoading(true);
+      const map = await loadMonth(year, month, { force });
+      if (map) setEntries(map);
+      setLoading(false);
     },
-    []
+    [getMonth, loadMonth]
   );
 
-  // 화면 포커스 시(작성 후 복귀 포함) 새로고침
+  // 화면 포커스 시: 캐시우선 렌더 + 조용한 갱신 (전체 스피너 깜빡임 제거).
   useFocusEffect(
     useCallback(() => {
       load(cursor.year, cursor.month);
     }, [cursor.year, cursor.month, load])
   );
 
-  // 서버가 ddayCount를 주면 그대로, 없으면 anniversaryDate로 계산.
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([
+      load(cursor.year, cursor.month, true),
+      useCoupleStore.getState().refresh(),
+      fetchNotif(),
+    ]);
+    setRefreshing(false);
+  }, [cursor.year, cursor.month, load, fetchNotif]);
+
   const dday = useMemo(
     () => couple?.ddayCount ?? dDay(couple?.anniversaryDate),
     [couple?.ddayCount, couple?.anniversaryDate]
@@ -62,37 +78,70 @@ export default function HomeScreen() {
   function shift(delta: number) {
     setCursor((c) => {
       const m = c.month + delta;
-      if (m < 1) return { year: c.year - 1, month: 12 };
-      if (m > 12) return { year: c.year + 1, month: 1 };
-      return { year: c.year, month: m };
+      const next = m < 1 ? { year: c.year - 1, month: 12 } : m > 12 ? { year: c.year + 1, month: 1 } : { year: c.year, month: m };
+      // 이동 즉시 캐시가 있으면 반영(스피너 없이 전환).
+      const cached = getMonth(next.year, next.month);
+      setEntries(cached ?? {});
+      if (!cached) setLoading(true);
+      return next;
     });
   }
 
   function openDate(date: string) {
-    // 오늘 이후 미래는 작성 불가로 취급(상세만).
     router.push({ pathname: '/entry/[date]', params: { date } });
+  }
+
+  async function onPoke() {
+    if (poking) return;
+    setPoking(true);
+    const res = await poke();
+    setPoking(false);
+    if (res.ok) {
+      showAlert('콕 찔렀어요!', '상대에게 알림이 갔어요');
+    } else if (res.reason === 'not-connected') {
+      showAlert('아직 보낼 수 없어요', '상대와 연결된 뒤 다시 시도해 주세요.');
+    } else {
+      showAlert('콕 찌르기에 실패했어요', '잠시 후 다시 시도해 주세요.');
+    }
   }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+        }
+      >
         {/* 헤더 */}
         <View style={styles.header}>
           <View style={styles.logoRow}>
             <Text style={styles.logo}>love today</Text>
             <Icon name="heart" size={22} color={colors.primary} />
           </View>
-          <Pressable
-            style={styles.dday}
-            onPress={dday == null ? () => router.push('/(tabs)/settings') : undefined}
-          >
-            <View style={styles.ddayRow}>
-              <Icon name="heart" size={15} color={colors.primary} />
-              <Text style={styles.ddayText}>
-                {dday != null ? formatDday(dday) : '기념일 설정'}
-              </Text>
-            </View>
-          </Pressable>
+          <View style={styles.headerRight}>
+            <Pressable
+              style={styles.dday}
+              onPress={dday == null ? () => router.push('/(tabs)/settings') : undefined}
+            >
+              <View style={styles.ddayRow}>
+                <Icon name="heart" size={15} color={colors.primary} />
+                <Text style={styles.ddayText}>
+                  {dday != null ? formatDday(dday) : '기념일 설정'}
+                </Text>
+              </View>
+            </Pressable>
+            {/* 알림 벨 + 미읽음 뱃지 */}
+            <Pressable style={styles.bell} onPress={() => router.push('/notifications')} hitSlop={8}>
+              <Icon name="notifications-outline" size={24} color={colors.text} />
+              {unreadCount > 0 ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                </View>
+              ) : null}
+            </Pressable>
+          </View>
         </View>
 
         <Text style={styles.coupleLine}>
@@ -100,19 +149,29 @@ export default function HomeScreen() {
           {partnerName ? ` & ${partnerName}` : ' · 상대 대기 중'}
         </Text>
 
-        {/* 상대가 기다려요 배너 */}
+        {/* 상대가 기다려요 배너 + 콕 찌르기 */}
         {todayEntry?.partnerWritten && !todayEntry?.mineWritten ? (
-          <Pressable
-            style={styles.waitBanner}
-            onPress={() => router.push({ pathname: '/write/[date]', params: { date: today } })}
-          >
-            <View style={styles.waitBannerRow}>
+          <View style={styles.waitBanner}>
+            <Pressable
+              style={styles.waitBannerRow}
+              onPress={() => router.push({ pathname: '/write/[date]', params: { date: today } })}
+            >
               <Icon name="mail-unread-outline" size={16} color={colors.primary} />
               <Text style={styles.waitBannerText}>
                 {partnerName ?? '상대'}님이 오늘 일기를 썼어요 — 내가 쓰면 열려요
               </Text>
-            </View>
-          </Pressable>
+            </Pressable>
+            <Pressable style={styles.pokeBtn} onPress={onPoke} disabled={poking} hitSlop={6}>
+              {poking ? (
+                <ActivityIndicator color={colors.primary} size="small" />
+              ) : (
+                <>
+                  <Icon name="hand-left-outline" size={15} color={colors.primary} />
+                  <Text style={styles.pokeText}>콕 찌르기</Text>
+                </>
+              )}
+            </Pressable>
+          </View>
         ) : null}
 
         {/* 월 네비게이션 */}
@@ -128,9 +187,9 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        {/* 캘린더 */}
+        {/* 캘린더 — 캐시가 있으면 스피너 없이 즉시 렌더 */}
         <View style={[styles.calCard, shadow]}>
-          {loading ? (
+          {loading && Object.keys(entries).length === 0 ? (
             <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.xxl }} />
           ) : (
             <CalendarGrid
@@ -141,7 +200,6 @@ export default function HomeScreen() {
               onPressDate={openDate}
             />
           )}
-          {error ? <Text style={styles.error}>{error}</Text> : null}
         </View>
 
         {/* Today 버튼 */}
@@ -167,6 +225,7 @@ const styles = StyleSheet.create({
   },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   logo: { fontSize: 28, fontWeight: '800', color: colors.primary },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   dday: {
     backgroundColor: colors.card,
     borderRadius: radius.pill,
@@ -176,6 +235,20 @@ const styles = StyleSheet.create({
   },
   ddayRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   ddayText: { ...font.title, color: colors.primary },
+  bell: { padding: 2 },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -6,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: { color: colors.white, fontSize: 10, fontWeight: '700' },
   coupleLine: { ...font.label, color: colors.subText, marginTop: spacing.sm },
   waitBanner: {
     marginTop: spacing.md,
@@ -185,9 +258,25 @@ const styles = StyleSheet.create({
     borderColor: colors.coralSofter,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+    gap: spacing.sm,
   },
   waitBannerRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   waitBannerText: { ...font.label, color: colors.primary, flex: 1 },
+  pokeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    alignSelf: 'flex-start',
+    backgroundColor: colors.card,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.coralSofter,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    minHeight: 30,
+  },
+  pokeText: { ...font.label, color: colors.primary },
   monthNav: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -196,8 +285,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     marginBottom: spacing.lg,
   },
-  navArrow: { fontSize: 28, color: colors.coralSoft, fontWeight: '700' },
   monthTitle: { ...font.h2, color: colors.text },
   calCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg },
-  error: { ...font.caption, color: colors.danger, textAlign: 'center', marginTop: spacing.md },
 });

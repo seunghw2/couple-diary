@@ -3,6 +3,7 @@ package com.today.couple;
 import com.today.common.ApiException;
 import com.today.common.ErrorCode;
 import com.today.couple.CoupleDtos.*;
+import com.today.notification.NotificationService;
 import com.today.user.User;
 import com.today.user.UserDtos.PartnerSummary;
 import com.today.user.UserRepository;
@@ -20,6 +21,7 @@ public class CoupleService {
 
     private final CoupleRepository coupleRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public InviteResponse myInviteCode(Long userId) {
@@ -52,6 +54,10 @@ public class CoupleService {
             // 동시 connect 경합: 둘 중 한쪽이 이미 다른 커플로 저장됨
             throw new ApiException(ErrorCode.ALREADY_COUPLED);
         }
+
+        // 코드 주인(user1=owner)에게 연결 알림 (연결한 상대=user2=me)
+        notificationService.onCoupleConnected(owner, me);
+
         return toResponse(couple);
     }
 

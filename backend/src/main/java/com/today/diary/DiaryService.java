@@ -134,6 +134,15 @@ public class DiaryService {
                 questions, myView, partnerView, comments);
     }
 
+    // ================= 이전 장소 추천 =================
+    @Transactional(readOnly = true)
+    public LocationsResponse recentLocations(Long userId) {
+        Couple couple = coupleService.requireCouple(userId);
+        List<String> locations = entryRepository.findDistinctLocationsByCouple(
+                couple.getId(), org.springframework.data.domain.PageRequest.of(0, 20));
+        return new LocationsResponse(locations);
+    }
+
     // ================= 작성/수정 upsert =================
     // READ_COMMITTED: 동시 첫 작성 경합 시 DiaryDayFactory(REQUIRES_NEW)가 커밋한
     // 행을 같은 트랜잭션의 재조회/응답 조회에서 볼 수 있어야 한다(MySQL RR 스냅샷 회피).
@@ -165,8 +174,9 @@ public class DiaryService {
         if (isNew) {
             entry = DiaryEntry.builder()
                     .day(day).author(author)
-                    .rating(req.rating()).mood(req.mood()).locationName(req.locationName())
+                    .rating(req.rating()).mood(req.mood())
                     .build();
+            applyLocations(entry, req);
             entry = entryRepository.save(entry);
             entry.setEditableAfter(entry.getCreatedAt() == null
                     ? LocalDateTime.now().plusHours(EDIT_WINDOW_HOURS)
@@ -178,7 +188,7 @@ public class DiaryService {
             }
             entry.setRating(req.rating());
             entry.setMood(req.mood());
-            entry.setLocationName(req.locationName());
+            applyLocations(entry, req);
             // 부분 수정 지원: null = 변경 안 함(삭제 스킵), 빈 배열 = 전체 삭제
             if (req.answers() != null) {
                 answerRepository.deleteByEntry_Id(entry.getId());
@@ -236,6 +246,17 @@ public class DiaryService {
         }
 
         return detail(userId, date);
+    }
+
+    // 장소 저장 규칙: locations가 오면 그걸 사용(+locationName=첫 장소).
+    // locations null이고 locationName만 오면 locations=[locationName].
+    // 둘 다 null이면 변경 안 함. 빈 배열이면 전체 삭제.
+    private void applyLocations(DiaryEntry entry, UpsertEntryRequest req) {
+        if (req.locations() != null) {
+            entry.applyLocations(req.locations());
+        } else if (req.locationName() != null) {
+            entry.applyLocations(List.of(req.locationName()));
+        }
     }
 
     // 커플 두 멤버 중 나 아닌 쪽
@@ -396,8 +417,9 @@ public class DiaryService {
                 .map(p -> new PhotoView(p.getId(), p.getColorSeed(), p.getUrl()))
                 .toList();
         boolean editable = e.getEditableAfter() == null || LocalDateTime.now().isBefore(e.getEditableAfter());
+        List<String> locations = new ArrayList<>(e.getLocations());
         return new EntryView(e.getId(), e.getAuthor().getId(), e.getRating(), e.getMood(),
-                e.getLocationName(), answers, photos, e.getCreatedAt(), e.getEditableAfter(), editable);
+                e.getLocationName(), locations, answers, photos, e.getCreatedAt(), e.getEditableAfter(), editable);
     }
 
     private CommentView toCommentView(Comment c) {

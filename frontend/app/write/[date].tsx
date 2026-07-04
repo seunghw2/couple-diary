@@ -25,6 +25,7 @@ import {
 } from '../../lib/api';
 import { formatKoLong, todayISO, weekdayKo } from '../../lib/date';
 import { showAlert } from '../../lib/dialog';
+import { invalidateAfterMutation } from '../../store/useDataCache';
 import { MOODS, TEMPLATE_PROMPTS } from '../../constants/content';
 import { Button, Card, Icon, PhotoThumb, StarRating } from '../../components/ui';
 import { colors, font, radius, shadow, spacing } from '../../theme/theme';
@@ -216,6 +217,8 @@ export default function WriteScreen() {
 
     try {
       await entryApi.create(dateStr, payload);
+      // 캐시 무효화: 해당 date detail + 그 달 month + 알림 최신화
+      invalidateAfterMutation(dateStr);
       router.replace({ pathname: '/entry/[date]', params: { date: dateStr } });
     } catch {
       setError('저장에 실패했어요. 다시 시도해 주세요.');

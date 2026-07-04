@@ -93,6 +93,19 @@ public class NotificationService {
                 .build());
     }
 
+    /** 커플 연결 성사 시 코드 주인(owner)에게 알림. entryDate=null. */
+    @Transactional
+    public void onCoupleConnected(User owner, User partner) {
+        if (owner == null || partner == null) return;
+        notificationRepository.save(Notification.builder()
+                .recipient(owner)
+                .type(NotificationType.COUPLE_CONNECTED)
+                .title("커플 연결 완료")
+                .body(partner.getNickname() + "님과 연결됐어요 💞")
+                .entryDate(null)
+                .build());
+    }
+
     // ===================== 엔드포인트 =====================
 
     @Transactional

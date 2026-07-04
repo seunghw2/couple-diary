@@ -4,6 +4,7 @@ import com.today.question.QuestionDtos.QuestionResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -37,8 +38,9 @@ public class DiaryDtos {
             List<String> photoSeeds,
             List<@Size(max = 500) String> photoUrls,
             @Size(max = 100) String locationName,
-            @Min(1) @Max(5) Integer rating,
-            @Size(max = 100) String mood
+            List<@Size(max = 100) String> locations,
+            @NotNull @Min(1) @Max(5) Integer rating,
+            @NotBlank @Size(max = 100) String mood
     ) {}
 
     // ---- 상세 ----
@@ -52,6 +54,7 @@ public class DiaryDtos {
             Integer rating,
             String mood,
             String locationName,
+            List<String> locations,
             List<AnswerView> answers,
             List<PhotoView> photos,
             LocalDateTime createdAt,
@@ -60,6 +63,9 @@ public class DiaryDtos {
     ) {}
 
     public record LockedEntryView(boolean locked) {}
+
+    // ---- 이전 장소 추천 ----
+    public record LocationsResponse(List<String> locations) {}
 
     public record CommentView(Long id, Long authorId, String authorNickname, String text, LocalDateTime createdAt) {}
 
