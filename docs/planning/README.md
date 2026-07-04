@@ -24,7 +24,7 @@
 | **3-A 폴라로이드 피드** | 타임라인 | 세로 폴라로이드 피드 | 인스타·사진 팝 | 사진 많이 찍는 커플 |
 | **3-B 타임라인 타임캡슐** | 타임라인 | 세로 연표 + 회고 강조 | 잔잔·감성 세리프 | 추억·기념일 되새김을 중시하는 커플 |
 
-> 🔗 **목업 열어보기 링크**는 아래 각 버전 섹션에 있음 (폰에서 바로 열림).
+> 🖼️ 각 버전 섹션에 **목업 이미지가 바로 보이고**, 그 아래 🔗 링크로 실제 화면(HTML)도 열 수 있음(폰에서 바로 열림).
 > 로컬에선 `mockups/<버전>/01-*.html` 파일을 브라우저로 열면 됨.
 
 ---
@@ -37,7 +37,15 @@
 - **02 작성** — 기분 6종 선택, 별점, 빈칸 템플릿 3문항, 사진, 위치(성수동·대림창고), "저장하면 잠금 대기 🔐"
 - **03 상세** — "1년 전 오늘" 회고 + 내 글/상대 글 말풍선 교차 + 획득 스탬프 + 하트 반응
 
-🔗 [홈](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/1a-sticker-calendar/01-home-calendar.html) · [작성](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/1a-sticker-calendar/02-write.html) · [상세](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/1a-sticker-calendar/03-detail.html)
+<table>
+<tr>
+<td><img src="mockups/1a-sticker-calendar/shots/01-home-calendar.png" width="240"><br><sub>① 홈 · 스티커 달력</sub></td>
+<td><img src="mockups/1a-sticker-calendar/shots/02-write.png" width="240"><br><sub>② 일기 작성</sub></td>
+<td><img src="mockups/1a-sticker-calendar/shots/03-detail.png" width="240"><br><sub>③ 상호 공개 상세</sub></td>
+</tr>
+</table>
+
+🔗 실제 화면으로 열어보기: [홈](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/1a-sticker-calendar/01-home-calendar.html) · [작성](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/1a-sticker-calendar/02-write.html) · [상세](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/1a-sticker-calendar/03-detail.html)
 
 ### 1-B · 종이 다이어리 달력
 크림색 종이·마스킹테이프·재봉선·손글씨. "진짜 일기장"에 가장 가까움.
@@ -45,7 +53,15 @@
 - **02 작성** — 줄노트+빨간 마진선 위 빈칸 채우기, 별점·기분, 테이프 사진, "상대 미작성 잠금 대기", "3시간 뒤 수정"
 - **03 월간+회고** — 스티치 테두리 월간 달력(둘 다 씀/한 명만/기념일 구분) + 종이 쪽지처럼 얹힌 "2년 전 오늘" 회고
 
-🔗 [홈](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/1b-paper-diary/01-home-diary.html) · [작성](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/1b-paper-diary/02-write.html) · [월간·회고](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/1b-paper-diary/03-month-recall.html)
+<table>
+<tr>
+<td><img src="mockups/1b-paper-diary/shots/01-home-diary.png" width="240"><br><sub>① 홈 · 종이 다이어리</sub></td>
+<td><img src="mockups/1b-paper-diary/shots/02-write.png" width="240"><br><sub>② 일기 작성</sub></td>
+<td><img src="mockups/1b-paper-diary/shots/03-month-recall.png" width="240"><br><sub>③ 월간 달력·회고</sub></td>
+</tr>
+</table>
+
+🔗 실제 화면으로 열어보기: [홈](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/1b-paper-diary/01-home-diary.html) · [작성](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/1b-paper-diary/02-write.html) · [월간·회고](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/1b-paper-diary/03-month-recall.html)
 
 ---
 
@@ -57,7 +73,15 @@
 - **02 작성** — 폴라로이드 사진 업로더 먼저 → 빈칸 템플릿 → 별점·기분·위치, 하단 "둘 다 써야 열림" 블러 대기
 - **03 상세** — "2년 전 오늘" 리본, 테이프 붙은 큰 폴라로이드, 좌우 교차 말풍선, 위치 핀 지도(방문 횟수), 리액션 바
 
-🔗 [홈](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/3a-polaroid-feed/01-home-feed.html) · [작성](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/3a-polaroid-feed/02-write.html) · [상세](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/3a-polaroid-feed/03-detail.html)
+<table>
+<tr>
+<td><img src="mockups/3a-polaroid-feed/shots/01-home-feed.png" width="240"><br><sub>① 홈 · 폴라로이드 피드</sub></td>
+<td><img src="mockups/3a-polaroid-feed/shots/02-write.png" width="240"><br><sub>② 일기 작성</sub></td>
+<td><img src="mockups/3a-polaroid-feed/shots/03-detail.png" width="240"><br><sub>③ 상호 공개 상세</sub></td>
+</tr>
+</table>
+
+🔗 실제 화면으로 열어보기: [홈](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/3a-polaroid-feed/01-home-feed.html) · [작성](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/3a-polaroid-feed/02-write.html) · [상세](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/3a-polaroid-feed/03-detail.html)
 
 ### 3-B · 타임라인 타임캡슐
 화면을 관통하는 세로 연표. 시간의 흐름과 기념일 회고가 주인공. 가장 감성적.
@@ -65,7 +89,15 @@
 - **02 작성** — "오늘 우리는 ___에서 ___을 봤다" 손글씨 빈칸 템플릿, 기분·별점·사진·위치, "잠금 대기"+"3시간 뒤 수정"
 - **03 타임캡슐** — "1년 전 오늘" 밤하늘톤 캡슐이 열려 그날 두 사람 일기가 편지처럼 등장 + 기념일 여정(100·300·1주년) + 연말 결산
 
-🔗 [홈](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/3b-timeline-capsule/01-home-timeline.html) · [작성](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/3b-timeline-capsule/02-write.html) · [타임캡슐](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/3b-timeline-capsule/03-capsule-recall.html)
+<table>
+<tr>
+<td><img src="mockups/3b-timeline-capsule/shots/01-home-timeline.png" width="240"><br><sub>① 홈 · 타임라인</sub></td>
+<td><img src="mockups/3b-timeline-capsule/shots/02-write.png" width="240"><br><sub>② 일기 작성</sub></td>
+<td><img src="mockups/3b-timeline-capsule/shots/03-capsule-recall.png" width="240"><br><sub>③ 타임캡슐·회고</sub></td>
+</tr>
+</table>
+
+🔗 실제 화면으로 열어보기: [홈](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/3b-timeline-capsule/01-home-timeline.html) · [작성](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/3b-timeline-capsule/02-write.html) · [타임캡슐](https://htmlpreview.github.io/?https://github.com/seunghw2/couple-diary/blob/main/docs/planning/mockups/3b-timeline-capsule/03-capsule-recall.html)
 
 ---
 
