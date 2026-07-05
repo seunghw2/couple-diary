@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>장소 추가 · A안 상세 스토리보드 — 지도에서 콕</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gothic+A1:wght@400;500;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #FFF6EF;
+    --card: #FFFDFA;
+    --primary: #FF8E72;
+    --coralSoft: #FFA98C;
+    --coralSofter: #FFC7B0;
+    --text: #5A4038;
+    --subText: #7A5A4E;
+    --border: #F1E2D6;
+    --placeholder: #B39685;
+    --star: #FFB443;
+    --white: #FFFFFF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #EDE4DB;
+    font-family: 'Gothic A1', sans-serif;
+    color: var(--text);
+    padding: 48px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page-title {
+    font-family: 'Jua', sans-serif;
+    font-size: 28px;
+    color: #5A4038;
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+  .page-sub {
+    font-size: 14.5px;
+    color: #8A7264;
+    margin-bottom: 10px;
+    max-width: 900px;
+    line-height: 1.6;
+  }
+  .row-title {
+    font-family: 'Jua', sans-serif;
+    font-size: 20px;
+    color: #7A5A4E;
+    margin: 40px 0 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .row-title::before {
+    content: '';
+    width: 26px; height: 26px; border-radius: 8px;
+    background: var(--primary);
+    display: inline-block;
+  }
+  .frames {
+    display: flex;
+    gap: 36px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .frame-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .caption {
+    font-family: 'Gothic A1', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #6B5346;
+    background: #FFFDFA;
+    padding: 7px 16px;
+    border-radius: 999px;
+    box-shadow: 0 3px 10px rgba(90,64,56,0.08);
+    white-space: nowrap;
+  }
+  .caption b {
+    font-family: 'Jua', sans-serif; font-weight: 400;
+    color: var(--primary); margin-right: 6px;
+  }
+  .caption span { color: var(--primary); }
+
+  /* iPhone frame */
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 44px;
+    box-shadow: 0 24px 60px rgba(90,64,56,0.22), 0 4px 14px rgba(90,64,56,0.10);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  /* status bar */
+  .statusbar {
+    height: 52px;
+    padding: 0 30px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    font-family: 'Gothic A1', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    position: relative;
+    z-index: 30;
+    flex-shrink: 0;
+  }
+  .statusbar.on-map { color: #4B372F; }
+  .status-icons { display: flex; align-items: center; gap: 7px; }
+  .status-icons svg { display: block; }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 20px 10px;
+    position: relative;
+    z-index: 30;
+    flex-shrink: 0;
+  }
+  .nav .back {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(90,64,56,0.12);
+    color: var(--text);
+  }
+  .nav .title {
+    font-family: 'Jua', sans-serif;
+    font-size: 19px;
+    color: var(--text);
+  }
+  .nav .spacer { flex: 1; }
+  .nav .basket {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--primary);
+    color: #fff;
+    font-family: 'Gothic A1', sans-serif; font-weight: 800; font-size: 13px;
+    padding: 7px 13px 7px 11px;
+    border-radius: 999px;
+    box-shadow: 0 5px 12px rgba(255,142,114,0.4);
+  }
+  .nav .basket svg { color: #fff; }
+
+  /* ---------- MAP ---------- */
+  .map {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background:
+      radial-gradient(120px 90px at 78% 20%, rgba(255,201,176,0.35), transparent 70%),
+      linear-gradient(160deg, #FFF1E6 0%, #FCE9DC 100%);
+  }
+  .map.full { flex: 1; }
+
+  .park {
+    position: absolute;
+    background: linear-gradient(135deg, #CFE7C9, #BFE0B8);
+    border-radius: 22px;
+    opacity: 0.9;
+  }
+  .river {
+    position: absolute;
+    background: linear-gradient(120deg, #BFE0EE, #A9D6EC);
+    opacity: 0.85;
+  }
+  .road {
+    position: absolute;
+    background: #FFFDFA;
+    box-shadow: 0 0 0 1px #F1E2D6;
+  }
+  .road.h { height: 16px; border-radius: 8px; }
+  .road.v { width: 16px; border-radius: 8px; }
+  .road.thin { background: #FFF7F0; }
+  .road.thin.h { height: 9px; }
+  .road.thin.v { width: 9px; }
+  .block {
+    position: absolute;
+    background: rgba(255,255,255,0.55);
+    border: 1px solid #F4E6DA;
+    border-radius: 10px;
+  }
+  .map.dim::after {
+    content:''; position:absolute; inset:0;
+    background: rgba(90,64,56,0.10);
+    z-index: 5;
+  }
+  .map.blur { filter: saturate(0.6) brightness(0.98); }
+
+  /* my-location dot */
+  .me {
+    position: absolute;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #4C8DF6; border: 3px solid #fff;
+    box-shadow: 0 0 0 6px rgba(76,141,246,0.22), 0 3px 8px rgba(0,0,0,0.2);
+    transform: translate(-50%,-50%);
+    z-index: 11;
+  }
+
+  /* pins */
+  .pin {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    z-index: 12;
+    cursor: pointer;
+    text-align: center;
+  }
+  .pin .head {
+    width: 34px; height: 34px;
+    background: var(--primary);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 0 6px 12px rgba(255,142,114,0.45);
+    display: flex; align-items: center; justify-content: center;
+    border: 2.5px solid #FFFFFF;
+    position: relative;
+  }
+  .pin .head svg { transform: rotate(45deg); }
+  .pin.soft .head { background: var(--coralSoft); box-shadow: 0 5px 10px rgba(255,169,140,0.4); }
+  .pin.softer .head { background: var(--coralSofter); box-shadow: 0 5px 10px rgba(255,199,176,0.4); }
+  .pin.active .head {
+    width: 44px; height: 44px;
+    box-shadow: 0 10px 18px rgba(255,142,114,0.55);
+    border-width: 3px;
+  }
+  /* added / checked pin */
+  .pin.added .head { background: #3FBF7F; box-shadow: 0 6px 12px rgba(63,191,127,0.45); }
+  .pin .check-badge {
+    position: absolute; top: -8px; right: -8px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #3FBF7F; border: 2px solid #fff;
+    display: flex; align-items: center; justify-content: center;
+    transform: rotate(45deg);
+    z-index: 3;
+  }
+  /* visit-count badge (2+) */
+  .pin .cnt-badge {
+    position: absolute; top: -9px; right: -9px;
+    min-width: 19px; height: 19px; padding: 0 4px;
+    border-radius: 10px;
+    background: var(--text); color: #fff;
+    font-family: 'Gothic A1', sans-serif; font-weight: 800; font-size: 11px;
+    line-height: 19px;
+    border: 2px solid #fff;
+    transform: rotate(45deg);
+    z-index: 3;
+  }
+  .pin .lbl {
+    margin-top: 6px;
+    font-family: 'Gothic A1', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    color: #6B5346;
+    background: #FFFDFA;
+    padding: 2px 8px;
+    border-radius: 999px;
+    box-shadow: 0 2px 6px rgba(90,64,56,0.12);
+    white-space: nowrap;
+    display: inline-block;
+  }
+  .pin.active .lbl { background: var(--primary); color: #fff; }
+
+  /* cluster bubble */
+  .cluster {
+    position: absolute;
+    transform: translate(-50%,-50%);
+    z-index: 13;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--primary);
+    border: 3px solid #fff;
+    box-shadow: 0 8px 16px rgba(255,142,114,0.5);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-family: 'Jua', sans-serif; font-size: 20px;
+  }
+  .cluster .ring {
+    position:absolute; inset:-9px; border-radius:50%;
+    background: rgba(255,142,114,0.22);
+  }
+
+  /* search overlay */
+  .search-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    padding: 10px 18px 0;
+    z-index: 20;
+  }
+  .searchbar {
+    background: var(--white);
+    border-radius: 999px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px;
+    box-shadow: 0 6px 18px rgba(90,64,56,0.16);
+  }
+  .searchbar svg { flex-shrink: 0; color: var(--primary); }
+  .searchbar .ph { color: var(--placeholder); font-size: 14.5px; font-weight: 500; }
+  .searchbar .typed { color: var(--text); font-size: 15px; font-weight: 700; }
+  .searchbar .caret {
+    width: 2px; height: 18px; background: var(--primary);
+    display: inline-block; border-radius: 2px;
+  }
+  .searchbar .clear {
+    margin-left: auto; color: var(--placeholder);
+  }
+
+  /* small toast pill on map */
+  .map-hint {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    bottom: 20px; z-index: 22;
+    background: rgba(90,64,56,0.92); color: #fff;
+    font-size: 12.5px; font-weight: 600;
+    padding: 9px 16px; border-radius: 999px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    display: inline-flex; align-items: center; gap: 7px;
+    white-space: nowrap;
+  }
+
+  /* my-location button */
+  .loc-btn {
+    position: absolute;
+    right: 18px; bottom: 18px;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--white);
+    box-shadow: 0 6px 16px rgba(90,64,56,0.18);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--primary);
+    z-index: 15;
+  }
+  .loc-btn.off { color: var(--placeholder); }
+
+  /* ---------- bottom sheets ---------- */
+  .sheet {
+    background: var(--card);
+    border-radius: 26px 26px 0 0;
+    box-shadow: 0 -8px 24px rgba(90,64,56,0.10);
+    padding: 14px 20px 26px;
+    position: relative;
+    z-index: 25;
+    flex-shrink: 0;
+  }
+  .grab {
+    width: 44px; height: 5px; border-radius: 999px;
+    background: var(--border);
+    margin: 0 auto 14px;
+  }
+
+  /* place card */
+  .pc-row { display: flex; align-items: flex-start; gap: 12px; }
+  .pc-thumb {
+    width: 54px; height: 54px; flex-shrink: 0;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #FFC7B0, #FF8E72);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+  }
+  .pc-info { flex: 1; min-width: 0; }
+  .pc-name { font-family: 'Jua', sans-serif; font-size: 20px; color: var(--text); line-height: 1.2; }
+  .pc-meta { display: flex; align-items: center; gap: 8px; margin-top: 5px; flex-wrap: wrap; }
+  .pc-cat {
+    font-size: 12px; font-weight: 700; color: var(--primary);
+    background: #FFF0E9; padding: 3px 10px; border-radius: 999px;
+  }
+  .pc-dist { font-size: 12.5px; font-weight: 700; color: var(--subText); }
+  .pc-visit {
+    font-size: 12px; font-weight: 800; color: #B06A4A;
+    background: #FFEEE4; padding: 3px 9px; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .pc-star { font-size: 12.5px; font-weight: 700; color: var(--subText); display: flex; align-items: center; gap: 3px; }
+  .pc-star svg { color: var(--star); }
+  .pc-addr { font-size: 13px; color: var(--subText); margin-top: 8px; display: flex; align-items: center; gap: 6px; }
+  .pc-addr svg { color: var(--placeholder); flex-shrink: 0; }
+  .add-btn {
+    margin-top: 16px;
+    width: 100%;
+    height: 54px;
+    border-radius: 999px;
+    background: var(--primary);
+    color: #fff;
+    font-family: 'Jua', sans-serif;
+    font-size: 17px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 8px 18px rgba(255,142,114,0.4);
+    border: none;
+  }
+  .add-btn.done {
+    background: #EAF7EF; color: #2E9E68;
+    box-shadow: none; border: 1.5px solid #BFE9CF;
+  }
+  .add-btn.done svg { color: #2E9E68; }
+  .btn-pair { display: flex; gap: 10px; margin-top: 16px; }
+  .btn-pair .add-btn { margin-top: 0; }
+  .add-btn.ghost {
+    flex: 0 0 auto; width: 130px;
+    background: transparent; color: var(--primary);
+    border: 1.5px solid var(--coralSofter); box-shadow: none;
+  }
+
+  /* mini list */
+  .mini-title {
+    font-family: 'Gothic A1', sans-serif; font-weight: 800; font-size: 13px;
+    color: var(--subText); margin-bottom: 10px; padding-left: 2px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .mini-title svg { color: var(--primary); }
+  .mini-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 8px;
+    border-radius: 16px;
+  }
+  .mini-item + .mini-item { border-top: 1px solid var(--border); border-radius: 0; }
+  .mini-item.on { background: #FFF3EC; border-radius: 16px; border-top: none; }
+  .mini-pin {
+    width: 30px; height: 30px; flex-shrink: 0;
+    border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+    background: var(--coralSoft);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mini-item.on .mini-pin { background: var(--primary); }
+  .mini-pin svg { transform: rotate(45deg); color: #fff; }
+  .mini-body { flex: 1; min-width: 0; }
+  .mini-name { font-weight: 800; font-size: 14.5px; color: var(--text); display:flex; align-items:center; gap:6px; }
+  .mini-addr { font-size: 12px; color: var(--subText); margin-top: 2px; }
+  .mini-cat { font-size: 11px; color: var(--primary); font-weight: 700; }
+  .mini-visit {
+    font-size: 10.5px; font-weight: 800; color: #B06A4A;
+    background: #FFEEE4; padding: 2px 7px; border-radius: 999px;
+  }
+  .mini-add {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink:0;
+    border: 1.5px solid var(--coralSofter);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--primary);
+  }
+  .mini-add.on { background: #3FBF7F; border-color:#3FBF7F; color:#fff; }
+
+  /* skeleton */
+  .sk {
+    background: linear-gradient(90deg, #F3E7DC 25%, #F9EFE6 50%, #F3E7DC 75%);
+    border-radius: 8px;
+  }
+  .sk-item { display:flex; align-items:center; gap:12px; padding:11px 8px; }
+  .sk-item + .sk-item { border-top:1px solid var(--border); }
+  .sk-pin { width:30px; height:30px; border-radius:50%; flex-shrink:0; }
+  .sk-lines { flex:1; }
+  .sk-l1 { height:13px; width:55%; margin-bottom:8px; }
+  .sk-l2 { height:11px; width:80%; }
+
+  /* empty / permission blocks in sheet */
+  .empty-block { text-align:center; padding: 16px 8px 6px; }
+  .empty-emoji { font-size: 40px; }
+  .empty-h { font-family:'Jua',sans-serif; font-size:18px; color:var(--text); margin-top:8px; }
+  .empty-p { font-size:13px; color:var(--subText); margin-top:6px; line-height:1.6; }
+  .empty-cta {
+    margin-top: 16px; display:inline-flex; align-items:center; gap:7px;
+    background: var(--primary); color:#fff;
+    font-family:'Jua',sans-serif; font-size:15px;
+    padding: 12px 22px; border-radius:999px;
+    box-shadow: 0 8px 18px rgba(255,142,114,0.4);
+  }
+  .empty-cta.ghost {
+    background:transparent; color:var(--primary);
+    border:1.5px solid var(--coralSofter); box-shadow:none;
+  }
+
+  /* permission center overlay card */
+  .perm-card {
+    position:absolute; left:24px; right:24px; top:180px;
+    z-index: 24;
+    background: var(--card);
+    border-radius: 24px;
+    padding: 26px 22px 22px;
+    text-align:center;
+    box-shadow: 0 20px 44px rgba(90,64,56,0.22);
+  }
+
+  /* name-input (long press) */
+  .name-input {
+    margin-top: 14px;
+    background: var(--bg);
+    border: 1.5px solid var(--coralSofter);
+    border-radius: 16px;
+    height: 52px; display:flex; align-items:center; gap:10px;
+    padding: 0 16px;
+  }
+  .name-input .typed { color:var(--text); font-weight:700; font-size:15px; }
+  .name-input .caret { width:2px; height:18px; background:var(--primary); border-radius:2px; }
+  .drop-pin {
+    position:absolute; left:50%; top:44%; transform:translate(-50%,-100%);
+    z-index: 16; text-align:center;
+  }
+  .drop-pin .head {
+    width:40px; height:40px; background:var(--primary);
+    border-radius:50% 50% 50% 0; transform:rotate(-45deg);
+    border:3px solid #fff; box-shadow:0 12px 20px rgba(255,142,114,0.5);
+    display:flex; align-items:center; justify-content:center;
+    animation:none;
+  }
+  .drop-pin .head svg { transform:rotate(45deg); }
+  .drop-pin .ripple {
+    position:absolute; left:50%; bottom:-6px; transform:translateX(-50%);
+    width:26px; height:9px; border-radius:50%;
+    background: rgba(90,64,56,0.18);
+  }
+  .longpress-ghost {
+    position:absolute; left:50%; top:44%; transform:translate(-50%,-50%);
+    width:64px; height:64px; border-radius:50%;
+    border:3px dashed var(--primary);
+    z-index:15;
+  }
+
+  /* ---------- diary frame ---------- */
+  .diary {
+    flex: 1;
+    padding: 6px 22px 20px;
+    overflow: hidden;
+  }
+  .diary-date { font-family: 'Jua', sans-serif; font-size: 15px; color: var(--primary); }
+  .diary-h { font-family: 'Jua', sans-serif; font-size: 24px; color: var(--text); margin-top: 2px; }
+  .diary-body {
+    margin-top: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 16px 16px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--subText);
+    min-height: 130px;
+  }
+  .diary-body .accent { color: var(--text); font-weight: 700; }
+  .sec-label {
+    display: flex; align-items: center; gap: 7px;
+    margin: 22px 2px 12px;
+    font-family: 'Gothic A1', sans-serif; font-weight: 800; font-size: 14px; color: var(--text);
+  }
+  .sec-label svg { color: var(--primary); }
+  .sec-label .n {
+    margin-left:auto; font-size:12px; color:var(--primary);
+    background:#FFF0E9; padding:2px 10px; border-radius:999px;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: #FFF0E9;
+    border: 1.5px solid var(--coralSofter);
+    color: #A2503A;
+    font-weight: 700; font-size: 13.5px;
+    padding: 9px 14px;
+    border-radius: 999px;
+  }
+  .chip .dot {
+    width: 18px; height: 18px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+    background: var(--primary); display: flex; align-items: center; justify-content: center;
+  }
+  .chip .dot svg { transform: rotate(45deg); color: #fff; }
+  .chip .x { color:#C98C79; margin-left:2px; display:flex; }
+  .chip.add {
+    background: transparent; border: 1.5px dashed var(--coralSofter);
+    color: var(--primary);
+  }
+  .toast {
+    margin: 16px 2px 0;
+    display: flex; align-items: center; gap: 9px;
+    background: #FFFDFA;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px 14px;
+    box-shadow: 0 6px 16px rgba(90,64,56,0.07);
+  }
+  .toast .check {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--primary); color: #fff;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .toast .txt { font-size: 13px; font-weight: 700; color: var(--text); }
+  .toast .txt small { display: block; font-weight: 500; color: var(--subText); font-size: 12px; margin-top: 1px; }
+
+  /* entry point : write form "다녀온 장소" section */
+  .form-field { margin-top: 4px; }
+  .field-label {
+    font-family:'Gothic A1',sans-serif; font-weight:800; font-size:14px; color:var(--text);
+    display:flex; align-items:center; gap:7px; margin:22px 2px 12px;
+  }
+  .field-label svg { color:var(--primary); }
+  .add-choices { display:flex; gap:10px; }
+  .choice {
+    flex:1; background:var(--card); border:1.5px solid var(--border);
+    border-radius:18px; padding:16px 12px; text-align:center;
+  }
+  .choice.hi { border-color:var(--primary); background:#FFF6F1; box-shadow:0 6px 16px rgba(255,142,114,0.14); }
+  .choice .ico {
+    width:44px; height:44px; margin:0 auto 8px; border-radius:14px;
+    background:#FFF0E9; color:var(--primary);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .choice.hi .ico { background:var(--primary); color:#fff; }
+  .choice .ct { font-family:'Jua',sans-serif; font-size:15px; color:var(--text); }
+  .choice .cs { font-size:11.5px; color:var(--subText); margin-top:3px; }
+
+  .home-ind {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px; border-radius: 999px; background: rgba(90,64,56,0.22);
+    z-index: 40;
+  }
+</style>
+</head>
+<body>
+  <div class="page-title">장소 추가 · A안 상세 스토리보드 — 지도에서 콕</div>
+  <div class="page-sub">
+    Map-first pick를 실제 구현 가능한 수준으로 세밀화. 일기 작성 → 지도 시트 → 핀 탐색·검색·핀탭 카드 → 여러 곳 담기 → 일기 반영까지의 전 흐름과 엣지케이스(권한·빈결과·로딩·클러스터·직접 핀찍기)를 포함. 데이터는 실제 API(placeApi.search·locationApi.list·counts)에 대응.
+  </div>
+
+  <div class="row-title">메인 플로우 · 진입에서 일기 반영까지</div>
+  <div class="frames">
+
+    <!-- ====== FRAME 1 : ENTRY (write form) ====== -->
+    <div class="frame-wrap">
+      <div class="caption"><b>1</b> 작성 중 · <span>“지도에서 찾기” 선택</span></div>
+      <div class="phone">
+        <div class="statusbar">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#5A4038"/><rect x="5" y="4" width="3" height="8" rx="1" fill="#5A4038"/><rect x="10" y="2" width="3" height="10" rx="1" fill="#5A4038"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#5A4038"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.5c2.3 0 4.4.9 6 2.4l-1.4 1.5A6.6 6.6 0 0 0 8.5 4.6 6.6 6.6 0 0 0 3.9 6.4L2.5 4.9A8.6 8.6 0 0 1 8.5 2.5Z" fill="#5A4038"/><path d="M8.5 6.5c1.2 0 2.3.5 3.1 1.3l-3.1 3.2-3.1-3.2A4.4 4.4 0 0 1 8.5 6.5Z" fill="#5A4038"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="#5A4038" opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#5A4038"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#5A4038" opacity="0.6"/></svg>
+          </div>
+        </div>
+        <div class="nav">
+          <div class="back"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="title">오늘의 일기</div>
+        </div>
+        <div class="diary">
+          <div class="diary-date">7월 5일 일요일</div>
+          <div class="diary-h">우리의 연남동 데이트</div>
+          <div class="diary-body">
+            오늘은 오랜만에 연남동 골목을 걸었어. 날씨가 딱 좋아서
+            계속 손 잡고 다녔던 하루 🤍
+          </div>
+          <div class="field-label">
+            <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 15S1.5 10.2 1.5 6A6 6 0 0 1 8 0a6 6 0 0 1 6.5 6C14.5 10.2 8 15 8 15Z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="8" cy="5.8" r="2" fill="currentColor"/></svg>
+            다녀온 장소
+          </div>
+          <div class="add-choices">
+            <div class="choice hi">
+              <div class="ico"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M11 20S3 13.5 3 8.5A8 8 0 0 1 11 1a8 8 0 0 1 8 7.5C19 13.5 11 20 11 20Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="11" cy="8.3" r="2.6" fill="currentColor"/></svg></div>
+              <div class="ct">지도에서 찾기</div>
+              <div class="cs">핀으로 콕 찍어 담기</div>
+            </div>
+            <div class="choice">
+              <div class="ico"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="9.5" cy="9.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="14.5" y1="14.5" x2="20" y2="20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+              <div class="ct">이름으로 검색</div>
+              <div class="cs">상호명 정확 검색</div>
+            </div>
+          </div>
+          <div class="toast" style="margin-top:20px;">
+            <div class="check" style="background:#FFF0E9;color:var(--primary);">
+              <svg width="15" height="15" viewBox="0 0 16 16"><path d="M8 15S1.5 10.2 1.5 6A6 6 0 0 1 8 0a6 6 0 0 1 6.5 6C14.5 10.2 8 15 8 15Z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            </div>
+            <div class="txt">여러 곳 다녀왔어도 괜찮아요<small>지도에서 계속 콕콕 담을 수 있어요</small></div>
+          </div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+    </div>
+
+    <!-- ====== FRAME 2 : MAP explore (default) ====== -->
+    <div class="frame-wrap">
+      <div class="caption"><b>2</b> 지도 탐색 · <span>근처 후보 코럴 핀</span></div>
+      <div class="phone">
+        <div class="statusbar on-map">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#4B372F"/><rect x="5" y="4" width="3" height="8" rx="1" fill="#4B372F"/><rect x="10" y="2" width="3" height="10" rx="1" fill="#4B372F"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#4B372F"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.5c2.3 0 4.4.9 6 2.4l-1.4 1.5A6.6 6.6 0 0 0 8.5 4.6 6.6 6.6 0 0 0 3.9 6.4L2.5 4.9A8.6 8.6 0 0 1 8.5 2.5Z" fill="#4B372F"/><path d="M8.5 6.5c1.2 0 2.3.5 3.1 1.3l-3.1 3.2-3.1-3.2A4.4 4.4 0 0 1 8.5 6.5Z" fill="#4B372F"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="#4B372F" opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#4B372F"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#4B372F" opacity="0.6"/></svg>
+          </div>
+        </div>
+        <div class="map full">
+          <div class="park" style="left:-30px; top:120px; width:150px; height:110px;"></div>
+          <div class="park" style="right:-24px; bottom:210px; width:130px; height:120px;"></div>
+          <div class="river" style="left:0; top:430px; width:100%; height:46px; transform:rotate(-8deg);"></div>
+          <div class="road h" style="left:0; top:210px; width:100%;"></div>
+          <div class="road h thin" style="left:0; top:330px; width:100%;"></div>
+          <div class="road v" style="left:150px; top:60px; height:600px;"></div>
+          <div class="road v thin" style="left:280px; top:60px; height:600px;"></div>
+          <div class="block" style="left:22px; top:238px; width:100px; height:70px;"></div>
+          <div class="block" style="left:180px; top:238px; width:80px; height:70px;"></div>
+          <div class="block" style="left:180px; top:360px; width:80px; height:52px;"></div>
+          <div class="block" style="left:305px; top:238px; width:64px; height:70px;"></div>
+
+          <div class="search-overlay">
+            <div class="searchbar">
+              <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12.5" y1="12.5" x2="16.5" y2="16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <span class="ph">우리가 다녀온 곳을 지도에서 찾아봐</span>
+            </div>
+          </div>
+
+          <div class="me" style="left:200px; top:340px;"></div>
+
+          <!-- 단골 : 방문횟수 뱃지 -->
+          <div class="pin" style="left:110px; top:190px;">
+            <div class="head"><span class="cnt-badge">4</span><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1l1.7 3.5L12.5 5 9.8 7.6l.7 3.8L7 9.6 3.5 11.4l.7-3.8L1.5 5l3.8-.5z" fill="#fff"/></svg></div>
+            <span class="lbl">별빛 카페</span>
+          </div>
+          <div class="pin soft" style="left:250px; top:170px;">
+            <div class="head"><span class="cnt-badge">2</span><svg width="13" height="13" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+            <span class="lbl">한강공원</span>
+          </div>
+          <div class="pin soft" style="left:330px; top:300px;">
+            <div class="head"><svg width="13" height="13" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+            <span class="lbl">소소책방</span>
+          </div>
+          <div class="pin softer" style="left:90px; top:400px;">
+            <div class="head"><svg width="13" height="13" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+            <span class="lbl">달콩 베이커리</span>
+          </div>
+
+          <div class="loc-btn">
+            <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="10" r="1.5" fill="currentColor"/><line x1="10" y1="0" x2="10" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="16" x2="10" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="0" y1="10" x2="4" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="10" x2="20" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="mini-title">
+            <svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1l1.7 3.5L12.5 5 9.8 7.6l.7 3.8L7 9.6 3.5 11.4l.7-3.8L1.5 5l3.8-.5z" fill="currentColor"/></svg>
+            이 근처 · 우리가 좋아할 만한 곳
+          </div>
+          <div class="mini-item">
+            <div class="mini-pin"><svg width="12" height="12" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+            <div class="mini-body">
+              <div class="mini-name">별빛 카페 <span class="mini-cat">· 카페</span> <span class="mini-visit">4번 방문</span></div>
+              <div class="mini-addr">서울 마포구 연남로 12 · 180m</div>
+            </div>
+            <div class="mini-add"><svg width="16" height="16" viewBox="0 0 16 16"><line x1="8" y1="3" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="8" x2="13" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          </div>
+          <div class="mini-item">
+            <div class="mini-pin"><svg width="12" height="12" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+            <div class="mini-body">
+              <div class="mini-name">소소책방 <span class="mini-cat">· 책방</span></div>
+              <div class="mini-addr">서울 마포구 성미산로 24 · 320m</div>
+            </div>
+            <div class="mini-add"><svg width="16" height="16" viewBox="0 0 16 16"><line x1="8" y1="3" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="8" x2="13" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          </div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+    </div>
+
+    <!-- ====== FRAME 3 : SEARCH parallel ====== -->
+    <div class="frame-wrap">
+      <div class="caption"><b>3</b> 검색 병행 · <span>결과로 카메라 이동</span></div>
+      <div class="phone">
+        <div class="statusbar on-map">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#4B372F"/><rect x="5" y="4" width="3" height="8" rx="1" fill="#4B372F"/><rect x="10" y="2" width="3" height="10" rx="1" fill="#4B372F"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#4B372F"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.5c2.3 0 4.4.9 6 2.4l-1.4 1.5A6.6 6.6 0 0 0 8.5 4.6 6.6 6.6 0 0 0 3.9 6.4L2.5 4.9A8.6 8.6 0 0 1 8.5 2.5Z" fill="#4B372F"/><path d="M8.5 6.5c1.2 0 2.3.5 3.1 1.3l-3.1 3.2-3.1-3.2A4.4 4.4 0 0 1 8.5 6.5Z" fill="#4B372F"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="#4B372F" opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#4B372F"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#4B372F" opacity="0.6"/></svg>
+          </div>
+        </div>
+        <div class="map full">
+          <div class="park" style="right:-30px; top:150px; width:150px; height:110px;"></div>
+          <div class="river" style="left:0; top:520px; width:100%; height:40px; transform:rotate(6deg);"></div>
+          <div class="road h" style="left:0; top:280px; width:100%;"></div>
+          <div class="road v" style="left:210px; top:60px; height:600px;"></div>
+          <div class="road v thin" style="left:90px; top:60px; height:600px;"></div>
+          <div class="block" style="left:118px; top:308px; width:80px; height:64px;"></div>
+          <div class="block" style="left:230px; top:180px; width:80px; height:70px;"></div>
+
+          <div class="search-overlay">
+            <div class="searchbar">
+              <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12.5" y1="12.5" x2="16.5" y2="16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <span class="typed">망원 티라미수</span><span class="caret"></span>
+              <span class="clear"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="currentColor" opacity="0.25"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+            </div>
+          </div>
+
+          <!-- result pins after camera move -->
+          <div class="pin active" style="left:170px; top:340px;">
+            <div class="head"><svg width="18" height="18" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+            <span class="lbl">망원 티라미수</span>
+          </div>
+          <div class="pin soft" style="left:270px; top:250px;">
+            <div class="head"><svg width="13" height="13" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+          </div>
+          <div class="pin softer" style="left:120px; top:250px;">
+            <div class="head"><svg width="13" height="13" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+          </div>
+
+          <div class="map-hint">
+            <svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1l1.7 3.5L12.5 5 9.8 7.6l.7 3.8L7 9.6 3.5 11.4l.7-3.8L1.5 5l3.8-.5z" fill="#FFB443"/></svg>
+            검색 결과 3곳으로 지도를 옮겼어요
+          </div>
+        </div>
+
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="mini-title">‘망원 티라미수’ 검색 결과 · 3곳</div>
+          <div class="mini-item on">
+            <div class="mini-pin"><svg width="12" height="12" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+            <div class="mini-body">
+              <div class="mini-name">망원 티라미수 <span class="mini-cat">· 카페,디저트</span></div>
+              <div class="mini-addr">서울 마포구 포은로 108 · 640m</div>
+            </div>
+            <div class="mini-add"><svg width="16" height="16" viewBox="0 0 16 16"><line x1="8" y1="3" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="8" x2="13" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          </div>
+          <div class="mini-item">
+            <div class="mini-pin"><svg width="12" height="12" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+            <div class="mini-body">
+              <div class="mini-name">티라미수 공방 <span class="mini-cat">· 디저트</span></div>
+              <div class="mini-addr">서울 마포구 월드컵로 40 · 1.1km</div>
+            </div>
+            <div class="mini-add"><svg width="16" height="16" viewBox="0 0 16 16"><line x1="8" y1="3" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="8" x2="13" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          </div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+    </div>
+
+    <!-- ====== FRAME 4 : PIN tap -> place card ====== -->
+    <div class="frame-wrap">
+      <div class="caption"><b>4</b> 핀 탭 → <span>장소 카드</span></div>
+      <div class="phone">
+        <div class="statusbar on-map">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#4B372F"/><rect x="5" y="4" width="3" height="8" rx="1" fill="#4B372F"/><rect x="10" y="2" width="3" height="10" rx="1" fill="#4B372F"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#4B372F"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.5c2.3 0 4.4.9 6 2.4l-1.4 1.5A6.6 6.6 0 0 0 8.5 4.6 6.6 6.6 0 0 0 3.9 6.4L2.5 4.9A8.6 8.6 0 0 1 8.5 2.5Z" fill="#4B372F"/><path d="M8.5 6.5c1.2 0 2.3.5 3.1 1.3l-3.1 3.2-3.1-3.2A4.4 4.4 0 0 1 8.5 6.5Z" fill="#4B372F"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="#4B372F" opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#4B372F"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#4B372F" opacity="0.6"/></svg>
+          </div>
+        </div>
+        <div class="map full">
+          <div class="park" style="left:-30px; top:120px; width:150px; height:110px;"></div>
+          <div class="road h" style="left:0; top:210px; width:100%;"></div>
+          <div class="road v" style="left:150px; top:60px; height:600px;"></div>
+          <div class="block" style="left:22px; top:238px; width:100px; height:70px;"></div>
+          <div class="block" style="left:180px; top:238px; width:80px; height:70px;"></div>
+
+          <div class="search-overlay">
+            <div class="searchbar">
+              <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12.5" y1="12.5" x2="16.5" y2="16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <span class="ph">우리가 다녀온 곳을 지도에서 찾아봐</span>
+            </div>
+          </div>
+
+          <div class="pin active" style="left:130px; top:250px;">
+            <div class="head"><span class="cnt-badge">4</span><svg width="18" height="18" viewBox="0 0 14 14"><path d="M7 1l1.7 3.5L12.5 5 9.8 7.6l.7 3.8L7 9.6 3.5 11.4l.7-3.8L1.5 5l3.8-.5z" fill="#fff"/></svg></div>
+            <span class="lbl">별빛 카페</span>
+          </div>
+          <div class="pin softer" style="left:280px; top:200px;">
+            <div class="head"><svg width="13" height="13" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+          </div>
+        </div>
+
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="pc-row">
+            <div class="pc-thumb">
+              <svg width="26" height="26" viewBox="0 0 26 26"><path d="M5 10h12v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4v-5Z" fill="none" stroke="#fff" stroke-width="2"/><path d="M17 11h2.5a2 2 0 0 1 0 4H17" fill="none" stroke="#fff" stroke-width="2"/><path d="M8 4v2M11 3v3M14 4v2" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <div class="pc-info">
+              <div class="pc-name">별빛 카페</div>
+              <div class="pc-meta">
+                <span class="pc-cat">카페 · 디저트</span>
+                <span class="pc-dist">180m</span>
+                <span class="pc-visit"><svg width="10" height="10" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="currentColor"/></svg>4번째</span>
+              </div>
+            </div>
+          </div>
+          <div class="pc-addr">
+            <svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 13S1.5 8.7 1.5 5.3A5.5 5.5 0 0 1 7 0a5.5 5.5 0 0 1 5.5 5.3C12.5 8.7 7 13 7 13Z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="5.2" r="1.8" fill="currentColor"/></svg>
+            서울 마포구 연남로 12 · 연남동
+          </div>
+          <button class="add-btn">
+            <svg width="18" height="18" viewBox="0 0 18 18"><line x1="9" y1="3" x2="9" y2="15" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><line x1="3" y1="9" x2="15" y2="9" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+            이 장소 담기
+          </button>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+    </div>
+
+    <!-- ====== FRAME 5 : MULTI-ADD (checked pins + basket) ====== -->
+    <div class="frame-wrap">
+      <div class="caption"><b>5</b> 여러 곳 담기 · <span>담은 핀 초록 체크</span></div>
+      <div class="phone">
+        <div class="statusbar on-map">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#4B372F"/><rect x="5" y="4" width="3" height="8" rx="1" fill="#4B372F"/><rect x="10" y="2" width="3" height="10" rx="1" fill="#4B372F"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#4B372F"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.5c2.3 0 4.4.9 6 2.4l-1.4 1.5A6.6 6.6 0 0 0 8.5 4.6 6.6 6.6 0 0 0 3.9 6.4L2.5 4.9A8.6 8.6 0 0 1 8.5 2.5Z" fill="#4B372F"/><path d="M8.5 6.5c1.2 0 2.3.5 3.1 1.3l-3.1 3.2-3.1-3.2A4.4 4.4 0 0 1 8.5 6.5Z" fill="#4B372F"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="#4B372F" opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#4B372F"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#4B372F" opacity="0.6"/></svg>
+          </div>
+        </div>
+        <!-- basket bar -->
+        <div class="nav" style="padding-bottom:4px;">
+          <div class="back"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="spacer"></div>
+          <div class="basket">
+            <svg width="15" height="15" viewBox="0 0 15 15"><path d="M7.5 13S1.5 8.7 1.5 5A3 3 0 0 1 7.5 3.4 3 3 0 0 1 13.5 5c0 3.7-6 8-6 8Z" fill="none" stroke="#fff" stroke-width="1.7"/></svg>
+            담은 장소 2
+          </div>
+        </div>
+        <div class="map full" style="margin-top:-4px;">
+          <div class="park" style="left:-30px; top:120px; width:150px; height:110px;"></div>
+          <div class="road h" style="left:0; top:210px; width:100%;"></div>
+          <div class="road v" style="left:150px; top:60px; height:600px;"></div>
+          <div class="block" style="left:22px; top:238px; width:100px; height:70px;"></div>
+
+          <!-- added pins -->
+          <div class="pin added" style="left:130px; top:230px;">
+            <div class="head"><span class="check-badge"><svg width="10" height="10" viewBox="0 0 12 12"><path d="M2 6l2.5 2.5L10 3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1l1.7 3.5L12.5 5 9.8 7.6l.7 3.8L7 9.6 3.5 11.4l.7-3.8L1.5 5l3.8-.5z" fill="#fff"/></svg></div>
+            <span class="lbl">별빛 카페</span>
+          </div>
+          <div class="pin added" style="left:290px; top:180px;">
+            <div class="head"><span class="check-badge"><svg width="10" height="10" viewBox="0 0 12 12"><path d="M2 6l2.5 2.5L10 3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><svg width="13" height="13" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+            <span class="lbl">소소책방</span>
+          </div>
+          <!-- active new pin -->
+          <div class="pin active" style="left:230px; top:340px;">
+            <div class="head"><svg width="18" height="18" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+            <span class="lbl">노을 식당</span>
+          </div>
+        </div>
+
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="pc-row">
+            <div class="pc-thumb">
+              <svg width="26" height="26" viewBox="0 0 26 26"><path d="M6 5v7a2 2 0 0 0 2 2h1v7M9 5v6M12 5v6" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M18 5c-1.6 0-2.5 2-2.5 4.5S16.4 14 18 14v7" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+            </div>
+            <div class="pc-info">
+              <div class="pc-name">노을 식당</div>
+              <div class="pc-meta">
+                <span class="pc-cat">한식 · 식당</span>
+                <span class="pc-dist">540m</span>
+              </div>
+            </div>
+          </div>
+          <div class="pc-addr">
+            <svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 13S1.5 8.7 1.5 5.3A5.5 5.5 0 0 1 7 0a5.5 5.5 0 0 1 5.5 5.3C12.5 8.7 7 13 7 13Z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="5.2" r="1.8" fill="currentColor"/></svg>
+            서울 마포구 월드컵북로 61
+          </div>
+          <div class="btn-pair">
+            <button class="add-btn ghost">
+              <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 15S1.5 10.2 1.5 6A6 6 0 0 1 8 0a6 6 0 0 1 6.5 6C14.5 10.2 8 15 8 15Z" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+              담기
+            </button>
+            <button class="add-btn">
+              <svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8l3.5 3.5L13 4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              3곳 일기에 넣기
+            </button>
+          </div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+    </div>
+
+    <!-- ====== FRAME 6 : DIARY reflected ====== -->
+    <div class="frame-wrap">
+      <div class="caption"><b>6</b> 완료 → <span>일기 속 코럴 칩 3</span></div>
+      <div class="phone">
+        <div class="statusbar">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#5A4038"/><rect x="5" y="4" width="3" height="8" rx="1" fill="#5A4038"/><rect x="10" y="2" width="3" height="10" rx="1" fill="#5A4038"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#5A4038"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.5c2.3 0 4.4.9 6 2.4l-1.4 1.5A6.6 6.6 0 0 0 8.5 4.6 6.6 6.6 0 0 0 3.9 6.4L2.5 4.9A8.6 8.6 0 0 1 8.5 2.5Z" fill="#5A4038"/><path d="M8.5 6.5c1.2 0 2.3.5 3.1 1.3l-3.1 3.2-3.1-3.2A4.4 4.4 0 0 1 8.5 6.5Z" fill="#5A4038"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="#5A4038" opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#5A4038"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#5A4038" opacity="0.6"/></svg>
+          </div>
+        </div>
+        <div class="nav">
+          <div class="back"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="title">오늘의 일기</div>
+        </div>
+        <div class="diary">
+          <div class="diary-date">7월 5일 일요일</div>
+          <div class="diary-h">우리의 연남동 데이트</div>
+          <div class="diary-body">
+            오늘은 오랜만에 <span class="accent">별빛 카페</span>에서 라떼 마시고,
+            바로 옆 소소책방 구경했어. 저녁엔 노을 식당에서 밥 먹고
+            한강까지 걸었지. 계속 손 잡고 다녔던 하루 🤍
+          </div>
+          <div class="sec-label">
+            <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 15S1.5 10.2 1.5 6A6 6 0 0 1 8 0a6 6 0 0 1 6.5 6C14.5 10.2 8 15 8 15Z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="8" cy="5.8" r="2" fill="currentColor"/></svg>
+            다녀온 장소 <span class="n">3곳</span>
+          </div>
+          <div class="chips">
+            <span class="chip">
+              <span class="dot"><svg width="9" height="9" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></span>
+              별빛 카페 <span class="x"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+            </span>
+            <span class="chip">
+              <span class="dot"><svg width="9" height="9" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></span>
+              소소책방 <span class="x"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+            </span>
+            <span class="chip">
+              <span class="dot"><svg width="9" height="9" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></span>
+              노을 식당 <span class="x"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+            </span>
+            <span class="chip add">
+              <svg width="14" height="14" viewBox="0 0 14 14"><line x1="7" y1="2.5" x2="7" y2="11.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="2.5" y1="7" x2="11.5" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              지도에서 더
+            </span>
+          </div>
+          <div class="toast">
+            <div class="check"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2.5 7.5l3 3 6-6.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="txt">3곳을 일기에 담았어요<small>지도에서 콕콕 찍은 그날의 동선이 담겼어요</small></div>
+          </div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row-title">엣지케이스 · 실제 구현에서 반드시 처리</div>
+  <div class="frames">
+
+    <!-- ====== FRAME 7 : PERMISSION denied ====== -->
+    <div class="frame-wrap">
+      <div class="caption"><b>E1</b> 위치 권한 없음 · <span>서울시청 폴백</span></div>
+      <div class="phone">
+        <div class="statusbar on-map">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#4B372F"/><rect x="5" y="4" width="3" height="8" rx="1" fill="#4B372F"/><rect x="10" y="2" width="3" height="10" rx="1" fill="#4B372F"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#4B372F"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.5c2.3 0 4.4.9 6 2.4l-1.4 1.5A6.6 6.6 0 0 0 8.5 4.6 6.6 6.6 0 0 0 3.9 6.4L2.5 4.9A8.6 8.6 0 0 1 8.5 2.5Z" fill="#4B372F"/><path d="M8.5 6.5c1.2 0 2.3.5 3.1 1.3l-3.1 3.2-3.1-3.2A4.4 4.4 0 0 1 8.5 6.5Z" fill="#4B372F"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="#4B372F" opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#4B372F"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#4B372F" opacity="0.6"/></svg>
+          </div>
+        </div>
+        <div class="map full dim blur">
+          <div class="road h" style="left:0; top:260px; width:100%;"></div>
+          <div class="road v" style="left:150px; top:60px; height:600px;"></div>
+          <div class="block" style="left:22px; top:288px; width:100px; height:70px;"></div>
+          <div class="block" style="left:230px; top:288px; width:80px; height:70px;"></div>
+
+          <div class="search-overlay">
+            <div class="searchbar">
+              <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12.5" y1="12.5" x2="16.5" y2="16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <span class="ph">장소 이름으로 검색해도 돼요</span>
+            </div>
+          </div>
+
+          <div class="perm-card">
+            <div class="empty-emoji">📍</div>
+            <div class="empty-h">지금 위치를 알 수 없어요</div>
+            <div class="empty-p">위치 권한을 켜면 근처 다녀온 곳을<br/>바로 지도에 띄워줄 수 있어요.<br/>지금은 검색으로 찾거나 지도를 움직여봐요.</div>
+            <div class="empty-cta">위치 권한 켜기</div>
+            <div style="margin-top:12px; font-size:13px; color:var(--placeholder); font-weight:700;">그냥 검색으로 찾기</div>
+          </div>
+
+          <div class="loc-btn off">
+            <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4" fill="none" stroke="currentColor" stroke-width="2"/><line x1="10" y1="0" x2="10" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="16" x2="10" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="2" x2="18" y2="18" stroke="#D46A4A" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+    </div>
+
+    <!-- ====== FRAME 8 : EMPTY search ====== -->
+    <div class="frame-wrap">
+      <div class="caption"><b>E2</b> 검색 결과 없음 · <span>직접 찍기 유도</span></div>
+      <div class="phone">
+        <div class="statusbar on-map">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#4B372F"/><rect x="5" y="4" width="3" height="8" rx="1" fill="#4B372F"/><rect x="10" y="2" width="3" height="10" rx="1" fill="#4B372F"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#4B372F"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.5c2.3 0 4.4.9 6 2.4l-1.4 1.5A6.6 6.6 0 0 0 8.5 4.6 6.6 6.6 0 0 0 3.9 6.4L2.5 4.9A8.6 8.6 0 0 1 8.5 2.5Z" fill="#4B372F"/><path d="M8.5 6.5c1.2 0 2.3.5 3.1 1.3l-3.1 3.2-3.1-3.2A4.4 4.4 0 0 1 8.5 6.5Z" fill="#4B372F"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="#4B372F" opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#4B372F"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#4B372F" opacity="0.6"/></svg>
+          </div>
+        </div>
+        <div class="map full">
+          <div class="road h" style="left:0; top:240px; width:100%;"></div>
+          <div class="road v" style="left:190px; top:60px; height:600px;"></div>
+          <div class="block" style="left:60px; top:268px; width:90px; height:60px;"></div>
+          <div class="me" style="left:190px; top:300px;"></div>
+
+          <div class="search-overlay">
+            <div class="searchbar">
+              <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12.5" y1="12.5" x2="16.5" y2="16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <span class="typed">준영이네 옥탑 텃밭</span><span class="caret"></span>
+              <span class="clear"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="currentColor" opacity="0.25"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sheet" style="padding-bottom:34px;">
+          <div class="grab"></div>
+          <div class="empty-block">
+            <div class="empty-emoji">🔍</div>
+            <div class="empty-h">‘준영이네 옥탑 텃밭’ 못 찾았어요</div>
+            <div class="empty-p">카카오맵에 없는 곳이거나 오타일 수 있어요.<br/>지도를 꾹 눌러 그 자리에 직접 핀을 찍어봐요.</div>
+            <div class="empty-cta"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 15S1.5 10.2 1.5 6A6 6 0 0 1 8 0a6 6 0 0 1 6.5 6C14.5 10.2 8 15 8 15Z" fill="none" stroke="#fff" stroke-width="1.7"/><circle cx="8" cy="5.8" r="2" fill="#fff"/></svg>지도에서 직접 찍기</div>
+          </div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+    </div>
+
+    <!-- ====== FRAME 9 : LOADING skeleton ====== -->
+    <div class="frame-wrap">
+      <div class="caption"><b>E3</b> 로딩·오프라인 · <span>스켈레톤</span></div>
+      <div class="phone">
+        <div class="statusbar on-map">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#4B372F"/><rect x="5" y="4" width="3" height="8" rx="1" fill="#4B372F"/><rect x="10" y="2" width="3" height="10" rx="1" fill="#4B372F"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#4B372F"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.5c2.3 0 4.4.9 6 2.4l-1.4 1.5A6.6 6.6 0 0 0 8.5 4.6 6.6 6.6 0 0 0 3.9 6.4L2.5 4.9A8.6 8.6 0 0 1 8.5 2.5Z" fill="#4B372F"/><path d="M8.5 6.5c1.2 0 2.3.5 3.1 1.3l-3.1 3.2-3.1-3.2A4.4 4.4 0 0 1 8.5 6.5Z" fill="#4B372F"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="#4B372F" opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#4B372F"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#4B372F" opacity="0.6"/></svg>
+          </div>
+        </div>
+        <div class="map full blur">
+          <div class="road h" style="left:0; top:240px; width:100%;"></div>
+          <div class="road v" style="left:190px; top:60px; height:600px;"></div>
+          <div class="search-overlay">
+            <div class="searchbar">
+              <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12.5" y1="12.5" x2="16.5" y2="16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <span class="typed">별빛</span><span class="caret"></span>
+            </div>
+          </div>
+          <div class="map-hint">
+            <svg width="14" height="14" viewBox="0 0 14 14" style="animation:none"><circle cx="7" cy="7" r="5.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-dasharray="20 8"/></svg>
+            근처 장소 불러오는 중…
+          </div>
+        </div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="sk sk-l1" style="height:13px; width:46%; margin:0 0 14px 2px;"></div>
+          <div class="sk-item">
+            <div class="sk sk-pin"></div>
+            <div class="sk-lines"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div>
+          </div>
+          <div class="sk-item">
+            <div class="sk sk-pin"></div>
+            <div class="sk-lines"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div>
+          </div>
+          <div class="sk-item">
+            <div class="sk sk-pin"></div>
+            <div class="sk-lines"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div>
+          </div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+    </div>
+
+    <!-- ====== FRAME 10 : CLUSTER ====== -->
+    <div class="frame-wrap">
+      <div class="caption"><b>E4</b> 핀 겹침 · <span>클러스터 → 펼치기</span></div>
+      <div class="phone">
+        <div class="statusbar on-map">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#4B372F"/><rect x="5" y="4" width="3" height="8" rx="1" fill="#4B372F"/><rect x="10" y="2" width="3" height="10" rx="1" fill="#4B372F"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#4B372F"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.5c2.3 0 4.4.9 6 2.4l-1.4 1.5A6.6 6.6 0 0 0 8.5 4.6 6.6 6.6 0 0 0 3.9 6.4L2.5 4.9A8.6 8.6 0 0 1 8.5 2.5Z" fill="#4B372F"/><path d="M8.5 6.5c1.2 0 2.3.5 3.1 1.3l-3.1 3.2-3.1-3.2A4.4 4.4 0 0 1 8.5 6.5Z" fill="#4B372F"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="#4B372F" opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#4B372F"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#4B372F" opacity="0.6"/></svg>
+          </div>
+        </div>
+        <div class="map full">
+          <div class="park" style="right:-20px; top:130px; width:130px; height:100px;"></div>
+          <div class="road h" style="left:0; top:280px; width:100%;"></div>
+          <div class="road v" style="left:120px; top:60px; height:600px;"></div>
+          <div class="road v thin" style="left:260px; top:60px; height:600px;"></div>
+          <div class="block" style="left:150px; top:180px; width:90px; height:60px;"></div>
+
+          <div class="search-overlay">
+            <div class="searchbar">
+              <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12.5" y1="12.5" x2="16.5" y2="16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <span class="ph">우리가 다녀온 곳을 지도에서 찾아봐</span>
+            </div>
+          </div>
+
+          <!-- cluster bubble -->
+          <div class="cluster" style="left:200px; top:230px;"><div class="ring"></div>7</div>
+          <div class="pin softer" style="left:300px; top:400px;">
+            <div class="head"><svg width="13" height="13" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+            <span class="lbl">달콩 베이커리</span>
+          </div>
+
+          <div class="map-hint">
+            <svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7h10M7 2v10" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            겹친 핀 7곳 · 탭하면 펼쳐져요
+          </div>
+
+          <div class="loc-btn">
+            <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="10" r="1.5" fill="currentColor"/><line x1="10" y1="0" x2="10" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="16" x2="10" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="0" y1="10" x2="4" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="10" x2="20" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="mini-title">이 동네에 7곳 · 확대하면 하나씩 보여요</div>
+          <div class="mini-item">
+            <div class="mini-pin"><svg width="12" height="12" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+            <div class="mini-body">
+              <div class="mini-name">별빛 카페 <span class="mini-cat">· 카페</span></div>
+              <div class="mini-addr">서울 마포구 연남로 12</div>
+            </div>
+            <div class="mini-add"><svg width="16" height="16" viewBox="0 0 16 16"><line x1="8" y1="3" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="8" x2="13" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          </div>
+          <div class="mini-item">
+            <div class="mini-pin"><svg width="12" height="12" viewBox="0 0 13 13"><path d="M6.5 11.5S1 7.7 1 4.6A2.7 2.7 0 0 1 6.5 3 2.7 2.7 0 0 1 12 4.6c0 3.1-5.5 6.9-5.5 6.9Z" fill="#fff"/></svg></div>
+            <div class="mini-body">
+              <div class="mini-name">연남 우동집 <span class="mini-cat">· 일식</span></div>
+              <div class="mini-addr">서울 마포구 연남로 8</div>
+            </div>
+            <div class="mini-add"><svg width="16" height="16" viewBox="0 0 16 16"><line x1="8" y1="3" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="8" x2="13" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          </div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+    </div>
+
+    <!-- ====== FRAME 11 : LONG PRESS drop pin ====== -->
+    <div class="frame-wrap">
+      <div class="caption"><b>E5</b> 직접 핀 찍기 · <span>롱프레스 + 이름 입력</span></div>
+      <div class="phone">
+        <div class="statusbar on-map">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#4B372F"/><rect x="5" y="4" width="3" height="8" rx="1" fill="#4B372F"/><rect x="10" y="2" width="3" height="10" rx="1" fill="#4B372F"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#4B372F"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.5c2.3 0 4.4.9 6 2.4l-1.4 1.5A6.6 6.6 0 0 0 8.5 4.6 6.6 6.6 0 0 0 3.9 6.4L2.5 4.9A8.6 8.6 0 0 1 8.5 2.5Z" fill="#4B372F"/><path d="M8.5 6.5c1.2 0 2.3.5 3.1 1.3l-3.1 3.2-3.1-3.2A4.4 4.4 0 0 1 8.5 6.5Z" fill="#4B372F"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="#4B372F" opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#4B372F"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#4B372F" opacity="0.6"/></svg>
+          </div>
+        </div>
+        <div class="map full">
+          <div class="park" style="left:-30px; top:130px; width:150px; height:100px;"></div>
+          <div class="road h" style="left:0; top:300px; width:100%;"></div>
+          <div class="road v" style="left:170px; top:60px; height:600px;"></div>
+          <div class="block" style="left:40px; top:328px; width:90px; height:60px;"></div>
+
+          <div class="search-overlay">
+            <div class="searchbar">
+              <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12.5" y1="12.5" x2="16.5" y2="16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <span class="ph">검색에 없으면 지도를 꾹 눌러요</span>
+            </div>
+          </div>
+
+          <div class="longpress-ghost"></div>
+          <div class="drop-pin">
+            <div class="head"><svg width="16" height="16" viewBox="0 0 14 14"><path d="M7 1l1.7 3.5L12.5 5 9.8 7.6l.7 3.8L7 9.6 3.5 11.4l.7-3.8L1.5 5l3.8-.5z" fill="#fff"/></svg></div>
+            <div class="ripple"></div>
+          </div>
+        </div>
+
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="mini-title">
+            <svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1l1.7 3.5L12.5 5 9.8 7.6l.7 3.8L7 9.6 3.5 11.4l.7-3.8L1.5 5l3.8-.5z" fill="currentColor"/></svg>
+            여기에 직접 핀을 찍었어요
+          </div>
+          <div style="font-size:12.5px; color:var(--subText); display:flex; align-items:center; gap:6px; padding-left:2px;">
+            <svg width="13" height="13" viewBox="0 0 14 14"><path d="M7 13S1.5 8.7 1.5 5.3A5.5 5.5 0 0 1 7 0a5.5 5.5 0 0 1 5.5 5.3C12.5 8.7 7 13 7 13Z" fill="none" stroke="var(--placeholder)" stroke-width="1.6"/></svg>
+            서울 마포구 성미산로 근처 (좌표 저장)
+          </div>
+          <div class="name-input">
+            <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 12l7.5-7.5 2 2L4 14H2v-2Z" fill="none" stroke="var(--primary)" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            <span class="typed">준영이네 옥탑 텃밭</span><span class="caret"></span>
+          </div>
+          <button class="add-btn">
+            <svg width="18" height="18" viewBox="0 0 18 18"><line x1="9" y1="3" x2="9" y2="15" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><line x1="3" y1="9" x2="15" y2="9" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+            이 이름으로 담기
+          </button>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
