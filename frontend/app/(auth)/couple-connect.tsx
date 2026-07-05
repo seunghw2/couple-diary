@@ -4,6 +4,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -29,6 +31,25 @@ export default function CoupleConnectScreen() {
   const [partnerCode, setPartnerCode] = useState('');
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // 당겨서 새로고침: 연결 상태를 즉시 재조회(자동 폴링을 기다리지 않아도 됨).
+  // coupled=true가 되면 _layout 가드가 홈으로 이동시킨다.
+  async function onRefresh() {
+    setRefreshing(true);
+    try {
+      await useAuthStore.getState().bootstrap();
+      if (!myCode) {
+        try {
+          setMyCode(await invite());
+        } catch {
+          /* 무시 */
+        }
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   // 진입 시 내 초대코드 발급
   useEffect(() => {
@@ -89,11 +110,25 @@ export default function CoupleConnectScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <View style={styles.container}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+          alwaysBounceVertical
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+          }
+        >
           <Text style={styles.title}>커플 연결</Text>
           <Text style={styles.subtitle}>서로의 코드를 교환하면 일기가 이어져요</Text>
 
-          <Card style={{ marginTop: spacing.xl }}>
+          {/* 안내: 상대가 연결하면 자동 전환되지만, 안 넘어가면 당겨서 새로고침 */}
+          <View style={styles.refreshHint}>
+            <Icon name="arrow-down" size={14} color={colors.primary} />
+            <Text style={styles.refreshHintText}>상대가 연결하면 자동으로 넘어가요 · 안 되면 화면을 아래로 당겨 새로고침</Text>
+          </View>
+
+          <Card style={{ marginTop: spacing.lg }}>
             <Text style={styles.cardLabel}>내 초대코드</Text>
             {inviteLoading ? (
               <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.lg }} />
@@ -133,7 +168,7 @@ export default function CoupleConnectScreen() {
           <Pressable onPress={onLogout} style={{ marginTop: spacing.xl, alignSelf: 'center' }}>
             <Text style={styles.logout}>로그아웃</Text>
           </Pressable>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -141,9 +176,20 @@ export default function CoupleConnectScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  container: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxl },
+  container: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, paddingBottom: spacing.xxl },
   title: { ...font.h1, color: colors.primary },
   subtitle: { ...font.body, color: colors.subText, marginTop: spacing.sm },
+  refreshHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+  },
+  refreshHintText: { ...font.caption, color: colors.subText, flex: 1 },
   cardLabel: { ...font.label, marginBottom: spacing.md },
   codeBox: {
     backgroundColor: colors.bg,
