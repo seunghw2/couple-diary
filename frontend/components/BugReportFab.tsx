@@ -117,7 +117,7 @@ export function BugReportFab() {
           { backgroundColor: c.primary, transform: pan.getTranslateTransform() },
         ]}
       >
-        <Ionicons name="bug" size={26} color={colors.white} />
+        <Ionicons name="bulb" size={26} color={colors.white} />
       </Animated.View>
 
       <BugReportModal visible={modalOpen} onClose={() => setModalOpen(false)} />
@@ -175,7 +175,7 @@ function BugReportModal({ visible, onClose }: { visible: boolean; onClose: () =>
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <View style={[styles.headerIcon, { backgroundColor: c.coralSofter }]}>
-                <Ionicons name="bug" size={20} color={c.primary} />
+                <Ionicons name="bulb" size={20} color={c.primary} />
               </View>
               <Text style={styles.title}>피드백 보내기</Text>
             </View>
