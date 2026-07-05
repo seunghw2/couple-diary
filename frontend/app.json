@@ -34,7 +34,8 @@
     "extra": {
       "apiUrl": "https://today-api.hammerslog.trade",
       "kakaoJsKey": "bddb8a32af4507ecf1ea402ea4c0ca7b",
-      "kakaoRestKey": "be9e8e34057ddefce22d6f52732c3c7a"
+      "kakaoRestKey": "be9e8e34057ddefce22d6f52732c3c7a",
+      "kakaoRedirectUri": "https://today-api.hammerslog.trade/api/auth/kakao/callback"
     }
   }
 }

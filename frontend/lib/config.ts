@@ -63,5 +63,17 @@ export const KAKAO_REST_KEY = resolveKakaoRestKey();
  * 백엔드 카카오 콜백(= 카카오 콘솔에 등록하는 Redirect URI).
  * 카카오는 커스텀 스킴(exp://, today://)을 Redirect URI로 허용하지 않으므로
  * 반드시 백엔드 HTTPS 콜백을 redirect_uri로 쓴다. 콜백이 로그인 처리 후 앱 returnUri로 302 리다이렉트한다.
+ *
+ * ⚠️ 이 값은 카카오 콘솔에 등록한 값과 **글자 하나까지 동일**해야 하고, 토큰 교환 때도 같은 값이어야 한다.
+ * 그래서 API_URL(실기기에선 LAN IP로 바뀜)로 조립하지 않고 **고정 HTTPS 도메인**을 쓴다.
+ * 우선순위: EXPO_PUBLIC_KAKAO_REDIRECT_URI > app.json extra.kakaoRedirectUri > 운영 기본값.
  */
-export const KAKAO_REDIRECT_URI = `${API_URL}/api/auth/kakao/callback`;
+function resolveKakaoRedirectUri(): string {
+  const envUri = process.env.EXPO_PUBLIC_KAKAO_REDIRECT_URI;
+  if (envUri) return envUri;
+  const extraUri = (Constants.expoConfig?.extra as { kakaoRedirectUri?: string } | undefined)
+    ?.kakaoRedirectUri;
+  return extraUri ?? 'https://today-api.hammerslog.trade/api/auth/kakao/callback';
+}
+
+export const KAKAO_REDIRECT_URI = resolveKakaoRedirectUri();
