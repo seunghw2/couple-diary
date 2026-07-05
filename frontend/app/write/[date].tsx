@@ -466,16 +466,14 @@ export default function WriteScreen() {
             <View style={styles.moodRow}>
               {MOODS.map((m) => {
                 const on = mood === m.key;
+                const MIcon = m.Icon;
                 return (
                   <Pressable
                     key={m.key}
                     onPress={() => setMood(m.key)}
                     style={[styles.moodItem, on && [styles.moodSelected, { borderColor: c.primary }]]}
                   >
-                    <Text style={styles.moodEmoji}>{m.emoji}</Text>
-                    <Text style={[styles.moodLabel, on && { color: c.primary, fontWeight: '700' }]}>
-                      {m.label}
-                    </Text>
+                    <MIcon size={26} color={on ? c.primary : colors.subText} strokeWidth={1.7} />
                   </Pressable>
                 );
               })}
@@ -906,22 +904,20 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sectionLabel: { ...font.title },
-  moodRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  // 12개 → 6열 2줄 그리드.
+  moodRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: spacing.sm },
   moodItem: {
-    width: 52,
-    paddingVertical: 8,
+    width: '15%',
+    aspectRatio: 1,
     borderRadius: radius.md,
     backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
     borderWidth: 2,
     borderColor: 'transparent',
     ...shadow,
   },
   moodSelected: { borderColor: colors.primary },
-  moodEmoji: { fontSize: 24, lineHeight: 28 },
-  moodLabel: { fontSize: 10, color: colors.subText },
 
   formHeadingRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.md },
   formHeading: { ...font.title },

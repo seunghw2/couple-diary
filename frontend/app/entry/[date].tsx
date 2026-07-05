@@ -24,7 +24,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, entryApi, isLocked } from '../../lib/api';
 import { dDay, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
 import { confirmAsync, showAlert } from '../../lib/dialog';
-import { moodEmoji, moodLabel } from '../../constants/content';
+import { moodIcon } from '../../constants/content';
 import { useCoupleStore } from '../../store/useCoupleStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useNotifStore } from '../../store/useNotifStore';
@@ -633,16 +633,17 @@ function SideCard({
 
       {/* 메타: 기분 / 위치 */}
       <View style={styles.metaRow}>
-        {side.mood ? (
-          <Pill tone="coral">
-            <View style={styles.pillRow}>
-              {moodEmoji(side.mood) ? (
-                <Text style={styles.pillEmoji}>{moodEmoji(side.mood)}</Text>
-              ) : null}
-              <Text style={styles.pillLabel}>{moodLabel(side.mood) ?? '기분'}</Text>
-            </View>
-          </Pill>
-        ) : null}
+        {side.mood ? (() => {
+          const MoodIco = moodIcon(side.mood);
+          return (
+            <Pill tone="coral">
+              <View style={styles.pillRow}>
+                {MoodIco ? <MoodIco size={16} color={colors.text} strokeWidth={1.8} /> : null}
+                <Text style={styles.pillLabel}>기분</Text>
+              </View>
+            </Pill>
+          );
+        })() : null}
         {locs.map((loc) => (
           <Pill key={loc} tone="neutral">
             <View style={styles.pillRow}>

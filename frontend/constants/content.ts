@@ -4,27 +4,46 @@ import type { Ionicons } from '@expo/vector-icons';
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
 /**
- * 기분 선택지. 사용자가 고른 기분은 문자열(key)로 저장.
- * 벡터 아이콘(잎·원·달)은 감정이 잘 안 드러나서 이모지로 표시.
- * key=저장/식별용, emoji=UI 표시, label=보조 설명.
+ * 기분 선택지(12개). 앱 아웃라인 느낌에 맞춘 Tabler 라인 아이콘으로 표시(글자 없음).
+ * 커플/데이트 앱이라 하트 계열(사랑·설렘) 포함. key=저장/식별용(하위호환 유지).
+ * (Tabler엔 heart-eyes가 없어 사랑은 mood-heart 사용)
  */
-export const MOODS: { key: string; emoji: string; label: string }[] = [
-  { key: 'happy', emoji: '😊', label: '기쁨' },
-  { key: 'love', emoji: '🥰', label: '사랑' },
-  { key: 'calm', emoji: '😌', label: '평온' },
-  { key: 'soso', emoji: '😐', label: '그냥' },
-  { key: 'sad', emoji: '😢', label: '슬픔' },
-  { key: 'tired', emoji: '😴', label: '피곤' },
+import type { Icon } from '@tabler/icons-react-native';
+import {
+  IconMoodHappy,
+  IconMoodHeart,
+  IconHearts,
+  IconMoodCrazyHappy,
+  IconMoodSmile,
+  IconMoodWink,
+  IconMoodNeutral,
+  IconMoodNervous,
+  IconMoodSad,
+  IconMoodCry,
+  IconMoodSick,
+  IconMoodAngry,
+} from '@tabler/icons-react-native';
+
+export type MoodIcon = Icon;
+
+export const MOODS: { key: string; label: string; Icon: MoodIcon }[] = [
+  { key: 'happy', label: '기쁨', Icon: IconMoodHappy },
+  { key: 'love', label: '사랑', Icon: IconMoodHeart },
+  { key: 'flutter', label: '설렘', Icon: IconHearts },
+  { key: 'excited', label: '신남', Icon: IconMoodCrazyHappy },
+  { key: 'calm', label: '평온', Icon: IconMoodSmile },
+  { key: 'playful', label: '장난', Icon: IconMoodWink },
+  { key: 'soso', label: '그냥', Icon: IconMoodNeutral },
+  { key: 'nervous', label: '긴장', Icon: IconMoodNervous },
+  { key: 'sad', label: '슬픔', Icon: IconMoodSad },
+  { key: 'cry', label: '울음', Icon: IconMoodCry },
+  { key: 'sick', label: '아픔', Icon: IconMoodSick },
+  { key: 'angry', label: '화남', Icon: IconMoodAngry },
 ];
 
-/** 저장된 mood key → 이모지. 없으면 undefined. */
-export function moodEmoji(key: string | null | undefined): string | undefined {
-  return MOODS.find((m) => m.key === key)?.emoji;
-}
-
-/** 저장된 mood key → 한글 라벨. 없으면 undefined. */
-export function moodLabel(key: string | null | undefined): string | undefined {
-  return MOODS.find((m) => m.key === key)?.label;
+/** 저장된 mood key → 아이콘 컴포넌트. 없으면 undefined. */
+export function moodIcon(key: string | null | undefined): MoodIcon | undefined {
+  return MOODS.find((m) => m.key === key)?.Icon;
 }
 
 /** 템플릿 모드 빈칸(promptKey → 라벨). icon=라벨 앞 벡터 아이콘. */
