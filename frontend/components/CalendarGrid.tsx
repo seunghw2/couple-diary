@@ -42,8 +42,8 @@ export function CalendarGrid({ year, month, entries, today, onPressDate, markedD
           const e = entries[date];
           const isToday = date === today;
           const hasContent = !!e && e.status !== 'EMPTY';
-          // 콕 찍어둔 날 표시: 일기가 있으면(하트) 숨기고, 없을 때만 작은 점.
-          const marked = !hasContent && !!markedDates?.has(date);
+          // 콕 찍어둔 날(기념일 등): 일기가 있든 없든 날짜 숫자에 하이라이트 배경으로 항상 표시(4안).
+          const marked = !!markedDates?.has(date);
           // 서버가 thumbSeed에 실제 이미지 경로(/files/...)를 줄 수도 있음
           const thumbUrl = e?.thumbSeed?.startsWith('/files/') ? e.thumbSeed : undefined;
 
@@ -51,7 +51,13 @@ export function CalendarGrid({ year, month, entries, today, onPressDate, markedD
             <Pressable key={date} style={styles.cell} onPress={() => onPressDate(date)}>
               {/* 날짜 숫자 + 마커가 반드시 같은 칸(dayWrap) 안에 들어가는 콘텐츠 기반 높이 레이아웃 */}
               <View style={[styles.dayWrap, isToday && styles.todayWrap]}>
-                <Text style={[styles.dayNum, isToday && { color: c.primary, fontWeight: '800' }]}>
+                <Text
+                  style={[
+                    styles.dayNum,
+                    isToday && { color: c.primary, fontWeight: '800' },
+                    marked && [styles.dayNumMark, { backgroundColor: c.coralSofter, color: colors.text }],
+                  ]}
+                >
                   {cell.day}
                 </Text>
 
@@ -78,9 +84,7 @@ export function CalendarGrid({ year, month, entries, today, onPressDate, markedD
                     ) : null}
                   </View>
                 ) : (
-                  <View style={[styles.emptyCircle, isToday && { borderColor: c.primary, borderStyle: 'solid' }]}>
-                    {marked ? <View style={[styles.markDot, { backgroundColor: c.primary }]} /> : null}
-                  </View>
+                  <View style={[styles.emptyCircle, isToday && { borderColor: c.primary, borderStyle: 'solid' }]} />
                 )}
               </View>
             </Pressable>
@@ -121,6 +125,8 @@ const styles = StyleSheet.create({
   },
   todayWrap: { backgroundColor: '#FFEFE6' },
   dayNum: { ...font.caption, lineHeight: 14, color: colors.subText, marginBottom: 3 },
+  // 기념일 하이라이트(4안): 날짜 숫자에 둥근 코럴 배경.
+  dayNumMark: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8, overflow: 'hidden', fontWeight: '700' },
   emptyCircle: {
     width: THUMB_SIZE,
     height: THUMB_SIZE,
@@ -128,10 +134,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.border,
     borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  markDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: colors.primary },
   badge: { position: 'absolute', top: -4, right: -4 },
   // 코럴 스티커(사진 없을 때). 이전엔 seed 그라데이션이라 날짜에 따라 보라색이 나오기도 했음.
   stickerThumb: {

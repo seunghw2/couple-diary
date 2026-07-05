@@ -55,13 +55,6 @@ export default function SettingsScreen() {
             tint={c.primary}
             label="기념일 보기"
             onPress={() => router.push('/anniversaries')}
-          />
-          <Divider />
-          <SettingsRow
-            icon="bulb-outline"
-            tint={c.primary}
-            label="피드백"
-            onPress={() => router.push('/bug-reports')}
             last
           />
         </View>
@@ -127,9 +120,6 @@ function SettingsRow({
   );
 }
 
-function Divider() {
-  return <View style={styles.divider} />;
-}
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
@@ -167,7 +157,6 @@ const styles = StyleSheet.create({
   rowLabel: { ...font.body, flex: 1, color: colors.text },
   rowRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   rowValue: { ...font.body, color: colors.subText },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginLeft: 56 },
 
   hint: { ...font.caption, marginBottom: spacing.md },
   swatchWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },

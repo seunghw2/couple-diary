@@ -380,26 +380,6 @@ export const notificationApi = {
   poke: () => api.post<void>('/api/poke'),
 };
 
-// ─────────────────────────── 버그 리포트 ───────────────────────────
-
-export type BugReport = {
-  id: number;
-  reporterNickname: string;
-  bugText?: string;
-  wishText?: string;
-  imageUrls?: string[];
-  createdAt: string;
-};
-
-export type BugReportListResponse = { items: BugReport[] };
-
-export const bugReportApi = {
-  /** 버그/기능 제안 작성. 둘 다 비면 서버가 400. imageUrls 최대 3장. */
-  create: (body: { bugText?: string; wishText?: string; imageUrls?: string[] }) =>
-    api.post<BugReport>('/api/bug-reports', body),
-  list: () => api.get<BugReportListResponse>('/api/bug-reports'),
-};
-
 export const entryApi = {
   month: (year: number, month: number) =>
     api.get<MonthEntrySummary[]>(`/api/entries?year=${year}&month=${month}`),
