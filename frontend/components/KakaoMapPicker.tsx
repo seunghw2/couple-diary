@@ -605,6 +605,8 @@ function buildHtml(key: string): string {
     .pin { position: relative; transform: translate(-50%, -100%); cursor: pointer; -webkit-tap-highlight-color: transparent; }
     .pin .dot { font-size: 28px; line-height: 1; color: ${colors.primary}; text-shadow: 0 2px 4px rgba(0,0,0,0.25); }
     .pin.added .dot { color: #4CAF7D; }
+    /* 탭 위치 핀: CustomOverlay 앵커(0.5,0.5)로 좌표 중앙에 놓으므로 CSS 이중 오프셋 제거. */
+    .pin.active { transform: none; }
     .pin.active .dot { font-size: 36px; }
     .pin .check {
       position: absolute; top: -4px; right: -8px; width: 16px; height: 16px;
@@ -686,8 +688,9 @@ function buildHtml(key: string): string {
           if (pickOverlay) { pickOverlay.setMap(null); pickOverlay = null; }
           var el = document.createElement('div'); el.className = 'pin active';
           el.innerHTML = '<div class="dot">\\u2665</div>';
+          // 하트 중앙을 탭한 좌표에 정확히 맞춤(앵커 0.5,0.5 + CSS transform 제거).
           pickOverlay = new kakao.maps.CustomOverlay({
-            position: new kakao.maps.LatLng(lat, lng), content: el, xAnchor: 0.5, yAnchor: 1.0
+            position: new kakao.maps.LatLng(lat, lng), content: el, xAnchor: 0.5, yAnchor: 0.5
           });
           pickOverlay.setMap(map);
         }
@@ -727,15 +730,28 @@ function buildHtml(key: string): string {
               finish();
             }, { location: loc, radius: 100, sort: kakao.maps.services.SortBy.DISTANCE });
           });
-          // 건물명(오피스텔/타워 등)은 카테고리 검색에 안 잡히므로 역지오코딩으로 보강.
+          // 오피스텔/타워 등은 category_group_code가 없어 categorySearch에 안 잡히고,
+          // 역지오코딩 building_name도 자주 빈다. → 탭 지점의 도로명/지번 주소를 키워드로
+          // 검색하면 그 주소의 건물·입점 매장이 잡혀(건물이 0m로 최상단) 후보에 포함된다.
           geocoder.coord2Address(lng, lat, function (res, status) {
+            var addr = '';
             if (status === kakao.maps.services.Status.OK && res[0]) {
-              var ra = res[0].road_address;
-              var addr = (ra && ra.address_name) || (res[0].address && res[0].address.address_name) || '';
-              var bn = ra && ra.building_name;
-              if (bn) push(bn, addr, '건물', lat, lng, 10);
+              var ra = res[0].road_address, ja = res[0].address;
+              addr = (ra && ra.address_name) || (ja && ja.address_name) || '';
             }
-            finish();
+            if (!addr) { finish(); return; }
+            places.keywordSearch(addr, function (data, status2) {
+              if (status2 === kakao.maps.services.Status.OK) {
+                data.forEach(function (p) {
+                  push(p.place_name,
+                       p.road_address_name || p.address_name,
+                       p.category_group_name || p.category_name,
+                       parseFloat(p.y), parseFloat(p.x),
+                       p.distance ? parseInt(p.distance, 10) : null);
+                });
+              }
+              finish();
+            }, { location: loc, radius: 100, sort: kakao.maps.services.SortBy.DISTANCE });
           });
         }
 
