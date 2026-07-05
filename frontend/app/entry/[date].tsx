@@ -43,6 +43,7 @@ function isValidDate(v: string): boolean {
 
 export default function EntryDetailScreen() {
   const router = useRouter();
+  const c = useColors();
   const { date } = useLocalSearchParams<{ date: string }>();
   const dateStr = date ?? todayISO();
   const couple = useCoupleStore((s) => s.couple);
@@ -292,7 +293,7 @@ export default function EntryDetailScreen() {
               {/* 획득 스티커(OPEN) */}
               {status === 'OPEN' ? (
                 <View style={styles.stickerRow}>
-                  <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}><Icon name="heart" size={22} color={colors.white} /></View>
+                  <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center' }}><Icon name="heart" size={22} color={colors.white} /></View>
                   <Text style={styles.stickerText}>이 날의 스티커를 획득했어요!</Text>
                 </View>
               ) : null}
@@ -701,7 +702,15 @@ function CommentRow({ comment, mine }: { comment: CommentView; mine: boolean }) 
   const c = useColors();
   return (
     <View style={[styles.commentRow, mine && { alignItems: 'flex-end' }]}>
-      <View style={[styles.commentBubble, mine ? [styles.commentMine, { backgroundColor: c.coralSofter }] : styles.commentPartner]}>
+      <View
+        style={[
+          styles.commentBubble,
+          // 내/상대 모두 앱 컬러 파생 톤으로(상대만 정적 보라였던 것 → 앱 색 따라가게).
+          mine
+            ? [styles.commentMine, { backgroundColor: c.coralSofter }]
+            : [styles.commentPartner, { backgroundColor: c.coralSoft }],
+        ]}
+      >
         <Text style={styles.commentAuthor}>{comment.authorNickname ?? (mine ? '나' : '상대')}</Text>
         <Text style={styles.commentContent}>{comment.text}</Text>
       </View>
