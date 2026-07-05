@@ -19,6 +19,12 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     // dedup: 같은 날짜 ENTRY_OPENED 존재 여부 (recipient 무관 — 둘 중 하나라도 있으면 그 날짜는 이미 열림 처리)
     boolean existsByRecipient_IdAndTypeAndEntryDate(Long recipientId, NotificationType type, LocalDate entryDate);
 
+    // dedup: 같은 날짜 + 같은 본문(=같은 기념일) 존재 여부.
+    // 생일과 N일이 같은 날 겹쳐도 본문이 달라 둘 다 생성되게 하려고 body까지 매칭.
+    // body는 D-N 없이 이름+날짜만 담아 날짜별 안정적(매일 중복 생성 안 됨).
+    boolean existsByRecipient_IdAndTypeAndEntryDateAndBody(
+            Long recipientId, NotificationType type, LocalDate entryDate, String body);
+
     // dedup: 같은 날짜 미읽음 PARTNER_WROTE (수정 시 재알림 방지)
     boolean existsByRecipient_IdAndTypeAndEntryDateAndReadFlagFalse(
             Long recipientId, NotificationType type, LocalDate entryDate);

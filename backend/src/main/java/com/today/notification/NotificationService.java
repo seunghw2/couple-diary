@@ -223,9 +223,10 @@ public class NotificationService {
     }
 
     private void createAnniversaryIfAbsent(User recipient, LocalDate annivDate, String title, String body) {
-        // dedup: 같은 (type=ANNIVERSARY, entryDate=기념일날짜, recipient) 있으면 skip
-        if (notificationRepository.existsByRecipient_IdAndTypeAndEntryDate(
-                recipient.getId(), NotificationType.ANNIVERSARY, annivDate)) {
+        // dedup: 같은 (type=ANNIVERSARY, entryDate=기념일날짜, body=기념일, recipient) 있으면 skip.
+        // body까지 매칭해서 같은 날 생일과 N일이 겹쳐도 둘 다 생성(하나만 뜨던 문제 해결).
+        if (notificationRepository.existsByRecipient_IdAndTypeAndEntryDateAndBody(
+                recipient.getId(), NotificationType.ANNIVERSARY, annivDate, body)) {
             return;
         }
         notificationRepository.save(Notification.builder()
