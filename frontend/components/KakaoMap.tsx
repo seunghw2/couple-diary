@@ -12,6 +12,9 @@ type Props = {
   onSelectPlace?: (name: string) => void;
 };
 
+/** Kakao 콘솔 "JavaScript SDK 도메인"에 등록한 값 — WebView Referer로 사용. */
+const MAP_REFERER = 'https://today-web.hammerslog.trade';
+
 /** WebView → RN 메시지 계약. */
 type WebMessage =
   | { type: 'select'; name: string }
@@ -56,7 +59,10 @@ export function KakaoMap({ places, onSelectPlace }: Props) {
       ref={webRef}
       style={styles.web}
       originWhitelist={['*']}
-      source={{ html }}
+      // Kakao Maps JS SDK는 요청 Referer의 도메인을 화이트리스트와 대조한다.
+      // source.html만 주면 origin이 about:blank라 거부되므로, 카카오 콘솔에
+      // 등록한 도메인을 baseUrl로 지정해 Referer를 맞춘다.
+      source={{ html, baseUrl: MAP_REFERER }}
       onMessage={onMessage}
       javaScriptEnabled
       domStorageEnabled
