@@ -69,8 +69,12 @@ public class DiaryDtos {
             @NotNull java.time.LocalDate targetDate
     ) {}
 
-    // ---- 이전 장소 추천 ----
-    public record LocationsResponse(List<String> locations) {}
+    // ---- 이전 장소 추천 / 지도 ----
+    // locations: 이름만(작성화면 추천용, 하위호환). counts: 장소별 방문 일수(지도 핀 뱃지용).
+    public record LocationsResponse(List<String> locations, List<LocationCount> counts) {}
+
+    /** name=장소명, count=그 장소에 다녀온 날짜 수(방문 횟수). */
+    public record LocationCount(String name, long count) {}
 
     public record CommentView(Long id, Long authorId, String authorNickname, String text, LocalDateTime createdAt) {}
 

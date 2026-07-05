@@ -24,4 +24,19 @@ public interface DiaryEntryRepository extends JpaRepository<DiaryEntry, Long> {
             "where e.day.couple.id = :coupleId and loc is not null and trim(loc) <> '' " +
             "group by loc order by max(e.day.date) desc")
     List<String> findDistinctLocationsByCouple(@Param("coupleId") Long coupleId, Pageable pageable);
+
+    /**
+     * 커플의 장소별 방문 일수(distinct day) + 최근순 정렬.
+     * count는 두 사람이 같은 날 같은 장소를 적어도 1로 세도록 distinct day 기준.
+     */
+    @Query("select loc as name, count(distinct e.day.id) as count from DiaryEntry e join e.locations loc " +
+            "where e.day.couple.id = :coupleId and loc is not null and trim(loc) <> '' " +
+            "group by loc order by max(e.day.date) desc")
+    List<LocationCountProjection> findLocationCountsByCouple(@Param("coupleId") Long coupleId, Pageable pageable);
+
+    /** JPQL projection: 장소명 + 방문 일수. */
+    interface LocationCountProjection {
+        String getName();
+        long getCount();
+    }
 }

@@ -138,9 +138,13 @@ public class DiaryService {
     @Transactional(readOnly = true)
     public LocationsResponse recentLocations(Long userId) {
         Couple couple = coupleService.requireCouple(userId);
-        List<String> locations = entryRepository.findDistinctLocationsByCouple(
-                couple.getId(), org.springframework.data.domain.PageRequest.of(0, 20));
-        return new LocationsResponse(locations);
+        var page = org.springframework.data.domain.PageRequest.of(0, 20);
+        List<String> locations = entryRepository.findDistinctLocationsByCouple(couple.getId(), page);
+        List<DiaryDtos.LocationCount> counts = entryRepository
+                .findLocationCountsByCouple(couple.getId(), page).stream()
+                .map(p -> new DiaryDtos.LocationCount(p.getName(), p.getCount()))
+                .toList();
+        return new LocationsResponse(locations, counts);
     }
 
     // ================= 작성/수정 upsert =================

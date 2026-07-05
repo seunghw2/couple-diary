@@ -273,8 +273,12 @@ export const questionApi = {
 };
 
 /** 이전에 쓴 장소 추천 목록. */
+/** 장소별 방문 일수(지도 핀 뱃지용). */
+export type LocationCount = { name: string; count: number };
+
 export const locationApi = {
-  list: () => api.get<{ locations: string[] }>('/api/locations'),
+  list: () =>
+    api.get<{ locations: string[]; counts?: LocationCount[] }>('/api/locations'),
 };
 
 // ─────────────────────────── 알림 (인앱) ───────────────────────────

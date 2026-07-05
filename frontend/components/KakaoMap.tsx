@@ -8,6 +8,8 @@ import { colors, font, radius, spacing } from '../theme/theme';
 type Props = {
   /** 장소 이름 목록(좌표 없음). WebView 안에서 좌표로 변환해 핀 표시. */
   places: string[];
+  /** 장소별 방문 일수. 2 이상이면 핀에 숫자 뱃지 표시. */
+  counts?: Record<string, number>;
   /** 마커(핀) 탭 시 해당 장소명 전달. */
   onSelectPlace?: (name: string) => void;
 };
@@ -28,10 +30,10 @@ type WebMessage =
  * - 마커 탭 → postMessage(select) → onSelectPlace.
  * - KAKAO_JS_KEY 비어 있으면 지도 대신 안내 화면.
  */
-export function KakaoMap({ places, onSelectPlace }: Props) {
+export function KakaoMap({ places, counts, onSelectPlace }: Props) {
   const webRef = useRef<WebView>(null);
 
-  const html = useMemo(() => buildHtml(KAKAO_JS_KEY, places), [places]);
+  const html = useMemo(() => buildHtml(KAKAO_JS_KEY, places, counts ?? {}), [places, counts]);
 
   if (!KAKAO_JS_KEY) {
     return (
@@ -80,8 +82,9 @@ function toJsArray(places: string[]): string {
 }
 
 /** Kakao Maps를 로드·핀 표시하는 완결형 HTML 문자열. */
-function buildHtml(key: string, places: string[]): string {
+function buildHtml(key: string, places: string[], counts: Record<string, number>): string {
   const placesJson = toJsArray(places);
+  const countsJson = JSON.stringify(counts ?? {});
   const sdkUrl = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(key)}&libraries=services&autoload=false`;
   return `<!DOCTYPE html>
 <html>
@@ -102,6 +105,22 @@ function buildHtml(key: string, places: string[]): string {
       line-height: 1;
       color: ${colors.primary};
       text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+    .heart .badge {
+      position: absolute;
+      top: -6px;
+      right: -8px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 4px;
+      box-sizing: border-box;
+      background: ${colors.text};
+      color: #fff;
+      border-radius: 9px;
+      font: 700 11px -apple-system, system-ui, sans-serif;
+      line-height: 18px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
     .heart .label {
       position: absolute;
@@ -133,6 +152,7 @@ function buildHtml(key: string, places: string[]): string {
   <script>
     (function () {
       var PLACES = ${placesJson};
+      var COUNTS = ${countsJson};
       function post(obj) {
         try { window.ReactNativeWebView.postMessage(JSON.stringify(obj)); } catch (e) {}
       }
@@ -166,8 +186,11 @@ function buildHtml(key: string, places: string[]): string {
           var pos = new kakao.maps.LatLng(lat, lng);
           var el = document.createElement('div');
           el.className = 'heart';
-          el.innerHTML = '<div class="pin">\\u2665</div><div class="label"></div>';
+          var cnt = COUNTS[name] || 0;
+          var badge = cnt >= 2 ? '<div class="badge"></div>' : '';
+          el.innerHTML = '<div class="pin">\\u2665</div>' + badge + '<div class="label"></div>';
           el.querySelector('.label').textContent = name;
+          if (cnt >= 2) el.querySelector('.badge').textContent = String(cnt);
           el.addEventListener('click', function () { post({ type: 'select', name: name }); });
           var overlay = new kakao.maps.CustomOverlay({
             position: pos, content: el, xAnchor: 0.5, yAnchor: 1.0, clickable: true
