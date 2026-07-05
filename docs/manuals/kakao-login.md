@@ -265,7 +265,7 @@ export async function loginWithKakao(): Promise<string | null> {
 
 ---
 
-## 부록. 앱 없이 백엔드만 테스트
+## 부록 A. 앱 없이 백엔드만 테스트
 
 콜백이 살아있는지 브라우저로 확인:
 ```
@@ -276,3 +276,70 @@ https://<백엔드>/api/auth/kakao/callback?code=testcode&state=https%3A%2F%2Fex
 ```
 https://kauth.kakao.com/oauth/authorize?client_id=<REST키>&redirect_uri=<URL인코딩된 콜백>&response_type=code&state=<아무 URL>
 ```
+
+---
+
+## 부록 B. 맥(사용자 컴퓨터) 직접 조작으로 콘솔 확인·검증 — GUI 자동화
+
+> 카카오 콘솔은 **로그인이 걸린 웹 GUI**라 API로 못 만진다. 그래서 이 연동에서 콘솔 설정 위치 확인·
+> Client Secret 읽기·authorize 페이지 KOE006 검증 등은 **에이전트가 사용자 맥 화면을 직접 캡처/클릭**해서 했다.
+> 다른 앱에서도 같은 방식으로 콘솔을 눈으로 확인하며 진행할 수 있도록, 실제로 쓴 명령·좌표 규칙·함정을 남긴다.
+> (권한: 사용자 맥에 로그인된 브라우저에 카카오 계정이 이미 로그인돼 있어야 함. macOS **화면 기록** 권한 필요.)
+
+### B-0. 준비 도구 (전부 macOS 기본 + cliclick 하나)
+| 도구 | 용도 | 설치 |
+|---|---|---|
+| `screencapture` | 화면 캡처(`/usr/sbin/screencapture`) | 기본 |
+| `cliclick` | 좌표 클릭/타이핑(`/opt/homebrew/bin/cliclick`) | `brew install cliclick` |
+| `osascript` | 창 활성화·앞으로 가져오기(AppleScript) | 기본 |
+| `open` | URL을 기본 브라우저로 열기 | 기본 |
+
+### B-1. 콘솔 페이지 열기 → 캡처 → 눈으로 확인
+```bash
+# 1) 원하는 콘솔 화면을 브라우저로 연다 (예: 플랫폼 키 = Client Secret/Redirect URI 위치)
+open "https://developers.kakao.com/console/app/{APP_ID}/config/platform-key"
+
+# 2) 브라우저 창을 앞으로
+osascript -e 'tell application "Google Chrome" to activate'
+
+# 3) 전체 화면 캡처(마우스 커서 제외 -x)
+screencapture -x /tmp/kakao.png
+```
+그다음 캡처 파일을 **Read 툴로 열어 눈으로** Redirect URI 칸/Client Secret 위치를 찾는다.
+`open`은 로그인 세션이 살아있는 실제 브라우저를 쓰므로 카카오 콘솔이 그대로 열린다.
+
+### B-2. 좌표 클릭·입력 (필드 수정이 필요할 때)
+캡처 이미지는 **논리 좌표(points)** 로 클릭해야 한다. Retina라 이미지 픽셀 ≠ 클릭 좌표.
+```
+# 캡처가 2000px 폭으로 표시됐을 때의 환산:
+#   클릭 좌표(points) = 표시픽셀 × 0.72
+#   원본 픽셀        = 표시픽셀 × 1.44
+cliclick c:640,300      # (points) 지점 클릭
+cliclick t:"https://today-api.hammerslog.trade/api/auth/kakao/callback"   # 포커스된 칸에 타이핑
+```
+> 좌표는 캡처를 다시 떠 확인하며 조정. 클릭 전후로 `screencapture`로 반영 여부를 확인한다.
+
+### B-3. Client Secret 값 읽기 — OCR 금지, 복사 버튼
+Client Secret(32자)은 캡처 이미지에서 **눈/OCR로 읽으면 O↔0, l↔1 오독**으로 KOE010 난다.
+- 콘솔의 **복사 버튼**을 클릭(cliclick) → 클립보드로 가져온 뒤 사용:
+```bash
+pbpaste   # 방금 복사한 시크릿 확인 후 application-local.yml 등에 반영
+```
+- 시크릿이 **둘("카카오 로그인" / "비즈니스 인증")** 이므로, 복사하는 버튼이 **"카카오 로그인" 쪽**인지 캡처로 확인하고 누를 것(2-5 함정).
+
+### B-4. authorize 페이지 KOE006 검증 (사람 눈으로 최종 확인)
+```bash
+open "https://kauth.kakao.com/oauth/authorize?client_id=<REST키>&redirect_uri=<URL인코딩 콜백>&response_type=code&state=https%3A%2F%2Fexample.com"
+osascript -e 'tell application "Google Chrome" to activate'
+screencapture -x /tmp/authorize.png
+```
+캡처를 열어 **카카오 동의(로그인) 화면**이면 Redirect URI 등록 정상, **"KOE006"** 문구가 보이면 콘솔 등록값과 불일치(2-3).
+
+### B-5. 함정 (실제로 밟은 것)
+- **Chrome AppleScript로 JS 실행 불가**: `execute javascript`는 Chrome에서 기본 비활성(보안). localStorage 토큰 주입·DOM 값 읽기가 안 됨 → **캡처로 눈으로** 확인하거나, 콘솔 조작은 클릭/타이핑으로만.
+- **한글 IME면 `cliclick t:`·`Cmd+F` 검색이 깨짐**: 입력 전 입력원을 **영문(ABC)** 으로. 콘솔에서 필드 찾을 땐 영문 "Redirect"로 검색.
+- **캡처가 지저분(가로 전체 화면)**: 앱/카드 영역만 크롭 — `screencapture -x -R x,y,w,h`(points). 창 포커스가 튀면 바탕화면만 찍히니, 캡처 직전 `osascript ... activate`로 대상 창을 확실히 앞으로.
+- **좌표가 어긋남**: 디스플레이 배율·창 위치가 바뀌면 좌표도 바뀐다. **하드코딩 말고 매번 캡처로 재확인**.
+
+> 요약: 콘솔 쪽은 "**열기(open) → 활성화(osascript) → 캡처(screencapture) → 눈으로 확인 → 필요 시 클릭/타이핑(cliclick)**" 루프.
+> 값은 반드시 **복사 버튼→pbpaste**, 검증은 **authorize 캡처로 사람 눈** 확인이 가장 확실하다.
