@@ -261,6 +261,12 @@ public class DiaryService {
         } else if (req.locationName() != null) {
             entry.applyLocations(List.of(req.locationName()));
         }
+        // 좌표 메타(지도에서 콕 찍기). locationPoints가 오면 통째로 교체(하위호환: 안 오면 유지).
+        if (req.locationPoints() != null) {
+            entry.applyLocationPoints(req.locationPoints().stream()
+                    .map(pt -> new LocationPoint(pt.name(), pt.lat(), pt.lng(), pt.category()))
+                    .toList());
+        }
     }
 
     // 커플 두 멤버 중 나 아닌 쪽
@@ -451,8 +457,11 @@ public class DiaryService {
                 .toList();
         boolean editable = e.getEditableAfter() == null || LocalDateTime.now().isBefore(e.getEditableAfter());
         List<String> locations = new ArrayList<>(e.getLocations());
+        List<DiaryDtos.LocationPointView> points = e.getLocationPoints().stream()
+                .map(pt -> new DiaryDtos.LocationPointView(pt.getName(), pt.getLat(), pt.getLng(), pt.getCategory()))
+                .toList();
         return new EntryView(e.getId(), e.getAuthor().getId(), e.getRating(), e.getMood(),
-                e.getLocationName(), locations, answers, photos, e.getCreatedAt(), e.getEditableAfter(), editable);
+                e.getLocationName(), locations, points, answers, photos, e.getCreatedAt(), e.getEditableAfter(), editable);
     }
 
     private CommentView toCommentView(Comment c) {

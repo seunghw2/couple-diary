@@ -39,12 +39,24 @@ public class DiaryDtos {
             List<@Size(max = 500) String> photoUrls,
             @Size(max = 100) String locationName,
             List<@Size(max = 100) String> locations,
+            List<@Valid LocationPointInput> locationPoints,
             @NotNull @Min(1) @Max(5) Integer rating,
             @NotBlank @Size(max = 100) String mood
     ) {}
 
+    /** 지도에서 찍은 장소의 좌표 메타(선택). name은 locations와 매칭용. */
+    public record LocationPointInput(
+            @NotBlank @Size(max = 100) String name,
+            Double lat,
+            Double lng,
+            @Size(max = 60) String category
+    ) {}
+
     // ---- 상세 ----
     public record AnswerView(Long questionId, String promptKey, String text) {}
+
+    /** 지도 재현용 장소 좌표 메타. */
+    public record LocationPointView(String name, Double lat, Double lng, String category) {}
 
     public record PhotoView(Long id, String colorSeed, String url) {}
 
@@ -55,6 +67,7 @@ public class DiaryDtos {
             String mood,
             String locationName,
             List<String> locations,
+            List<LocationPointView> locationPoints,
             List<AnswerView> answers,
             List<PhotoView> photos,
             LocalDateTime createdAt,

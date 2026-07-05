@@ -45,12 +45,25 @@ public class PlaceService {
                         (d.road_address_name() != null && !d.road_address_name().isBlank())
                                 ? d.road_address_name()
                                 : d.address_name(),
-                        d.category_group_name()))
+                        d.category_group_name(),
+                        parseCoord(d.y()),
+                        parseCoord(d.x())))
                 .toList();
+    }
+
+    /** 카카오 좌표 문자열(x=경도, y=위도) → Double. 비거나 파싱 실패 시 null. */
+    private static Double parseCoord(String v) {
+        if (v == null || v.isBlank()) return null;
+        try {
+            return Double.parseDouble(v.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     // ---- 카카오 응답 매핑(필요 필드만; 나머지는 무시) ----
     record KakaoKeywordResponse(List<Doc> documents) {}
 
-    record Doc(String place_name, String address_name, String road_address_name, String category_group_name) {}
+    record Doc(String place_name, String address_name, String road_address_name,
+               String category_group_name, String x, String y) {}
 }

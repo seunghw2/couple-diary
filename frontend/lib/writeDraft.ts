@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { EntryMode } from './api';
+import type { EntryMode, LocationPoint } from './api';
 
 /**
  * 일기 작성 중인 임시 초안. iOS(Expo Go)에서 앱을 백그라운드 갔다 오면
@@ -14,6 +14,8 @@ export type WriteDraft = {
   mood: string | null;
   rating: number;
   locations: string[];
+  /** 지도에서 찍은 장소의 좌표 메타(이름은 locations에 하위호환 저장). 없을 수 있음. */
+  locationPoints?: LocationPoint[];
   photoUrls: string[];
   pickedIds: string[];
   savedAt: number;

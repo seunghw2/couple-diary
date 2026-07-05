@@ -194,6 +194,7 @@ export type EntryView = {
   mood?: string; // 이모지
   locationName?: string; // locations[0]와 동일(하위호환)
   locations?: string[]; // 다중 장소
+  locationPoints?: LocationPoint[]; // 좌표 메타(지도 재현, 하위호환: 없을 수 있음)
   answers: AnswerView[];
   photos: PhotoView[];
   createdAt: string;
@@ -238,6 +239,7 @@ export type UpsertEntryRequest = {
   photoSeeds?: string[];
   photoUrls?: string[];
   locations?: string[]; // 다중 장소
+  locationPoints?: LocationPoint[]; // 좌표 메타(선택)
   rating?: number;
   mood?: string;
 };
@@ -289,8 +291,22 @@ export const locationApi = {
     api.get<{ locations: string[]; counts?: LocationCount[] }>('/api/locations'),
 };
 
-/** 카카오 로컬 키워드 검색 결과(백엔드 프록시). */
-export type PlaceResult = { name: string; address: string; category?: string };
+/** 카카오 로컬 키워드 검색 결과(백엔드 프록시). x->lng, y->lat 통과. */
+export type PlaceResult = { name: string; address: string; category?: string; lat?: number; lng?: number };
+
+/** 지도 재현용 장소 좌표 메타(작성/저장/조회 공통). name으로 locations와 매칭. */
+export type LocationPoint = { name: string; lat: number; lng: number; category?: string };
+
+/** 작성화면에서 다루는 선택 장소(이름-only 하위호환 + 좌표/수동입력 여부). */
+export type SelectedPlace = {
+  name: string;
+  address?: string;
+  category?: string;
+  lat?: number;
+  lng?: number;
+  /** 지도 롱프레스로 직접 찍은 곳. */
+  manual?: boolean;
+};
 
 export const placeApi = {
   search: (query: string) =>

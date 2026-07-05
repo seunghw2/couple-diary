@@ -17,7 +17,9 @@ import {
   AnswerView,
   DayDetail,
   EntryMode,
+  LocationPoint,
   QuestionResponse,
+  SelectedPlace,
   UpsertEntryRequest,
   entryApi,
   locationApi,
@@ -30,7 +32,7 @@ import { invalidateAfterMutation } from '../../store/useDataCache';
 import { clearDraft, draftHasContent, loadDraft, saveDraft } from '../../lib/writeDraft';
 import { MOODS, TEMPLATE_PROMPTS } from '../../constants/content';
 import { Button, Card, Icon, PhotoThumb, StarRating } from '../../components/ui';
-import { KakaoPlaceSearch } from '../../components/KakaoPlaceSearch';
+import { KakaoMapPicker } from '../../components/KakaoMapPicker';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
 type Step = 'mode' | 'form';
@@ -80,10 +82,11 @@ export default function WriteScreen() {
   const [scenes, setScenes] = useState<Record<string, string[]>>({});
   const [mood, setMood] = useState<string | null>(null);
   const [rating, setRating] = useState(0);
-  const [locations, setLocations] = useState<string[]>([]); // 다중 장소 칩
+  const [locations, setLocations] = useState<string[]>([]); // 다중 장소 칩(이름, 하위호환)
+  const [locationPoints, setLocationPoints] = useState<LocationPoint[]>([]); // 좌표 메타(지도에서 찍은 곳)
   const [locationInput, setLocationInput] = useState('');
   const [prevLocations, setPrevLocations] = useState<string[]>([]); // 이전 장소 추천
-  const [placeSearchOpen, setPlaceSearchOpen] = useState(false); // 카카오 장소 검색 시트
+  const [mapPickerOpen, setMapPickerOpen] = useState(false); // 지도+검색 통합 시트
   const [photoUrls, setPhotoUrls] = useState<string[]>([]); // 업로드 완료된 /files/... 경로
   const [uploading, setUploading] = useState(false);
 
@@ -142,6 +145,7 @@ export default function WriteScreen() {
           setRating(mine.rating ?? 0);
           setMood(mine.mood ?? null);
           setLocations(mine.locations ?? (mine.locationName ? [mine.locationName] : []));
+          setLocationPoints(mine.locationPoints ?? []);
           setPhotoUrls(mine.photos.map((p) => p.url).filter((u): u is string => !!u));
           setStep('form');
         } else if (detail.mode === 'QUESTION_PICK' && detail.questions.length > 0) {
@@ -198,6 +202,7 @@ export default function WriteScreen() {
       setMood(d.mood ?? null);
       setRating(d.rating ?? 0);
       setLocations(d.locations ?? []);
+      setLocationPoints(d.locationPoints ?? []);
       setPhotoUrls(d.photoUrls ?? []);
       setPickedIds(d.pickedIds ?? []);
     })();
@@ -206,11 +211,11 @@ export default function WriteScreen() {
   // ── 초안 저장: 작성 중(form) 상태를 debounce로 기기에 저장 ──
   useEffect(() => {
     if (!hydratedRef.current || step !== 'form') return;
-    const draft = { step, mode, answers, scenes, mood, rating, locations, photoUrls, pickedIds, savedAt: Date.now() };
+    const draft = { step, mode, answers, scenes, mood, rating, locations, locationPoints, photoUrls, pickedIds, savedAt: Date.now() };
     if (!draftHasContent(draft)) return;
     const t = setTimeout(() => void saveDraft(dateStr, draft), 600);
     return () => clearTimeout(t);
-  }, [step, mode, answers, scenes, mood, rating, locations, photoUrls, pickedIds, dateStr]);
+  }, [step, mode, answers, scenes, mood, rating, locations, locationPoints, photoUrls, pickedIds, dateStr]);
 
   function chooseMode(m: FormMode) {
     if (m === 'FREE' && questionsFailed) return;
@@ -239,6 +244,29 @@ export default function WriteScreen() {
 
   function removeLocation(name: string) {
     setLocations((prev) => prev.filter((l) => l !== name));
+    setLocationPoints((prev) => prev.filter((p) => p.name !== name));
+  }
+
+  /** 지도 시트에서 확정한 장소들을 이름 칩 + 좌표 메타로 병합. */
+  function applyPickedPlaces(places: SelectedPlace[]) {
+    setLocations((prev) => {
+      const next = [...prev];
+      for (const pl of places) {
+        const nm = pl.name.trim();
+        if (nm && !next.includes(nm)) next.push(nm);
+      }
+      return next;
+    });
+    setLocationPoints((prev) => {
+      const byName = new Map(prev.map((p) => [p.name, p]));
+      for (const pl of places) {
+        const nm = pl.name.trim();
+        if (nm && pl.lat != null && pl.lng != null) {
+          byName.set(nm, { name: nm, lat: pl.lat, lng: pl.lng, category: pl.category });
+        }
+      }
+      return Array.from(byName.values());
+    });
   }
 
   /** 장면 질문의 개별 행 값. 미초기화면 최소 2개(장면 1/2) 빈칸 제공. */
@@ -358,6 +386,7 @@ export default function WriteScreen() {
       answers: buildAnswers(),
       photoUrls,
       locations: locations.length > 0 ? locations : undefined,
+      locationPoints: locationPoints.length > 0 ? locationPoints : undefined,
       rating: rating > 0 ? rating : undefined,
       mood: mood ?? undefined,
     };
@@ -517,10 +546,10 @@ export default function WriteScreen() {
             {/* 카카오맵에서 검색 */}
             <Pressable
               style={[styles.mapSearchBtn, { borderColor: c.primary }]}
-              onPress={() => setPlaceSearchOpen(true)}
+              onPress={() => setMapPickerOpen(true)}
             >
               <Icon name="map" size={18} color={c.primary} />
-              <Text style={[styles.mapSearchText, { color: c.primary }]}>카카오맵에서 장소 찾기</Text>
+              <Text style={[styles.mapSearchText, { color: c.primary }]}>지도에서 장소 찾기</Text>
             </Pressable>
             {/* 직접 입력 + 추가 */}
             <View style={styles.locationRow}>
@@ -580,11 +609,14 @@ export default function WriteScreen() {
         )}
       </KeyboardAvoidingView>
 
-      <KakaoPlaceSearch
-        visible={placeSearchOpen}
-        onClose={() => setPlaceSearchOpen(false)}
-        onSelect={addLocation}
-        alreadyAdded={locations}
+      <KakaoMapPicker
+        visible={mapPickerOpen}
+        onClose={() => setMapPickerOpen(false)}
+        onConfirm={applyPickedPlaces}
+        initial={locations.map((name) => {
+          const pt = locationPoints.find((p) => p.name === name);
+          return pt ? { name, lat: pt.lat, lng: pt.lng, category: pt.category } : { name };
+        })}
       />
     </SafeAreaView>
   );

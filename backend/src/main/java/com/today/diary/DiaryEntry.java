@@ -49,6 +49,13 @@ public class DiaryEntry {
     @Column(name = "location", length = 100)
     private List<String> locations = new ArrayList<>();
 
+    // 장소 좌표 메타(지도에서 콕 찍기). locations(이름)와 병렬 저장, name으로 매칭.
+    // 좌표 없던 기존 데이터는 비어 있고, 그 경우 지도는 이름으로 지오코딩(하위호환).
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "diary_entry_location_points",
+            joinColumns = @JoinColumn(name = "entry_id"))
+    private List<LocationPoint> locationPoints = new ArrayList<>();
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -74,6 +81,22 @@ public class DiaryEntry {
         this.locations.clear();
         this.locations.addAll(cleaned);
         this.locationName = cleaned.isEmpty() ? null : cleaned.get(0);
+    }
+
+    /**
+     * 장소 좌표 메타를 통째로 교체한다. name이 비었거나 lat/lng가 모두 없으면 스킵.
+     * null=변경 안 함, 빈 리스트=전체 삭제. locations(이름)와 독립적으로 갱신되며,
+     * 이름은 여전히 applyLocations가 소스다(하위호환).
+     */
+    public void applyLocationPoints(List<LocationPoint> newPoints) {
+        if (newPoints == null) return;
+        this.locationPoints.clear();
+        for (LocationPoint p : newPoints) {
+            if (p == null || p.getName() == null || p.getName().isBlank()) continue;
+            if (p.getLat() == null || p.getLng() == null) continue;
+            this.locationPoints.add(
+                    new LocationPoint(p.getName().trim(), p.getLat(), p.getLng(), p.getCategory()));
+        }
     }
 
     @PrePersist
