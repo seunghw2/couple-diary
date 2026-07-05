@@ -23,7 +23,7 @@ import { API_URL } from '../../lib/config';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, entryApi, isLocked } from '../../lib/api';
 import { dDay, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
-import { confirmAsync, showAlert, showToast } from '../../lib/dialog';
+import { confirmAsync, showAlert } from '../../lib/dialog';
 import { moodIcon } from '../../constants/content';
 import { useCoupleStore } from '../../store/useCoupleStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -406,6 +406,19 @@ function PhotoViewer({
   const [index, setIndex] = useState(viewer?.index ?? 0);
   const [saving, setSaving] = useState(false);
 
+  // 저장 완료 토스트 — 전역 토스트는 이 풀스크린 Modal 뒤에 가려지므로 여기 안에서 직접 띄운다.
+  const [savedVisible, setSavedVisible] = useState(false);
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+  const showSavedToast = useCallback(() => {
+    setSavedVisible(true);
+    Animated.timing(toastOpacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+    setTimeout(() => {
+      Animated.timing(toastOpacity, { toValue: 0, duration: 260, useNativeDriver: true }).start(
+        () => setSavedVisible(false)
+      );
+    }, 1500);
+  }, [toastOpacity]);
+
   // 세로 드래그 값. 배경 투명도는 이 값에서 파생.
   const translateY = useRef(new Animated.Value(0)).current;
   // FlatList 가로 스크롤과 충돌 방지: 세로 우세일 때만 dismiss 제스처 활성화.
@@ -469,7 +482,7 @@ function PhotoViewer({
         localUri = temp.uri;
       }
       await MediaLibrary.saveToLibraryAsync(localUri);
-      showToast('이미지 저장이 완료되었습니다.');
+      showSavedToast();
     } catch {
       showAlert('저장 실패', '사진을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
@@ -518,6 +531,12 @@ function PhotoViewer({
         <Pressable onPress={onClose} style={styles.viewerClose} hitSlop={12}>
           <Icon name="close" size={28} color={colors.white} />
         </Pressable>
+
+        {savedVisible && (
+          <Animated.View pointerEvents="none" style={[styles.viewerToast, { opacity: toastOpacity }]}>
+            <Text style={styles.viewerToastText}>이미지 저장이 완료되었습니다.</Text>
+          </Animated.View>
+        )}
       </View>
     </Modal>
   );
@@ -591,7 +610,8 @@ function SideCard({
   onOpenPhoto: (urls: string[], index: number) => void;
 }) {
   const c = useColors();
-  const accent = tone === 'coral' ? c.primary : colors.partner;
+  // 색상은 내/상대 구분 없이 앱 컬러로 통일.
+  const accent = c.primary;
   // 표시할 장소: locations[] 우선, 없으면 단일 locationName 폴백.
   const locs = side.locations && side.locations.length > 0
     ? side.locations
@@ -608,7 +628,7 @@ function SideCard({
       {/* 메타: 기분 / 위치 */}
       <View style={styles.metaRow}>
         {side.mood ? (
-          <Pill tone={tone}>
+          <Pill tone="coral">
             <View style={styles.pillRow}>
               {moodIcon(side.mood) ? (
                 <Icon name={moodIcon(side.mood)!} size={14} color={colors.text} />
@@ -819,4 +839,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  viewerToast: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 90 : 70,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(40, 28, 24, 0.92)',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: radius.pill,
+  },
+  viewerToastText: { ...font.body, color: colors.white },
 });

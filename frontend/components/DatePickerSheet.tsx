@@ -125,7 +125,7 @@ export function DatePickerSheet({ visible, value, onConfirm, onClose, maxDate, m
                 {WEEK.map((w, i) => (
                   <Text
                     key={w}
-                    style={[styles.weekLabel, i === 0 && { color: c.primary }, i === 6 && { color: colors.partner }]}
+                    style={[styles.weekLabel, (i === 0 || i === 6) && { color: c.primary }]}
                   >
                     {w}
                   </Text>
