@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -31,14 +33,22 @@ public class BugReport {
     @Column(name = "wish_text", columnDefinition = "TEXT")
     private String wishText;
 
+    /** 첨부 이미지(최대 3장). 업로드 후 상대경로(/files/xxx) 저장. */
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "bug_report_images",
+            joinColumns = @JoinColumn(name = "report_id"))
+    @Column(name = "url", length = 500)
+    private List<String> imageUrls = new ArrayList<>();
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Builder
-    public BugReport(User reporter, String bugText, String wishText) {
+    public BugReport(User reporter, String bugText, String wishText, List<String> imageUrls) {
         this.reporter = reporter;
         this.bugText = bugText;
         this.wishText = wishText;
+        if (imageUrls != null) this.imageUrls = imageUrls;
     }
 
     @PrePersist

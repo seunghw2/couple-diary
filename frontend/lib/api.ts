@@ -353,14 +353,15 @@ export type BugReport = {
   reporterNickname: string;
   bugText?: string;
   wishText?: string;
+  imageUrls?: string[];
   createdAt: string;
 };
 
 export type BugReportListResponse = { items: BugReport[] };
 
 export const bugReportApi = {
-  /** 버그/기능 제안 작성. 둘 다 비면 서버가 400. */
-  create: (body: { bugText?: string; wishText?: string }) =>
+  /** 버그/기능 제안 작성. 둘 다 비면 서버가 400. imageUrls 최대 3장. */
+  create: (body: { bugText?: string; wishText?: string; imageUrls?: string[] }) =>
     api.post<BugReport>('/api/bug-reports', body),
   list: () => api.get<BugReportListResponse>('/api/bug-reports'),
 };

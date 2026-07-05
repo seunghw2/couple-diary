@@ -1,4 +1,10 @@
 import { useAlertStore } from '../store/useAlertStore';
+import { useToastStore } from '../store/useToastStore';
+
+/** 짧은 안내 토스트(자동 사라짐). 저장 완료 등 가벼운 피드백용. */
+export function showToast(message: string, durationMs?: number) {
+  useToastStore.getState().show(message, durationMs);
+}
 
 /**
  * 확인/취소 다이얼로그. 앱 톤 커스텀 알림(useAlertStore + <AppAlert/>)으로 표시.

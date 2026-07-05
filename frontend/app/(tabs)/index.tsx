@@ -203,13 +203,23 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Today 버튼 */}
-        <Button
-          label="오늘 일기 쓰기"
-          icon="create-outline"
-          onPress={() => router.push({ pathname: '/write/[date]', params: { date: today } })}
-          style={{ marginTop: spacing.lg }}
-        />
+        {/* Today 버튼 — 오늘 일기를 이미 썼으면 '작성 완료' 상태로 표시 */}
+        {todayEntry?.mineWritten ? (
+          <Button
+            label="오늘 일기 작성 완료"
+            icon="checkmark-circle"
+            variant="soft"
+            onPress={() => openDate(today)}
+            style={{ marginTop: spacing.lg }}
+          />
+        ) : (
+          <Button
+            label="오늘 일기 쓰기"
+            icon="create-outline"
+            onPress={() => router.push({ pathname: '/write/[date]', params: { date: today } })}
+            style={{ marginTop: spacing.lg }}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );

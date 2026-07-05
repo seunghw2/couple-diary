@@ -13,3 +13,4 @@ dist/
 
 # Java build
 target/
+backups/

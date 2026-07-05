@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class BugReportService {
@@ -28,8 +31,16 @@ public class BugReportService {
         User me = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
+        // 첨부 이미지는 최대 3장까지만 저장(빈 값 제거).
+        List<String> images = req.imageUrls() == null ? List.of()
+                : req.imageUrls().stream()
+                        .filter(u -> u != null && !u.isBlank())
+                        .limit(3)
+                        .toList();
+
         BugReport saved = bugReportRepository.save(
-                BugReport.builder().reporter(me).bugText(bug).wishText(wish).build());
+                BugReport.builder().reporter(me).bugText(bug).wishText(wish)
+                        .imageUrls(new ArrayList<>(images)).build());
         return BugReportResponse.of(saved);
     }
 

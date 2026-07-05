@@ -23,7 +23,7 @@ import { API_URL } from '../../lib/config';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, entryApi, isLocked } from '../../lib/api';
 import { dDay, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
-import { confirmAsync, showAlert } from '../../lib/dialog';
+import { confirmAsync, showAlert, showToast } from '../../lib/dialog';
 import { moodIcon } from '../../constants/content';
 import { useCoupleStore } from '../../store/useCoupleStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -411,6 +411,10 @@ function PhotoViewer({
   // FlatList 가로 스크롤과 충돌 방지: 세로 우세일 때만 dismiss 제스처 활성화.
   const panResponder = useRef(
     PanResponder.create({
+      // 캡처 단계에서 세로 우세 제스처를 가로 FlatList보다 먼저 가로챈다.
+      // (가로 스와이프는 false를 반환해 페이징으로 넘어감)
+      onMoveShouldSetPanResponderCapture: (_, g) =>
+        Math.abs(g.dy) > 8 && Math.abs(g.dy) > Math.abs(g.dx) * 1.5,
       onMoveShouldSetPanResponder: (_, g) =>
         Math.abs(g.dy) > 8 && Math.abs(g.dy) > Math.abs(g.dx) * 1.5,
       onPanResponderMove: (_, g) => {
@@ -465,7 +469,7 @@ function PhotoViewer({
         localUri = temp.uri;
       }
       await MediaLibrary.saveToLibraryAsync(localUri);
-      showAlert('저장 완료', '사진 앨범에 저장했어요.');
+      showToast('이미지 저장이 완료되었습니다.');
     } catch {
       showAlert('저장 실패', '사진을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
