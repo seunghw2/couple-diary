@@ -12,7 +12,6 @@ export type WriteDraft = {
   answers: Record<string, string>;
   scenes: Record<string, string[]>;
   mood: string | null;
-  rating: number;
   locations: string[];
   /** 지도에서 찍은 장소의 좌표 메타(이름은 locations에 하위호환 저장). 없을 수 있음. */
   locationPoints?: LocationPoint[];
@@ -49,8 +48,8 @@ export async function clearDraft(date: string): Promise<void> {
 }
 
 /** 초안이 실제로 작성 중인 내용을 담고 있는지(빈 초안은 저장/복원 불필요). */
-export function draftHasContent(d: Pick<WriteDraft, 'answers' | 'scenes' | 'mood' | 'rating' | 'locations' | 'photoUrls'>): boolean {
-  if (d.mood || d.rating > 0) return true;
+export function draftHasContent(d: Pick<WriteDraft, 'answers' | 'scenes' | 'mood' | 'locations' | 'photoUrls'>): boolean {
+  if (d.mood) return true;
   if (d.locations.length > 0 || d.photoUrls.length > 0) return true;
   if (Object.values(d.answers).some((v) => v && v.trim())) return true;
   if (Object.values(d.scenes).some((arr) => arr.some((v) => v && v.trim()))) return true;

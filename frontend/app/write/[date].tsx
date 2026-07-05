@@ -31,7 +31,7 @@ import { showAlert } from '../../lib/dialog';
 import { invalidateAfterMutation } from '../../store/useDataCache';
 import { clearDraft, draftHasContent, loadDraft, saveDraft } from '../../lib/writeDraft';
 import { MOODS, TEMPLATE_PROMPTS } from '../../constants/content';
-import { Button, Card, Icon, PhotoThumb, StarRating } from '../../components/ui';
+import { Button, Card, Icon, PhotoThumb } from '../../components/ui';
 import { KakaoMapPicker } from '../../components/KakaoMapPicker';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
@@ -81,7 +81,6 @@ export default function WriteScreen() {
   // 장면 질문(기억에 남는 장면) 전용: 질문 id → 장면 여러 개
   const [scenes, setScenes] = useState<Record<string, string[]>>({});
   const [mood, setMood] = useState<string | null>(null);
-  const [rating, setRating] = useState(0);
   const [locations, setLocations] = useState<string[]>([]); // 다중 장소 칩(이름, 하위호환)
   const [locationPoints, setLocationPoints] = useState<LocationPoint[]>([]); // 좌표 메타(지도에서 찍은 곳)
   const [locationInput, setLocationInput] = useState('');
@@ -142,7 +141,6 @@ export default function WriteScreen() {
             if (key) prefill[key] = a.text;
           }
           setAnswers(prefill);
-          setRating(mine.rating ?? 0);
           setMood(mine.mood ?? null);
           setLocations(mine.locations ?? (mine.locationName ? [mine.locationName] : []));
           setLocationPoints(mine.locationPoints ?? []);
@@ -200,7 +198,6 @@ export default function WriteScreen() {
       setAnswers(d.answers ?? {});
       setScenes(d.scenes ?? {});
       setMood(d.mood ?? null);
-      setRating(d.rating ?? 0);
       setLocations(d.locations ?? []);
       setLocationPoints(d.locationPoints ?? []);
       setPhotoUrls(d.photoUrls ?? []);
@@ -211,11 +208,11 @@ export default function WriteScreen() {
   // ── 초안 저장: 작성 중(form) 상태를 debounce로 기기에 저장 ──
   useEffect(() => {
     if (!hydratedRef.current || step !== 'form') return;
-    const draft = { step, mode, answers, scenes, mood, rating, locations, locationPoints, photoUrls, pickedIds, savedAt: Date.now() };
+    const draft = { step, mode, answers, scenes, mood, locations, locationPoints, photoUrls, pickedIds, savedAt: Date.now() };
     if (!draftHasContent(draft)) return;
     const t = setTimeout(() => void saveDraft(dateStr, draft), 600);
     return () => clearTimeout(t);
-  }, [step, mode, answers, scenes, mood, rating, locations, locationPoints, photoUrls, pickedIds, dateStr]);
+  }, [step, mode, answers, scenes, mood, locations, locationPoints, photoUrls, pickedIds, dateStr]);
 
   function chooseMode(m: FormMode) {
     if (m === 'FREE' && questionsFailed) return;
@@ -355,15 +352,15 @@ export default function WriteScreen() {
 
   function canSubmit(): boolean {
     if (uploading) return false;
-    if (!mood || rating === 0) return false; // 기분·별점 필수
+    if (!mood) return false; // 기분 필수
     if (mode === 'FREE' && !fixedQuestions && pickedIds.length !== 3) return false;
     return buildAnswers().length > 0;
   }
 
   async function onSubmit() {
     if (!canSubmit()) {
-      if (!mood || rating === 0) {
-        setError('기분과 별점을 입력해주세요.');
+      if (!mood) {
+        setError('오늘의 기분을 선택해주세요.');
       } else {
         setError(mode === 'FREE' && !fixedQuestions ? '질문 3개를 골라주세요.' : '한 칸 이상 적어주세요.');
       }
@@ -387,7 +384,6 @@ export default function WriteScreen() {
       photoUrls,
       locations: locations.length > 0 ? locations : undefined,
       locationPoints: locationPoints.length > 0 ? locationPoints : undefined,
-      rating: rating > 0 ? rating : undefined,
       mood: mood ?? undefined,
     };
 
@@ -469,16 +465,8 @@ export default function WriteScreen() {
               })}
             </View>
 
-            {/* 별점 */}
-            <Card style={styles.ratingCard}>
-              <View style={[styles.sectionLabelRow, { marginTop: 0, marginBottom: 0 }]}>
-                <Icon name="star" size={18} color={colors.star} />
-                <Text style={styles.ratingLabel}>오늘 데이트 점수</Text>
-              </View>
-              <StarRating value={rating} onChange={setRating} size={28} />
-            </Card>
-            {!mood || rating === 0 ? (
-              <Text style={styles.requiredHint}>기분과 별점을 입력해주세요</Text>
+            {!mood ? (
+              <Text style={styles.requiredHint}>오늘의 기분을 선택해주세요</Text>
             ) : null}
 
             {/* 본문 폼 */}
@@ -918,14 +906,6 @@ const styles = StyleSheet.create({
   moodSelected: { borderColor: colors.primary },
   moodEmoji: { fontSize: 24, lineHeight: 28 },
   moodLabel: { fontSize: 10, color: colors.subText },
-
-  ratingCard: {
-    marginTop: spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  ratingLabel: { ...font.title },
 
   formHeadingRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.md },
   formHeading: { ...font.title },

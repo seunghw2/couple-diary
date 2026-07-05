@@ -168,37 +168,35 @@ export default function MapScreen() {
         )}
       </View>
 
-      {/* 선택된 장소 하단 시트 — 탭하면 상세, X 또는 지도 빈 곳 탭으로 닫기 */}
+      {/* 선택된 장소 하단 시트 — 카드 전체를 탭하면 상세(눌림 효과), X/지도 빈 곳 탭으로 닫기 */}
       {selected && (
-        <View style={styles.sheet}>
+        <Pressable
+          onPress={() => router.push({ pathname: '/place', params: { name: selected } })}
+          style={({ pressed }) => [styles.sheet, pressed && styles.sheetPressed]}
+        >
           <View style={styles.sheetHeader}>
-            <Pressable
-              style={styles.sheetNav}
-              onPress={() => router.push({ pathname: '/place', params: { name: selected } })}
-            >
-              <View style={[styles.placeIcon, { backgroundColor: c.coralSofter }]}>
-                <Icon name="heart" size={16} color={c.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                {nicknames[selected] ? (
-                  <>
-                    <Text style={styles.sheetTitle} numberOfLines={1}>{nicknames[selected]}</Text>
-                    <Text style={styles.sheetPlaceName} numberOfLines={1}>{selected}</Text>
-                  </>
-                ) : (
-                  <Text style={styles.sheetTitle} numberOfLines={1}>{selected}</Text>
-                )}
-              </View>
-              <Icon name="chevron-forward" size={20} color={colors.subText} />
-            </Pressable>
-            <Pressable onPress={() => setSelected(null)} hitSlop={10} style={{ marginLeft: spacing.sm }}>
-              <Icon name="close" size={22} color={colors.subText} />
-            </Pressable>
+            <View style={[styles.placeIcon, { backgroundColor: c.coralSofter }]}>
+              <Icon name="heart" size={16} color={c.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              {nicknames[selected] ? (
+                <>
+                  <Text style={styles.sheetTitle} numberOfLines={1}>{nicknames[selected]}</Text>
+                  <Text style={styles.sheetPlaceName} numberOfLines={1}>{selected}</Text>
+                </>
+              ) : (
+                <Text style={styles.sheetTitle} numberOfLines={1}>{selected}</Text>
+              )}
+            </View>
           </View>
           <Text style={styles.sheetSub}>
             {`${counts[selected] || 1}개의 추억이 있는 곳이에요.`}
           </Text>
-        </View>
+          {/* 닫기(X) — 카드 안 오버레이(중첩 Pressable, 카드 탭과 분리) */}
+          <Pressable onPress={() => setSelected(null)} hitSlop={12} style={styles.sheetClose}>
+            <Icon name="close" size={22} color={colors.subText} />
+          </Pressable>
+        </Pressable>
       )}
     </SafeAreaView>
   );
@@ -305,11 +303,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderRadius: radius.lg,
     padding: spacing.lg,
+    paddingRight: spacing.xl + 20, // X 자리 확보
     ...shadow,
   },
-  sheetHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  sheetNav: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  // 탭 눌림 효과(요청): 살짝 작아지고 흐려짐.
+  sheetPressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
+  sheetHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   sheetTitle: { ...font.h2 },
   sheetPlaceName: { ...font.caption, color: colors.subText, marginTop: 1 },
   sheetSub: { ...font.body, color: colors.subText, marginTop: spacing.sm },
+  sheetClose: { position: 'absolute', top: spacing.md, right: spacing.md, padding: 2 },
 });

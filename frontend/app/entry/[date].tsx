@@ -29,7 +29,7 @@ import { useCoupleStore } from '../../store/useCoupleStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useNotifStore } from '../../store/useNotifStore';
 import { useDataCache, invalidateAfterMutation } from '../../store/useDataCache';
-import { Button, Card, Icon, PhotoThumb, Pill, StarRating } from '../../components/ui';
+import { Button, Card, Icon, PhotoThumb, Pill } from '../../components/ui';
 import { DatePickerSheet } from '../../components/DatePickerSheet';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
@@ -623,7 +623,6 @@ function SideCard({
     <Card style={{ marginTop: spacing.lg }}>
       <View style={styles.sideHead}>
         <Text style={[styles.sideTitle, { color: accent }]}>{title}</Text>
-        {side.rating ? <StarRating value={side.rating} size={16} /> : null}
       </View>
 
       {/* 메타: 기분 / 위치 */}
