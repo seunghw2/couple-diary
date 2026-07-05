@@ -14,9 +14,11 @@
 - 콘솔에서 값 확보 — 위치가 옮겨져 있었다: 예전 "카카오 로그인 > 보안"이 아니라 **앱 설정 > 앱 > 플랫폼 키 > REST API 키 > 클라이언트 시크릿**. 여기 시크릿이 **둘**(카카오 로그인 / 비즈니스 인증)이라, 로그인 토큰 교환엔 **"카카오 로그인" 시크릿**을 써야 한다(비즈니스 인증 것 넣으면 여전히 KOE010).
 - 시크릿은 커밋하지 않고 `application-local.yml`(gitignore) + env로 주입. 재기동에도 유지.
 
-검증: 가짜 code로 토큰 교환 시 KOE010 → **KOE320("code not found")** 로 바뀜 = 시크릿 정상 반영(실제 code면 성공). 상세 인수인계는 [매뉴얼](../manuals/kakao-login.md)에 반영.
+검증: 가짜 code로 토큰 교환 시 KOE010 → **KOE320("code not found")** 로 바뀜 = 시크릿 정상 반영(실제 code면 성공). 실기기에서 로그인 시 커플 연결 화면까지 정상 진입 확인. 상세 인수인계는 [매뉴얼](../manuals/kakao-login.md)에 반영.
 
-![카카오 로그인/비즈니스 인증 시크릿 (활성화 ON)](captures/16-kakao-client-secret.png)
+| 콘솔: 시크릿 둘(카카오 로그인/비즈니스 인증, 활성화 ON) | 앱: 로그인 화면(카카오로 시작하기) |
+|---|---|
+| ![](captures/16-kakao-client-secret.png) | ![](captures/16-app-login.png) |
 
 ## 2) 지도에서 장소 콕 찍어 담기 (기획 [15a](../planning/15a-place-add-mappick.md))
 

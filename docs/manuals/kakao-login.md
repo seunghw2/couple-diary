@@ -83,7 +83,20 @@ https://<백엔드도메인>/api/auth/kakao/callback
 - **닉네임/프로필**은 카카오 **기본 제공 스코프**라 별도 설정 없이도 로그인은 된다. (최근 카카오가 프로필 스코프를 "추가 기능 신청" 뒤로 옮겨서 개별 토글이 안 보일 수 있음 — 없어도 로그인 정상.)
 - **이메일**은 사업자 검수가 필요할 수 있고 사용자가 미동의할 수 있다 → 백엔드에서 **이메일 없을 때 폴백**(아래 3-3) 반드시 넣을 것.
 
-### 2-5. (지도도 쓸 경우) 플랫폼 > Web 도메인
+### 2-5. Client Secret ⚠️⚠️ KOE010의 원인 (실제로 밟은 함정)
+카카오는 **REST API 키 발급 시 Client Secret을 기본 "사용함"으로 켠다.** 켜져 있으면 **토큰 교환에 `client_secret`을 반드시 포함**해야 하고, 빠지면 `KOE010 invalid_client` (authorize는 되는데 토큰 교환만 실패)로 죽는다.
+
+**정확한 위치** (예전 "카카오 로그인 > 보안"에서 이동됨):
+```
+앱 설정 > 앱 > 플랫폼 키 > "REST API 키"(클릭) > 아래로 스크롤 > "클라이언트 시크릿"
+```
+직접 URL: `https://developers.kakao.com/console/app/{APP_ID}/config/platform-key` → REST API 키 클릭.
+
+- 여기 시크릿이 **둘**이다: **"카카오 로그인"** 과 **"비즈니스 인증"**. 로그인 토큰 교환엔 반드시 **"카카오 로그인" 시크릿**을 써야 한다. (비즈니스 인증 시크릿을 넣으면 값이 있어도 여전히 KOE010 — 실제로 이걸로 한 번 헤맴.)
+- 코드 값은 OCR로 읽지 말고 **복사 버튼**으로 정확히. 32자.
+- 대안: 이 화면에서 **활성화 토글을 OFF**로 내리면 client_secret 없이도 동작(보안은 약해짐). 켜두고 백엔드에서 보내는 쪽을 권장.
+
+### 2-6. (지도도 쓸 경우) 플랫폼 > Web 도메인
 로그인과 별개. 카카오맵 JS SDK를 쓰면 `앱 설정 > 플랫폼 > Web`에 **서비스 도메인**(웹 origin)을 등록해야 지도가 렌더된다.
 
 ---
@@ -97,14 +110,17 @@ https://<백엔드도메인>/api/auth/kakao/callback
 app:
   kakao:
     rest-key: ${KAKAO_REST_KEY:여기에_REST_API_키}   # 환경변수 우선, 하드코딩 금지(폴백만)
+    client-secret: ${KAKAO_CLIENT_SECRET:}          # Client Secret "사용함"이면 필수. 값은 커밋 금지
 ```
-> REST 키는 **코드에 직접 박지 말고** env로. yml의 `${ENV:default}`는 로컬 편의용 폴백일 뿐, 운영은 환경변수로 주입.
+> REST 키·시크릿은 **코드에 직접 박지 말고** env로. yml의 `${ENV:default}`는 로컬 편의용 폴백일 뿐, 운영은 환경변수로 주입.
+> 로컬에서 재기동마다 env 넣기 귀찮으면 **`application-local.yml`(gitignore)에 시크릿만** 넣어라 — Spring Boot가 profile=local일 때 실행 디렉터리에서 자동 로드하고, 커밋되지 않는다.
 
 DB: `ddl-auto: update`면 아래 `kakaoId` 컬럼이 **재시작 시 자동 추가**된다(수동 마이그레이션 불필요).
 
 ### 3-2. `auth/KakaoClient.java` — 카카오와 직접 통신
 `RestClient` 2개로 저수준 호출만 담당:
-- `exchangeToken(code, redirectUri)` → `POST https://kauth.kakao.com/oauth/token` (form: grant_type=authorization_code, client_id, redirect_uri, code) → `access_token`
+- `exchangeToken(code, redirectUri)` → `POST https://kauth.kakao.com/oauth/token` (form: grant_type=authorization_code, client_id, redirect_uri, code, **client_secret(있으면)**) → `access_token`
+  - ⚠️ Client Secret이 콘솔에서 "사용함"이면 이 폼에 `client_secret`을 **반드시** 넣어야 한다(없으면 KOE010). 값이 비면 안 넣는 조건부로.
 - `fetchUser(kakaoAccessToken)` → `GET https://kapi.kakao.com/v2/user/me` (Bearer) → `{ id, kakao_account.email, kakao_account.profile.nickname }`
 - 반환 record `KakaoUser(kakaoId, nickname, email)`.
 - 실패는 전부 `ErrorCode.KAKAO_AUTH_FAILED`로 감싼다.
@@ -214,6 +230,7 @@ export async function loginWithKakao(): Promise<string | null> {
 - [ ] 앱 생성 → **REST API 키** 확보
 - [ ] 카카오 로그인 **활성화 ON**
 - [ ] **Redirect URI** 등록: `https://<새백엔드>/api/auth/kakao/callback` (위치=REST API 키 카드 수정)
+- [ ] **Client Secret** 확인: REST API 키 > 클라이언트 시크릿 "카카오 로그인"이 "사용함"이면 **코드 복사**(비즈니스 인증 것 아님!)
 - [ ] (지도 쓰면) 플랫폼 > Web 도메인 등록 + JavaScript 키
 
 백엔드:
@@ -221,7 +238,8 @@ export async function loginWithKakao(): Promise<string | null> {
 - [ ] `User`에 `kakaoId` + unique 제약, `UserRepository.findByKakaoId`
 - [ ] `UserService.kakaoLogin` (upsert + 기존 JWT 발급) — **이메일 폴백 잊지 말 것**
 - [ ] `AuthController`: `/kakao`, `/kakao/callback` — 콜백의 `redirectUri` 상수를 **새 도메인**으로
-- [ ] `application.yml` `app.kakao.rest-key` = **새 REST 키**(env 주입)
+- [ ] `application.yml` `app.kakao.rest-key`/`client-secret` = **새 값**(env 또는 application-local.yml 주입, 커밋 금지)
+- [ ] `KakaoClient` 토큰 교환에 `client_secret` 조건부 포함
 - [ ] `ErrorCode.KAKAO_AUTH_FAILED` 추가
 
 프론트:
@@ -237,6 +255,7 @@ export async function loginWithKakao(): Promise<string | null> {
 | 증상 | 원인 / 해결 |
 |---|---|
 | **KOE006** (Redirect URI mismatch) | 인가 URL의 `redirect_uri`가 콘솔 등록값과 **한 글자라도** 다름. 프로토콜(http/https)·끝 슬래시·오타(`callbck`) 확인. 인가 URL의 값 = 콘솔 값 = 토큰 교환 시 값 **셋 다 동일**해야 함. |
+| **KOE010** (Bad client credentials, authorize는 되는데 토큰 교환만 실패) | Client Secret "사용함"인데 토큰 요청에 `client_secret` 누락/틀림. 콘솔 REST API 키 > 클라이언트 시크릿 **"카카오 로그인"** 코드를 백엔드 토큰 폼에 넣어라(비즈니스 인증 코드 아님). 2-5 참고. |
 | **KOE101 / invalid client** | `client_id`(REST 키) 오타 또는 로그인 비활성 상태. |
 | 로그인은 되는데 **이메일 null** | 사용자 미동의/미검수. 백엔드 폴백(`kakao_{id}@…`)으로 계정 생성 — kakaoId를 키로 쓰면 문제없음. |
 | 앱으로 **안 돌아옴**(콜백에서 멈춤) | `state`에 `returnUri`가 안 실렸거나, 백엔드가 302를 안 함. 콜백 로그 확인. `state` 없으면 JSON 폴백이 뜸(=state 전달 실패 신호). |
