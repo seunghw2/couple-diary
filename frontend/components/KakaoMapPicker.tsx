@@ -31,11 +31,15 @@ const MAP_REFERER = 'https://today-web.hammerslog.trade';
 /** 위치 권한 거부 시 폴백 중심(서울시청). */
 const FALLBACK = { lat: 37.5665, lng: 126.978 };
 
+/** 지도 탭 근처 후보(카테고리 검색 + 건물명). dist=탭 지점 기준 거리(m). */
+type NearbyCandidate = PlaceResult & { dist?: number | null };
+
 /** WebView → RN 메시지 계약. */
 type WebMessage =
   | { type: 'ready' }
   | { type: 'select'; name: string; address?: string; category?: string; lat?: number; lng?: number }
   | { type: 'longpress'; lat: number; lng: number; address?: string }
+  | { type: 'nearby'; lat: number; lng: number; candidates: NearbyCandidate[] }
   | { type: 'error'; message: string };
 
 /** 두 좌표 간 거리(m). */
@@ -82,10 +86,11 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
   const [me, setMe] = useState<{ lat: number; lng: number } | null>(null);
   const [permDenied, setPermDenied] = useState(false);
 
-  // 하단 상태: 담을 후보(핀 탭한 장소) / 롱프레스로 찍은 좌표
+  // 하단 상태: 담을 후보(핀 탭한 장소) / 롱프레스로 찍은 좌표 / 지도 탭 근처 후보 목록
   const [active, setActive] = useState<SelectedPlace | null>(null);
   const [pinned, setPinned] = useState<{ lat: number; lng: number; address?: string } | null>(null);
   const [pinnedName, setPinnedName] = useState('');
+  const [nearby, setNearby] = useState<{ lat: number; lng: number; candidates: NearbyCandidate[] } | null>(null);
 
   const [basket, setBasket] = useState<SelectedPlace[]>([]);
   const [toast, setToast] = useState<string | null>(null);
@@ -100,6 +105,7 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
     setActive(null);
     setPinned(null);
     setPinnedName('');
+    setNearby(null);
     setBasket(initial);
     setMapReady(false);
     (async () => {
@@ -167,6 +173,7 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
         setNetError(false);
         setActive(null);
         setPinned(null);
+        setNearby(null);
       } catch {
         if (my === seq.current) {
           setResults([]);
@@ -205,10 +212,17 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
         lng: msg.lng,
       });
       setPinned(null);
+      setNearby(null);
     } else if (msg.type === 'longpress') {
       setPinned({ lat: msg.lat, lng: msg.lng, address: msg.address });
       setPinnedName('');
       setActive(null);
+      setNearby(null);
+    } else if (msg.type === 'nearby') {
+      // 지도를 탭한 지점 근처 후보 목록 → 아래 시트에 표시.
+      setNearby({ lat: msg.lat, lng: msg.lng, candidates: msg.candidates });
+      setActive(null);
+      setPinned(null);
     }
   };
 
@@ -407,8 +421,58 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
 
         {/* 하단 시트 */}
         <View style={styles.bottom}>
+          {/* 지도 탭 → 근처 후보 목록 (탭하면 담기 + 지도 중심 이동) */}
+          {nearby ? (
+            <View style={styles.card}>
+              <View style={styles.cardHeadRow}>
+                <Text style={styles.cardTitle}>이 근처 장소</Text>
+                <Pressable onPress={() => setNearby(null)} hitSlop={8} style={{ marginLeft: 'auto' }}>
+                  <Icon name="close" size={20} color={colors.subText} />
+                </Pressable>
+              </View>
+              {nearby.candidates.length === 0 ? (
+                <Text style={styles.cardSub}>
+                  이 지점에서 장소를 못 찾았어요. 지도를 길게 눌러 직접 이름으로 담을 수 있어요.
+                </Text>
+              ) : (
+                <ScrollView style={{ maxHeight: 240 }} keyboardShouldPersistTaps="handled">
+                  {nearby.candidates.map((p, i) => {
+                    const added = addedSet.has(p.name.trim());
+                    const dist = p.dist != null ? formatDistance(p.dist) : distanceOf(p);
+                    return (
+                      <Pressable
+                        key={`${p.name}-${i}`}
+                        style={({ pressed }) => [styles.listRow, pressed && { opacity: 0.6 }]}
+                        onPress={() => pickFromList(p)}
+                      >
+                        <View style={[styles.listPin, { backgroundColor: c.coralSofter }]}>
+                          <Icon name="location" size={16} color={c.primary} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.listName} numberOfLines={1}>
+                            {p.name}
+                            {p.category ? <Text style={styles.listCat}>  {p.category}</Text> : null}
+                          </Text>
+                          <Text style={styles.listAddr} numberOfLines={1}>
+                            {dist ? `${dist} · ` : ''}
+                            {p.address}
+                          </Text>
+                        </View>
+                        <Icon
+                          name={added ? 'checkmark-circle' : 'add-circle-outline'}
+                          size={24}
+                          color={added ? '#4CAF7D' : c.primary}
+                        />
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              )}
+            </View>
+          ) : null}
+
           {/* E1: 위치 권한 없음 안내(검색은 여전히 가능) */}
-          {permDenied && !active && !pinned && !zeroResults && !query.trim() ? (
+          {permDenied && !active && !pinned && !nearby && !zeroResults && !query.trim() ? (
             <View style={styles.card}>
               <Text style={styles.cardTitle}>지금 위치를 알 수 없어요</Text>
               <Text style={styles.cardSub}>검색하거나 지도를 길게 눌러 직접 찍어보세요.</Text>
@@ -567,8 +631,11 @@ function buildHtml(key: string): string {
           center: new kakao.maps.LatLng(${FALLBACK.lat}, ${FALLBACK.lng}), level: 5
         });
         var geocoder = new kakao.maps.services.Geocoder();
+        var places = new kakao.maps.services.Places();
         // 각 검색핀을 {name, el, overlay}로 보관해 담김(초록) 상태를 이름으로 갱신.
         var resultPins = [], addedNames = {}, meOverlay = null, pickOverlay = null;
+        // 롱프레스 직후 따라오는 click 억제 플래그.
+        var suppressClick = false;
 
         function clearPins() { resultPins.forEach(function (r) { r.overlay.setMap(null); }); resultPins = []; }
 
@@ -625,6 +692,60 @@ function buildHtml(key: string): string {
           pickOverlay.setMap(map);
         }
 
+        // 지도 탭 지점 근처 후보 검색: 카테고리(음식/카페/편의점 등 거리순) + 역지오코딩 건물명.
+        // 카카오는 라벨 직접 클릭 이벤트를 안 열어줘서, 탭 좌표 주변을 검색해 후보 목록을 만든다.
+        var NEARBY_CODES = ['FD6','CE7','CS2','MT1','HP8','PM9','BK9','CT1','AD5','AT4'];
+        function nearbySearch(lat, lng) {
+          dropPick(lat, lng);
+          var loc = new kakao.maps.LatLng(lat, lng);
+          var seen = {}, list = [], pending = NEARBY_CODES.length + 1;
+          function finish() {
+            if (--pending > 0) return;
+            list.sort(function (a, b) {
+              var da = a.dist == null ? 1e9 : a.dist, db = b.dist == null ? 1e9 : b.dist;
+              return da - db;
+            });
+            post({ type: 'nearby', lat: lat, lng: lng, candidates: list.slice(0, 12) });
+          }
+          function push(name, address, category, plat, plng, dist) {
+            if (!name) return;
+            var k = name + '|' + (address || '');
+            if (seen[k]) return; seen[k] = true;
+            list.push({ name: name, address: address || '', category: category, lat: plat, lng: plng, dist: dist });
+          }
+          NEARBY_CODES.forEach(function (code) {
+            places.categorySearch(code, function (data, status) {
+              if (status === kakao.maps.services.Status.OK) {
+                data.forEach(function (p) {
+                  push(p.place_name,
+                       p.road_address_name || p.address_name,
+                       p.category_group_name || p.category_name,
+                       parseFloat(p.y), parseFloat(p.x),
+                       p.distance ? parseInt(p.distance, 10) : null);
+                });
+              }
+              finish();
+            }, { location: loc, radius: 100, sort: kakao.maps.services.SortBy.DISTANCE });
+          });
+          // 건물명(오피스텔/타워 등)은 카테고리 검색에 안 잡히므로 역지오코딩으로 보강.
+          geocoder.coord2Address(lng, lat, function (res, status) {
+            if (status === kakao.maps.services.Status.OK && res[0]) {
+              var ra = res[0].road_address;
+              var addr = (ra && ra.address_name) || (res[0].address && res[0].address.address_name) || '';
+              var bn = ra && ra.building_name;
+              if (bn) push(bn, addr, '건물', lat, lng, 10);
+            }
+            finish();
+          });
+        }
+
+        // 지도 탭(드래그 아님) → 근처 후보 검색. 롱프레스 직후 click은 억제.
+        kakao.maps.event.addListener(map, 'click', function (mouseEvent) {
+          if (suppressClick) { suppressClick = false; return; }
+          var ll = mouseEvent.latLng;
+          nearbySearch(ll.getLat(), ll.getLng());
+        });
+
         // 롱프레스: 카카오 지도는 longclick 미지원 → mousedown/touchstart 타이머로 구현.
         var pressTimer = null, downPos = null;
         var container = document.getElementById('map');
@@ -637,6 +758,9 @@ function buildHtml(key: string): string {
             if (!latlng) { latlng = map.getCenter(); }
             var lat = latlng.getLat(), lng = latlng.getLng();
             dropPick(lat, lng);
+            // 롱프레스가 발동하면 뒤따르는 지도 click(근처검색)을 잠시 억제.
+            suppressClick = true;
+            setTimeout(function () { suppressClick = false; }, 800);
             geocoder.coord2Address(lng, lat, function (res, status) {
               var addr;
               if (status === kakao.maps.services.Status.OK && res[0]) {
