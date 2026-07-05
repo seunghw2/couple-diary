@@ -16,19 +16,9 @@ import { confirmAsync } from '../lib/dialog';
 import { todayISO } from '../lib/date';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCoupleStore } from '../store/useCoupleStore';
-import { useThemeStore } from '../store/useThemeStore';
 import { Button, Card, Icon } from '../components/ui';
 import { DatePickerSheet } from '../components/DatePickerSheet';
 import { colors, font, radius, spacing, useColors } from '../theme/theme';
-
-/** 내 아바타/앱 색 팔레트(뮤트 웜 18색). */
-const AVATAR_COLORS = [
-  '#FF8E72', '#FF9E80', '#FFB59E', '#F49BA0',
-  '#E98A8A', '#E0A98F', '#D6A16A', '#CBB994',
-  '#E3B23C', '#B0857A', '#A8B58F', '#8FB4A0',
-  '#7FB0A8', '#9AB6C9', '#A99BC4', '#C29BB8',
-  '#D98CA6', '#C98A8A',
-] as const;
 
 /** YYYY-MM-DD가 실제 존재하는 날짜인지 검증. */
 function isValidDate(v: string): boolean {
@@ -44,7 +34,6 @@ export default function AccountScreen() {
   const c = useColors();
   const { user, partner, logout, setUser } = useAuthStore();
   const { couple, setAnniversary } = useCoupleStore();
-  const appPrimary = useThemeStore((s) => s.appPrimary);
 
   const [anniv, setAnniv] = useState(couple?.anniversaryDate ?? '');
   const [saving, setSaving] = useState(false);
@@ -54,30 +43,11 @@ export default function AccountScreen() {
   const [nickSaving, setNickSaving] = useState(false);
   const [nickMsg, setNickMsg] = useState<string | null>(null);
 
-  const [selectedColor, setSelectedColor] = useState<string>(user?.avatarColor ?? appPrimary);
-  const [colorSaving, setColorSaving] = useState(false);
-  const [colorMsg, setColorMsg] = useState<string | null>(null);
-
   const [birthday, setBirthday] = useState(user?.birthday ?? '');
   const [bdaySaving, setBdaySaving] = useState(false);
   const [bdayMsg, setBdayMsg] = useState<string | null>(null);
   const [bdayPickerOpen, setBdayPickerOpen] = useState(false);
   const [annivPickerOpen, setAnnivPickerOpen] = useState(false);
-
-  async function onApplyProfileColor() {
-    if (colorSaving || selectedColor === user?.avatarColor) return;
-    setColorSaving(true);
-    setColorMsg(null);
-    try {
-      const updated = await authApi.updateMe({ avatarColor: selectedColor });
-      setUser(updated);
-      setColorMsg('프로필 컬러를 바꿨어요');
-    } catch {
-      setColorMsg('프로필 컬러 변경에 실패했어요.');
-    } finally {
-      setColorSaving(false);
-    }
-  }
 
   async function onSaveBirthday() {
     const v = birthday.trim();
@@ -140,8 +110,6 @@ export default function AccountScreen() {
     if (ok) logout();
   }
 
-  const isProfileColor = selectedColor === user?.avatarColor;
-
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
@@ -175,40 +143,6 @@ export default function AccountScreen() {
               <Button label="저장" variant="soft" onPress={onSaveNickname} loading={nickSaving} style={styles.nickBtn} />
             </View>
             {nickMsg ? <Text style={[styles.msg, { color: c.primary }]}>{nickMsg}</Text> : null}
-          </Card>
-
-          <Card style={{ marginTop: spacing.lg }}>
-            <Text style={styles.label}>내 프로필 컬러</Text>
-            <Text style={styles.hint}>상대 화면에서 보이는 내 일기 색이에요.</Text>
-            <View style={styles.swatchWrap}>
-              {AVATAR_COLORS.map((sw) => {
-                const selected = selectedColor === sw;
-                const isProfile = user?.avatarColor === sw;
-                return (
-                  <Pressable
-                    key={sw}
-                    onPress={() => setSelectedColor(sw)}
-                    style={[
-                      styles.swatch,
-                      { backgroundColor: sw },
-                      selected && [styles.swatchSelected, { borderColor: colors.text }],
-                    ]}
-                  >
-                    {selected ? <Icon name="checkmark" size={18} color={colors.white} /> : null}
-                    {isProfile && !selected ? <View style={styles.swatchDot} /> : null}
-                  </Pressable>
-                );
-              })}
-            </View>
-            <Button
-              label="프로필 컬러 적용"
-              variant="soft"
-              onPress={onApplyProfileColor}
-              loading={colorSaving}
-              disabled={isProfileColor}
-              style={{ marginTop: spacing.md }}
-            />
-            {colorMsg ? <Text style={[styles.msg, { color: c.primary }]}>{colorMsg}</Text> : null}
           </Card>
 
           <Card style={{ marginTop: spacing.lg }}>
@@ -317,23 +251,4 @@ const styles = StyleSheet.create({
   dateText: { fontSize: 16, color: colors.text },
   msg: { ...font.caption, marginTop: spacing.sm },
   logout: { ...font.body, color: colors.danger, textDecorationLine: 'underline' },
-  swatchWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
-  swatch: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  swatchSelected: { borderWidth: 3 },
-  swatchDot: {
-    position: 'absolute',
-    bottom: 4,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.white,
-  },
 });
