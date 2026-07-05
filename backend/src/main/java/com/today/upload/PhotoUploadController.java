@@ -115,41 +115,51 @@ public class PhotoUploadController {
             throw new ApiException(ErrorCode.INVALID_INPUT);
         }
 
+        // 캐시된 썸네일이 원본보다 최신이면 그대로 서빙
+        boolean cacheValid = Files.isRegularFile(cached);
         try {
-            // 캐시된 썸네일이 원본보다 최신이면 그대로 서빙
-            boolean cacheValid = Files.isRegularFile(cached)
-                    && Files.getLastModifiedTime(cached).toMillis()
-                            >= Files.getLastModifiedTime(source).toMillis();
+            cacheValid = cacheValid && Files.getLastModifiedTime(cached).toMillis()
+                    >= Files.getLastModifiedTime(source).toMillis();
+        } catch (IOException ignored) {
+            cacheValid = false;
+        }
 
-            if (!cacheValid) {
-                // 원본이 실제로 디코드 가능한 이미지인지 확인 (깨진/비이미지 파일 방어)
-                BufferedImage img = ImageIO.read(source.toFile());
-                if (img == null) {
-                    throw new ApiException(ErrorCode.INVALID_INPUT);
-                }
-                // 원본보다 크게 확대하지 않음
-                int targetWidth = Math.min(width, img.getWidth());
-
+        if (!cacheValid) {
+            try {
                 Files.createDirectories(thumbDir);
-                Thumbnails.of(img)
-                        .width(targetWidth)
+                // ★ 파일을 직접 넘겨야 thumbnailator가 EXIF 방향을 읽어 자동 보정한다.
+                //   (ImageIO.read → BufferedImage로 넘기면 EXIF가 사라져 사진이 회전됨)
+                Thumbnails.of(source.toFile())
+                        .width(width)
                         .keepAspectRatio(true)
                         .outputFormat("jpg")
                         .outputQuality(0.8)
                         .toFile(cached.toFile());
+            } catch (Throwable e) {
+                // 썸네일 생성 실패(디코드 불가한 포맷 등) → 안 보이는 것보단 원본을 그대로 서빙.
+                return serveOriginal(source);
             }
-        } catch (IOException e) {
-            // 디코드/인코드 실패 = 이미지가 아니거나 손상됨
-            throw new ApiException(ErrorCode.INVALID_INPUT);
         }
 
-        FileSystemResource resource = new FileSystemResource(cached);
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .cacheControl(CacheControl.maxAge(Duration.ofSeconds(CACHE_MAX_AGE_SECONDS))
                         .cachePublic()
                         .immutable())
-                .body(resource);
+                .body(new FileSystemResource(cached));
+    }
+
+    /** 썸네일 생성 실패 시 원본 파일을 그대로 서빙(그리드에서 이미지가 아예 안 뜨는 것 방지). */
+    private ResponseEntity<Resource> serveOriginal(Path source) {
+        MediaType type = MediaType.IMAGE_JPEG;
+        String name = source.getFileName().toString().toLowerCase(Locale.ROOT);
+        if (name.endsWith(".png")) type = MediaType.IMAGE_PNG;
+        else if (name.endsWith(".gif")) type = MediaType.IMAGE_GIF;
+        else if (name.endsWith(".webp")) type = MediaType.parseMediaType("image/webp");
+        return ResponseEntity.ok()
+                .contentType(type)
+                .cacheControl(CacheControl.maxAge(Duration.ofSeconds(CACHE_MAX_AGE_SECONDS)).cachePublic())
+                .body(new FileSystemResource(source));
     }
 
     private int clampWidth(Integer w) {

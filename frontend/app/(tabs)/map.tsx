@@ -188,13 +188,15 @@ export default function MapScreen() {
                 <Text style={styles.sheetTitle} numberOfLines={1}>{selected}</Text>
               )}
             </View>
+            {/* 탭 가능 표시(요청): 우측 화살표 */}
+            <Icon name="chevron-forward" size={22} color={c.primary} />
           </View>
           <Text style={styles.sheetSub}>
             {`${counts[selected] || 1}개의 추억이 있는 곳이에요.`}
           </Text>
           {/* 닫기(X) — 카드 안 오버레이(중첩 Pressable, 카드 탭과 분리) */}
           <Pressable onPress={() => setSelected(null)} hitSlop={12} style={styles.sheetClose}>
-            <Icon name="close" size={22} color={colors.subText} />
+            <Icon name="close" size={20} color={colors.subText} />
           </Pressable>
         </Pressable>
       )}
