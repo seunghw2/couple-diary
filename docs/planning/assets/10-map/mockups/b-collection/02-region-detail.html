@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>성동구 상세</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    font-family: -apple-system, "SF Pro Text", "Pretendard", "Apple SD Gothic Neo", sans-serif;
+    background:#E9E1DA; display:flex; flex-direction:column; align-items:center;
+    padding:24px 0; min-height:100vh;
+  }
+  .label { font-size:12px; color:#8A7268; margin-bottom:8px; letter-spacing:.3px; }
+  .phone {
+    width:390px; height:844px; background:#FFFDFA; border-radius:44px; overflow:hidden;
+    position:relative; box-shadow:0 24px 60px rgba(90,64,56,.22); display:flex; flex-direction:column;
+  }
+  .status { height:54px; display:flex; align-items:center; justify-content:space-between; padding:0 30px; font-size:15px; font-weight:600; color:#5A4038; flex-shrink:0; }
+  .status .dots { display:flex; align-items:center; gap:6px; }
+  .status .bars { display:flex; gap:2px; align-items:flex-end; height:11px; }
+  .status .bars i { width:3px; background:#5A4038; border-radius:1px; }
+  .status .bars i:nth-child(1){height:4px}.status .bars i:nth-child(2){height:6px}
+  .status .bars i:nth-child(3){height:9px}.status .bars i:nth-child(4){height:11px}
+  .status .batt { width:24px; height:12px; border:1.5px solid #5A4038; border-radius:3px; position:relative; }
+  .status .batt::after { content:''; position:absolute; right:-3px; top:3px; width:2px; height:5px; background:#5A4038; border-radius:1px;}
+  .status .batt i { position:absolute; left:1.5px; top:1.5px; bottom:1.5px; width:70%; background:#5A4038; border-radius:1px;}
+
+  .scroll { flex:1; overflow-y:auto; padding-bottom:96px; }
+
+  /* hero */
+  .hero { position:relative; height:230px; padding:14px 20px 0;
+    background:linear-gradient(160deg,#FF9E7E 0%, #FF7E63 100%); }
+  .navback { display:flex; align-items:center; justify-content:space-between; }
+  .navback button { width:36px; height:36px; border-radius:50%; border:none; background:rgba(255,255,255,.22); display:flex; align-items:center; justify-content:center; }
+  .navback svg { width:18px; height:18px; stroke:#fff; }
+  .badge {
+    position:absolute; left:20px; bottom:26px; right:20px; color:#fff;
+  }
+  .mastertag { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.2); padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700; margin-bottom:10px; }
+  .mastertag svg { width:13px; height:13px; }
+  .badge h1 { font-size:30px; font-weight:800; letter-spacing:-.5px; }
+  .badge p { font-size:13px; opacity:.92; margin-top:4px; }
+
+  /* stamp coin overlapping hero */
+  .coinwrap { display:flex; justify-content:center; margin-top:-42px; position:relative; z-index:2; }
+  .coin { width:84px; height:84px; border-radius:50%; background:#FFFDFA; box-shadow:0 8px 20px rgba(255,142,114,.3); display:flex; align-items:center; justify-content:center; }
+  .coin .inner { width:66px; height:66px; border-radius:50%; background:linear-gradient(145deg,#FFB399,#FF8E72); display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; }
+  .coin .inner b { font-size:20px; font-weight:800; }
+  .coin .inner span { font-size:9px; font-weight:600; opacity:.9; }
+
+  .body { padding:16px 20px 0; }
+
+  /* stat row */
+  .stats { display:flex; gap:10px; margin-bottom:20px; }
+  .stat { flex:1; background:#FFF6EF; border-radius:18px; padding:14px 10px; text-align:center; }
+  .stat b { display:block; font-size:22px; font-weight:800; color:#5A4038; }
+  .stat span { font-size:11px; color:#A38A7E; }
+
+  .sechead { font-size:16px; font-weight:800; color:#5A4038; margin:0 2px 12px; display:flex; align-items:center; justify-content:space-between; }
+  .sechead a { font-size:12px; color:#FF8E72; font-weight:600; }
+
+  /* photo strip */
+  .photos { display:flex; gap:8px; margin-bottom:22px; }
+  .photos .ph { flex:1; aspect-ratio:1/1; border-radius:16px; position:relative; overflow:hidden; }
+  .ph.p1{background:linear-gradient(135deg,#FFD3A5,#FD9E7A)}
+  .ph.p2{background:linear-gradient(135deg,#FFC2A0,#FF8E72)}
+  .ph.p3{background:linear-gradient(135deg,#FFE0C7,#FFB08A)}
+  .ph.more{background:#F1EAE4; display:flex; align-items:center; justify-content:center; color:#A38A7E; font-weight:700; font-size:14px;}
+
+  /* place / diary list */
+  .place { display:flex; gap:14px; background:#FFF; border-radius:18px; padding:14px; margin-bottom:10px; box-shadow:0 4px 14px rgba(90,64,56,.05); align-items:center; }
+  .place .thumb { width:56px; height:56px; border-radius:14px; flex-shrink:0; }
+  .t1{background:linear-gradient(135deg,#FFC2A0,#FF8E72)}
+  .t2{background:linear-gradient(135deg,#FFD9BE,#FFA983)}
+  .t3{background:linear-gradient(135deg,#FFE3D0,#FFBE9C)}
+  .place .info { flex:1; }
+  .place .info b { font-size:15px; font-weight:700; color:#5A4038; }
+  .place .info .meta { font-size:12px; color:#A38A7E; margin-top:3px; display:flex; gap:6px; align-items:center; }
+  .dot { width:3px; height:3px; border-radius:50%; background:#D6C6BC; }
+  .place .visit { font-size:11px; font-weight:700; color:#FF8E72; background:#FFF0E9; padding:4px 9px; border-radius:14px; white-space:nowrap; }
+
+  .tabs { position:absolute; left:0; right:0; bottom:0; height:84px; background:rgba(255,253,250,.94); backdrop-filter:blur(12px); border-top:1px solid #F1E7DF; display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; color:#C3B4AB; }
+  .tab svg { width:24px; height:24px; }
+  .tab span { font-size:10px; font-weight:600; }
+  .tab.active { color:#FF8E72; }
+</style>
+</head>
+<body>
+<div class="label">B안 · 지역 컬렉션 — 02 지역 상세</div>
+<div class="phone">
+  <div class="status">
+    <span>9:41</span>
+    <div class="dots">
+      <div class="bars"><i></i><i></i><i></i><i></i></div>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="#5A4038"><path d="M8.5 2.5c2 0 3.8.8 5.1 2l1.1-1.2A9 9 0 0 0 2.3 3.3l1.1 1.2a7.3 7.3 0 0 1 5.1-2Zm0 3.2c1.1 0 2.1.4 2.9 1.2l1.1-1.2a6 6 0 0 0-8 0l1.1 1.2c.8-.8 1.8-1.2 2.9-1.2Zm0 3.1L10 10.4a2.1 2.1 0 0 0-3 0L8.5 8.8Z"/></svg>
+      <div class="batt"><i></i></div>
+    </div>
+  </div>
+
+  <div class="scroll">
+    <div class="hero">
+      <div class="navback">
+        <button><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
+      </div>
+      <div class="badge">
+        <span class="mastertag"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.4 7.2 17.9l.9-5.4L4.2 8.7l5.4-.8L12 2z"/></svg> 성동구 마스터</span>
+        <h1>성동구</h1>
+        <p>서울에서 우리가 제일 많이 다닌 동네</p>
+      </div>
+    </div>
+
+    <div class="coinwrap">
+      <div class="coin"><div class="inner"><b>Lv.3</b><span>MASTER</span></div></div>
+    </div>
+
+    <div class="body">
+      <div class="stats">
+        <div class="stat"><b>14</b><span>다녀온 장소</span></div>
+        <div class="stat"><b>23</b><span>작성한 일기</span></div>
+        <div class="stat"><b>1년 2개월</b><span>첫 방문부터</span></div>
+      </div>
+
+      <div class="sechead">추억 사진 <a>전체보기</a></div>
+      <div class="photos">
+        <div class="ph p1"></div>
+        <div class="ph p2"></div>
+        <div class="ph p3"></div>
+        <div class="ph more">+20</div>
+      </div>
+
+      <div class="sechead">이 동네에서 간 곳</div>
+
+      <div class="place">
+        <div class="thumb t1"></div>
+        <div class="info"><b>성수동 카페거리</b>
+          <div class="meta">카페 <span class="dot"></span> 일기 6개</div>
+        </div>
+        <div class="visit">6번 방문</div>
+      </div>
+
+      <div class="place">
+        <div class="thumb t2"></div>
+        <div class="info"><b>서울숲</b>
+          <div class="meta">공원 <span class="dot"></span> 일기 5개</div>
+        </div>
+        <div class="visit">5번 방문</div>
+      </div>
+
+      <div class="place">
+        <div class="thumb t3"></div>
+        <div class="info"><b>왕십리 광장</b>
+          <div class="meta">데이트 <span class="dot"></span> 일기 4개</div>
+        </div>
+        <div class="visit">4번 방문</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 4l9 5.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>홈</span></div>
+    <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span>달력</span></div>
+    <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M6 8l6-5 6 5"/><circle cx="12" cy="12" r="9"/></svg><span>쓰기</span></div>
+    <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3 3 5.5v15L9 18l6 3 6-2.5v-15L15 6 9 3z"/><path d="M9 3v15M15 6v15"/></svg><span>지도</span></div>
+    <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>우리</span></div>
+  </div>
+</div>
+</body>
+</html>

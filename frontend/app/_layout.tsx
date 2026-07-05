@@ -104,6 +104,7 @@ export default function RootLayout() {
           <Stack.Screen name="entry/[date]" />
           <Stack.Screen name="write/[date]" />
           <Stack.Screen name="notifications" options={{ presentation: 'card' }} />
+          <Stack.Screen name="anniversaries" options={{ presentation: 'card' }} />
         </Stack>
       </SafeAreaProvider>
     </ErrorBoundary>

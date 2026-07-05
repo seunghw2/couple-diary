@@ -250,12 +250,22 @@ export const authApi = {
     api.patch<UserSummary>('/api/me', patch),
 };
 
+/** 계산된 기념일 항목 (GET /api/couple/anniversaries). */
+export type AnniversaryItem = {
+  label: string;
+  date: string; // YYYY-MM-DD
+  dday: number; // 오늘 기준 남은 일수 (0=오늘)
+};
+
+export type AnniversaryListResponse = { items: AnniversaryItem[] };
+
 export const coupleApi = {
   get: () => api.get<CoupleResponse>('/api/couple'),
   invite: () => api.post<{ inviteCode: string }>('/api/couple/invite'),
   connect: (inviteCode: string) => api.post<CoupleResponse>('/api/couple/connect', { inviteCode }),
   setAnniversary: (anniversaryDate: string) =>
     api.put<CoupleResponse>('/api/couple/anniversary', { anniversaryDate }),
+  anniversaries: () => api.get<AnniversaryListResponse>('/api/couple/anniversaries'),
 };
 
 export const questionApi = {
@@ -307,6 +317,9 @@ export const entryApi = {
   create: (date: string, payload: UpsertEntryRequest) =>
     api.post<DayDetail>(`/api/entries/${date}`, payload),
   remove: (date: string) => api.del(`/api/entries/${date}`),
+  /** 일기 날짜 이동. 성공 시 이동된 날짜의 상세 반환. */
+  move: (date: string, targetDate: string) =>
+    api.put<DayDetail>(`/api/entries/${date}/move`, { targetDate }),
   comments: (date: string) => api.get<CommentView[]>(`/api/entries/${date}/comments`),
   addComment: (date: string, text: string) =>
     api.post<CommentView>(`/api/entries/${date}/comments`, { text }),

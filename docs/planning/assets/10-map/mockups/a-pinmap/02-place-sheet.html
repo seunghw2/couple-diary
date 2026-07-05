@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>love today — 지도 A안 · 장소 시트</title>
+<style>
+  :root{
+    --coral:#FF8E72; --coral-deep:#F5744F; --cream:#FFF6EF; --paper:#FFFDFA;
+    --ink:#5A4038; --ink-soft:#9A857C; --line:#F0E1D6; --gold:#F5B544;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",sans-serif;}
+  body{background:#EDE3DC;display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 0 48px;min-height:100vh;}
+  .label{font-size:12px;color:#8B7A70;letter-spacing:.3px;}
+  .phone{width:390px;height:844px;background:var(--paper);border-radius:44px;overflow:hidden;position:relative;box-shadow:0 22px 60px rgba(90,64,56,.22);}
+
+  .statusbar{position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:40;font-size:15px;font-weight:600;color:var(--ink);}
+  .sb-right{display:flex;align-items:center;gap:6px;}
+  .sb-bat{width:22px;height:11px;border:1.5px solid var(--ink);border-radius:3px;position:relative;}
+  .sb-bat::after{content:"";position:absolute;top:2px;left:2px;bottom:2px;width:13px;background:var(--ink);border-radius:1px;}
+  .sb-bat::before{content:"";position:absolute;right:-3px;top:3px;height:4px;width:2px;background:var(--ink);border-radius:1px;}
+  .sb-sig{display:flex;gap:2px;align-items:flex-end;}
+  .sb-sig i{width:3px;background:var(--ink);border-radius:1px;}
+  .sb-sig i:nth-child(1){height:5px}.sb-sig i:nth-child(2){height:8px}.sb-sig i:nth-child(3){height:11px}.sb-sig i:nth-child(4){height:14px}
+
+  /* dimmed map behind */
+  .map{position:absolute;inset:0;background:radial-gradient(120% 80% at 30% 10%, #FFFBF6 0%, #FBEFE6 60%, #F6E6DA 100%);}
+  .map::after{content:"";position:absolute;inset:0;background:rgba(90,64,56,.28);}
+  .roads i{position:absolute;background:#F3E3D6;border-radius:6px;}
+  .roads i.h{height:7px}.roads i.v{width:7px}
+  .river{position:absolute;left:-40px;right:-40px;top:200px;height:100px;background:linear-gradient(180deg,#DCECEF,#C6DFE4);border-radius:60% 40% 55% 45%/70% 60% 40% 30%;transform:rotate(-6deg);}
+  /* selected pin highlighted */
+  .selpin{position:absolute;left:150px;top:170px;transform:translate(-50%,-100%);z-index:5;}
+  .selpin .ring{position:absolute;left:50%;top:34px;transform:translate(-50%,-50%);width:70px;height:70px;border-radius:50%;background:rgba(255,142,114,.25);}
+  .selpin .drop{width:44px;height:44px;background:var(--coral-deep);border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 8px 20px rgba(245,116,79,.55);display:flex;align-items:center;justify-content:center;border:3px solid #fff;position:relative;}
+  .selpin .heart{transform:rotate(45deg);width:15px;height:15px;position:relative;}
+  .selpin .heart::before,.selpin .heart::after{content:"";position:absolute;width:9px;height:13px;background:#fff;border-radius:7px 7px 0 0;top:0;transform-origin:0 100%;}
+  .selpin .heart::before{left:3px;transform:rotate(-45deg);}
+  .selpin .heart::after{left:3px;transform:rotate(45deg);transform-origin:100% 100%;}
+
+  /* bottom sheet */
+  .sheet{position:absolute;left:0;right:0;bottom:0;height:560px;background:var(--paper);border-radius:28px 28px 0 0;box-shadow:0 -12px 40px rgba(90,64,56,.2);z-index:20;display:flex;flex-direction:column;}
+  .grab{width:44px;height:5px;background:var(--line);border-radius:3px;margin:12px auto 6px;}
+  .sheet-head{padding:8px 22px 16px;border-bottom:1px solid var(--line);}
+  .place-name{display:flex;align-items:center;gap:8px;}
+  .place-name h2{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.4px;}
+  .cat{font-size:11px;font-weight:700;color:var(--coral-deep);background:var(--cream);border:1px solid var(--line);padding:3px 10px;border-radius:12px;}
+  .meta{display:flex;align-items:center;gap:14px;margin-top:8px;font-size:12.5px;color:var(--ink-soft);}
+  .meta .st{color:var(--gold);letter-spacing:2px;font-size:13px;}
+  .meta .dot{width:3px;height:3px;border-radius:50%;background:var(--ink-soft);}
+  .addr{margin-top:6px;font-size:12px;color:var(--ink-soft);}
+
+  .list{flex:1;overflow-y:auto;padding:14px 22px 8px;}
+  .list h3{font-size:13px;font-weight:700;color:var(--ink);margin:2px 0 12px;}
+  .rec{display:flex;gap:13px;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--line);}
+  .rec:last-child{border-bottom:none;}
+  .thumb{width:70px;height:70px;border-radius:16px;flex:none;position:relative;overflow:hidden;}
+  .th1{background:linear-gradient(135deg,#FFD9C7,#FFB59A);}
+  .th2{background:linear-gradient(135deg,#FFE4B8,#F5C36B);}
+  .th3{background:linear-gradient(135deg,#D8E9CF,#B9D6A6);}
+  .thumb .who{position:absolute;bottom:5px;left:5px;font-size:9px;font-weight:700;color:#fff;background:rgba(90,64,56,.5);padding:2px 6px;border-radius:8px;}
+  .rec-body{flex:1;min-width:0;}
+  .rec-top{display:flex;justify-content:space-between;align-items:baseline;}
+  .rec-date{font-size:13px;font-weight:700;color:var(--ink);}
+  .rec-st{color:var(--gold);font-size:12px;letter-spacing:1px;}
+  .rec-txt{font-size:13px;color:var(--ink);line-height:1.45;margin-top:5px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .rec-tag{margin-top:7px;font-size:11px;color:var(--coral-deep);}
+
+  .cta{padding:14px 22px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--paper);}
+  .btn{height:52px;border-radius:26px;background:var(--coral);color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 22px rgba(245,116,79,.35);}
+  .btn .arr{width:8px;height:8px;border-top:2px solid #fff;border-right:2px solid #fff;transform:rotate(45deg);}
+  .close{position:absolute;top:22px;right:22px;width:28px;height:28px;border-radius:14px;background:var(--cream);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;z-index:5;}
+  .close::before,.close::after{content:"";position:absolute;width:13px;height:2px;background:var(--ink-soft);border-radius:1px;}
+  .close::before{transform:rotate(45deg);}.close::after{transform:rotate(-45deg);}
+</style>
+</head>
+<body>
+  <div class="label">love today · 지도 A안(핀맵) · 02 장소 시트 (성수 어니언)</div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="sb-right">
+        <div class="sb-sig"><i></i><i></i><i></i><i></i></div>
+        <span style="font-size:12px">5G</span>
+        <div class="sb-bat"></div>
+      </div>
+    </div>
+
+    <div class="map">
+      <div class="roads">
+        <i class="h" style="top:110px;left:-20px;right:-20px"></i>
+        <i class="v" style="left:230px;top:60px;bottom:400px"></i>
+      </div>
+      <div class="river"></div>
+    </div>
+
+    <div class="selpin">
+      <span class="ring"></span>
+      <div class="drop"><span class="heart"></span></div>
+    </div>
+
+    <!-- bottom sheet -->
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="close"></div>
+      <div class="sheet-head">
+        <div class="place-name"><h2>성수 어니언</h2><span class="cat">카페</span></div>
+        <div class="meta">
+          <span class="st">★★★★☆</span>
+          <span class="dot"></span>
+          <span>4번 방문</span>
+          <span class="dot"></span>
+          <span>최근 2026.06.21</span>
+        </div>
+        <div class="addr">서울 성동구 아차산로9길 8</div>
+      </div>
+
+      <div class="list">
+        <h3>우리의 방문 기록</h3>
+
+        <div class="rec">
+          <div class="thumb th1"><span class="who">승환</span></div>
+          <div class="rec-body">
+            <div class="rec-top"><span class="rec-date">2026.06.21 토</span><span class="rec-st">★★★★★</span></div>
+            <div class="rec-txt">비 오는 날 창가 자리. 팡도르랑 아메리카노 시켜놓고 두 시간 넘게 수다 떨었다. 여기 오면 시간 가는 줄 모름.</div>
+            <div class="rec-tag"># 비오는날 # 창가자리</div>
+          </div>
+        </div>
+
+        <div class="rec">
+          <div class="thumb th2"><span class="who">수정</span></div>
+          <div class="rec-body">
+            <div class="rec-top"><span class="rec-date">2026.03.14 금</span><span class="rec-st">★★★★☆</span></div>
+            <div class="rec-txt">화이트데이 데이트. 사람이 좀 많았지만 그래도 좋았어. 승환이가 골라준 케이크 맛있었음.</div>
+            <div class="rec-tag"># 화이트데이 # 케이크</div>
+          </div>
+        </div>
+
+        <div class="rec">
+          <div class="thumb th3"><span class="who">승환</span></div>
+          <div class="rec-body">
+            <div class="rec-top"><span class="rec-date">2025.11.02 일</span><span class="rec-st">★★★★☆</span></div>
+            <div class="rec-txt">처음 같이 온 날. 공장 개조한 감성이 진짜 우리 취향이라 단골 예약.</div>
+            <div class="rec-tag"># 첫방문 # 단골예약</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta">
+        <div class="btn">이 곳 일기 모아보기 <span class="arr"></span></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

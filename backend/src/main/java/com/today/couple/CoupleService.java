@@ -13,11 +13,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class CoupleService {
+
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final CoupleRepository coupleRepository;
     private final UserRepository userRepository;
@@ -71,6 +77,66 @@ public class CoupleService {
         Couple couple = requireCouple(userId);
         couple.setAnniversaryDate(req.anniversaryDate());
         return toResponse(couple);
+    }
+
+    /**
+     * 기념일 계산 목록. 오늘(Asia/Seoul) 기준 다가오는(오늘 포함) 항목만, 날짜순 정렬.
+     *  - 100일 단위(100·200·…): anniversaryDate 기준, 약 5주년(≈1900일) 범위까지
+     *  - N주년(1·2·3…): anniversaryDate 기준, 5주년까지
+     *  - 두 유저의 다가오는 생일(올해/내년 중 가까운 것)
+     * anniversaryDate 미설정이면 생일만.
+     */
+    @Transactional(readOnly = true)
+    public AnniversaryListResponse anniversaries(Long userId) {
+        Couple couple = requireCouple(userId);
+        LocalDate today = LocalDate.now(KST);
+        List<AnniversaryItem> items = new ArrayList<>();
+
+        LocalDate anniv = couple.getAnniversaryDate();
+        if (anniv != null) {
+            // 만난 날 = 1일차 관례. 100·200…일 = anniv + (n-1)일.
+            for (int n = 100; n <= 1900; n += 100) {
+                LocalDate d = anniv.plusDays(n - 1L);
+                if (!d.isBefore(today)) {
+                    items.add(new AnniversaryItem(n + "일", d, ChronoUnit.DAYS.between(today, d)));
+                }
+            }
+            // N주년 = anniv + N년.
+            for (int y = 1; y <= 5; y++) {
+                LocalDate d = anniv.plusYears(y);
+                if (!d.isBefore(today)) {
+                    items.add(new AnniversaryItem(y + "주년", d, ChronoUnit.DAYS.between(today, d)));
+                }
+            }
+        }
+
+        // 두 유저 생일(다가오는 것)
+        addBirthday(items, couple.getUser1(), today);
+        addBirthday(items, couple.getUser2(), today);
+
+        items.sort(Comparator.comparing(AnniversaryItem::date));
+        return new AnniversaryListResponse(items);
+    }
+
+    // 유저 생일이 있으면 올해/내년 중 다가오는(오늘 포함) 날짜로 추가.
+    private void addBirthday(List<AnniversaryItem> items, User user, LocalDate today) {
+        if (user == null || user.getBirthday() == null) return;
+        LocalDate b = user.getBirthday();
+        LocalDate next = birthdayInYear(b, today.getYear());
+        if (next.isBefore(today)) {
+            next = birthdayInYear(b, today.getYear() + 1);
+        }
+        String label = user.getNickname() + "님 생일";
+        items.add(new AnniversaryItem(label, next, ChronoUnit.DAYS.between(today, next)));
+    }
+
+    // 2/29 생일은 평년엔 2/28로 보정.
+    private LocalDate birthdayInYear(LocalDate birthday, int year) {
+        try {
+            return birthday.withYear(year);
+        } catch (java.time.DateTimeException e) {
+            return LocalDate.of(year, 2, 28);
+        }
     }
 
     public Couple requireCouple(Long userId) {

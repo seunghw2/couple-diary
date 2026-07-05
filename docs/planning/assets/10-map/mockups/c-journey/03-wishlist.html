@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>가고 싶은 곳</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    background:#EDE7E1; display:flex; justify-content:center; padding:24px; color:#5A4038;
+  }
+  .phone {
+    width:390px; height:844px; background:#FFFDFA; border-radius:44px;
+    overflow:hidden; position:relative; box-shadow:0 24px 60px rgba(90,64,56,.22);
+    display:flex; flex-direction:column;
+  }
+  .statusbar { height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 26px; font-size:14px; font-weight:600; z-index:30; position:relative; flex-shrink:0; }
+  .statusbar .dots { display:flex; gap:5px; align-items:center; }
+  .statusbar .bars { display:flex; gap:2px; align-items:flex-end; height:11px; }
+  .statusbar .bars i { width:3px; background:#5A4038; border-radius:1px; display:block; }
+  .statusbar .bars i:nth-child(1){height:4px}.statusbar .bars i:nth-child(2){height:6px}
+  .statusbar .bars i:nth-child(3){height:8px}.statusbar .bars i:nth-child(4){height:11px}
+  .batt { width:22px; height:11px; border:1.4px solid #5A4038; border-radius:3px; position:relative; }
+  .batt::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:5px;background:#5A4038;border-radius:0 1px 1px 0;}
+  .batt i{position:absolute;left:1.4px;top:1.4px;bottom:1.4px;width:70%;background:#5A4038;border-radius:1px;}
+
+  .label { font-size:11px; letter-spacing:.14em; color:#C98A76; font-weight:700; text-transform:uppercase; }
+  .header { padding:6px 24px 12px; flex-shrink:0; }
+  .header h1 { font-size:23px; font-weight:800; letter-spacing:-.02em; margin-top:5px; }
+  .header .sub { font-size:13px; color:#A98A80; margin-top:5px; font-weight:500; }
+  .header .sub b { color:#FF8E72; font-weight:800; }
+
+  /* segmented toggle */
+  .seg { margin:0 24px 12px; background:#F3E7DE; border-radius:16px; padding:4px; display:flex; flex-shrink:0; }
+  .seg .s { flex:1; text-align:center; font-size:13px; font-weight:800; padding:9px 0; border-radius:12px; color:#B49A90; }
+  .seg .s.on { background:#FFFDFA; color:#FF6F4D; box-shadow:0 3px 8px rgba(90,64,56,.10); }
+
+  .mapwrap { position:relative; margin:0 16px; height:262px; border-radius:26px; overflow:hidden;
+    background:radial-gradient(120% 90% at 20% 10%, #FFF6EF 0%, #FBEDE4 55%, #F4E2D6 100%);
+    box-shadow:inset 0 0 0 1px rgba(255,142,114,.10), 0 10px 26px rgba(90,64,56,.10); flex-shrink:0; }
+  .river { position:absolute; background:linear-gradient(90deg,#DCEAF0,#CFE3EC); opacity:.7; }
+  .street { position:absolute; background:rgba(255,255,255,.5); border-radius:20px; }
+  .block { position:absolute; background:rgba(255,255,255,.28); border-radius:12px; }
+
+  /* wish pin (dashed outline) */
+  .wpin { position:absolute; transform:translate(-50%,-100%); z-index:5;
+    display:flex; flex-direction:column; align-items:center; }
+  .wpin .bubble { width:34px; height:34px; border-radius:50% 50% 50% 4px; transform:rotate(45deg);
+    background:#FFFDFA; border:2.5px dashed #FF8E72;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 5px 12px rgba(255,142,114,.28); }
+  .wpin .bubble .star { transform:rotate(-45deg); }
+  .wpin .tag { margin-top:9px; background:#FFFDFA; color:#C98A76; font-size:11px; font-weight:800;
+    padding:4px 9px; border-radius:20px; box-shadow:0 3px 10px rgba(90,64,56,.16); white-space:nowrap;
+    border:1px dashed #F1C7B6; }
+  /* star shape */
+  .star { width:15px; height:15px; background:#FF8E72;
+    clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); }
+
+  /* one visited-converting pin for storytelling */
+  .wpin.done .bubble { background:#FF8E72; border:2.5px solid #FFFDFA; }
+  .wpin.done .star { background:#fff; }
+  .wpin.done .tag { color:#FF6F4D; border:none; }
+
+  /* wish list */
+  .listwrap { flex:1; padding:14px 20px 4px; overflow:hidden; }
+  .lhead { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:11px; }
+  .lhead .t { font-size:14px; font-weight:800; }
+  .lhead .c { font-size:11px; color:#B49A90; font-weight:700; }
+  .wrow { display:flex; align-items:center; gap:13px; background:#FFF6EF; border-radius:18px; padding:13px 15px; margin-bottom:10px; box-shadow:0 4px 12px rgba(90,64,56,.06); }
+  .wrow .badge { width:38px; height:38px; border-radius:12px; background:#FFFDFA; border:2px dashed #FFB89E; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .wrow .badge .star { width:16px; height:16px; }
+  .wrow .body { flex:1; min-width:0; }
+  .wrow .nm { font-size:15px; font-weight:800; }
+  .wrow .mt { font-size:11.5px; color:#A98A80; font-weight:600; margin-top:3px; }
+  .wrow .chev { color:#DCC1B4; font-size:20px; font-weight:700; }
+
+  .hint { display:flex; align-items:center; gap:9px; background:#FFF0E8; border-radius:16px; padding:12px 15px; margin-bottom:8px; }
+  .hint .ico { width:26px; height:26px; border-radius:50%; background:#FF8E72; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .hint .ico .star { width:13px; height:13px; background:#fff; }
+  .hint .tx { font-size:12px; color:#B26F5A; font-weight:700; line-height:1.4; }
+  .hint .tx b { color:#FF6F4D; }
+
+  /* add button */
+  .addbtn { position:absolute; right:24px; bottom:104px; width:56px; height:56px; border-radius:50%;
+    background:#FF6F4D; box-shadow:0 10px 22px rgba(255,111,77,.5); display:flex; align-items:center; justify-content:center; z-index:20; }
+  .addbtn::before,.addbtn::after { content:""; position:absolute; background:#fff; border-radius:2px; }
+  .addbtn::before { width:22px; height:3px; }
+  .addbtn::after { width:3px; height:22px; }
+
+  .tabbar { flex-shrink:0; height:82px; display:flex; padding:8px 10px 22px; border-top:1px solid #F3E7DE; background:#FFFDFA; }
+  .tab { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; }
+  .tab .ic { width:24px; height:24px; }
+  .tab .lb { font-size:10px; font-weight:700; color:#C3AEA5; }
+  .tab.active .lb { color:#FF8E72; }
+  .ic svg { width:24px; height:24px; display:block; }
+  .tab .st { stroke:#C3AEA5; }
+  .tab.active .st { stroke:#FF8E72; }
+  .tab.active .fl { fill:#FF8E72; }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="dots">
+        <div class="bars"><i></i><i></i><i></i><i></i></div>
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="#5A4038"><path d="M8.5 2.5c2 0 3.8.8 5.1 2l1.1-1.2C14.1 1.6 11.4.5 8.5.5S2.9 1.6 1.3 3.3l1.1 1.2c1.3-1.2 3.1-2 5.1-2Zm0 3c1.1 0 2.1.4 2.9 1.1l1.1-1.2c-1-.9-2.5-1.5-4-1.5s-3 .6-4 1.5l1.1 1.2c.8-.7 1.8-1.1 2.9-1.1Zm0 3c.5 0 1 .2 1.3.6l-1.3 1.4-1.3-1.4c.3-.4.8-.6 1.3-.6Z"/></svg>
+        <div class="batt"><i></i></div>
+      </div>
+    </div>
+
+    <div class="header">
+      <div class="label">우리의 지도</div>
+      <h1>가고 싶은 곳</h1>
+      <div class="sub">위시 <b>5곳</b> · 다녀오면 추억으로 변해요</div>
+    </div>
+
+    <div class="seg">
+      <div class="s">발자취</div>
+      <div class="s on">위시리스트</div>
+    </div>
+
+    <div class="mapwrap">
+      <div class="river" style="left:-40px;top:60px;width:520px;height:42px;transform:rotate(-14deg);"></div>
+      <div class="street" style="left:110px;top:0;width:7px;height:100%;transform:rotate(5deg);"></div>
+      <div class="street" style="left:0;top:150px;width:100%;height:7px;transform:rotate(-3deg);"></div>
+      <div class="block" style="left:60px;top:30px;width:70px;height:55px;"></div>
+      <div class="block" style="left:250px;top:40px;width:80px;height:60px;"></div>
+      <div class="block" style="left:70px;top:180px;width:90px;height:55px;"></div>
+      <div class="block" style="left:250px;top:175px;width:80px;height:65px;"></div>
+
+      <!-- wish pins -->
+      <div class="wpin" style="left:24%; top:40%;">
+        <div class="bubble"><span class="star"></span></div>
+        <div class="tag">남산타워</div>
+      </div>
+      <div class="wpin" style="left:74%; top:32%;">
+        <div class="bubble"><span class="star"></span></div>
+        <div class="tag">을왕리 해변</div>
+      </div>
+      <div class="wpin" style="left:52%; top:78%;">
+        <div class="bubble"><span class="star"></span></div>
+        <div class="tag">서촌 소품샵</div>
+      </div>
+      <div class="wpin done" style="left:82%; top:70%;">
+        <div class="bubble"><span class="star"></span></div>
+        <div class="tag">방금 다녀옴!</div>
+      </div>
+    </div>
+
+    <div class="listwrap">
+      <div class="hint">
+        <div class="ico"><span class="star"></span></div>
+        <div class="tx">위시 핀에서 <b>일기를 쓰면</b> 코럴 추억 핀으로 바뀌어요</div>
+      </div>
+
+      <div class="lhead">
+        <div class="t">위시 목록</div>
+        <div class="c">둘이 함께 골랐어요</div>
+      </div>
+
+      <div class="wrow">
+        <div class="badge"><span class="star"></span></div>
+        <div class="body">
+          <div class="nm">남산서울타워</div>
+          <div class="mt">야경 · 승환이 추가</div>
+        </div>
+        <div class="chev">›</div>
+      </div>
+      <div class="wrow">
+        <div class="badge"><span class="star"></span></div>
+        <div class="body">
+          <div class="nm">을왕리 해변</div>
+          <div class="mt">노을 드라이브 · 수정이 추가</div>
+        </div>
+        <div class="chev">›</div>
+      </div>
+    </div>
+
+    <div class="addbtn"></div>
+
+    <div class="tabbar">
+      <div class="tab">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path class="st" d="M3 10.5 12 4l9 6.5"/><path class="st" d="M5 9.5V20h14V9.5" stroke-linejoin="round"/><path class="st" d="M10 20v-5h4v5"/></svg></div>
+        <div class="lb">홈</div>
+      </div>
+      <div class="tab">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><rect class="st" x="4" y="5" width="16" height="16" rx="3"/><path class="st" d="M4 9h16M8 3v4M16 3v4"/></svg></div>
+        <div class="lb">달력</div>
+      </div>
+      <div class="tab active">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path class="fl" d="M12 2c-3.6 0-6.5 2.9-6.5 6.5 0 4.6 6.5 12.5 6.5 12.5s6.5-7.9 6.5-12.5C18.5 4.9 15.6 2 12 2Z"/><circle cx="12" cy="8.5" r="2.4" fill="#FFFDFA"/></svg></div>
+        <div class="lb">지도</div>
+      </div>
+      <div class="tab">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path class="st" d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></svg></div>
+        <div class="lb">일기</div>
+      </div>
+      <div class="tab">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><circle class="st" cx="12" cy="8" r="3.6"/><path class="st" d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg></div>
+        <div class="lb">우리</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

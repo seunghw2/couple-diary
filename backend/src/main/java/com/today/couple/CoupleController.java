@@ -32,4 +32,9 @@ public class CoupleController {
     public CoupleResponse anniversary(@Valid @RequestBody AnniversaryRequest req) {
         return coupleService.setAnniversary(SecurityUtil.currentUserId(), req);
     }
+
+    @GetMapping("/anniversaries")
+    public AnniversaryListResponse anniversaries() {
+        return coupleService.anniversaries(SecurityUtil.currentUserId());
+    }
 }

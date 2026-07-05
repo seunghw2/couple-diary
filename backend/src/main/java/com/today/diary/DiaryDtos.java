@@ -64,6 +64,11 @@ public class DiaryDtos {
 
     public record LockedEntryView(boolean locked) {}
 
+    // ---- 날짜 이동 ----
+    public record MoveDayRequest(
+            @NotNull java.time.LocalDate targetDate
+    ) {}
+
     // ---- 이전 장소 추천 ----
     public record LocationsResponse(List<String> locations) {}
 

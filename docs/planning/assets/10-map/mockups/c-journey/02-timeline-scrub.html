@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>타임라인 회고</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    background:#EDE7E1; display:flex; justify-content:center; padding:24px; color:#5A4038;
+  }
+  .phone {
+    width:390px; height:844px; background:#FFFDFA; border-radius:44px;
+    overflow:hidden; position:relative; box-shadow:0 24px 60px rgba(90,64,56,.22);
+    display:flex; flex-direction:column;
+  }
+  .statusbar { height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 26px; font-size:14px; font-weight:600; z-index:30; position:relative; flex-shrink:0; }
+  .statusbar .dots { display:flex; gap:5px; align-items:center; }
+  .statusbar .bars { display:flex; gap:2px; align-items:flex-end; height:11px; }
+  .statusbar .bars i { width:3px; background:#5A4038; border-radius:1px; display:block; }
+  .statusbar .bars i:nth-child(1){height:4px}.statusbar .bars i:nth-child(2){height:6px}
+  .statusbar .bars i:nth-child(3){height:8px}.statusbar .bars i:nth-child(4){height:11px}
+  .batt { width:22px; height:11px; border:1.4px solid #5A4038; border-radius:3px; position:relative; }
+  .batt::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:5px;background:#5A4038;border-radius:0 1px 1px 0;}
+  .batt i{position:absolute;left:1.4px;top:1.4px;bottom:1.4px;width:70%;background:#5A4038;border-radius:1px;}
+
+  .label { font-size:11px; letter-spacing:.14em; color:#C98A76; font-weight:700; text-transform:uppercase; }
+  .header { padding:6px 24px 12px; flex-shrink:0; display:flex; justify-content:space-between; align-items:flex-end; }
+  .header h1 { font-size:23px; font-weight:800; letter-spacing:-.02em; margin-top:5px; }
+  .header .now { background:#FFEDE5; color:#FF6F4D; font-size:12px; font-weight:800; padding:6px 12px; border-radius:20px; }
+
+  .mapwrap { position:relative; margin:0 16px; height:300px; border-radius:26px; overflow:hidden;
+    background:radial-gradient(120% 90% at 20% 10%, #FFF6EF 0%, #FBEDE4 55%, #F4E2D6 100%);
+    box-shadow:inset 0 0 0 1px rgba(255,142,114,.10), 0 10px 26px rgba(90,64,56,.10); flex-shrink:0; }
+  .river { position:absolute; background:linear-gradient(90deg,#DCEAF0,#CFE3EC); opacity:.75; }
+  .street { position:absolute; background:rgba(255,255,255,.5); border-radius:20px; }
+  .block { position:absolute; background:rgba(255,255,255,.30); border-radius:12px; }
+  .mapsvg { position:absolute; inset:0; width:100%; height:100%; }
+
+  .pin { position:absolute; transform:translate(-50%,-100%); z-index:5;
+    display:flex; flex-direction:column; align-items:center; }
+  .pin .bubble { width:30px; height:30px; border-radius:50% 50% 50% 4px; transform:rotate(45deg);
+    background:#FF8E72; box-shadow:0 6px 14px rgba(255,142,114,.5);
+    display:flex; align-items:center; justify-content:center; border:2.5px solid #FFFDFA; }
+  .pin .bubble span { transform:rotate(-45deg); color:#fff; font-size:13px; font-weight:800; }
+  .pin.dim .bubble { background:#EAD6CB; box-shadow:none; opacity:.9; }
+  .pin.dim .bubble span { color:#C7A997; }
+  .pin.head .bubble { background:#FF6F4D; width:36px; height:36px;
+    box-shadow:0 0 0 6px rgba(255,142,114,.22),0 8px 18px rgba(255,142,114,.55); }
+  .pin .tag { margin-top:8px; background:#FFFDFA; color:#5A4038; font-size:10.5px; font-weight:700;
+    padding:3px 8px; border-radius:20px; box-shadow:0 3px 10px rgba(90,64,56,.16); white-space:nowrap; }
+
+  /* scrub bar */
+  .scrub { flex-shrink:0; padding:16px 22px 6px; }
+  .scrub .row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; }
+  .scrub .cap { font-size:13px; font-weight:800; }
+  .scrub .at { font-size:12px; color:#FF6F4D; font-weight:800; }
+  .track { position:relative; height:34px; }
+  .track .line { position:absolute; top:16px; left:0; right:0; height:3px; background:#F1E1D7; border-radius:3px; }
+  .track .fill { position:absolute; top:16px; left:0; width:48%; height:3px; background:linear-gradient(90deg,#FFB89E,#FF8E72); border-radius:3px; }
+  .track .tick { position:absolute; top:11px; width:2px; height:12px; background:#E4CDBF; border-radius:2px; }
+  .track .tlabel { position:absolute; top:24px; font-size:9px; color:#B49A90; font-weight:700; transform:translateX(-50%); }
+  .track .knob { position:absolute; top:5px; left:48%; width:24px; height:24px; border-radius:50%; background:#FF6F4D; border:3.5px solid #FFFDFA; box-shadow:0 4px 12px rgba(255,111,77,.55); transform:translateX(-50%); }
+
+  /* memory card */
+  .cardwrap { flex:1; padding:14px 20px 4px; overflow:hidden; }
+  .recall { font-size:12px; color:#B49A90; font-weight:700; margin-bottom:9px; display:flex; align-items:center; gap:6px; }
+  .recall .d { width:5px; height:5px; border-radius:50%; background:#FF8E72; }
+  .card { background:#FFF6EF; border-radius:22px; padding:16px; box-shadow:0 6px 18px rgba(90,64,56,.09); position:relative; overflow:hidden; }
+  .card::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:linear-gradient(#FFB89E,#FF8E72); }
+  .card .top { display:flex; justify-content:space-between; align-items:flex-start; }
+  .card .place { font-size:16px; font-weight:800; }
+  .card .place .pn { display:inline-flex; width:20px; height:20px; border-radius:50%; background:#FF8E72; color:#fff; font-size:11px; font-weight:800; align-items:center; justify-content:center; margin-right:7px; vertical-align:1px; }
+  .card .date { font-size:11.5px; color:#A98A80; font-weight:600; margin-top:6px; margin-left:27px; }
+  .card .memo { font-size:13px; color:#6B4E44; line-height:1.55; margin-top:12px; margin-left:27px; }
+  .card .thumbs { display:flex; gap:8px; margin-top:14px; margin-left:27px; }
+  .card .thumbs .th { width:58px; height:58px; border-radius:14px; }
+  .th.a{background:linear-gradient(135deg,#FFD9C9,#FFB89E);}
+  .th.b{background:linear-gradient(135deg,#FFE7D6,#FFCBB5);}
+  .th.c{background:linear-gradient(135deg,#FCE3D6,#F6C7B3);}
+  .card .heartline { margin-top:14px; margin-left:27px; display:flex; align-items:center; gap:7px; font-size:11.5px; color:#C98A76; font-weight:700; }
+  .miniheart { width:13px; height:12px; position:relative; }
+  .miniheart::before,.miniheart::after{content:"";position:absolute;width:7px;height:10px;border-radius:7px 7px 0 0;background:#FF8E72;top:0;}
+  .miniheart::before{left:6.5px;transform:rotate(45deg);transform-origin:0 100%;}
+  .miniheart::after{left:0;transform:rotate(-45deg);transform-origin:100% 100%;}
+
+  .tabbar { flex-shrink:0; height:82px; display:flex; padding:8px 10px 22px; border-top:1px solid #F3E7DE; background:#FFFDFA; }
+  .tab { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; }
+  .tab .ic { width:24px; height:24px; }
+  .tab .lb { font-size:10px; font-weight:700; color:#C3AEA5; }
+  .tab.active .lb { color:#FF8E72; }
+  .ic svg { width:24px; height:24px; display:block; }
+  .tab .st { stroke:#C3AEA5; }
+  .tab.active .st { stroke:#FF8E72; }
+  .tab.active .fl { fill:#FF8E72; }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="dots">
+        <div class="bars"><i></i><i></i><i></i><i></i></div>
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="#5A4038"><path d="M8.5 2.5c2 0 3.8.8 5.1 2l1.1-1.2C14.1 1.6 11.4.5 8.5.5S2.9 1.6 1.3 3.3l1.1 1.2c1.3-1.2 3.1-2 5.1-2Zm0 3c1.1 0 2.1.4 2.9 1.1l1.1-1.2c-1-.9-2.5-1.5-4-1.5s-3 .6-4 1.5l1.1 1.2c.8-.7 1.8-1.1 2.9-1.1Zm0 3c.5 0 1 .2 1.3.6l-1.3 1.4-1.3-1.4c.3-.4.8-.6 1.3-.6Z"/></svg>
+        <div class="batt"><i></i></div>
+      </div>
+    </div>
+
+    <div class="header">
+      <div>
+        <div class="label">회고 모드</div>
+        <h1>그때, 3개월 전</h1>
+      </div>
+      <div class="now">2월 14일</div>
+    </div>
+
+    <!-- map: only path up to scrub point drawn -->
+    <div class="mapwrap">
+      <div class="river" style="left:-40px;top:70px;width:520px;height:44px;transform:rotate(-14deg);"></div>
+      <div class="street" style="left:60px;top:0;width:7px;height:100%;"></div>
+      <div class="street" style="left:0;top:170px;width:100%;height:7px;transform:rotate(-3deg);"></div>
+      <div class="block" style="left:80px;top:30px;width:70px;height:60px;"></div>
+      <div class="block" style="left:250px;top:40px;width:80px;height:55px;"></div>
+      <div class="block" style="left:70px;top:200px;width:90px;height:60px;"></div>
+      <div class="block" style="left:250px;top:200px;width:80px;height:70px;"></div>
+
+      <svg class="mapsvg" viewBox="0 0 358 300" preserveAspectRatio="none">
+        <!-- future (faded, not yet reached) -->
+        <path d="M205,120 C255,95 220,70 300,55"
+              fill="none" stroke="#E4CDBF" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="2 10" opacity=".8"/>
+        <!-- drawn path up to head -->
+        <path d="M60,250 C110,215 85,165 150,150 C195,140 175,130 205,120"
+              fill="none" stroke="#FF8E72" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 12"/>
+        <path d="M60,250 C110,215 85,165 150,150 C195,140 175,130 205,120"
+              fill="none" stroke="#FF8E72" stroke-width="4.5" stroke-linecap="round" opacity=".26"/>
+      </svg>
+
+      <div class="pin start dim" style="left:16.7%; top:87%;">
+        <div class="bubble"><span>1</span></div>
+      </div>
+      <div class="pin dim" style="left:42%; top:53%;">
+        <div class="bubble"><span>5</span></div>
+      </div>
+      <div class="pin head" style="left:57.3%; top:44%;">
+        <div class="bubble"><span>7</span></div>
+        <div class="tag" style="color:#FF6F4D;font-weight:800;">경복궁 산책</div>
+      </div>
+      <!-- future dimmed -->
+      <div class="pin dim" style="left:83.8%; top:22%;">
+        <div class="bubble"><span>12</span></div>
+      </div>
+    </div>
+
+    <!-- scrub -->
+    <div class="scrub">
+      <div class="row">
+        <div class="cap">타임라인 되감기</div>
+        <div class="at">여기서 멈춤 · 7번째 데이트</div>
+      </div>
+      <div class="track">
+        <div class="line"></div>
+        <div class="fill"></div>
+        <div class="tick" style="left:2%;"></div><div class="tlabel" style="left:2%;">10월</div>
+        <div class="tick" style="left:26%;"></div><div class="tlabel" style="left:26%;">12월</div>
+        <div class="tick" style="left:50%;"></div><div class="tlabel" style="left:50%;">2월</div>
+        <div class="tick" style="left:74%;"></div><div class="tlabel" style="left:74%;">4월</div>
+        <div class="tick" style="left:98%;"></div><div class="tlabel" style="left:98%;">지금</div>
+        <div class="knob"></div>
+      </div>
+    </div>
+
+    <!-- memory card -->
+    <div class="cardwrap">
+      <div class="recall"><span class="d"></span> 이 시점의 데이트</div>
+      <div class="card">
+        <div class="top">
+          <div class="place"><span class="pn">7</span>경복궁 봄나들이</div>
+        </div>
+        <div class="date">2월 14일 화요일 · 한복 데이트</div>
+        <div class="memo">둘 다 한복 입고 궁 한 바퀴. 수정이가 찍어준 사진 인생샷이었음. 벚꽃은 아직이었지만 완벽한 하루.</div>
+        <div class="thumbs">
+          <div class="th a"></div><div class="th b"></div><div class="th c"></div>
+        </div>
+        <div class="heartline"><span class="miniheart"></span> 승환 · 수정 함께 기록</div>
+      </div>
+    </div>
+
+    <div class="tabbar">
+      <div class="tab">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path class="st" d="M3 10.5 12 4l9 6.5"/><path class="st" d="M5 9.5V20h14V9.5" stroke-linejoin="round"/><path class="st" d="M10 20v-5h4v5"/></svg></div>
+        <div class="lb">홈</div>
+      </div>
+      <div class="tab">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><rect class="st" x="4" y="5" width="16" height="16" rx="3"/><path class="st" d="M4 9h16M8 3v4M16 3v4"/></svg></div>
+        <div class="lb">달력</div>
+      </div>
+      <div class="tab active">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path class="fl" d="M12 2c-3.6 0-6.5 2.9-6.5 6.5 0 4.6 6.5 12.5 6.5 12.5s6.5-7.9 6.5-12.5C18.5 4.9 15.6 2 12 2Z"/><circle cx="12" cy="8.5" r="2.4" fill="#FFFDFA"/></svg></div>
+        <div class="lb">지도</div>
+      </div>
+      <div class="tab">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path class="st" d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></svg></div>
+        <div class="lb">일기</div>
+      </div>
+      <div class="tab">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><circle class="st" cx="12" cy="8" r="3.6"/><path class="st" d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg></div>
+        <div class="lb">우리</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

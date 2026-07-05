@@ -289,6 +289,35 @@ public class DiaryService {
         }
     }
 
+    // ================= 일기 날짜 이동 =================
+    // 내 커플의 date DiaryDay 전체(양쪽 entry·answers·photos·댓글)를 targetDate로 이동.
+    // 엔트리 등은 day를 참조하므로 DiaryDay.date만 바꾸면 함께 따라감.
+    @Transactional
+    public DayDetail moveDay(Long userId, LocalDate date, LocalDate targetDate) {
+        if (targetDate == null) {
+            throw new ApiException(ErrorCode.INVALID_INPUT);
+        }
+        // 미래(Asia/Seoul 기준) 이동 금지
+        if (targetDate.isAfter(LocalDate.now(KST))) {
+            throw new ApiException(ErrorCode.INVALID_INPUT);
+        }
+        Couple couple = coupleService.requireCouple(userId);  // 커플 스코프 검증
+
+        DiaryDay day = dayRepository.findByCouple_IdAndDate(couple.getId(), date)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+
+        // 제자리 이동은 그대로 반환
+        if (!date.equals(targetDate)) {
+            // 대상 날짜에 이미 DiaryDay가 있으면 충돌
+            if (dayRepository.findByCouple_IdAndDate(couple.getId(), targetDate).isPresent()) {
+                throw new ApiException(ErrorCode.DAY_ALREADY_EXISTS);
+            }
+            day.setDate(targetDate);
+            dayRepository.flush();  // uk_day_couple_date 위반 시 조기 감지
+        }
+        return detail(userId, targetDate);
+    }
+
     // 첫 작성자용 DiaryDay 생성: 입력 검증 + 동시 생성 경합(uk_day_couple_date) 처리
     private DiaryDay createDay(Couple couple, LocalDate date, UpsertEntryRequest req) {
         List<Long> qIds;

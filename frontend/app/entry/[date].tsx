@@ -17,7 +17,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_URL } from '../../lib/config';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { CommentView, DayDetail, EntryView, QuestionResponse, entryApi, isLocked } from '../../lib/api';
+import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, entryApi, isLocked } from '../../lib/api';
 import { dDay, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
 import { confirmAsync, showAlert } from '../../lib/dialog';
 import { moodIcon } from '../../constants/content';
@@ -27,6 +27,22 @@ import { useNotifStore } from '../../store/useNotifStore';
 import { useDataCache, invalidateAfterMutation } from '../../store/useDataCache';
 import { Button, Card, Icon, PhotoThumb, Pill, SeedThumb, StarRating } from '../../components/ui';
 import { colors, font, radius, shadow, spacing } from '../../theme/theme';
+
+/** 숫자만 받아 YYYY-MM-DD 자동 하이픈 마스킹. */
+function maskDate(input: string): string {
+  const digits = input.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+}
+
+/** YYYY-MM-DD가 실제 존재하는 날짜인지 검증. */
+function isValidDate(v: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+  const [y, m, d] = v.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
+}
 
 export default function EntryDetailScreen() {
   const router = useRouter();
@@ -49,6 +65,12 @@ export default function EntryDetailScreen() {
   const [posting, setPosting] = useState(false);
   const [commentError, setCommentError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // 날짜 변경 모달
+  const [moveOpen, setMoveOpen] = useState(false);
+  const [moveDate, setMoveDate] = useState('');
+  const [moving, setMoving] = useState(false);
+  const [moveError, setMoveError] = useState<string | null>(null);
 
   const scrollRef = useRef<ScrollView>(null);
   // 사진 풀스크린 뷰어: 열 사진 url 목록 + 시작 인덱스
@@ -135,6 +157,49 @@ export default function EntryDetailScreen() {
     }
   }
 
+  function openMove() {
+    setMoveDate('');
+    setMoveError(null);
+    setMoveOpen(true);
+  }
+
+  async function onConfirmMove() {
+    if (moving) return;
+    const target = moveDate.trim();
+    if (!isValidDate(target)) {
+      setMoveError('존재하는 날짜를 YYYY-MM-DD 형식으로 입력해 주세요.');
+      return;
+    }
+    if (target > todayISO()) {
+      setMoveError('오늘 이후 날짜로는 옮길 수 없어요.');
+      return;
+    }
+    if (target === dateStr) {
+      setMoveError('지금과 같은 날짜예요. 다른 날짜를 입력해 주세요.');
+      return;
+    }
+    setMoving(true);
+    setMoveError(null);
+    try {
+      await entryApi.move(dateStr, target);
+      // 이전/새 날짜 detail + 두 달 month 무효화
+      invalidateAfterMutation(dateStr);
+      invalidateAfterMutation(target);
+      setMoveOpen(false);
+      router.replace({ pathname: '/entry/[date]', params: { date: target } });
+    } catch (e) {
+      if (e instanceof ApiException && e.status === 409) {
+        setMoveError('그 날짜엔 이미 일기가 있어요. 다른 날짜를 골라주세요.');
+      } else if (e instanceof ApiException && e.status === 400) {
+        setMoveError('옮길 수 없는 날짜예요. 다시 확인해 주세요.');
+      } else {
+        setMoveError('날짜 변경에 실패했어요. 잠시 후 다시 시도해 주세요.');
+      }
+    } finally {
+      setMoving(false);
+    }
+  }
+
   const dday = couple?.ddayCount ?? dDay(couple?.anniversaryDate);
   const status = detail?.status ?? 'EMPTY';
   const mineWritten = !!detail?.myEntry;
@@ -160,7 +225,13 @@ export default function EntryDetailScreen() {
               {weekdayKo(dateStr)}요일{dday != null ? ` · ${formatDday(dday)}` : ''}
             </Text>
           </View>
-          <View style={{ width: 24 }} />
+          {mineWritten ? (
+            <Pressable onPress={openMove} hitSlop={12}>
+              <Icon name="calendar-outline" size={24} color={colors.subText} />
+            </Pressable>
+          ) : (
+            <View style={{ width: 24 }} />
+          )}
         </View>
 
         <ScrollView ref={scrollRef} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -266,6 +337,41 @@ export default function EntryDetailScreen() {
 
       {/* 사진 풀스크린 뷰어 */}
       <PhotoViewer viewer={viewer} onClose={() => setViewer(null)} />
+
+      {/* 날짜 변경 모달 */}
+      <Modal visible={moveOpen} transparent animationType="fade" onRequestClose={() => setMoveOpen(false)}>
+        <Pressable style={styles.moveBackdrop} onPress={() => setMoveOpen(false)}>
+          <Pressable style={styles.moveSheet} onPress={() => {}}>
+            <Text style={styles.moveTitle}>날짜 변경</Text>
+            <Text style={styles.moveSub}>이 날의 일기를 옮길 날짜를 입력해 주세요.</Text>
+            <TextInput
+              value={moveDate}
+              onChangeText={(t) => setMoveDate(maskDate(t))}
+              placeholder="20250101 → 2025-01-01"
+              placeholderTextColor={colors.placeholder}
+              autoCapitalize="none"
+              keyboardType="number-pad"
+              maxLength={10}
+              style={styles.moveInput}
+            />
+            {moveError ? <Text style={styles.moveError}>{moveError}</Text> : null}
+            <View style={styles.moveActions}>
+              <Button
+                label="취소"
+                variant="ghost"
+                onPress={() => setMoveOpen(false)}
+                style={{ flex: 1, height: 44 }}
+              />
+              <Button
+                label="옮기기"
+                onPress={onConfirmMove}
+                loading={moving}
+                style={{ flex: 1, height: 44 }}
+              />
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -543,6 +649,36 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   commentBtn: { height: 44, paddingHorizontal: spacing.lg },
+
+  moveBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  moveSheet: {
+    width: '100%',
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
+    ...shadow,
+  },
+  moveTitle: { ...font.title },
+  moveSub: { ...font.caption, marginTop: spacing.xs },
+  moveInput: {
+    backgroundColor: colors.bg,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    height: 48,
+    fontSize: 16,
+    color: colors.text,
+    marginTop: spacing.md,
+  },
+  moveError: { ...font.caption, color: colors.danger, marginTop: spacing.sm },
+  moveActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg },
 
   viewerBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)' },
   viewerClose: {

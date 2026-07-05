@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>뱃지 컬렉션</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    font-family: -apple-system, "SF Pro Text", "Pretendard", "Apple SD Gothic Neo", sans-serif;
+    background:#E9E1DA; display:flex; flex-direction:column; align-items:center;
+    padding:24px 0; min-height:100vh;
+  }
+  .label { font-size:12px; color:#8A7268; margin-bottom:8px; letter-spacing:.3px; }
+  .phone {
+    width:390px; height:844px; background:#FFFDFA; border-radius:44px; overflow:hidden;
+    position:relative; box-shadow:0 24px 60px rgba(90,64,56,.22); display:flex; flex-direction:column;
+  }
+  .status { height:54px; display:flex; align-items:center; justify-content:space-between; padding:0 30px; font-size:15px; font-weight:600; color:#5A4038; flex-shrink:0; }
+  .status .dots { display:flex; align-items:center; gap:6px; }
+  .status .bars { display:flex; gap:2px; align-items:flex-end; height:11px; }
+  .status .bars i { width:3px; background:#5A4038; border-radius:1px; }
+  .status .bars i:nth-child(1){height:4px}.status .bars i:nth-child(2){height:6px}
+  .status .bars i:nth-child(3){height:9px}.status .bars i:nth-child(4){height:11px}
+  .status .batt { width:24px; height:12px; border:1.5px solid #5A4038; border-radius:3px; position:relative; }
+  .status .batt::after { content:''; position:absolute; right:-3px; top:3px; width:2px; height:5px; background:#5A4038; border-radius:1px;}
+  .status .batt i { position:absolute; left:1.5px; top:1.5px; bottom:1.5px; width:70%; background:#5A4038; border-radius:1px;}
+
+  .scroll { flex:1; overflow-y:auto; padding:0 20px 96px; }
+
+  .head { padding:6px 0 14px; }
+  .head h1 { font-size:24px; font-weight:800; color:#5A4038; letter-spacing:-.4px; }
+  .head p { font-size:13px; color:#A38A7E; margin-top:3px; }
+
+  /* summary numbers */
+  .summary { display:flex; gap:10px; margin-bottom:20px; }
+  .sm { flex:1; background:#FFF6EF; border-radius:18px; padding:14px 8px; text-align:center; }
+  .sm b { display:block; font-size:22px; font-weight:800; color:#5A4038; }
+  .sm span { font-size:11px; color:#A38A7E; }
+
+  /* tab pills */
+  .pills { display:flex; gap:8px; margin-bottom:18px; }
+  .pill { flex:1; text-align:center; font-size:12.5px; font-weight:700; padding:9px 0; border-radius:14px; color:#A38A7E; background:#F1EAE4; }
+  .pill.on { background:#FF8E72; color:#fff; box-shadow:0 4px 10px rgba(255,142,114,.3); }
+
+  .sechead { font-size:15px; font-weight:800; color:#5A4038; margin:0 2px 14px; display:flex; align-items:center; gap:8px; }
+  .sechead .cnt { font-size:12px; font-weight:700; color:#FF8E72; }
+
+  /* badge grid */
+  .bgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px 12px; margin-bottom:26px; }
+  .bdg { display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .medal { width:76px; height:76px; border-radius:50%; display:flex; align-items:center; justify-content:center; position:relative; margin-bottom:8px; }
+  .medal .ring { width:76px; height:76px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .medal.got .ring { background:linear-gradient(145deg,#FFB399,#FF8E72); box-shadow:0 6px 16px rgba(255,142,114,.32); }
+  .medal.got .ic { width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,.22); display:flex; align-items:center; justify-content:center; }
+  .medal.got svg { width:28px; height:28px; stroke:#fff; fill:none; }
+  .medal.lock .ring { background:#F1EAE4; }
+  .medal.lock svg { width:24px; height:24px; stroke:#CBBBB0; fill:none; }
+  .bdg b { font-size:12.5px; font-weight:700; color:#5A4038; }
+  .bdg.lockedtxt b { color:#BBAA9F; }
+  .bdg span { font-size:10.5px; color:#A38A7E; margin-top:2px; }
+  .newtag { position:absolute; top:-2px; right:-2px; background:#5A4038; color:#fff; font-size:8px; font-weight:800; padding:2px 6px; border-radius:10px; }
+
+  .tabs { position:absolute; left:0; right:0; bottom:0; height:84px; background:rgba(255,253,250,.94); backdrop-filter:blur(12px); border-top:1px solid #F1E7DF; display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; color:#C3B4AB; }
+  .tab svg { width:24px; height:24px; }
+  .tab span { font-size:10px; font-weight:600; }
+  .tab.active { color:#FF8E72; }
+</style>
+</head>
+<body>
+<div class="label">B안 · 지역 컬렉션 — 03 뱃지</div>
+<div class="phone">
+  <div class="status">
+    <span>9:41</span>
+    <div class="dots">
+      <div class="bars"><i></i><i></i><i></i><i></i></div>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="#5A4038"><path d="M8.5 2.5c2 0 3.8.8 5.1 2l1.1-1.2A9 9 0 0 0 2.3 3.3l1.1 1.2a7.3 7.3 0 0 1 5.1-2Zm0 3.2c1.1 0 2.1.4 2.9 1.2l1.1-1.2a6 6 0 0 0-8 0l1.1 1.2c.8-.8 1.8-1.2 2.9-1.2Zm0 3.1L10 10.4a2.1 2.1 0 0 0-3 0L8.5 8.8Z"/></svg>
+      <div class="batt"><i></i></div>
+    </div>
+  </div>
+
+  <div class="scroll">
+    <div class="head">
+      <h1>우리의 뱃지</h1>
+      <p>함께 모은 스탬프 컬렉션</p>
+    </div>
+
+    <div class="summary">
+      <div class="sm"><b>18</b><span>획득 뱃지</span></div>
+      <div class="sm"><b>3</b><span>방문 도시</span></div>
+      <div class="sm"><b>87</b><span>다녀온 장소</span></div>
+    </div>
+
+    <div class="pills">
+      <div class="pill on">전체</div>
+      <div class="pill">지역</div>
+      <div class="pill">테마</div>
+      <div class="pill">기록</div>
+    </div>
+
+    <div class="sechead">지역 정복 <span class="cnt">6 / 12</span></div>
+    <div class="bgrid">
+      <div class="bdg">
+        <div class="medal got"><div class="ring"><span class="newtag">NEW</span><div class="ic"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.4 7.2 17.9l.9-5.4L4.2 8.7l5.4-.8L12 2z"/></svg></div></div></div>
+        <b>성동구 마스터</b><span>14곳 방문</span>
+      </div>
+      <div class="bdg">
+        <div class="medal got"><div class="ring"><div class="ic"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M12 21s-7-4.5-7-10a7 7 0 0 1 14 0c0 5.5-7 10-7 10z"/><circle cx="12" cy="11" r="2.5"/></svg></div></div></div>
+        <b>강남 정복</b><span>10곳 방문</span>
+      </div>
+      <div class="bdg">
+        <div class="medal got"><div class="ring"><div class="ic"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M4 20V9l8-5 8 5v11"/><path d="M9 20v-6h6v6"/></svg></div></div></div>
+        <b>마포 정복</b><span>11곳 방문</span>
+      </div>
+      <div class="bdg lockedtxt">
+        <div class="medal lock"><div class="ring"><svg viewBox="0 0 24 24" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div></div>
+        <b>서초 정복</b><span>3 / 5곳</span>
+      </div>
+      <div class="bdg lockedtxt">
+        <div class="medal lock"><div class="ring"><svg viewBox="0 0 24 24" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div></div>
+        <b>송파 정복</b><span>0 / 5곳</span>
+      </div>
+      <div class="bdg lockedtxt">
+        <div class="medal lock"><div class="ring"><svg viewBox="0 0 24 24" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div></div>
+        <b>서울 완전정복</b><span>12 / 25구</span>
+      </div>
+    </div>
+
+    <div class="sechead">테마 컬렉션 <span class="cnt">5 / 8</span></div>
+    <div class="bgrid">
+      <div class="bdg">
+        <div class="medal got"><div class="ring"><div class="ic"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M18 8h1a3 3 0 0 1 0 6h-1"/><path d="M4 8h14v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z"/><path d="M7 2v2M11 2v2M15 2v2"/></svg></div></div></div>
+        <b>카페 헌터</b><span>30곳 달성</span>
+      </div>
+      <div class="bdg">
+        <div class="medal got"><div class="ring"><div class="ic"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M4 20c4-6 12-6 16 0"/><path d="M2 20h20"/><path d="M12 4v6"/><circle cx="12" cy="4" r="1.5"/></svg></div></div></div>
+        <b>바다 커플</b><span>해변 5곳</span>
+      </div>
+      <div class="bdg">
+        <div class="medal got"><div class="ring"><div class="ic"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 17l4-8 3 4 3-6 4 10"/><path d="M3 21h18"/></svg></div></div></div>
+        <b>등산 데이트</b><span>산 4곳</span>
+      </div>
+      <div class="bdg lockedtxt">
+        <div class="medal lock"><div class="ring"><svg viewBox="0 0 24 24" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div></div>
+        <b>맛집 순례</b><span>18 / 25</span>
+      </div>
+      <div class="bdg lockedtxt">
+        <div class="medal lock"><div class="ring"><svg viewBox="0 0 24 24" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div></div>
+        <b>전시 애호가</b><span>4 / 10</span>
+      </div>
+      <div class="bdg lockedtxt">
+        <div class="medal lock"><div class="ring"><svg viewBox="0 0 24 24" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div></div>
+        <b>야경 명소</b><span>2 / 10</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 4l9 5.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>홈</span></div>
+    <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span>달력</span></div>
+    <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M6 8l6-5 6 5"/><circle cx="12" cy="12" r="9"/></svg><span>쓰기</span></div>
+    <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3 3 5.5v15L9 18l6 3 6-2.5v-15L15 6 9 3z"/><path d="M9 3v15M15 6v15"/></svg><span>지도</span></div>
+    <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>우리</span></div>
+  </div>
+</div>
+</body>
+</html>

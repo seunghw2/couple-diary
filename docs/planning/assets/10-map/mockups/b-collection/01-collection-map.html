@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>지역 컬렉션 지도</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  body {
+    font-family: -apple-system, "SF Pro Text", "Pretendard", "Apple SD Gothic Neo", sans-serif;
+    background: #E9E1DA;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 24px 0; min-height: 100vh;
+  }
+  .label { font-size: 12px; color: #8A7268; margin-bottom: 8px; letter-spacing: .3px; }
+  .phone {
+    width: 390px; height: 844px; background: #FFFDFA; border-radius: 44px;
+    overflow: hidden; position: relative; box-shadow: 0 24px 60px rgba(90,64,56,.22);
+    display: flex; flex-direction: column;
+  }
+  /* status bar */
+  .status {
+    height: 54px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 30px; font-size: 15px; font-weight: 600; color: #5A4038; flex-shrink: 0;
+  }
+  .status .dots { display: flex; align-items: center; gap: 6px; }
+  .status .bars { display: flex; gap: 2px; align-items: flex-end; height: 11px; }
+  .status .bars i { width: 3px; background: #5A4038; border-radius: 1px; }
+  .status .bars i:nth-child(1){height:4px}.status .bars i:nth-child(2){height:6px}
+  .status .bars i:nth-child(3){height:9px}.status .bars i:nth-child(4){height:11px}
+  .status .batt { width: 24px; height: 12px; border: 1.5px solid #5A4038; border-radius: 3px; position: relative; }
+  .status .batt::after { content:''; position:absolute; right:-3px; top:3px; width:2px; height:5px; background:#5A4038; border-radius:1px;}
+  .status .batt i { position:absolute; left:1.5px; top:1.5px; bottom:1.5px; width:70%; background:#5A4038; border-radius:1px;}
+
+  .scroll { flex: 1; overflow-y: auto; padding: 0 20px 96px; }
+
+  /* header */
+  .head { padding: 6px 0 14px; }
+  .head h1 { font-size: 24px; font-weight: 800; color: #5A4038; letter-spacing: -.4px; }
+  .head p { font-size: 13px; color: #A38A7E; margin-top: 3px; }
+
+  /* progress card */
+  .prog {
+    background: #FFF6EF; border-radius: 22px; padding: 18px 18px 20px; margin-bottom: 18px;
+    box-shadow: 0 6px 18px rgba(255,142,114,.10);
+  }
+  .prog .top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+  .prog .big { font-size: 26px; font-weight: 800; color: #5A4038; }
+  .prog .big small { font-size: 15px; font-weight: 700; color: #FF8E72; }
+  .prog .pct { font-size: 13px; font-weight: 700; color: #FF8E72; background:#FFE7DD; padding:4px 10px; border-radius:20px; }
+  .bar { height: 12px; background: #F0E4DB; border-radius: 8px; overflow: hidden; }
+  .bar i { display:block; height:100%; width:48%; border-radius:8px;
+    background: linear-gradient(90deg,#FFB399,#FF8E72); }
+  .prog .sub { display:flex; gap:8px; margin-top: 14px; }
+  .chip { flex:1; background:#FFFDFA; border-radius:14px; padding:10px 12px; text-align:center; }
+  .chip b { display:block; font-size:19px; font-weight:800; color:#5A4038; }
+  .chip span { font-size:11px; color:#A38A7E; }
+
+  /* map */
+  .maptitle { display:flex; align-items:center; justify-content:space-between; margin: 4px 2px 12px; }
+  .maptitle h2 { font-size:16px; font-weight:800; color:#5A4038; }
+  .maptitle a { font-size:12px; color:#FF8E72; font-weight:600; }
+  .map {
+    background: #FFF; border-radius: 24px; padding: 20px 14px 16px; position: relative;
+    box-shadow: 0 6px 20px rgba(90,64,56,.07); margin-bottom: 16px;
+  }
+  .grid { display:grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+  .gu {
+    aspect-ratio: 1/1; border-radius: 12px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; font-size:10.5px; font-weight:700;
+    position: relative; text-align:center; line-height:1.1;
+  }
+  .gu.on { background: #FF8E72; color:#fff; box-shadow: 0 4px 10px rgba(255,142,114,.35); }
+  .gu.on.hot { background: linear-gradient(145deg,#FF9E7E,#FF7256); }
+  .gu.off { background: #F1EAE4; color:#C3B4AB; }
+  .gu .chk {
+    position:absolute; top:5px; right:5px; width:14px; height:14px; border-radius:50%;
+    background:rgba(255,255,255,.35); display:flex; align-items:center; justify-content:center;
+  }
+  .gu .chk svg { width:8px; height:8px; }
+  .gu .cnt { font-size:8.5px; font-weight:600; opacity:.85; margin-top:2px; }
+
+  .legend { display:flex; gap:16px; justify-content:center; margin-top:16px; padding-top:14px; border-top:1px solid #F3EBE4; }
+  .legend div { display:flex; align-items:center; gap:6px; font-size:11px; color:#8A7268; }
+  .legend i { width:12px; height:12px; border-radius:4px; }
+  .legend .a{background:#FF8E72}.legend .b{background:#F1EAE4}
+
+  /* cities */
+  .cities { display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; margin-bottom:4px; }
+  .city { flex:0 0 auto; background:#FFF6EF; border-radius:18px; padding:14px 16px; min-width:120px; }
+  .city .flag { width:34px; height:34px; border-radius:12px; background:#FFE7DD; display:flex; align-items:center; justify-content:center; margin-bottom:8px; font-weight:800; color:#FF8E72; font-size:15px;}
+  .city b { font-size:14px; font-weight:800; color:#5A4038; display:block; }
+  .city span { font-size:11px; color:#A38A7E; }
+
+  /* tab bar */
+  .tabs {
+    position:absolute; left:0; right:0; bottom:0; height:84px; background:rgba(255,253,250,.94);
+    backdrop-filter: blur(12px); border-top:1px solid #F1E7DF;
+    display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px;
+  }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; color:#C3B4AB; }
+  .tab svg { width:24px; height:24px; }
+  .tab span { font-size:10px; font-weight:600; }
+  .tab.active { color:#FF8E72; }
+</style>
+</head>
+<body>
+<div class="label">B안 · 지역 컬렉션 — 01 지도</div>
+<div class="phone">
+  <div class="status">
+    <span>9:41</span>
+    <div class="dots">
+      <div class="bars"><i></i><i></i><i></i><i></i></div>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="#5A4038"><path d="M8.5 2.5c2 0 3.8.8 5.1 2l1.1-1.2A9 9 0 0 0 2.3 3.3l1.1 1.2a7.3 7.3 0 0 1 5.1-2Zm0 3.2c1.1 0 2.1.4 2.9 1.2l1.1-1.2a6 6 0 0 0-8 0l1.1 1.2c.8-.8 1.8-1.2 2.9-1.2Zm0 3.1L10 10.4a2.1 2.1 0 0 0-3 0L8.5 8.8Z"/></svg>
+      <div class="batt"><i></i></div>
+    </div>
+  </div>
+
+  <div class="scroll">
+    <div class="head">
+      <h1>우리가 정복한 지역</h1>
+      <p>승환 · 수정 · 함께 다닌 지도</p>
+    </div>
+
+    <div class="prog">
+      <div class="top">
+        <div class="big">12<small>/25 구</small></div>
+        <div class="pct">48% 완성</div>
+      </div>
+      <div class="bar"><i></i></div>
+      <div class="sub">
+        <div class="chip"><b>12</b><span>서울 구</span></div>
+        <div class="chip"><b>3</b><span>전국 도시</span></div>
+        <div class="chip"><b>87</b><span>다녀온 장소</span></div>
+      </div>
+    </div>
+
+    <div class="maptitle">
+      <h2>서울특별시</h2>
+      <a>12/25 구</a>
+    </div>
+    <div class="map">
+      <div class="grid">
+        <!-- on -->
+        <div class="gu on hot">성동구<span class="chk"><svg viewBox="0 0 8 8" fill="none" stroke="#FF8E72" stroke-width="1.6"><path d="M1 4.2 3 6 7 1.6"/></svg></span><span class="cnt">14곳</span></div>
+        <div class="gu on">광진구<span class="chk"><svg viewBox="0 0 8 8" fill="none" stroke="#FF8E72" stroke-width="1.6"><path d="M1 4.2 3 6 7 1.6"/></svg></span><span class="cnt">9곳</span></div>
+        <div class="gu on">마포구<span class="chk"><svg viewBox="0 0 8 8" fill="none" stroke="#FF8E72" stroke-width="1.6"><path d="M1 4.2 3 6 7 1.6"/></svg></span><span class="cnt">11곳</span></div>
+        <div class="gu off">노원구</div>
+        <div class="gu off">도봉구</div>
+
+        <div class="gu on">종로구<span class="chk"><svg viewBox="0 0 8 8" fill="none" stroke="#FF8E72" stroke-width="1.6"><path d="M1 4.2 3 6 7 1.6"/></svg></span><span class="cnt">7곳</span></div>
+        <div class="gu on">중구<span class="chk"><svg viewBox="0 0 8 8" fill="none" stroke="#FF8E72" stroke-width="1.6"><path d="M1 4.2 3 6 7 1.6"/></svg></span><span class="cnt">6곳</span></div>
+        <div class="gu on">용산구<span class="chk"><svg viewBox="0 0 8 8" fill="none" stroke="#FF8E72" stroke-width="1.6"><path d="M1 4.2 3 6 7 1.6"/></svg></span><span class="cnt">8곳</span></div>
+        <div class="gu off">성북구</div>
+        <div class="gu off">강북구</div>
+
+        <div class="gu on">서대문<span class="chk"><svg viewBox="0 0 8 8" fill="none" stroke="#FF8E72" stroke-width="1.6"><path d="M1 4.2 3 6 7 1.6"/></svg></span><span class="cnt">4곳</span></div>
+        <div class="gu on">동대문<span class="chk"><svg viewBox="0 0 8 8" fill="none" stroke="#FF8E72" stroke-width="1.6"><path d="M1 4.2 3 6 7 1.6"/></svg></span><span class="cnt">3곳</span></div>
+        <div class="gu off">중랑구</div>
+        <div class="gu off">은평구</div>
+        <div class="gu off">강동구</div>
+
+        <div class="gu on">영등포<span class="chk"><svg viewBox="0 0 8 8" fill="none" stroke="#FF8E72" stroke-width="1.6"><path d="M1 4.2 3 6 7 1.6"/></svg></span><span class="cnt">5곳</span></div>
+        <div class="gu on">동작구<span class="chk"><svg viewBox="0 0 8 8" fill="none" stroke="#FF8E72" stroke-width="1.6"><path d="M1 4.2 3 6 7 1.6"/></svg></span><span class="cnt">2곳</span></div>
+        <div class="gu on">강남구<span class="chk"><svg viewBox="0 0 8 8" fill="none" stroke="#FF8E72" stroke-width="1.6"><path d="M1 4.2 3 6 7 1.6"/></svg></span><span class="cnt">10곳</span></div>
+        <div class="gu off">서초구</div>
+        <div class="gu off">송파구</div>
+
+        <div class="gu off">관악구</div>
+        <div class="gu off">금천구</div>
+        <div class="gu off">구로구</div>
+        <div class="gu off">양천구</div>
+        <div class="gu off">강서구</div>
+      </div>
+      <div class="legend">
+        <div><i class="a"></i> 방문 완료</div>
+        <div><i class="b"></i> 아직 안 감</div>
+      </div>
+    </div>
+
+    <div class="maptitle">
+      <h2>전국 도시</h2>
+      <a>3곳 정복</a>
+    </div>
+    <div class="cities">
+      <div class="city"><div class="flag">부</div><b>부산</b><span>서면 · 광안리 6곳</span></div>
+      <div class="city"><div class="flag">강</div><b>강릉</b><span>안목해변 3곳</span></div>
+      <div class="city"><div class="flag">전</div><b>전주</b><span>한옥마을 4곳</span></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 4l9 5.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>홈</span></div>
+    <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span>달력</span></div>
+    <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M6 8l6-5 6 5"/><circle cx="12" cy="12" r="9"/></svg><span>쓰기</span></div>
+    <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3 3 5.5v15L9 18l6 3 6-2.5v-15L15 6 9 3z"/><path d="M9 3v15M15 6v15"/></svg><span>지도</span></div>
+    <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>우리</span></div>
+  </div>
+</div>
+</body>
+</html>

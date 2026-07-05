@@ -28,6 +28,7 @@ public enum ErrorCode {
 
     DAY_LOCKED(HttpStatus.FORBIDDEN, "D001", "아직 공개되지 않은 일기입니다."),
     ENTRY_NOT_EDITABLE(HttpStatus.FORBIDDEN, "D002", "수정 가능 시간이 지났습니다."),
+    DAY_ALREADY_EXISTS(HttpStatus.CONFLICT, "D003", "해당 날짜에 이미 일기가 있습니다."),
     ;
 
     private final HttpStatus status;

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { authApi } from '../../lib/api';
 import { confirmAsync } from '../../lib/dialog';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -33,6 +34,7 @@ function isValidDate(v: string): boolean {
 }
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const { user, partner, logout, setUser } = useAuthStore();
   const { couple, setAnniversary } = useCoupleStore();
   const [anniv, setAnniv] = useState(couple?.anniversaryDate ?? '');
@@ -205,6 +207,16 @@ export default function SettingsScreen() {
           <Button label="기념일 저장" variant="soft" onPress={onSaveAnniv} loading={saving} style={{ marginTop: spacing.md }} />
         </Card>
 
+        <Pressable onPress={() => router.push('/anniversaries')} style={{ marginTop: spacing.lg }}>
+          <Card style={styles.linkRow}>
+            <View style={styles.linkLeft}>
+              <Icon name="gift-outline" size={22} color={colors.primary} />
+              <Text style={styles.linkLabel}>기념일 보기</Text>
+            </View>
+            <Icon name="chevron-forward" size={20} color={colors.subText} />
+          </Card>
+        </Pressable>
+
         <Pressable onPress={confirmLogout} style={{ marginTop: spacing.xxl, alignSelf: 'center' }}>
           <Text style={styles.logout}>로그아웃</Text>
         </Pressable>
@@ -246,4 +258,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   swatchSelected: { borderColor: colors.text },
+  linkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  linkLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  linkLabel: { ...font.title },
 });

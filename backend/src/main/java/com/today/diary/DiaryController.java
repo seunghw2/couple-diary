@@ -40,6 +40,12 @@ public class DiaryController {
         diaryService.deleteEntry(SecurityUtil.currentUserId(), date);
     }
 
+    @PutMapping("/{date}/move")
+    public DayDetail move(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                          @Valid @RequestBody MoveDayRequest req) {
+        return diaryService.moveDay(SecurityUtil.currentUserId(), date, req.targetDate());
+    }
+
     @GetMapping("/{date}/comments")
     public List<CommentView> comments(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return diaryService.comments(SecurityUtil.currentUserId(), date);
