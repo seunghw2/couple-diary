@@ -5,6 +5,7 @@ import { ActivityIndicator, AppState, AppStateStatus, Keyboard, Pressable, Text,
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { setOnUnauthorized } from '../lib/api';
 import { AppAlert } from '../components/AppAlert';
+import { BugReportFab } from '../components/BugReportFab';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCoupleStore } from '../store/useCoupleStore';
 import { useNotifStore } from '../store/useNotifStore';
@@ -124,8 +125,11 @@ export default function RootLayout() {
           <Stack.Screen name="write/[date]" />
           <Stack.Screen name="notifications" options={{ presentation: 'card' }} />
           <Stack.Screen name="anniversaries" options={{ presentation: 'card' }} />
+          <Stack.Screen name="bug-reports" options={{ presentation: 'card' }} />
         </Stack>
         <AppAlert />
+        {/* 전 화면 공통 드래그 가능 플로팅 버그리포트 버튼(로그인 상태에서만 노출) */}
+        <BugReportFab />
       </SafeAreaProvider>
     </ErrorBoundary>
   );

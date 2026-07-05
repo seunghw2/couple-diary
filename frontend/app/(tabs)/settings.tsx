@@ -287,6 +287,16 @@ export default function SettingsScreen() {
             </Card>
           </Pressable>
 
+          <Pressable onPress={() => router.push('/bug-reports')} style={{ marginTop: spacing.lg }}>
+            <Card style={styles.linkRow}>
+              <View style={styles.linkLeft}>
+                <Icon name="bug-outline" size={22} color={c.primary} />
+                <Text style={styles.linkLabel}>버그 리포트</Text>
+              </View>
+              <Icon name="chevron-forward" size={20} color={colors.subText} />
+            </Card>
+          </Pressable>
+
           <Pressable onPress={confirmLogout} style={{ marginTop: spacing.xxl, alignSelf: 'center' }}>
             <Text style={styles.logout}>로그아웃</Text>
           </Pressable>
