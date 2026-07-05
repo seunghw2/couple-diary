@@ -17,6 +17,8 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useCoupleStore } from '../../store/useCoupleStore';
 import { useThemeStore } from '../../store/useThemeStore';
 import { Button, Card, Icon } from '../../components/ui';
+import { DatePickerSheet } from '../../components/DatePickerSheet';
+import { todayISO } from '../../lib/date';
 import { colors, font, radius, spacing, useColors } from '../../theme/theme';
 
 /** 내 아바타/앱 색 팔레트(뮤트 웜 18색). */
@@ -29,13 +31,6 @@ const AVATAR_COLORS = [
 ] as const;
 
 /** 숫자만 받아 YYYY-MM-DD 자동 하이픈 마스킹. */
-function maskDate(input: string): string {
-  const digits = input.replace(/\D/g, '').slice(0, 8);
-  if (digits.length <= 4) return digits;
-  if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
-  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
-}
-
 /** YYYY-MM-DD가 실제 존재하는 날짜인지 검증. */
 function isValidDate(v: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
@@ -70,12 +65,10 @@ export default function SettingsScreen() {
   const [birthday, setBirthday] = useState(user?.birthday ?? '');
   const [bdaySaving, setBdaySaving] = useState(false);
   const [bdayMsg, setBdayMsg] = useState<string | null>(null);
+  const [bdayPickerOpen, setBdayPickerOpen] = useState(false);
+  const [annivPickerOpen, setAnnivPickerOpen] = useState(false);
 
   /** 포커스된 입력을 키보드 위로 스크롤. */
-  function scrollToInput(y: number) {
-    scrollRef.current?.scrollTo({ y, animated: true });
-  }
-
   async function onApplyProfileColor() {
     if (colorSaving || selectedColor === user?.avatarColor) return;
     setColorSaving(true);
@@ -257,17 +250,12 @@ export default function SettingsScreen() {
 
           <Card style={{ marginTop: spacing.lg }}>
             <Text style={styles.label}>생일</Text>
-            <TextInput
-              value={birthday}
-              onChangeText={(t) => setBirthday(maskDate(t))}
-              onFocus={() => scrollToInput(560)}
-              placeholder="19960101 → 1996-01-01"
-              placeholderTextColor={colors.placeholder}
-              autoCapitalize="none"
-              keyboardType="number-pad"
-              maxLength={10}
-              style={styles.input}
-            />
+            <Pressable style={styles.dateField} onPress={() => setBdayPickerOpen(true)}>
+              <Text style={[styles.dateText, !birthday && { color: colors.placeholder }]}>
+                {birthday || '생일 선택'}
+              </Text>
+              <Icon name="calendar-outline" size={20} color={c.primary} />
+            </Pressable>
             {bdayMsg ? <Text style={[styles.msg, { color: c.primary }]}>{bdayMsg}</Text> : null}
             <Button label="생일 저장" variant="soft" onPress={onSaveBirthday} loading={bdaySaving} style={{ marginTop: spacing.md }} />
           </Card>
@@ -279,17 +267,12 @@ export default function SettingsScreen() {
 
           <Card style={{ marginTop: spacing.lg }}>
             <Text style={styles.label}>기념일 (D-day 기준)</Text>
-            <TextInput
-              value={anniv}
-              onChangeText={(t) => setAnniv(maskDate(t))}
-              onFocus={() => scrollToInput(760)}
-              placeholder="20250101 → 2025-01-01"
-              placeholderTextColor={colors.placeholder}
-              autoCapitalize="none"
-              keyboardType="number-pad"
-              maxLength={10}
-              style={styles.input}
-            />
+            <Pressable style={styles.dateField} onPress={() => setAnnivPickerOpen(true)}>
+              <Text style={[styles.dateText, !anniv && { color: colors.placeholder }]}>
+                {anniv || '기념일 선택'}
+              </Text>
+              <Icon name="calendar-outline" size={20} color={c.primary} />
+            </Pressable>
             {msg ? <Text style={[styles.msg, { color: c.primary }]}>{msg}</Text> : null}
             <Button label="기념일 저장" variant="soft" onPress={onSaveAnniv} loading={saving} style={{ marginTop: spacing.md }} />
           </Card>
@@ -309,6 +292,31 @@ export default function SettingsScreen() {
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <DatePickerSheet
+        visible={bdayPickerOpen}
+        value={birthday}
+        maxDate={todayISO()}
+        title="생일 선택"
+        onClose={() => setBdayPickerOpen(false)}
+        onConfirm={(d) => {
+          setBirthday(d);
+          setBdayMsg(null);
+          setBdayPickerOpen(false);
+        }}
+      />
+      <DatePickerSheet
+        visible={annivPickerOpen}
+        value={anniv}
+        maxDate={todayISO()}
+        title="기념일 선택"
+        onClose={() => setAnnivPickerOpen(false)}
+        onConfirm={(d) => {
+          setAnniv(d);
+          setMsg(null);
+          setAnnivPickerOpen(false);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -334,6 +342,19 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginTop: spacing.sm,
   },
+  dateField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.bg,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    height: 48,
+    marginTop: spacing.sm,
+  },
+  dateText: { fontSize: 16, color: colors.text },
   msg: { ...font.caption, marginTop: spacing.sm },
   logout: { ...font.body, color: colors.danger, textDecorationLine: 'underline' },
   swatchWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },

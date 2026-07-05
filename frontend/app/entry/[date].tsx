@@ -26,15 +26,8 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useNotifStore } from '../../store/useNotifStore';
 import { useDataCache, invalidateAfterMutation } from '../../store/useDataCache';
 import { Button, Card, Icon, PhotoThumb, Pill, StarRating } from '../../components/ui';
+import { DatePickerSheet } from '../../components/DatePickerSheet';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
-
-/** 숫자만 받아 YYYY-MM-DD 자동 하이픈 마스킹. */
-function maskDate(input: string): string {
-  const digits = input.replace(/\D/g, '').slice(0, 8);
-  if (digits.length <= 4) return digits;
-  if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
-  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
-}
 
 /** YYYY-MM-DD가 실제 존재하는 날짜인지 검증. */
 function isValidDate(v: string): boolean {
@@ -69,6 +62,7 @@ export default function EntryDetailScreen() {
   // 날짜 변경 모달
   const [moveOpen, setMoveOpen] = useState(false);
   const [moveDate, setMoveDate] = useState('');
+  const [movePickerOpen, setMovePickerOpen] = useState(false);
   const [moving, setMoving] = useState(false);
   const [moveError, setMoveError] = useState<string | null>(null);
 
@@ -343,17 +337,13 @@ export default function EntryDetailScreen() {
         <Pressable style={styles.moveBackdrop} onPress={() => setMoveOpen(false)}>
           <Pressable style={styles.moveSheet} onPress={() => {}}>
             <Text style={styles.moveTitle}>날짜 변경</Text>
-            <Text style={styles.moveSub}>이 날의 일기를 옮길 날짜를 입력해 주세요.</Text>
-            <TextInput
-              value={moveDate}
-              onChangeText={(t) => setMoveDate(maskDate(t))}
-              placeholder="20250101 → 2025-01-01"
-              placeholderTextColor={colors.placeholder}
-              autoCapitalize="none"
-              keyboardType="number-pad"
-              maxLength={10}
-              style={styles.moveInput}
-            />
+            <Text style={styles.moveSub}>이 날의 일기를 옮길 날짜를 골라 주세요.</Text>
+            <Pressable style={styles.moveField} onPress={() => setMovePickerOpen(true)}>
+              <Text style={[styles.moveFieldText, !moveDate && { color: colors.placeholder }]}>
+                {moveDate || '날짜 선택'}
+              </Text>
+              <Icon name="calendar-outline" size={20} color={colors.primary} />
+            </Pressable>
             {moveError ? <Text style={styles.moveError}>{moveError}</Text> : null}
             <View style={styles.moveActions}>
               <Button
@@ -372,6 +362,20 @@ export default function EntryDetailScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* 옮길 날짜 선택(미래 불가) */}
+      <DatePickerSheet
+        visible={movePickerOpen}
+        value={moveDate || dateStr}
+        maxDate={todayISO()}
+        title="옮길 날짜 선택"
+        onClose={() => setMovePickerOpen(false)}
+        onConfirm={(d) => {
+          setMoveDate(d);
+          setMoveError(null);
+          setMovePickerOpen(false);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -668,17 +672,19 @@ const styles = StyleSheet.create({
   },
   moveTitle: { ...font.title },
   moveSub: { ...font.caption, marginTop: spacing.xs },
-  moveInput: {
+  moveField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: colors.bg,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
     paddingHorizontal: spacing.lg,
     height: 48,
-    fontSize: 16,
-    color: colors.text,
     marginTop: spacing.md,
   },
+  moveFieldText: { fontSize: 16, color: colors.text },
   moveError: { ...font.caption, color: colors.danger, marginTop: spacing.sm },
   moveActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg },
 

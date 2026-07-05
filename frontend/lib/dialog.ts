@@ -1,34 +1,38 @@
-import { Alert, Platform } from 'react-native';
+import { useAlertStore } from '../store/useAlertStore';
 
-/** 확인/취소 다이얼로그. 웹은 window.confirm, 네이티브는 Alert. */
+/**
+ * 확인/취소 다이얼로그. 앱 톤 커스텀 알림(useAlertStore + <AppAlert/>)으로 표시.
+ * 이전엔 네이티브 Alert(회색)이었으나 앱 디자인에 맞춰 교체.
+ */
 export function confirmAsync(
   title: string,
   message: string,
   confirmLabel = '확인',
   destructive = false
 ): Promise<boolean> {
-  if (Platform.OS === 'web') {
-    const fn = (globalThis as { confirm?: (msg: string) => boolean }).confirm;
-    return Promise.resolve(fn ? fn(`${title}\n${message}`) : true);
-  }
   return new Promise((resolve) => {
-    Alert.alert(title, message, [
-      { text: '취소', style: 'cancel', onPress: () => resolve(false) },
-      {
-        text: confirmLabel,
-        style: destructive ? 'destructive' : 'default',
-        onPress: () => resolve(true),
-      },
-    ]);
+    let done = false;
+    const once = (v: boolean) => {
+      if (done) return;
+      done = true;
+      resolve(v);
+    };
+    useAlertStore.getState().open({
+      title,
+      message,
+      buttons: [
+        { text: '취소', style: 'cancel', onPress: () => once(false) },
+        { text: confirmLabel, style: destructive ? 'destructive' : 'default', onPress: () => once(true) },
+      ],
+    });
   });
 }
 
-/** 단순 알림. 웹은 window.alert, 네이티브는 Alert. */
-export function showAlert(title: string, message?: string) {
-  if (Platform.OS === 'web') {
-    const fn = (globalThis as { alert?: (msg: string) => void }).alert;
-    fn?.(message ? `${title}\n${message}` : title);
-    return;
-  }
-  Alert.alert(title, message);
+/** 단순 알림. 확인 버튼 하나. */
+export function showAlert(title: string, message?: string, onOk?: () => void) {
+  useAlertStore.getState().open({
+    title,
+    message,
+    buttons: [{ text: '확인', style: 'default', onPress: onOk }],
+  });
 }

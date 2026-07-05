@@ -4,6 +4,7 @@ import { Component, ReactNode, useEffect, useRef } from 'react';
 import { ActivityIndicator, AppState, AppStateStatus, Pressable, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { setOnUnauthorized } from '../lib/api';
+import { AppAlert } from '../components/AppAlert';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCoupleStore } from '../store/useCoupleStore';
 import { useNotifStore } from '../store/useNotifStore';
@@ -109,6 +110,7 @@ export default function RootLayout() {
           <Stack.Screen name="notifications" options={{ presentation: 'card' }} />
           <Stack.Screen name="anniversaries" options={{ presentation: 'card' }} />
         </Stack>
+        <AppAlert />
       </SafeAreaProvider>
     </ErrorBoundary>
   );
