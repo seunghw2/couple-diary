@@ -118,6 +118,10 @@ public class UserService {
         if (req.nickname() != null) user.setNickname(req.nickname());
         if (req.avatarColor() != null) user.setAvatarColor(req.avatarColor());
         if (req.birthday() != null) user.setBirthday(req.birthday());
+        // null=변경 없음, 빈 문자열=삭제(null로), 그 외=설정
+        if (req.profileImageUrl() != null) {
+            user.setProfileImageUrl(req.profileImageUrl().isBlank() ? null : req.profileImageUrl());
+        }
         return UserSummary.of(user);
     }
 

@@ -1,10 +1,11 @@
 import { ComponentProps, ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useThemeStore } from '../../store/useThemeStore';
 import { Card, Icon } from '../../components/ui';
+import { API_URL } from '../../lib/config';
 import { colors, font, radius, spacing, useColors } from '../../theme/theme';
 
 /** 앱 강조색 팔레트(뮤트 웜 18색). 탭하면 즉시 적용. */
@@ -25,6 +26,11 @@ export default function SettingsScreen() {
   const setAppPrimary = useThemeStore((s) => s.setAppPrimary);
 
   const initial = (user?.nickname ?? '?').trim().charAt(0) || '?';
+  const profileUri = user?.profileImageUrl
+    ? user.profileImageUrl.startsWith('http')
+      ? user.profileImageUrl
+      : `${API_URL}${user.profileImageUrl}`
+    : null;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -34,9 +40,13 @@ export default function SettingsScreen() {
         {/* 프로필 헤더 → 내 정보 */}
         <Pressable onPress={() => router.push('/account')} style={({ pressed }) => [pressed && styles.pressed]}>
           <View style={styles.profileCard}>
-            <View style={[styles.avatar, { backgroundColor: c.primary }]}>
-              <Text style={styles.avatarText}>{initial}</Text>
-            </View>
+            {profileUri ? (
+              <Image source={{ uri: profileUri }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, { backgroundColor: c.primary }]}>
+                <Text style={styles.avatarText}>{initial}</Text>
+              </View>
+            )}
             <View style={{ flex: 1 }}>
               <Text style={styles.profileName}>{user?.nickname ?? '나'}</Text>
               <Text style={styles.profileSub}>

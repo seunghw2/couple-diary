@@ -23,7 +23,8 @@ public class UserDtos {
     public record UpdateMeRequest(
             String nickname,
             String avatarColor,
-            LocalDate birthday
+            LocalDate birthday,
+            String profileImageUrl
     ) {}
 
     /** 기본 유저 요약(파트너 표시 등에 재사용). */
@@ -33,11 +34,13 @@ public class UserDtos {
             String nickname,
             String avatarColor,
             LocalDate birthday,
-            String inviteCode
+            String inviteCode,
+            String profileImageUrl
     ) {
         public static UserSummary of(User u) {
             return new UserSummary(u.getId(), u.getEmail(), u.getNickname(),
-                    u.getAvatarColor(), u.getBirthday(), u.getInviteCode());
+                    u.getAvatarColor(), u.getBirthday(), u.getInviteCode(),
+                    u.getProfileImageUrl());
         }
     }
 
@@ -52,10 +55,12 @@ public class UserDtos {
     public record PartnerSummary(
             Long id,
             String nickname,
-            String avatarColor
+            String avatarColor,
+            String profileImageUrl
     ) {
         public static PartnerSummary of(User u) {
-            return new PartnerSummary(u.getId(), u.getNickname(), u.getAvatarColor());
+            return new PartnerSummary(u.getId(), u.getNickname(), u.getAvatarColor(),
+                    u.getProfileImageUrl());
         }
     }
 }
