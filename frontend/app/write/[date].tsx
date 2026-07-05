@@ -29,7 +29,7 @@ import { showAlert } from '../../lib/dialog';
 import { invalidateAfterMutation } from '../../store/useDataCache';
 import { MOODS, TEMPLATE_PROMPTS } from '../../constants/content';
 import { Button, Card, Icon, PhotoThumb, StarRating } from '../../components/ui';
-import { colors, font, radius, shadow, spacing } from '../../theme/theme';
+import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
 type Step = 'mode' | 'form';
 /** 화면 로컬 모드. 'FREE'=내가 질문 3개를 고르는 단계(제출 시 QUESTION_PICK으로 저장). */
@@ -57,6 +57,7 @@ function joinScenes(scenes: string[]): string {
 
 export default function WriteScreen() {
   const router = useRouter();
+  const c = useColors();
   const { date } = useLocalSearchParams<{ date: string }>();
   const dateStr = date ?? todayISO();
 
@@ -341,7 +342,7 @@ export default function WriteScreen() {
   if (loadingDetail) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xxl }} />
+        <ActivityIndicator color={c.primary} style={{ marginTop: spacing.xxl }} />
       </SafeAreaView>
     );
   }
@@ -391,9 +392,9 @@ export default function WriteScreen() {
                   <Pressable
                     key={m.key}
                     onPress={() => setMood(m.key)}
-                    style={[styles.moodItem, on && styles.moodSelected]}
+                    style={[styles.moodItem, on && [styles.moodSelected, { borderColor: c.primary }]]}
                   >
-                    <Icon name={m.icon} size={24} color={on ? colors.primary : colors.subText} />
+                    <Icon name={m.icon} size={24} color={on ? c.primary : colors.subText} />
                   </Pressable>
                 );
               })}
@@ -449,7 +450,7 @@ export default function WriteScreen() {
               ))}
               {uploading ? (
                 <View style={styles.addPhoto}>
-                  <ActivityIndicator color={colors.primary} />
+                  <ActivityIndicator color={c.primary} />
                 </View>
               ) : photoUrls.length < 6 ? (
                 <Pressable onPress={pickAndUploadPhoto} style={styles.addPhoto}>
@@ -467,7 +468,7 @@ export default function WriteScreen() {
             {locations.length > 0 ? (
               <View style={styles.chipWrap}>
                 {locations.map((loc) => (
-                  <Pressable key={loc} onPress={() => removeLocation(loc)} style={[styles.chip, styles.chipOn]}>
+                  <Pressable key={loc} onPress={() => removeLocation(loc)} style={[styles.chip, styles.chipOn, { backgroundColor: c.primary, borderColor: c.primary }]}>
                     <View style={styles.locChipRow}>
                       <Text style={[styles.chipText, { color: colors.white }]}>{loc}</Text>
                       <Icon name="close" size={14} color={colors.white} />
@@ -490,7 +491,7 @@ export default function WriteScreen() {
               />
               {locationInput.trim() ? (
                 <Pressable onPress={() => addLocation(locationInput)} hitSlop={8}>
-                  <Icon name="checkmark-circle" size={24} color={colors.primary} />
+                  <Icon name="checkmark-circle" size={24} color={c.primary} />
                 </Pressable>
               ) : null}
             </View>
@@ -577,6 +578,7 @@ function SceneInputs({
   onAdd: () => void;
   onRemove: (index: number) => void;
 }) {
+  const c = useColors();
   return (
     <View>
       {rows.map((val, i) => (
@@ -600,8 +602,8 @@ function SceneInputs({
       ))}
       {rows.length < 3 ? (
         <Pressable onPress={onAdd} style={styles.sceneAdd} hitSlop={6}>
-          <Icon name="add" size={16} color={colors.primary} />
-          <Text style={styles.sceneAddText}>장면 추가</Text>
+          <Icon name="add" size={16} color={c.primary} />
+          <Text style={[styles.sceneAddText, { color: c.primary }]}>장면 추가</Text>
         </Pressable>
       ) : null}
     </View>
@@ -609,11 +611,12 @@ function SceneInputs({
 }
 
 function ModeSelect({ onChoose, freeDisabled }: { onChoose: (m: FormMode) => void; freeDisabled: boolean }) {
+  const c = useColors();
   return (
     <View style={styles.modeWrap}>
       <Text style={styles.modeHeading}>어떻게 기록할까요?</Text>
       <Pressable style={[styles.modeCard, shadow]} onPress={() => onChoose('TEMPLATE')}>
-        <Icon name="create-outline" size={30} color={colors.primary} style={styles.modeIcon} />
+        <Icon name="create-outline" size={30} color={c.primary} style={styles.modeIcon} />
         <Text style={styles.modeTitle}>템플릿으로 쓰기</Text>
         <Text style={styles.modeDesc}>정해진 빈칸을 채우며 가볍게</Text>
       </Pressable>
@@ -622,7 +625,7 @@ function ModeSelect({ onChoose, freeDisabled }: { onChoose: (m: FormMode) => voi
         disabled={freeDisabled}
         onPress={() => onChoose('FREE')}
       >
-        <Icon name="help-circle-outline" size={32} color={colors.primary} style={styles.modeIcon} />
+        <Icon name="help-circle-outline" size={32} color={c.primary} style={styles.modeIcon} />
         <Text style={styles.modeTitle}>질문 골라 쓰기</Text>
         <Text style={styles.modeDesc}>
           {freeDisabled ? '질문을 불러오지 못했어요' : '질문 8개 중 3개를 골라 서로 답하기'}
@@ -639,6 +642,7 @@ function TemplateForm({
   answers: Record<string, string>;
   onChange: (key: string, text: string) => void;
 }) {
+  const c = useColors();
   return (
     <Card style={{ marginTop: spacing.lg }}>
       <View style={styles.formHeadingRow}>
@@ -648,8 +652,8 @@ function TemplateForm({
       {TEMPLATE_PROMPTS.map((p, i) => (
         <View key={p.promptKey} style={i > 0 ? styles.formDivider : undefined}>
           <View style={styles.promptLabelRow}>
-            <Icon name={p.icon} size={15} color={colors.primary} />
-            <Text style={styles.promptLabel}>{p.label}</Text>
+            <Icon name={p.icon} size={15} color={c.primary} />
+            <Text style={[styles.promptLabel, { color: c.primary }]}>{p.label}</Text>
           </View>
           <MultilineAnswerInput
             value={answers[p.promptKey] ?? ''}
@@ -682,6 +686,7 @@ function FixedQuestionForm({
   answers: Record<string, string>;
   onChange: (key: string, text: string) => void;
 } & SceneProps) {
+  const c = useColors();
   return (
     <Card style={{ marginTop: spacing.lg }}>
       <View style={styles.formHeadingRow}>
@@ -692,7 +697,7 @@ function FixedQuestionForm({
         const key = String(q.id);
         return (
           <View key={key} style={i > 0 ? styles.formDivider : undefined}>
-            <Text style={styles.promptLabel}>Q{i + 1}. {q.text}</Text>
+            <Text style={[styles.promptLabel, { color: c.primary }]}>Q{i + 1}. {q.text}</Text>
             {isSceneQuestion(q.text) ? (
               <SceneInputs
                 rows={sceneRows(key)}
@@ -731,6 +736,7 @@ function FreePickForm({
   answers: Record<string, string>;
   onChange: (key: string, text: string) => void;
 } & SceneProps) {
+  const c = useColors();
   return (
     <Card style={{ marginTop: spacing.lg }}>
       <View style={styles.formHeadingRow}>
@@ -745,7 +751,7 @@ function FreePickForm({
           const id = String(q.id);
           const on = picked.includes(id);
           return (
-            <Pressable key={id} onPress={() => onToggle(id)} style={[styles.chip, on && styles.chipOn]}>
+            <Pressable key={id} onPress={() => onToggle(id)} style={[styles.chip, on && [styles.chipOn, { backgroundColor: c.primary, borderColor: c.primary }]]}>
               <Text style={[styles.chipText, on && { color: colors.white }]}>{q.text}</Text>
             </Pressable>
           );
@@ -757,7 +763,7 @@ function FreePickForm({
         if (!q) return null;
         return (
           <View key={id} style={styles.formDivider}>
-            <Text style={styles.promptLabel}>Q{i + 1}. {q.text}</Text>
+            <Text style={[styles.promptLabel, { color: c.primary }]}>Q{i + 1}. {q.text}</Text>
             {isSceneQuestion(q.text) ? (
               <SceneInputs
                 rows={sceneRows(id)}

@@ -11,10 +11,11 @@ import { useNotifStore } from '../../store/useNotifStore';
 import { useDataCache } from '../../store/useDataCache';
 import { CalendarGrid } from '../../components/CalendarGrid';
 import { Button, Icon } from '../../components/ui';
-import { colors, font, radius, shadow, spacing } from '../../theme/theme';
+import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const c = useColors();
   const couple = useCoupleStore((s) => s.couple);
   const me = useAuthStore((s) => s.user);
   const partner = useAuthStore((s) => s.partner);
@@ -111,14 +112,14 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
         }
       >
         {/* 헤더 */}
         <View style={styles.header}>
           <View style={styles.logoRow}>
-            <Text style={styles.logo}>love today</Text>
-            <Icon name="heart" size={22} color={colors.primary} />
+            <Text style={[styles.logo, { color: c.primary }]}>love today</Text>
+            <Icon name="heart" size={22} color={c.primary} />
           </View>
           <View style={styles.headerRight}>
             <Pressable
@@ -126,8 +127,8 @@ export default function HomeScreen() {
               onPress={dday == null ? () => router.push('/(tabs)/settings') : undefined}
             >
               <View style={styles.ddayRow}>
-                <Icon name="heart" size={15} color={colors.primary} />
-                <Text style={styles.ddayText}>
+                <Icon name="heart" size={15} color={c.primary} />
+                <Text style={[styles.ddayText, { color: c.primary }]}>
                   {dday != null ? formatDday(dday) : '기념일 설정'}
                 </Text>
               </View>
@@ -136,7 +137,7 @@ export default function HomeScreen() {
             <Pressable style={styles.bell} onPress={() => router.push('/notifications')} hitSlop={8}>
               <Icon name="notifications-outline" size={24} color={colors.text} />
               {unreadCount > 0 ? (
-                <View style={styles.badge}>
+                <View style={[styles.badge, { backgroundColor: c.primary }]}>
                   <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
                 </View>
               ) : null}
@@ -151,23 +152,23 @@ export default function HomeScreen() {
 
         {/* 상대가 기다려요 배너 + 콕 찌르기 */}
         {todayEntry?.partnerWritten && !todayEntry?.mineWritten ? (
-          <View style={styles.waitBanner}>
+          <View style={[styles.waitBanner, { borderColor: c.coralSofter }]}>
             <Pressable
               style={styles.waitBannerRow}
               onPress={() => router.push({ pathname: '/write/[date]', params: { date: today } })}
             >
-              <Icon name="mail-unread-outline" size={16} color={colors.primary} />
-              <Text style={styles.waitBannerText}>
+              <Icon name="mail-unread-outline" size={16} color={c.primary} />
+              <Text style={[styles.waitBannerText, { color: c.primary }]}>
                 {partnerName ?? '상대'}님이 오늘 일기를 썼어요 — 내가 쓰면 열려요
               </Text>
             </Pressable>
-            <Pressable style={styles.pokeBtn} onPress={onPoke} disabled={poking} hitSlop={6}>
+            <Pressable style={[styles.pokeBtn, { borderColor: c.coralSofter }]} onPress={onPoke} disabled={poking} hitSlop={6}>
               {poking ? (
-                <ActivityIndicator color={colors.primary} size="small" />
+                <ActivityIndicator color={c.primary} size="small" />
               ) : (
                 <>
-                  <Icon name="hand-left-outline" size={15} color={colors.primary} />
-                  <Text style={styles.pokeText}>콕 찌르기</Text>
+                  <Icon name="hand-left-outline" size={15} color={c.primary} />
+                  <Text style={[styles.pokeText, { color: c.primary }]}>콕 찌르기</Text>
                 </>
               )}
             </Pressable>
@@ -177,20 +178,20 @@ export default function HomeScreen() {
         {/* 월 네비게이션 */}
         <View style={styles.monthNav}>
           <Pressable onPress={() => shift(-1)} hitSlop={12}>
-            <Icon name="chevron-back" size={26} color={colors.coralSoft} />
+            <Icon name="chevron-back" size={26} color={c.coralSoft} />
           </Pressable>
           <Text style={styles.monthTitle}>
             {cursor.year}. {cursor.month}
           </Text>
           <Pressable onPress={() => shift(1)} hitSlop={12}>
-            <Icon name="chevron-forward" size={26} color={colors.coralSoft} />
+            <Icon name="chevron-forward" size={26} color={c.coralSoft} />
           </Pressable>
         </View>
 
         {/* 캘린더 — 캐시가 있으면 스피너 없이 즉시 렌더 */}
         <View style={[styles.calCard, shadow]}>
           {loading && Object.keys(entries).length === 0 ? (
-            <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.xxl }} />
+            <ActivityIndicator color={c.primary} style={{ marginVertical: spacing.xxl }} />
           ) : (
             <CalendarGrid
               year={cursor.year}

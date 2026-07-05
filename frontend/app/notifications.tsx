@@ -15,7 +15,7 @@ import { Notification, NotificationType } from '../lib/api';
 import { timeAgo } from '../lib/date';
 import { useNotifStore } from '../store/useNotifStore';
 import { Icon } from '../components/ui';
-import { colors, font, radius, spacing } from '../theme/theme';
+import { colors, font, radius, spacing, useColors } from '../theme/theme';
 
 /** type별 Ionicons 아이콘. */
 const NOTIF_ICON: Record<NotificationType, React.ComponentProps<typeof Ionicons>['name']> = {
@@ -29,6 +29,7 @@ const NOTIF_ICON: Record<NotificationType, React.ComponentProps<typeof Ionicons>
 
 export default function NotificationsScreen() {
   const router = useRouter();
+  const c = useColors();
   const { items, unreadCount, loading, fetch, markRead, markAllRead } = useNotifStore();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -59,7 +60,7 @@ export default function NotificationsScreen() {
         <Text style={styles.title}>알림</Text>
         {unreadCount > 0 ? (
           <Pressable onPress={() => void markAllRead()} hitSlop={8}>
-            <Text style={styles.readAll}>모두 읽음</Text>
+            <Text style={[styles.readAll, { color: c.primary }]}>모두 읽음</Text>
           </Pressable>
         ) : (
           <View style={{ width: 60 }} />
@@ -67,13 +68,13 @@ export default function NotificationsScreen() {
       </View>
 
       {loading && items.length === 0 ? (
-        <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xxl }} />
+        <ActivityIndicator color={c.primary} style={{ marginTop: spacing.xxl }} />
       ) : (
         <ScrollView
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
           }
         >
           {items.length === 0 ? (
@@ -92,6 +93,7 @@ export default function NotificationsScreen() {
 }
 
 function NotifRow({ notif, onPress }: { notif: Notification; onPress: () => void }) {
+  const c = useColors();
   const iconName = NOTIF_ICON[notif.type] ?? 'notifications-outline';
   return (
     <Pressable
@@ -99,9 +101,9 @@ function NotifRow({ notif, onPress }: { notif: Notification; onPress: () => void
       style={({ pressed }) => [styles.row, !notif.read && styles.rowUnread, pressed && { opacity: 0.7 }]}
     >
       {/* 미읽음 좌측 코럴 점 */}
-      <View style={styles.dotCol}>{!notif.read ? <View style={styles.dot} /> : null}</View>
+      <View style={styles.dotCol}>{!notif.read ? <View style={[styles.dot, { backgroundColor: c.primary }]} /> : null}</View>
       <View style={styles.iconWrap}>
-        <Icon name={iconName} size={20} color={colors.primary} />
+        <Icon name={iconName} size={20} color={c.primary} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={styles.rowTitle}>{notif.title}</Text>

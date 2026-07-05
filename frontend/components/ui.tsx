@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { API_URL } from '../lib/config';
-import { colors, font, radius, seedGradient, shadow, spacing } from '../theme/theme';
+import { colors, font, radius, seedGradient, shadow, spacing, useColors } from '../theme/theme';
 
 /** 앱 전역 벡터 아이콘 래퍼 (Ionicons). 기본색=text, 강조는 color prop으로. */
 export function Icon({
@@ -51,25 +51,26 @@ type ButtonProps = {
 
 /** 코럴 CTA 버튼. */
 export function Button({ label, onPress, disabled, loading, variant = 'primary', icon, style }: ButtonProps) {
+  const c = useColors();
   const isPrimary = variant === 'primary';
   const isGhost = variant === 'ghost';
-  const labelColor = isPrimary ? colors.white : colors.primary;
+  const labelColor = isPrimary ? colors.white : c.primary;
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.btn,
-        isPrimary && styles.btnPrimary,
-        variant === 'soft' && styles.btnSoft,
-        isGhost && styles.btnGhost,
+        isPrimary && { backgroundColor: c.primary },
+        variant === 'soft' && { backgroundColor: c.coralSofter },
+        isGhost && [styles.btnGhost, { borderColor: c.coralSoft }],
         (disabled || loading) && { opacity: 0.5 },
         pressed && { opacity: 0.85 },
         style,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={isPrimary ? colors.white : colors.primary} />
+        <ActivityIndicator color={isPrimary ? colors.white : c.primary} />
       ) : (
         <View style={styles.btnContent}>
           {icon ? <Ionicons name={icon} size={18} color={labelColor} /> : null}
@@ -192,9 +193,10 @@ export function PhotoThumb({
   return <SeedThumb seed={seed} size={size} round={round} label={label} ring={ring} style={style} />;
 }
 
-export function Badge({ text, color = colors.primary }: { text: string; color?: string }) {
+export function Badge({ text, color }: { text: string; color?: string }) {
+  const c = useColors();
   return (
-    <View style={[styles.badge, { backgroundColor: color }]}>
+    <View style={[styles.badge, { backgroundColor: color ?? c.primary }]}>
       <Text style={styles.badgeText}>{text}</Text>
     </View>
   );
@@ -202,7 +204,8 @@ export function Badge({ text, color = colors.primary }: { text: string; color?: 
 
 /** 라벨 pill (위치/닉네임 등). */
 export function Pill({ children, tone = 'coral' }: { children: ReactNode; tone?: 'coral' | 'partner' | 'neutral' }) {
-  const bg = tone === 'coral' ? colors.coralSofter : tone === 'partner' ? colors.partnerSoft : colors.border;
+  const c = useColors();
+  const bg = tone === 'coral' ? c.coralSofter : tone === 'partner' ? colors.partnerSoft : colors.border;
   return (
     <View style={[styles.pill, { backgroundColor: bg }]}>
       {typeof children === 'string' ? <Text style={pillText}>{children}</Text> : children}
@@ -225,8 +228,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
   },
-  btnPrimary: { backgroundColor: colors.primary },
-  btnSoft: { backgroundColor: colors.coralSofter },
   btnGhost: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: colors.coralSoft },
   btnContent: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   btnLabel: { fontSize: 16, fontWeight: '700' },

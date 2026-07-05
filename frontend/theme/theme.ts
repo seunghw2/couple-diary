@@ -2,7 +2,9 @@
  * "투데이" 디자인 토큰 — 워밍 코럴 & 크림.
  * 목업(1a-sticker-calendar) 기준. 시스템 폰트, 큰 라운드, 은은한 그림자.
  */
+import { useMemo } from 'react';
 import { Platform, TextStyle, ViewStyle } from 'react-native';
+import { useThemeStore } from '../store/useThemeStore';
 
 export const colors = {
   bg: '#FFF6EF',
@@ -66,6 +68,44 @@ export const font = {
  * thumbSeed 문자열 → 부드러운 코럴/파스텔 그라데이션 색 2개.
  * 결정적(deterministic): 같은 seed면 항상 같은 색.
  */
+/** #RRGGBB → {r,g,b}. 파싱 실패 시 코럴 폴백. */
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const m = /^#?([0-9a-fA-F]{6})$/.exec(hex.trim());
+  if (!m) return { r: 0xff, g: 0x8e, b: 0x72 };
+  const n = parseInt(m[1], 16);
+  return { r: (n >> 16) & 0xff, g: (n >> 8) & 0xff, b: n & 0xff };
+}
+
+/** base 색을 흰색 쪽으로 amount(0~1)만큼 섞어 밝은 톤 생성. */
+function lighten(hex: string, amount: number): string {
+  const { r, g, b } = hexToRgb(hex);
+  const mix = (c: number) => Math.round(c + (255 - c) * amount);
+  const to2 = (c: number) => c.toString(16).padStart(2, '0');
+  return `#${to2(mix(r))}${to2(mix(g))}${to2(mix(b))}`;
+}
+
+/** 정적 colors 타입(리터럴을 string으로 넓혀 오버라이드 가능하게). */
+export type Colors = { [K in keyof typeof colors]: string };
+
+/**
+ * 동적 앱 컬러 훅. 정적 colors를 복사하되 primary(및 primary 파생 강조색)를
+ * 스토어의 appPrimary로 오버라이드해 반환. 나머지 색은 그대로.
+ * appPrimary가 바뀌면 스토어 구독으로 즉시 리렌더된다.
+ */
+export function useColors(): Colors {
+  const appPrimary = useThemeStore((s) => s.appPrimary);
+  return useMemo<Colors>(
+    () => ({
+      ...colors,
+      primary: appPrimary,
+      // 코럴에서 파생되던 밝은 톤들도 appPrimary 기준으로 재생성.
+      coralSoft: lighten(appPrimary, 0.22),
+      coralSofter: lighten(appPrimary, 0.5),
+    }),
+    [appPrimary]
+  );
+}
+
 export function seedGradient(seed: string | null | undefined): [string, string] {
   const s = seed ?? '';
   let h = 0;

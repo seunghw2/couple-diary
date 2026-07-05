@@ -7,6 +7,7 @@ import { setOnUnauthorized } from '../lib/api';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCoupleStore } from '../store/useCoupleStore';
 import { useNotifStore } from '../store/useNotifStore';
+import { useThemeStore } from '../store/useThemeStore';
 import { colors, font, spacing } from '../theme/theme';
 
 export default function RootLayout() {
@@ -21,6 +22,8 @@ export default function RootLayout() {
       useAuthStore.getState().logout();
     });
     bootstrap();
+    // 저장된 앱 컬러 복원(로컬).
+    void useThemeStore.getState().hydrate();
     return () => setOnUnauthorized(null);
   }, []);
 

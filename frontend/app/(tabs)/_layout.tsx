@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../theme/theme';
+import { colors, useColors } from '../../theme/theme';
 
 function TabIcon({
   name,
@@ -13,11 +13,12 @@ function TabIcon({
 }
 
 export default function TabsLayout() {
+  const c = useColors();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
+        tabBarActiveTintColor: c.primary,
         tabBarInactiveTintColor: colors.subText,
         tabBarStyle: {
           backgroundColor: colors.card,

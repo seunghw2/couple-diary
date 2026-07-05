@@ -26,7 +26,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useNotifStore } from '../../store/useNotifStore';
 import { useDataCache, invalidateAfterMutation } from '../../store/useDataCache';
 import { Button, Card, Icon, PhotoThumb, Pill, SeedThumb, StarRating } from '../../components/ui';
-import { colors, font, radius, shadow, spacing } from '../../theme/theme';
+import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
 /** 숫자만 받아 YYYY-MM-DD 자동 하이픈 마스킹. */
 function maskDate(input: string): string {
@@ -479,7 +479,8 @@ function SideCard({
   questions: QuestionResponse[];
   onOpenPhoto: (urls: string[], index: number) => void;
 }) {
-  const accent = tone === 'coral' ? colors.primary : colors.partner;
+  const c = useColors();
+  const accent = tone === 'coral' ? c.primary : colors.partner;
   // 표시할 장소: locations[] 우선, 없으면 단일 locationName 폴백.
   const locs = side.locations && side.locations.length > 0
     ? side.locations
@@ -566,9 +567,10 @@ function SideCard({
 }
 
 function CommentRow({ comment, mine }: { comment: CommentView; mine: boolean }) {
+  const c = useColors();
   return (
     <View style={[styles.commentRow, mine && { alignItems: 'flex-end' }]}>
-      <View style={[styles.commentBubble, mine ? styles.commentMine : styles.commentPartner]}>
+      <View style={[styles.commentBubble, mine ? [styles.commentMine, { backgroundColor: c.coralSofter }] : styles.commentPartner]}>
         <Text style={styles.commentAuthor}>{comment.authorNickname ?? (mine ? '나' : '상대')}</Text>
         <Text style={styles.commentContent}>{comment.text}</Text>
       </View>

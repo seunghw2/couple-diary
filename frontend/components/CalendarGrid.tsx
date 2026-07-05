@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { MonthEntrySummary } from '../lib/api';
 import { buildMonthGrid } from '../lib/date';
 import { Badge, PhotoThumb } from './ui';
-import { colors, font, radius, spacing } from '../theme/theme';
+import { colors, font, radius, spacing, useColors } from '../theme/theme';
 
 const WEEK_HEADERS = ['일', '월', '화', '수', '목', '금', '토'];
 const THUMB_SIZE = 34;
@@ -17,6 +17,7 @@ type Props = {
 };
 
 export function CalendarGrid({ year, month, entries, today, onPressDate }: Props) {
+  const c = useColors();
   const cells = buildMonthGrid(year, month);
 
   return (
@@ -25,7 +26,7 @@ export function CalendarGrid({ year, month, entries, today, onPressDate }: Props
         {WEEK_HEADERS.map((w, i) => (
           <Text
             key={w}
-            style={[styles.weekLabel, i === 0 && { color: colors.primary }, i === 6 && { color: colors.partner }]}
+            style={[styles.weekLabel, i === 0 && { color: c.primary }, i === 6 && { color: colors.partner }]}
           >
             {w}
           </Text>
@@ -46,7 +47,7 @@ export function CalendarGrid({ year, month, entries, today, onPressDate }: Props
             <Pressable key={date} style={styles.cell} onPress={() => onPressDate(date)}>
               {/* 날짜 숫자 + 마커가 반드시 같은 칸(dayWrap) 안에 들어가는 콘텐츠 기반 높이 레이아웃 */}
               <View style={[styles.dayWrap, isToday && styles.todayWrap]}>
-                <Text style={[styles.dayNum, isToday && { color: colors.primary, fontWeight: '800' }]}>
+                <Text style={[styles.dayNum, isToday && { color: c.primary, fontWeight: '800' }]}>
                   {cell.day}
                 </Text>
 
@@ -62,7 +63,7 @@ export function CalendarGrid({ year, month, entries, today, onPressDate }: Props
                       />
                     ) : (
                       // 실제 사진이 없는 스티커: 앱 코럴 톤으로 통일(보라 하드코딩 제거).
-                      <View style={[styles.stickerThumb, isToday && styles.stickerRing]}>
+                      <View style={[styles.stickerThumb, { backgroundColor: c.primary }, isToday && [styles.stickerRing, { borderColor: c.coralSoft }]]}>
                         <ThumbIcon status={e.status} />
                       </View>
                     )}
@@ -73,7 +74,7 @@ export function CalendarGrid({ year, month, entries, today, onPressDate }: Props
                     ) : null}
                   </View>
                 ) : (
-                  <View style={[styles.emptyCircle, isToday && { borderColor: colors.primary, borderStyle: 'solid' }]} />
+                  <View style={[styles.emptyCircle, isToday && { borderColor: c.primary, borderStyle: 'solid' }]} />
                 )}
               </View>
             </Pressable>
