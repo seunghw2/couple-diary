@@ -4,6 +4,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -160,25 +161,12 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
         const res = await placeApi.search(q);
         if (my !== seq.current) return;
         const places = res?.places ?? [];
+        // 검색은 목록으로만 보여준다(핀 흩뿌리기·카메라 이동 없음 → 전국 결과로 줌아웃되는 문제 방지).
         setResults(places);
         setSearched(true);
         setNetError(false);
-        // 지도에 검색 핀 반영 + 카메라 이동
-        const pts = places
-          .filter((p) => p.lat != null && p.lng != null)
-          .map((p) => ({ name: p.name, lat: p.lat, lng: p.lng, category: p.category, address: p.address }));
-        toWeb({ cmd: 'results', results: pts });
-        if (pts.length > 0) {
-          setActive({
-            name: places[0].name,
-            address: places[0].address,
-            category: places[0].category,
-            lat: places[0].lat,
-            lng: places[0].lng,
-          });
-          setPinned(null);
-          setToast(`검색 결과 ${pts.length}곳으로 지도를 옮겼어요`);
-        }
+        setActive(null);
+        setPinned(null);
       } catch {
         if (my === seq.current) {
           setResults([]);
@@ -264,10 +252,6 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
         setResults(places);
         setSearched(true);
         setNetError(false);
-        const pts = places
-          .filter((p) => p.lat != null && p.lng != null)
-          .map((p) => ({ name: p.name, lat: p.lat, lng: p.lng, category: p.category, address: p.address }));
-        toWeb({ cmd: 'results', results: pts });
       } catch {
         if (my === seq.current) setNetError(true);
       } finally {
@@ -283,6 +267,12 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
     toggleBasket({ name });
     setToast(`'${name}' 담았어요`);
     setQuery('');
+  }
+
+  /** 검색 결과 목록에서 한 곳 탭 → 담기 토글 + 지도 중심을 그 장소로(줌 고정). */
+  function pickFromList(p: PlaceResult) {
+    toggleBasket({ name: p.name, address: p.address, category: p.category, lat: p.lat, lng: p.lng });
+    if (p.lat != null && p.lng != null) toWeb({ cmd: 'focus', lat: p.lat, lng: p.lng });
   }
 
   /** 검색 0건: 이름 + 지도에서 위치 직접 선택 → 이름 프리필하고 롱프레스 대기. */
@@ -373,6 +363,44 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
           {toast ? (
             <View style={styles.toast} pointerEvents="none">
               <Text style={styles.toastText}>{toast}</Text>
+            </View>
+          ) : null}
+
+          {/* 검색 결과 목록(지도 위 오버레이) — 탭하면 담기 + 지도 중심 이동 */}
+          {results.length > 0 ? (
+            <View style={styles.listOverlay}>
+              <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.listContent}>
+                {results.map((p, i) => {
+                  const added = addedSet.has(p.name.trim());
+                  const dist = distanceOf(p);
+                  return (
+                    <Pressable
+                      key={`${p.name}-${i}`}
+                      style={({ pressed }) => [styles.listRow, pressed && { opacity: 0.6 }]}
+                      onPress={() => pickFromList(p)}
+                    >
+                      <View style={[styles.listPin, { backgroundColor: c.coralSofter }]}>
+                        <Icon name="location" size={16} color={c.primary} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.listName} numberOfLines={1}>
+                          {p.name}
+                          {p.category ? <Text style={styles.listCat}>  {p.category}</Text> : null}
+                        </Text>
+                        <Text style={styles.listAddr} numberOfLines={1}>
+                          {dist ? `${dist} · ` : ''}
+                          {p.address}
+                        </Text>
+                      </View>
+                      <Icon
+                        name={added ? 'checkmark-circle' : 'add-circle-outline'}
+                        size={24}
+                        color={added ? '#4CAF7D' : c.primary}
+                      />
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
             </View>
           ) : null}
         </View>
@@ -633,6 +661,10 @@ function buildHtml(key: string): string {
           if (!msg || !msg.cmd) return;
           if (msg.cmd === 'init') { setMe(msg.center, msg.hasMe); }
           else if (msg.cmd === 'results') { renderResults(msg.results); }
+          else if (msg.cmd === 'focus') {
+            var pos = new kakao.maps.LatLng(msg.lat, msg.lng);
+            map.setLevel(4); map.setCenter(pos); dropPick(msg.lat, msg.lng);
+          }
           else if (msg.cmd === 'added') {
             addedNames = {}; (msg.added || []).forEach(function (a) { addedNames[a.name] = true; });
             refreshAdded();
@@ -677,6 +709,21 @@ const styles = StyleSheet.create({
 
   mapWrap: { flex: 1 },
   web: { flex: 1, backgroundColor: colors.bg },
+  listOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.bg },
+  listContent: { paddingBottom: spacing.xl },
+  listRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  listPin: { width: 34, height: 34, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  listName: { ...font.title },
+  listCat: { ...font.caption, color: colors.subText, fontWeight: '400' },
+  listAddr: { ...font.caption, marginTop: 2 },
   mapFallback: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md, padding: spacing.xl },
   fallbackText: { ...font.body, color: colors.subText, textAlign: 'center' },
   mapLoading: { position: 'absolute', inset: 0, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
