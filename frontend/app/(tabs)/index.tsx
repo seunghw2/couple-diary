@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { MonthEntrySummary } from '../../lib/api';
+import { MonthEntrySummary, calendarMarkApi } from '../../lib/api';
 import { dDay, formatDday, todayISO } from '../../lib/date';
 import { showAlert } from '../../lib/dialog';
 import { useCoupleStore } from '../../store/useCoupleStore';
@@ -38,6 +38,17 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [poking, setPoking] = useState(false);
+  // 캘린더에 콕 찍어둔 날(기념일 등) — 일기 없는 날만 작은 점으로 표시.
+  const [markDates, setMarkDates] = useState<Set<string>>(new Set());
+
+  const loadMarks = useCallback(async () => {
+    try {
+      const res = await calendarMarkApi.list();
+      setMarkDates(new Set((res?.marks ?? []).map((m) => m.date)));
+    } catch {
+      /* 무시: 표시 없이 진행 */
+    }
+  }, []);
 
   // 캐시우선 + 백그라운드 갱신. 캐시 없을 때만 스피너.
   const load = useCallback(
@@ -56,7 +67,8 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       load(cursor.year, cursor.month);
-    }, [cursor.year, cursor.month, load])
+      loadMarks();
+    }, [cursor.year, cursor.month, load, loadMarks])
   );
 
   const onRefresh = useCallback(async () => {
@@ -65,6 +77,7 @@ export default function HomeScreen() {
       load(cursor.year, cursor.month, true),
       useCoupleStore.getState().refresh(),
       fetchNotif(),
+      loadMarks(),
     ]);
     setRefreshing(false);
   }, [cursor.year, cursor.month, load, fetchNotif]);
@@ -199,6 +212,7 @@ export default function HomeScreen() {
               entries={entries}
               today={today}
               onPressDate={openDate}
+              markedDates={markDates}
             />
           )}
         </View>

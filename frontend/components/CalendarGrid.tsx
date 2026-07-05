@@ -14,9 +14,11 @@ type Props = {
   entries: Record<string, MonthEntrySummary>;
   today: string;
   onPressDate: (date: string) => void;
+  /** 캘린더에 콕 찍어둔 날(기념일 등). 일기가 없는 날만 작은 점으로 표시. */
+  markedDates?: Set<string>;
 };
 
-export function CalendarGrid({ year, month, entries, today, onPressDate }: Props) {
+export function CalendarGrid({ year, month, entries, today, onPressDate, markedDates }: Props) {
   const c = useColors();
   const cells = buildMonthGrid(year, month);
 
@@ -40,6 +42,8 @@ export function CalendarGrid({ year, month, entries, today, onPressDate }: Props
           const e = entries[date];
           const isToday = date === today;
           const hasContent = !!e && e.status !== 'EMPTY';
+          // 콕 찍어둔 날 표시: 일기가 있으면(하트) 숨기고, 없을 때만 작은 점.
+          const marked = !hasContent && !!markedDates?.has(date);
           // 서버가 thumbSeed에 실제 이미지 경로(/files/...)를 줄 수도 있음
           const thumbUrl = e?.thumbSeed?.startsWith('/files/') ? e.thumbSeed : undefined;
 
@@ -74,7 +78,9 @@ export function CalendarGrid({ year, month, entries, today, onPressDate }: Props
                     ) : null}
                   </View>
                 ) : (
-                  <View style={[styles.emptyCircle, isToday && { borderColor: c.primary, borderStyle: 'solid' }]} />
+                  <View style={[styles.emptyCircle, isToday && { borderColor: c.primary, borderStyle: 'solid' }]}>
+                    {marked ? <View style={[styles.markDot, { backgroundColor: c.primary }]} /> : null}
+                  </View>
                 )}
               </View>
             </Pressable>
@@ -122,7 +128,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.border,
     borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  markDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: colors.primary },
   badge: { position: 'absolute', top: -4, right: -4 },
   // 코럴 스티커(사진 없을 때). 이전엔 seed 그라데이션이라 날짜에 따라 보라색이 나오기도 했음.
   stickerThumb: {

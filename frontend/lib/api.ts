@@ -316,6 +316,15 @@ export const locationApi = {
     api.put<void>('/api/locations/nickname', { name, nickname }),
 };
 
+/** 커플이 캘린더에 콕 찍어둔 날(기념일 등). 그날 일기를 쓰면 표시는 숨고 하트만 남음. */
+export type CalendarMark = { date: string; label?: string };
+
+export const calendarMarkApi = {
+  list: () => api.get<{ marks: CalendarMark[] }>('/api/calendar-marks'),
+  add: (date: string, label?: string) => api.post<void>('/api/calendar-marks', { date, label }),
+  remove: (date: string) => api.del<void>(`/api/calendar-marks/${date}`),
+};
+
 /** 카카오 로컬 키워드 검색 결과(백엔드 프록시). x->lng, y->lat 통과. */
 export type PlaceResult = { name: string; address: string; category?: string; lat?: number; lng?: number };
 
