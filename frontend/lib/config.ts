@@ -27,3 +27,20 @@ function resolveApiUrl(): string {
 }
 
 export const API_URL = resolveApiUrl();
+
+/**
+ * Kakao Maps JavaScript 키. 지도 탭(WebView + Kakao Maps JS SDK)에서 사용.
+ * 우선순위: EXPO_PUBLIC_KAKAO_JS_KEY 환경변수 > app.json extra.kakaoJsKey.
+ *
+ * 키 발급: https://developers.kakao.com → 내 애플리케이션 → 앱 키 → "JavaScript 키".
+ * (지도가 뜨려면 카카오 콘솔의 "플랫폼 > Web"에 서비스 도메인 등록도 필요.)
+ * 키가 비어 있으면 지도 대신 "키 필요" 안내 화면이 표시된다.
+ */
+function resolveKakaoJsKey(): string {
+  const envKey = process.env.EXPO_PUBLIC_KAKAO_JS_KEY;
+  if (envKey) return envKey;
+  const extraKey = (Constants.expoConfig?.extra as { kakaoJsKey?: string } | undefined)?.kakaoJsKey;
+  return extraKey ?? '';
+}
+
+export const KAKAO_JS_KEY = resolveKakaoJsKey();

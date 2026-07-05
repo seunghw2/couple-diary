@@ -31,7 +31,8 @@
       "typedRoutes": true
     },
     "extra": {
-      "apiUrl": "https://today-api.hammerslog.trade"
+      "apiUrl": "https://today-api.hammerslog.trade",
+      "kakaoJsKey": ""
     }
   }
 }

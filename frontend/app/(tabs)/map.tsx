@@ -1,24 +1,254 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
+import { locationApi } from '../../lib/api';
+import { KakaoMap } from '../../components/KakaoMap';
 import { Icon } from '../../components/ui';
-import { colors, font, spacing } from '../../theme/theme';
+import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
-/** 지도 탭 — 향후 위치 핀 모아보기(TODO). 지금은 플레이스홀더. */
+type ViewMode = 'map' | 'list';
+
+/** 지도 탭 — 일기에 남긴 장소들을 Kakao 핀맵 / 리스트로 모아보기. */
 export default function MapScreen() {
+  const c = useColors();
+  const [places, setPlaces] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [mode, setMode] = useState<ViewMode>('map');
+  const [query, setQuery] = useState('');
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await locationApi.list();
+      setPlaces(Array.isArray(res?.locations) ? res.locations.filter(Boolean) : []);
+    } catch {
+      setPlaces([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }, [load]);
+
+  // 검색어로 필터링(지도·리스트 공통).
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return places;
+    return places.filter((p) => p.toLowerCase().includes(q));
+  }, [places, query]);
+
+  const onSelectPlace = useCallback((name: string) => setSelected(name), []);
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.center}>
-        <Icon name="map-outline" size={52} color={colors.coralSoft} style={{ marginBottom: spacing.lg }} />
+      {/* 헤더 */}
+      <View style={styles.header}>
         <Text style={styles.title}>우리의 지도</Text>
-        <Text style={styles.sub}>일기에 남긴 장소들이 여기 모여요{'\n'}(준비 중)</Text>
+        <Text style={styles.sub}>
+          우리가 함께 간 곳 <Text style={[styles.count, { color: c.primary }]}>{places.length}</Text>곳
+        </Text>
       </View>
+
+      {/* 검색 + 뷰 토글 */}
+      <View style={styles.controls}>
+        <View style={styles.searchBox}>
+          <Icon name="search" size={16} color={colors.placeholder} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="장소 검색"
+            placeholderTextColor={colors.placeholder}
+            value={query}
+            onChangeText={setQuery}
+            returnKeyType="search"
+          />
+          {query.length > 0 && (
+            <Pressable onPress={() => setQuery('')} hitSlop={8}>
+              <Icon name="close-circle" size={18} color={colors.placeholder} />
+            </Pressable>
+          )}
+        </View>
+        <View style={styles.toggle}>
+          <ToggleBtn active={mode === 'map'} icon="map" onPress={() => setMode('map')} tint={c.primary} />
+          <ToggleBtn active={mode === 'list'} icon="list" onPress={() => setMode('list')} tint={c.primary} />
+        </View>
+      </View>
+
+      {/* 본문 */}
+      <View style={styles.body}>
+        {loading ? (
+          <View style={styles.center}>
+            <ActivityIndicator color={c.primary} />
+          </View>
+        ) : places.length === 0 ? (
+          <View style={styles.center}>
+            <Icon name="location-outline" size={44} color={colors.coralSoft} style={{ marginBottom: spacing.md }} />
+            <Text style={styles.emptyTitle}>아직 기록된 장소가 없어요</Text>
+            <Text style={styles.emptySub}>일기에 장소를 남기면 여기 지도에 모여요</Text>
+          </View>
+        ) : mode === 'map' ? (
+          <KakaoMap places={filtered} onSelectPlace={onSelectPlace} />
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.listContent}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
+            }
+          >
+            {filtered.length === 0 ? (
+              <Text style={styles.noMatch}>'{query}'와 일치하는 장소가 없어요</Text>
+            ) : (
+              filtered.map((name) => (
+                <Pressable
+                  key={name}
+                  style={({ pressed }) => [styles.placeCard, pressed && { opacity: 0.85 }]}
+                  onPress={() => setSelected(name)}
+                >
+                  <View style={[styles.placeIcon, { backgroundColor: c.coralSofter }]}>
+                    <Icon name="heart" size={16} color={c.primary} />
+                  </View>
+                  <Text style={styles.placeName} numberOfLines={1}>
+                    {name}
+                  </Text>
+                  <Icon name="chevron-forward" size={18} color={colors.placeholder} />
+                </Pressable>
+              ))
+            )}
+          </ScrollView>
+        )}
+      </View>
+
+      {/* 선택된 장소 하단 시트 */}
+      {selected && (
+        <View style={styles.sheet}>
+          <View style={styles.sheetHeader}>
+            <View style={[styles.placeIcon, { backgroundColor: c.coralSofter }]}>
+              <Icon name="heart" size={16} color={c.primary} />
+            </View>
+            <Text style={styles.sheetTitle} numberOfLines={1}>
+              {selected}
+            </Text>
+            <Pressable onPress={() => setSelected(null)} hitSlop={8}>
+              <Icon name="close" size={22} color={colors.subText} />
+            </Pressable>
+          </View>
+          <Text style={styles.sheetSub}>우리가 함께 다녀온 곳이에요</Text>
+        </View>
+      )}
     </SafeAreaView>
+  );
+}
+
+function ToggleBtn({
+  active,
+  icon,
+  onPress,
+  tint,
+}: {
+  active: boolean;
+  icon: 'map' | 'list';
+  onPress: () => void;
+  tint: string;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.toggleBtn, active && { backgroundColor: tint }]}
+      hitSlop={4}
+    >
+      <Icon name={active ? icon : (`${icon}-outline` as 'map-outline' | 'list-outline')} size={18} color={active ? colors.white : colors.subText} />
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
+  header: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.sm },
+  title: { ...font.h1 },
+  sub: { ...font.body, color: colors.subText, marginTop: 2 },
+  count: { fontWeight: '800' },
+  controls: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.md,
+  },
+  searchBox: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.card,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    height: 44,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  searchInput: { flex: 1, ...font.body, paddingVertical: 0 },
+  toggle: {
+    flexDirection: 'row',
+    backgroundColor: colors.card,
+    borderRadius: radius.pill,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  toggleBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  body: { flex: 1, marginHorizontal: spacing.xl, borderRadius: radius.lg, overflow: 'hidden' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
-  title: { ...font.h2 },
-  sub: { ...font.body, color: colors.subText, textAlign: 'center', marginTop: spacing.sm },
+  emptyTitle: { ...font.title },
+  emptySub: { ...font.body, color: colors.subText, marginTop: spacing.xs, textAlign: 'center' },
+  listContent: { paddingBottom: spacing.xl, gap: spacing.sm },
+  noMatch: { ...font.body, color: colors.subText, textAlign: 'center', marginTop: spacing.xl },
+  placeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    ...shadow,
+  },
+  placeIcon: { width: 32, height: 32, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  placeName: { ...font.title, flex: 1 },
+  sheet: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
+    bottom: spacing.lg,
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    ...shadow,
+  },
+  sheetHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  sheetTitle: { ...font.h2, flex: 1 },
+  sheetSub: { ...font.body, color: colors.subText, marginTop: spacing.sm },
 });

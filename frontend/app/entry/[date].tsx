@@ -25,7 +25,7 @@ import { useCoupleStore } from '../../store/useCoupleStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useNotifStore } from '../../store/useNotifStore';
 import { useDataCache, invalidateAfterMutation } from '../../store/useDataCache';
-import { Button, Card, Icon, PhotoThumb, Pill, SeedThumb, StarRating } from '../../components/ui';
+import { Button, Card, Icon, PhotoThumb, Pill, StarRating } from '../../components/ui';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
 /** 숫자만 받아 YYYY-MM-DD 자동 하이픈 마스킹. */
@@ -294,7 +294,7 @@ export default function EntryDetailScreen() {
               {/* 획득 스티커(OPEN) */}
               {status === 'OPEN' ? (
                 <View style={styles.stickerRow}>
-                  <SeedThumb seed={dateStr} size={48} label={<Icon name="heart" size={22} color={colors.white} />} />
+                  <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}><Icon name="heart" size={22} color={colors.white} /></View>
                   <Text style={styles.stickerText}>이 날의 스티커를 획득했어요!</Text>
                 </View>
               ) : null}
