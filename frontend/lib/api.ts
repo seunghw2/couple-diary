@@ -130,6 +130,8 @@ export type PartnerSummary = {
 };
 
 export type DevLoginResponse = { accessToken: string; user: UserSummary };
+/** dev/kakao 로그인 공통 응답 형태. */
+export type AuthResponse = { accessToken: string; user: UserSummary };
 
 /** GET /api/me 래퍼. */
 export type MeResponse = {
@@ -245,6 +247,12 @@ export type UpsertEntryRequest = {
 export const authApi = {
   devLogin: (nickname: string) =>
     api.post<DevLoginResponse>('/api/auth/dev-login', { nickname }, false),
+  /**
+   * 카카오 로그인. 기본 경로는 서버 콜백이 앱으로 token을 되돌려주므로(lib/kakaoAuth) 이 호출이 필요없지만,
+   * 프론트가 code를 직접 받는 대안 플로우를 위해 code→JWT 교환 엔드포인트를 노출한다.
+   */
+  kakaoLogin: (code: string, redirectUri: string) =>
+    api.post<AuthResponse>('/api/auth/kakao', { code, redirectUri }, false),
   me: () => api.get<MeResponse>('/api/me'),
   updateMe: (patch: Partial<Pick<UserSummary, 'nickname' | 'avatarColor' | 'birthday'>>) =>
     api.patch<UserSummary>('/api/me', patch),

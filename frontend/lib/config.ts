@@ -44,3 +44,24 @@ function resolveKakaoJsKey(): string {
 }
 
 export const KAKAO_JS_KEY = resolveKakaoJsKey();
+
+/**
+ * Kakao REST API 키. 카카오 로그인 인가 URL의 client_id로 사용(공개 값 — OAuth 리다이렉트에 노출됨).
+ * 실제 토큰 교환은 백엔드가 하므로 이 키로 비밀 요청을 보내지 않는다.
+ * 우선순위: EXPO_PUBLIC_KAKAO_REST_KEY > app.json extra.kakaoRestKey.
+ */
+function resolveKakaoRestKey(): string {
+  const envKey = process.env.EXPO_PUBLIC_KAKAO_REST_KEY;
+  if (envKey) return envKey;
+  const extraKey = (Constants.expoConfig?.extra as { kakaoRestKey?: string } | undefined)?.kakaoRestKey;
+  return extraKey ?? '';
+}
+
+export const KAKAO_REST_KEY = resolveKakaoRestKey();
+
+/**
+ * 백엔드 카카오 콜백(= 카카오 콘솔에 등록하는 Redirect URI).
+ * 카카오는 커스텀 스킴(exp://, today://)을 Redirect URI로 허용하지 않으므로
+ * 반드시 백엔드 HTTPS 콜백을 redirect_uri로 쓴다. 콜백이 로그인 처리 후 앱 returnUri로 302 리다이렉트한다.
+ */
+export const KAKAO_REDIRECT_URI = `${API_URL}/api/auth/kakao/callback`;

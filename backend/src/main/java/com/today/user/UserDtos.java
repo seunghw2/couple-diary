@@ -12,6 +12,12 @@ public class UserDtos {
             @NotBlank String nickname
     ) {}
 
+    /** 카카오 인가 코드 로그인. 프론트가 받은 authorization code + 교환에 쓴 redirectUri. */
+    public record KakaoLoginRequest(
+            @NotBlank String code,
+            @NotBlank String redirectUri
+    ) {}
+
     public record AuthResponse(String accessToken, UserSummary user) {}
 
     public record UpdateMeRequest(

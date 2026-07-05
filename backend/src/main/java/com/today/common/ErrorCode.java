@@ -18,6 +18,8 @@ public enum ErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "T001", "유효하지 않은 토큰입니다."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "T002", "토큰이 만료되었습니다."),
 
+    KAKAO_AUTH_FAILED(HttpStatus.UNAUTHORIZED, "K001", "카카오 로그인에 실패했습니다."),
+
     ALREADY_COUPLED(HttpStatus.CONFLICT, "P001", "이미 커플로 연결되어 있습니다."),
     INVALID_INVITE_CODE(HttpStatus.NOT_FOUND, "P002", "유효하지 않은 초대 코드입니다."),
     CANNOT_CONNECT_SELF(HttpStatus.BAD_REQUEST, "P003", "자신의 초대 코드로는 연결할 수 없습니다."),
