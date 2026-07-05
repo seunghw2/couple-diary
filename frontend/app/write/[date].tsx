@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -27,6 +27,7 @@ import {
 import { formatKoLong, todayISO, weekdayKo } from '../../lib/date';
 import { showAlert } from '../../lib/dialog';
 import { invalidateAfterMutation } from '../../store/useDataCache';
+import { clearDraft, draftHasContent, loadDraft, saveDraft } from '../../lib/writeDraft';
 import { MOODS, TEMPLATE_PROMPTS } from '../../constants/content';
 import { Button, Card, Icon, PhotoThumb, StarRating } from '../../components/ui';
 import { KakaoPlaceSearch } from '../../components/KakaoPlaceSearch';
@@ -88,6 +89,9 @@ export default function WriteScreen() {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 초안 복원을 딱 한 번만 수행하기 위한 플래그.
+  const hydratedRef = useRef(false);
 
   // 진입 시: 서버 질문 목록 로드 (실패 시 자유 모드 비활성화)
   useEffect(() => {
@@ -178,6 +182,35 @@ export default function WriteScreen() {
     // answers는 최초 프리필 값만 참조하면 되므로 의존성에서 제외(무한루프 방지).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions, fixedQuestions]);
+
+  // ── 초안(draft) 복원: 백그라운드 복귀로 리마운트돼도 작성 중이던 내용을 되살린다 ──
+  // 서버 detail 로딩이 끝난 뒤 한 번만, 저장된 초안이 있으면 덮어써 복원.
+  useEffect(() => {
+    if (loadingDetail || editExpired || hydratedRef.current) return;
+    hydratedRef.current = true;
+    (async () => {
+      const d = await loadDraft(dateStr);
+      if (!d || !draftHasContent(d)) return;
+      setStep(d.step);
+      setMode(d.mode);
+      setAnswers(d.answers ?? {});
+      setScenes(d.scenes ?? {});
+      setMood(d.mood ?? null);
+      setRating(d.rating ?? 0);
+      setLocations(d.locations ?? []);
+      setPhotoUrls(d.photoUrls ?? []);
+      setPickedIds(d.pickedIds ?? []);
+    })();
+  }, [loadingDetail, editExpired, dateStr]);
+
+  // ── 초안 저장: 작성 중(form) 상태를 debounce로 기기에 저장 ──
+  useEffect(() => {
+    if (!hydratedRef.current || step !== 'form') return;
+    const draft = { step, mode, answers, scenes, mood, rating, locations, photoUrls, pickedIds, savedAt: Date.now() };
+    if (!draftHasContent(draft)) return;
+    const t = setTimeout(() => void saveDraft(dateStr, draft), 600);
+    return () => clearTimeout(t);
+  }, [step, mode, answers, scenes, mood, rating, locations, photoUrls, pickedIds, dateStr]);
 
   function chooseMode(m: FormMode) {
     if (m === 'FREE' && questionsFailed) return;
@@ -331,6 +364,8 @@ export default function WriteScreen() {
 
     try {
       await entryApi.create(dateStr, payload);
+      // 저장 성공 → 임시 초안 제거
+      await clearDraft(dateStr);
       // 캐시 무효화: 해당 date detail + 그 달 month + 알림 최신화
       invalidateAfterMutation(dateStr);
       router.replace({ pathname: '/entry/[date]', params: { date: dateStr } });
