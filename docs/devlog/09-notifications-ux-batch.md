@@ -20,9 +20,15 @@
 |---|---|
 | ![](captures/w2-notifications.png) | ![](captures/w2-settings.png) |
 
-| 홈 (벨+미읽음 뱃지) | 상세 |
+| 홈 (벨+미읽음 뱃지) | 상세 (다중 장소·다중 장면) |
 |---|---|
-| ![](captures/w2-home.png) | ![](captures/w2-detail.png) |
+| ![](captures/w2-home.png) | ![](captures/w2-detail-rich.png) |
+
+| 사진 크게 보기 (풀스크린 뷰어) |
+|---|
+| ![](captures/w2-photo-viewer.png) |
+
+> 상세: 장소 여러 개(강릉 바다·안목해변 카페), "기억에 남는 장면"이 1./2./3. 다중 줄로 표시, 사진 탭 시 풀스크린 뷰어(어두운 배경·닫기). (테스트 더미 이미지라 사진 내용은 비어 보임)
 
 - 백엔드 E2E(연결알림·필수검증·다중장소·locations·poke) + 프론트 tsc 0 + 실제 렌더 확인.
 - 통합 중 발견·수정: 프론트 poke 경로 오류(`/api/notifications/poke`→`/api/poke`).
