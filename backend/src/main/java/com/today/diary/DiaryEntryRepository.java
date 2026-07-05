@@ -34,6 +34,16 @@ public interface DiaryEntryRepository extends JpaRepository<DiaryEntry, Long> {
             "group by loc order by max(e.day.date) desc")
     List<LocationCountProjection> findLocationCountsByCouple(@Param("coupleId") Long coupleId, Pageable pageable);
 
+    /**
+     * 커플의 특정 장소(name)를 locations에 포함하는 모든 entry.
+     * 장소 상세(날짜별 집계)에서 사용. day.date 내림차순.
+     */
+    @Query("select e from DiaryEntry e join e.locations loc " +
+            "where e.day.couple.id = :coupleId and loc = :name " +
+            "order by e.day.date desc")
+    List<DiaryEntry> findByCoupleAndLocation(@Param("coupleId") Long coupleId,
+                                             @Param("name") String name);
+
     /** JPQL projection: 장소명 + 방문 일수. */
     interface LocationCountProjection {
         String getName();

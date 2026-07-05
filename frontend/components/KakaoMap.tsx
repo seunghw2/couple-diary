@@ -12,6 +12,8 @@ type Props = {
   counts?: Record<string, number>;
   /** 마커(핀) 탭 시 해당 장소명 전달. */
   onSelectPlace?: (name: string) => void;
+  /** 지도 빈 곳 탭 시(마커 아님) — 선택 해제용. */
+  onDeselect?: () => void;
 };
 
 /** Kakao 콘솔 "JavaScript SDK 도메인"에 등록한 값 — WebView Referer로 사용. */
@@ -20,6 +22,7 @@ const MAP_REFERER = 'https://today-web.hammerslog.trade';
 /** WebView → RN 메시지 계약. */
 type WebMessage =
   | { type: 'select'; name: string }
+  | { type: 'deselect' }
   | { type: 'ready' }
   | { type: 'error'; message: string };
 
@@ -30,7 +33,7 @@ type WebMessage =
  * - 마커 탭 → postMessage(select) → onSelectPlace.
  * - KAKAO_JS_KEY 비어 있으면 지도 대신 안내 화면.
  */
-export function KakaoMap({ places, counts, onSelectPlace }: Props) {
+export function KakaoMap({ places, counts, onSelectPlace, onDeselect }: Props) {
   const webRef = useRef<WebView>(null);
 
   const html = useMemo(() => buildHtml(KAKAO_JS_KEY, places, counts ?? {}), [places, counts]);
@@ -51,6 +54,7 @@ export function KakaoMap({ places, counts, onSelectPlace }: Props) {
     try {
       const msg = JSON.parse(e.nativeEvent.data) as WebMessage;
       if (msg.type === 'select' && msg.name) onSelectPlace?.(msg.name);
+      else if (msg.type === 'deselect') onDeselect?.();
     } catch {
       // 파싱 실패는 조용히 무시.
     }
@@ -169,6 +173,13 @@ function buildHtml(key: string, places: string[], counts: Record<string, number>
           center: new kakao.maps.LatLng(37.5665, 126.9780),
           level: 8
         });
+        // 마커 탭 직후 따라오는 map click(빈곳 탭=해제)을 억제하는 플래그.
+        var suppressDeselect = false;
+        // 지도 빈 곳 탭 → 선택 해제.
+        kakao.maps.event.addListener(map, 'click', function () {
+          if (suppressDeselect) { suppressDeselect = false; return; }
+          post({ type: 'deselect' });
+        });
         post({ type: 'ready' });
 
         if (!PLACES.length) {
@@ -191,7 +202,11 @@ function buildHtml(key: string, places: string[], counts: Record<string, number>
           el.innerHTML = '<div class="pin">\\u2665</div>' + badge + '<div class="label"></div>';
           el.querySelector('.label').textContent = name;
           if (cnt >= 2) el.querySelector('.badge').textContent = String(cnt);
-          el.addEventListener('click', function () { post({ type: 'select', name: name }); });
+          el.addEventListener('click', function () {
+            suppressDeselect = true;
+            setTimeout(function () { suppressDeselect = false; }, 400);
+            post({ type: 'select', name: name });
+          });
           var overlay = new kakao.maps.CustomOverlay({
             position: pos, content: el, xAnchor: 0.5, yAnchor: 1.0, clickable: true
           });

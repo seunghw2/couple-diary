@@ -84,10 +84,37 @@ public class DiaryDtos {
 
     // ---- 이전 장소 추천 / 지도 ----
     // locations: 이름만(작성화면 추천용, 하위호환). counts: 장소별 방문 일수(지도 핀 뱃지용).
-    public record LocationsResponse(List<String> locations, List<LocationCount> counts) {}
+    // nicknames: 별명이 있는 장소만(지도/목록에 별명 표시용).
+    public record LocationsResponse(List<String> locations, List<LocationCount> counts,
+                                    List<PlaceNicknameView> nicknames) {}
 
     /** name=장소명, count=그 장소에 다녀온 날짜 수(방문 횟수). */
     public record LocationCount(String name, long count) {}
+
+    /** name=장소명, nickname=커플이 붙인 별명. */
+    public record PlaceNicknameView(String name, String nickname) {}
+
+    // ---- 장소 별명 upsert ----
+    public record PlaceNicknameRequest(
+            @NotBlank @Size(max = 100) String name,
+            @Size(max = 100) String nickname
+    ) {}
+
+    // ---- 장소 상세(한 장소에 쌓인 기록) ----
+    public record PlaceDetailEntry(
+            String date,
+            String thumbUrl,
+            String snippet,
+            boolean mineWritten,
+            boolean partnerWritten
+    ) {}
+
+    public record PlaceDetailResponse(
+            String name,
+            String nickname,       // null=별명 없음
+            int count,             // 이 장소에 다녀온 날짜 수
+            List<PlaceDetailEntry> entries
+    ) {}
 
     public record CommentView(Long id, Long authorId, String authorNickname, String text, LocalDateTime createdAt) {}
 

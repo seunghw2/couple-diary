@@ -39,6 +39,7 @@ public class DiaryService {
     private final DiaryEntryRepository entryRepository;
     private final EntryAnswerRepository answerRepository;
     private final PhotoRepository photoRepository;
+    private final PlaceNicknameRepository placeNicknameRepository;
     private final CommentRepository commentRepository;
     private final DiaryDayFactory dayFactory;
     private final NotificationService notificationService;
@@ -144,7 +145,111 @@ public class DiaryService {
                 .findLocationCountsByCouple(couple.getId(), page).stream()
                 .map(p -> new DiaryDtos.LocationCount(p.getName(), p.getCount()))
                 .toList();
-        return new LocationsResponse(locations, counts);
+        List<DiaryDtos.PlaceNicknameView> nicknames = placeNicknameRepository
+                .findByCouple_Id(couple.getId()).stream()
+                .map(pn -> new DiaryDtos.PlaceNicknameView(pn.getName(), pn.getNickname()))
+                .toList();
+        return new LocationsResponse(locations, counts, nicknames);
+    }
+
+    // ================= 장소 별명 upsert / clear =================
+    // nickname이 blank면 별명 삭제(clear), 아니면 upsert.
+    @Transactional
+    public void setNickname(Long userId, String name, String nickname) {
+        if (name == null || name.isBlank()) {
+            throw new ApiException(ErrorCode.INVALID_INPUT);
+        }
+        Couple couple = coupleService.requireCouple(userId);
+        String cleanName = name.trim();
+        PlaceNickname existing = placeNicknameRepository
+                .findByCouple_IdAndName(couple.getId(), cleanName).orElse(null);
+
+        if (nickname == null || nickname.isBlank()) {
+            if (existing != null) placeNicknameRepository.delete(existing);
+            return;
+        }
+        String cleanNick = nickname.trim();
+        if (existing != null) {
+            existing.setNickname(cleanNick);
+        } else {
+            placeNicknameRepository.save(PlaceNickname.builder()
+                    .couple(couple).name(cleanName).nickname(cleanNick).build());
+        }
+    }
+
+    // ================= 장소 상세(그 장소에 쌓인 기록) =================
+    @Transactional(readOnly = true)
+    public PlaceDetailResponse placeDetail(Long userId, String name) {
+        if (name == null || name.isBlank()) {
+            throw new ApiException(ErrorCode.INVALID_INPUT);
+        }
+        Couple couple = coupleService.requireCouple(userId);
+        String cleanName = name.trim();
+
+        String nickname = placeNicknameRepository
+                .findByCouple_IdAndName(couple.getId(), cleanName)
+                .map(PlaceNickname::getNickname).orElse(null);
+
+        // 이 장소를 포함하는 모든 entry (day.date desc)
+        List<DiaryEntry> entries = entryRepository.findByCoupleAndLocation(couple.getId(), cleanName);
+        if (entries.isEmpty()) {
+            return new PlaceDetailResponse(cleanName, nickname, 0, List.of());
+        }
+
+        // 사진/답 배치 로딩
+        List<Long> entryIds = entries.stream().map(DiaryEntry::getId).toList();
+        Map<Long, List<Photo>> photosByEntry = photoRepository.findByEntry_IdIn(entryIds).stream()
+                .collect(Collectors.groupingBy(p -> p.getEntry().getId()));
+        Map<Long, List<EntryAnswer>> answersByEntry = new HashMap<>();
+        for (Long eid : entryIds) {
+            answersByEntry.put(eid, answerRepository.findByEntry_Id(eid));
+        }
+
+        // 날짜별로 묶어 집계 (한 날짜 = 한 항목)
+        // entries는 이미 date desc; LinkedHashMap로 순서 보존.
+        Map<LocalDate, List<DiaryEntry>> byDate = new LinkedHashMap<>();
+        for (DiaryEntry e : entries) {
+            byDate.computeIfAbsent(e.getDay().getDate(), k -> new ArrayList<>()).add(e);
+        }
+
+        List<PlaceDetailEntry> out = new ArrayList<>();
+        for (Map.Entry<LocalDate, List<DiaryEntry>> ent : byDate.entrySet()) {
+            LocalDate date = ent.getKey();
+            List<DiaryEntry> dayEntries = ent.getValue();
+
+            boolean mine = dayEntries.stream().anyMatch(e -> e.getAuthor().getId().equals(userId));
+            boolean partner = dayEntries.stream().anyMatch(e -> !e.getAuthor().getId().equals(userId));
+
+            String thumbUrl = null;
+            for (DiaryEntry e : dayEntries) {
+                for (Photo p : photosByEntry.getOrDefault(e.getId(), List.of())) {
+                    if (p.getUrl() != null && !p.getUrl().isBlank()) { thumbUrl = p.getUrl(); break; }
+                }
+                if (thumbUrl != null) break;
+            }
+
+            String snippet = null;
+            for (DiaryEntry e : dayEntries) {
+                for (EntryAnswer a : answersByEntry.getOrDefault(e.getId(), List.of())) {
+                    if (a.getText() != null && !a.getText().isBlank()) {
+                        snippet = trimSnippet(a.getText());
+                        break;
+                    }
+                }
+                if (snippet != null) break;
+            }
+
+            out.add(new PlaceDetailEntry(date.toString(), thumbUrl, snippet, mine, partner));
+        }
+
+        return new PlaceDetailResponse(cleanName, nickname, out.size(), out);
+    }
+
+    private static final int SNIPPET_LEN = 40;
+
+    private String trimSnippet(String text) {
+        String t = text.trim();
+        return t.length() <= SNIPPET_LEN ? t : t.substring(0, SNIPPET_LEN) + "...";
     }
 
     // ================= 작성/수정 upsert =================

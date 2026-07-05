@@ -128,6 +128,7 @@ export default function RootLayout() {
           <Stack.Screen name="anniversaries" options={{ presentation: 'card' }} />
           <Stack.Screen name="bug-reports" options={{ presentation: 'card' }} />
           <Stack.Screen name="account" options={{ presentation: 'card' }} />
+          <Stack.Screen name="place" options={{ presentation: 'card' }} />
         </Stack>
         <AppAlert />
         <AppToast />

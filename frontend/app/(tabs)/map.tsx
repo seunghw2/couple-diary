@@ -10,9 +10,9 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { locationApi } from '../../lib/api';
-import type { LocationCount } from '../../lib/api';
+import type { LocationCount, LocationNickname } from '../../lib/api';
 import { KakaoMap } from '../../components/KakaoMap';
 import { Icon } from '../../components/ui';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
@@ -22,8 +22,10 @@ type ViewMode = 'map' | 'list';
 /** 지도 탭 — 일기에 남긴 장소들을 Kakao 핀맵 / 리스트로 모아보기. */
 export default function MapScreen() {
   const c = useColors();
+  const router = useRouter();
   const [places, setPlaces] = useState<string[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
+  const [nicknames, setNicknames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [mode, setMode] = useState<ViewMode>('map');
@@ -39,9 +41,15 @@ export default function MapScreen() {
         if (c?.name) map[c.name] = c.count;
       });
       setCounts(map);
+      const nick: Record<string, string> = {};
+      (res?.nicknames ?? []).forEach((n: LocationNickname) => {
+        if (n?.name && n?.nickname) nick[n.name] = n.nickname;
+      });
+      setNicknames(nick);
     } catch {
       setPlaces([]);
       setCounts({});
+      setNicknames({});
     } finally {
       setLoading(false);
     }
@@ -111,7 +119,12 @@ export default function MapScreen() {
             <Text style={styles.emptySub}>일기에 장소를 남기면 여기 지도에 모여요</Text>
           </View>
         ) : mode === 'map' ? (
-          <KakaoMap places={filtered} counts={counts} onSelectPlace={onSelectPlace} />
+          <KakaoMap
+            places={filtered}
+            counts={counts}
+            onSelectPlace={onSelectPlace}
+            onDeselect={() => setSelected(null)}
+          />
         ) : (
           <ScrollView
             contentContainerStyle={styles.listContent}
@@ -155,24 +168,37 @@ export default function MapScreen() {
         )}
       </View>
 
-      {/* 선택된 장소 하단 시트 */}
+      {/* 선택된 장소 하단 시트 — 탭하면 상세, X 또는 지도 빈 곳 탭으로 닫기 */}
       {selected && (
         <View style={styles.sheet}>
           <View style={styles.sheetHeader}>
-            <View style={[styles.placeIcon, { backgroundColor: c.coralSofter }]}>
-              <Icon name="heart" size={16} color={c.primary} />
-            </View>
-            <Text style={styles.sheetTitle} numberOfLines={1}>
-              {selected}
-            </Text>
-            <Pressable onPress={() => setSelected(null)} hitSlop={8}>
+            <Pressable
+              style={styles.sheetNav}
+              onPress={() => router.push({ pathname: '/place', params: { name: selected } })}
+            >
+              <View style={[styles.placeIcon, { backgroundColor: c.coralSofter }]}>
+                <Icon name="heart" size={16} color={c.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                {nicknames[selected] ? (
+                  <>
+                    <Text style={styles.sheetTitle} numberOfLines={1}>{nicknames[selected]}</Text>
+                    <Text style={styles.sheetPlaceName} numberOfLines={1}>{selected}</Text>
+                  </>
+                ) : (
+                  <Text style={styles.sheetTitle} numberOfLines={1}>{selected}</Text>
+                )}
+              </View>
+              <Icon name="chevron-forward" size={20} color={colors.subText} />
+            </Pressable>
+            <Pressable onPress={() => setSelected(null)} hitSlop={10} style={{ marginLeft: spacing.sm }}>
               <Icon name="close" size={22} color={colors.subText} />
             </Pressable>
           </View>
           <Text style={styles.sheetSub}>
             {counts[selected] >= 2
-              ? `우리가 ${counts[selected]}번 다녀온 곳이에요`
-              : '우리가 함께 다녀온 곳이에요'}
+              ? `우리가 ${counts[selected]}번 다녀온 곳이에요 · 탭해서 자세히`
+              : '우리가 함께 다녀온 곳이에요 · 탭해서 자세히'}
           </Text>
         </View>
       )}
@@ -253,7 +279,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   pillText: { ...font.body, fontWeight: '700' },
-  body: { flex: 1, marginHorizontal: spacing.xl, borderRadius: radius.lg, overflow: 'hidden' },
+  // 세로를 살짝 줄여 하단 여백 확보(요청).
+  body: { flex: 1, marginHorizontal: spacing.xl, marginBottom: spacing.xxl, borderRadius: radius.lg, overflow: 'hidden' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   emptyTitle: { ...font.title },
   emptySub: { ...font.body, color: colors.subText, marginTop: spacing.xs, textAlign: 'center' },
@@ -282,7 +309,9 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     ...shadow,
   },
-  sheetHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  sheetTitle: { ...font.h2, flex: 1 },
+  sheetHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  sheetNav: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  sheetTitle: { ...font.h2 },
+  sheetPlaceName: { ...font.caption, color: colors.subText, marginTop: 1 },
   sheetSub: { ...font.body, color: colors.subText, marginTop: spacing.sm },
 });

@@ -5,7 +5,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { AnniversaryItem, coupleApi } from '../lib/api';
 import { formatKoLong, weekdayKo } from '../lib/date';
 import { Card, Icon } from '../components/ui';
-import { colors, font, radius, spacing } from '../theme/theme';
+import { colors, font, radius, spacing, useColors } from '../theme/theme';
 
 /** dday(남은 일수, 0=오늘) → 표기. */
 function ddayLabel(dday: number): string {
@@ -15,6 +15,7 @@ function ddayLabel(dday: number): string {
 
 export default function AnniversariesScreen() {
   const router = useRouter();
+  const c = useColors();
   const [items, setItems] = useState<AnniversaryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,8 +70,8 @@ export default function AnniversariesScreen() {
                     {formatKoLong(it.date)} ({weekdayKo(it.date)})
                   </Text>
                 </View>
-                <View style={styles.ddayPill}>
-                  <Text style={styles.ddayText}>{ddayLabel(it.dday)}</Text>
+                <View style={[styles.ddayPill, { backgroundColor: c.coralSofter }]}>
+                  <Text style={[styles.ddayText, { color: c.primary }]}>{ddayLabel(it.dday)}</Text>
                 </View>
               </Card>
             ))

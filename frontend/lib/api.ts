@@ -285,10 +285,35 @@ export const questionApi = {
 /** 이전에 쓴 장소 추천 목록. */
 /** 장소별 방문 일수(지도 핀 뱃지용). */
 export type LocationCount = { name: string; count: number };
+/** 장소 별명(커플별). */
+export type LocationNickname = { name: string; nickname: string };
+/** 장소 상세의 한 항목(그곳에 갔던 날). */
+export type PlaceEntryItem = {
+  date: string; // YYYY-MM-DD
+  thumbUrl?: string; // 대표 사진 상대경로
+  snippet?: string; // 일기 한 줄 미리보기
+  mineWritten: boolean;
+  partnerWritten: boolean;
+};
+/** 장소 상세(별명 + 그곳에 갔던 날 일기 모음). */
+export type PlaceDetail = {
+  name: string;
+  nickname?: string;
+  count: number;
+  entries: PlaceEntryItem[];
+};
 
 export const locationApi = {
   list: () =>
-    api.get<{ locations: string[]; counts?: LocationCount[] }>('/api/locations'),
+    api.get<{ locations: string[]; counts?: LocationCount[]; nicknames?: LocationNickname[] }>(
+      '/api/locations'
+    ),
+  /** 장소 상세 — 별명 + 그곳에 갔던 날짜별 일기 목록. */
+  detail: (name: string) =>
+    api.get<PlaceDetail>(`/api/locations/detail?name=${encodeURIComponent(name)}`),
+  /** 장소 별명 저장(빈 문자열이면 삭제). */
+  setNickname: (name: string, nickname: string) =>
+    api.put<void>('/api/locations/nickname', { name, nickname }),
 };
 
 /** 카카오 로컬 키워드 검색 결과(백엔드 프록시). x->lng, y->lat 통과. */
