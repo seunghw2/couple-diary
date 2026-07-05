@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,10 +8,11 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { locationApi, type PlaceDetail } from '../lib/api';
-import { API_URL } from '../lib/config';
+import { toThumb } from '../lib/images';
 import { formatKoLong, weekdayKo } from '../lib/date';
 import { showAlert } from '../lib/dialog';
 import { Icon } from '../components/ui';
@@ -164,8 +164,11 @@ export default function PlaceScreen() {
               >
                 {e.thumbUrl ? (
                   <Image
-                    source={{ uri: e.thumbUrl.startsWith('http') ? e.thumbUrl : `${API_URL}${e.thumbUrl}` }}
+                    source={{ uri: toThumb(e.thumbUrl, 120) }}
                     style={styles.thumb}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={120}
                   />
                 ) : (
                   <View style={[styles.thumb, styles.thumbEmpty, { backgroundColor: c.coralSofter }]}>

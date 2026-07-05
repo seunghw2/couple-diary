@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   StyleProp,
   StyleSheet,
@@ -10,8 +9,9 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { API_URL } from '../lib/config';
+import { toThumb } from '../lib/images';
 import { colors, font, radius, seedGradient, shadow, spacing, useColors } from '../theme/theme';
 
 /** 앱 전역 벡터 아이콘 래퍼 (Ionicons). 기본색=text, 강조는 color prop으로. */
@@ -170,7 +170,8 @@ export function PhotoThumb({
   style?: StyleProp<ViewStyle>;
 }) {
   if (url) {
-    const uri = url.startsWith('http') ? url : `${API_URL}${url}`;
+    // 작은 썸네일은 리사이즈 엔드포인트 + 디스크/메모리 캐시로 빠르게.
+    const uri = toThumb(url, Math.round(size * 2));
     return (
       <View
         style={[
@@ -186,7 +187,13 @@ export function PhotoThumb({
           style,
         ]}
       >
-        <Image source={{ uri }} style={{ width: '100%', height: '100%' }} />
+        <Image
+          source={{ uri }}
+          style={{ width: '100%', height: '100%' }}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          transition={120}
+        />
       </View>
     );
   }

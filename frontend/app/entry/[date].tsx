@@ -4,7 +4,6 @@ import {
   Animated,
   Dimensions,
   FlatList,
-  Image,
   KeyboardAvoidingView,
   Modal,
   PanResponder,
@@ -16,6 +15,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { Image } from 'expo-image';
 import * as MediaLibrary from 'expo-media-library';
 import { Directory, File as FsFile, Paths } from 'expo-file-system';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -515,7 +515,13 @@ function PhotoViewer({
             }
             renderItem={({ item }) => (
               <View style={{ width: win.width, height: win.height, alignItems: 'center', justifyContent: 'center' }}>
-                <Image source={{ uri: toUri(item) }} style={{ width: win.width, height: win.height }} resizeMode="contain" />
+                <Image
+                  source={{ uri: toUri(item) }}
+                  style={{ width: win.width, height: win.height }}
+                  contentFit="contain"
+                  cachePolicy="memory-disk"
+                  transition={150}
+                />
               </View>
             )}
           />

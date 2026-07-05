@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import {
   AnswerView,
   DayDetail,
@@ -313,11 +314,26 @@ export default function WriteScreen() {
       if (result.canceled || result.assets.length === 0) return;
       const asset = result.assets[0];
       setUploading(true);
-      const { url } = await uploadPhoto({
-        uri: asset.uri,
-        fileName: asset.fileName,
-        mimeType: asset.mimeType,
-      });
+      // 업로드 전 리사이즈/압축 → 파일 크기를 줄여 로딩을 빠르게. (네이티브만)
+      let up = { uri: asset.uri, fileName: asset.fileName, mimeType: asset.mimeType };
+      if (Platform.OS !== 'web') {
+        try {
+          const actions =
+            asset.width && asset.width > 1440 ? [{ resize: { width: 1440 } }] : [];
+          const m = await ImageManipulator.manipulateAsync(asset.uri, actions, {
+            compress: 0.7,
+            format: ImageManipulator.SaveFormat.JPEG,
+          });
+          up = {
+            uri: m.uri,
+            fileName: (asset.fileName?.replace(/\.[^.]+$/, '') ?? `photo-${Date.now()}`) + '.jpg',
+            mimeType: 'image/jpeg',
+          };
+        } catch {
+          /* 리사이즈 실패 시 원본 업로드 */
+        }
+      }
+      const { url } = await uploadPhoto(up);
       setPhotoUrls((prev) => [...prev, url]);
     } catch {
       showAlert('사진 업로드에 실패했어요', '잠시 후 다시 시도해 주세요.');

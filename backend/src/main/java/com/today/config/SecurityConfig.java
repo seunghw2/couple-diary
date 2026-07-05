@@ -64,6 +64,8 @@ public class SecurityConfig {
                         ).permitAll()
                         // 업로드 사진 정적 서빙: UUID 파일명 난독화로 MVP에서는 공개 GET 허용
                         .requestMatchers(HttpMethod.GET, "/files/**").permitAll()
+                        // 온디맨드 썸네일도 원본 서빙과 동일하게 공개 GET 허용 (<Image>가 토큰 없이 로드)
+                        .requestMatchers(HttpMethod.GET, "/api/photos/thumb").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> {
