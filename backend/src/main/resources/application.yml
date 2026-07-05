@@ -35,6 +35,8 @@ app:
   kakao:
     # 카카오 로컬 REST API 키(장소 키워드 검색 프록시용). 클라이언트에 노출하지 않고 서버에서만 사용.
     rest-key: ${KAKAO_REST_KEY:be9e8e34057ddefce22d6f52732c3c7a}
+    # 카카오 로그인 토큰 교환용 Client Secret(콘솔 > 카카오 로그인 > 보안). "사용함"이면 필수, 없으면 미전송.
+    client-secret: ${KAKAO_CLIENT_SECRET:}
 
 logging:
   level:

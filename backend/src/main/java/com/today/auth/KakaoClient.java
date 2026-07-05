@@ -22,11 +22,14 @@ import org.springframework.web.client.RestClient;
 public class KakaoClient {
 
     private final String restKey;
+    private final String clientSecret;      // 카카오 콘솔 "보안 > Client Secret". 비어 있으면 미전송.
     private final RestClient authClient;   // kauth.kakao.com — 토큰 발급
     private final RestClient apiClient;     // kapi.kakao.com  — 사용자 정보
 
-    public KakaoClient(@Value("${app.kakao.rest-key}") String restKey) {
+    public KakaoClient(@Value("${app.kakao.rest-key}") String restKey,
+                       @Value("${app.kakao.client-secret:}") String clientSecret) {
         this.restKey = restKey;
+        this.clientSecret = clientSecret;
         this.authClient = RestClient.builder()
                 .baseUrl("https://kauth.kakao.com")
                 .build();
@@ -42,6 +45,10 @@ public class KakaoClient {
         form.add("client_id", restKey);
         form.add("redirect_uri", redirectUri);
         form.add("code", code);
+        // 콘솔에서 Client Secret을 "사용함(필수)"으로 켜면 토큰 교환에 반드시 포함해야 한다(미포함 시 KOE010).
+        if (clientSecret != null && !clientSecret.isBlank()) {
+            form.add("client_secret", clientSecret.trim());
+        }
 
         TokenResponse resp;
         try {
