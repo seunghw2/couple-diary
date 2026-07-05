@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -79,8 +77,9 @@ export function KakaoPlaceSearch({ visible, onClose, onSelect, alreadyAdded = []
     <Modal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <Pressable style={styles.backTap} onPress={onClose} />
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <View style={styles.sheet}>
+        {/* 검색바를 시트 상단에 고정하고 목록만 스크롤. KeyboardAvoidingView를
+            쓰지 않아 백그라운드 복귀 시 화면이 밀려 백지가 되는 문제를 피한다. */}
+        <View style={styles.sheet}>
             <View style={styles.handle} />
             <View style={styles.headerRow}>
               <Text style={styles.title}>장소 검색</Text>
@@ -110,7 +109,12 @@ export function KakaoPlaceSearch({ visible, onClose, onSelect, alreadyAdded = []
             </View>
 
             {/* 결과 */}
-            <ScrollView style={styles.list} keyboardShouldPersistTaps="handled">
+            <ScrollView
+              style={styles.list}
+              contentContainerStyle={styles.listContent}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="none"
+            >
               {!query.trim() ? (
                 <Text style={styles.hint}>다녀온 곳을 검색해서 추가해요</Text>
               ) : searched && results.length === 0 && !loading ? (
@@ -149,8 +153,7 @@ export function KakaoPlaceSearch({ visible, onClose, onSelect, alreadyAdded = []
                 })
               )}
             </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
+        </View>
       </View>
     </Modal>
   );
@@ -165,8 +168,8 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radius.lg,
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.md,
-    paddingBottom: spacing.xl,
-    height: '72%',
+    // 검색바가 상단에 있으므로 시트를 크게 잡아 키보드가 목록 하단만 가리게 한다.
+    height: '90%',
     ...shadow,
   },
   handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: spacing.md },
@@ -185,6 +188,8 @@ const styles = StyleSheet.create({
   },
   searchInput: { flex: 1, fontSize: 16, color: colors.text, paddingVertical: 0 },
   list: { marginTop: spacing.md },
+  // 마지막 결과가 키보드에 가리지 않도록 하단 여백.
+  listContent: { paddingBottom: 320 },
   hint: { ...font.body, color: colors.subText, textAlign: 'center', marginTop: spacing.xxl },
   item: {
     flexDirection: 'row',

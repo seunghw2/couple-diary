@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>장소 추가 · C안 — 리치 검색 멀티선택</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gothic+A1:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #FFF6EF;
+    --card: #FFFDFA;
+    --primary: #FF8E72;
+    --coralSoft: #FFA98C;
+    --coralSofter: #FFC7B0;
+    --text: #5A4038;
+    --subText: #7A5A4E;
+    --border: #F1E2D6;
+    --placeholder: #B39685;
+    --star: #FFB443;
+    --white: #FFFFFF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Gothic A1', sans-serif;
+    background: #EDE4DB;
+    color: var(--text);
+    padding: 48px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page-title {
+    font-family: 'Jua', sans-serif;
+    font-size: 26px;
+    color: #4A342C;
+    margin-bottom: 6px;
+  }
+  .page-sub {
+    font-size: 14px;
+    color: #8A7266;
+    margin-bottom: 40px;
+  }
+  .frames {
+    display: flex;
+    flex-direction: row;
+    gap: 36px;
+    align-items: flex-start;
+  }
+  .frame-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .caption {
+    font-family: 'Gothic A1', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #6B5347;
+    background: #FFFDFA;
+    padding: 7px 16px;
+    border-radius: 999px;
+    box-shadow: 0 3px 8px rgba(120,90,70,0.10);
+    white-space: nowrap;
+  }
+  .caption span { color: var(--primary); }
+
+  /* iPhone frame */
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 44px;
+    box-shadow: 0 24px 60px rgba(90,64,56,0.28), 0 4px 14px rgba(90,64,56,0.14);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  /* status bar */
+  .statusbar {
+    height: 54px;
+    padding: 0 30px 0 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .statusbar .time {
+    font-family: 'Gothic A1', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    letter-spacing: 0.3px;
+  }
+  .status-icons { display: flex; align-items: center; gap: 7px; }
+
+  /* header */
+  .header {
+    padding: 6px 22px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .back-btn {
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .header-title {
+    font-family: 'Jua', sans-serif;
+    font-size: 20px;
+    color: var(--text);
+  }
+
+  /* search bar */
+  .searchbar {
+    margin: 0 22px 16px;
+    height: 54px;
+    background: var(--white);
+    border: 1.5px solid var(--coralSofter);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 18px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255,142,114,0.10);
+  }
+  .searchbar .q {
+    font-family: 'Gothic A1', sans-serif;
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--text);
+    flex: 1;
+  }
+  .searchbar .clear {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--subText);
+    font-size: 13px;
+  }
+
+  .list-head {
+    padding: 0 24px 10px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .list-head .lbl { font-size: 13px; font-weight: 700; color: var(--subText); }
+  .list-head .cnt { font-size: 12px; color: var(--placeholder); font-weight: 600; }
+
+  /* results */
+  .results {
+    flex: 1;
+    overflow: hidden;
+    padding: 0 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .rcard {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 15px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 3px 9px rgba(120,90,70,0.05);
+  }
+  .rcard.sel {
+    border-color: var(--primary);
+    background: #FFF3ED;
+    box-shadow: 0 5px 14px rgba(255,142,114,0.18);
+  }
+  .ic {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: #FFEDE4;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .rcard.sel .ic { background: var(--coralSofter); }
+  .ic svg { width: 24px; height: 24px; }
+  .rinfo { flex: 1; min-width: 0; }
+  .rname {
+    font-family: 'Jua', sans-serif;
+    font-size: 17px;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .rmeta {
+    font-size: 12.5px;
+    color: var(--subText);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 2px;
+  }
+  .cat-tag {
+    color: var(--primary);
+    font-weight: 700;
+  }
+  .dot { color: var(--coralSofter); }
+  .raddr {
+    font-size: 12px;
+    color: var(--placeholder);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rdist {
+    font-size: 11.5px;
+    color: var(--subText);
+    font-weight: 700;
+    margin-top: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  /* checkbox */
+  .cbox {
+    width: 28px; height: 28px;
+    border-radius: 9px;
+    border: 2px solid var(--coralSofter);
+    background: var(--white);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cbox.on {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  .cbox.on svg { width: 16px; height: 16px; }
+
+  /* bottom bar */
+  .bottombar {
+    padding: 16px 22px calc(16px + env(safe-area-inset-bottom));
+    flex-shrink: 0;
+    background: linear-gradient(to top, var(--bg) 70%, rgba(255,246,239,0));
+  }
+  .add-btn {
+    height: 58px;
+    border-radius: 999px;
+    background: var(--border);
+    color: var(--placeholder);
+    font-family: 'Jua', sans-serif;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px;
+  }
+  .add-btn.active {
+    background: var(--primary);
+    color: var(--white);
+    box-shadow: 0 8px 20px rgba(255,142,114,0.38);
+  }
+  .add-btn .pill {
+    background: rgba(255,255,255,0.28);
+    border-radius: 999px;
+    padding: 2px 9px;
+    font-size: 14px;
+  }
+
+  /* ===== Frame 3: diary ===== */
+  .diary-scroll {
+    flex: 1;
+    overflow: hidden;
+    padding: 4px 22px;
+  }
+  .d-datebadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--subText);
+    margin-bottom: 18px;
+  }
+  .d-writer {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .d-ava {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--coralSofter);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Jua', sans-serif; color: var(--white); font-size: 16px;
+  }
+  .d-writer .nm { font-family: 'Jua', sans-serif; font-size: 16px; color: var(--text); }
+  .d-writer .role { font-size: 12px; color: var(--placeholder); }
+
+  .d-textbox {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 18px;
+    padding: 16px;
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--text);
+    margin-bottom: 22px;
+  }
+  .d-textbox .ph { color: var(--placeholder); }
+
+  .sec-label {
+    font-family: 'Jua', sans-serif;
+    font-size: 16px;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .sec-label .pin { width: 18px; height: 18px; }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #FFF3ED;
+    border: 1.5px solid var(--coralSofter);
+    border-radius: 999px;
+    padding: 9px 14px 9px 11px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #B4573D;
+  }
+  .chip .cic {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--coralSofter);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .chip .cic svg { width: 14px; height: 14px; }
+  .chip .x {
+    color: var(--coralSoft);
+    font-size: 15px;
+    margin-left: 2px;
+  }
+  .add-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1.5px dashed var(--coralSofter);
+    color: var(--primary);
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-size: 13.5px;
+    font-weight: 700;
+    background: transparent;
+  }
+
+  /* toast */
+  .toast {
+    position: absolute;
+    left: 50%;
+    top: 118px;
+    transform: translateX(-50%);
+    background: rgba(90,64,56,0.94);
+    color: var(--white);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 10px 18px;
+    border-radius: 999px;
+    display: flex; align-items: center; gap: 7px;
+    box-shadow: 0 8px 20px rgba(90,64,56,0.3);
+  }
+  .toast svg { width: 15px; height: 15px; }
+</style>
+</head>
+<body>
+  <div class="page-title">장소 추가 · C안 — 리치 검색 멀티선택</div>
+  <div class="page-sub">love today · 결과 카드를 풍부하게, 여러 곳을 체크해서 한 번에 추가</div>
+
+  <div class="frames">
+
+    <!-- ============ FRAME 1 ============ -->
+    <div class="frame-wrap">
+      <div class="phone">
+        <div class="statusbar">
+          <div class="time">9:41</div>
+          <div class="status-icons">
+            <!-- signal -->
+            <svg width="18" height="12" viewBox="0 0 18 12"><g fill="#5A4038"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></g></svg>
+            <!-- wifi -->
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 2C11.4 2 14 3.1 15.8 4.9L14.4 6.3C13 4.9 10.9 4 8.5 4C6.1 4 4 4.9 2.6 6.3L1.2 4.9C3 3.1 5.6 2 8.5 2Z" fill="#5A4038"/><path d="M8.5 6C9.9 6 11.2 6.5 12.1 7.5L8.5 11L4.9 7.5C5.8 6.5 7.1 6 8.5 6Z" fill="#5A4038"/></svg>
+            <!-- battery -->
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="#5A4038" stroke-opacity="0.4"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#5A4038"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#5A4038" fill-opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="header">
+          <div class="back-btn">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#5A4038" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="header-title">장소 검색</div>
+        </div>
+
+        <div class="searchbar">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6.5" stroke="#FF8E72" stroke-width="2"/><path d="M14 14l4 4" stroke="#FF8E72" stroke-width="2" stroke-linecap="round"/></svg>
+          <div class="q">성수동</div>
+          <div class="clear">✕</div>
+        </div>
+
+        <div class="list-head">
+          <div class="lbl">검색 결과</div>
+          <div class="cnt">가까운 순 · 4곳</div>
+        </div>
+
+        <div class="results">
+          <!-- cafe -->
+          <div class="rcard">
+            <div class="ic">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 9h13v4a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9Z" stroke="#FF8E72" stroke-width="1.8" stroke-linejoin="round"/><path d="M17 10h2a2 2 0 0 1 0 4h-2" stroke="#FF8E72" stroke-width="1.8"/><path d="M8 3v2M11.5 3v2" stroke="#FFA98C" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <div class="rinfo">
+              <div class="rname">어니언 성수</div>
+              <div class="rmeta"><span class="cat-tag">카페</span><span class="dot">·</span><span class="raddr">성동구 아차산로9길 8</span></div>
+              <div class="rdist">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1c2.2 0 4 1.8 4 4 0 2.7-4 6-4 6S2 7.7 2 5c0-2.2 1.8-4 4-4Z" stroke="#7A5A4E" stroke-width="1.4"/><circle cx="6" cy="5" r="1.3" fill="#7A5A4E"/></svg>
+                320m
+              </div>
+            </div>
+            <div class="cbox"></div>
+          </div>
+
+          <!-- restaurant -->
+          <div class="rcard">
+            <div class="ic">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M7 3v8M5 3v4a2 2 0 0 0 4 0V3M7 11v10" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"/><path d="M16 3c-1.5 0-2.5 2-2.5 5s1 4 2.5 4M16 12v9" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <div class="rinfo">
+              <div class="rname">소문난성수감자탕</div>
+              <div class="rmeta"><span class="cat-tag">음식점</span><span class="dot">·</span><span class="raddr">성동구 성수이로 88</span></div>
+              <div class="rdist">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1c2.2 0 4 1.8 4 4 0 2.7-4 6-4 6S2 7.7 2 5c0-2.2 1.8-4 4-4Z" stroke="#7A5A4E" stroke-width="1.4"/><circle cx="6" cy="5" r="1.3" fill="#7A5A4E"/></svg>
+                640m
+              </div>
+            </div>
+            <div class="cbox"></div>
+          </div>
+
+          <!-- park -->
+          <div class="rcard">
+            <div class="ic">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 4l5 8H7l5-8Z" stroke="#FF8E72" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 12v8" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"/><path d="M8.5 8h7" stroke="#FFA98C" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </div>
+            <div class="rinfo">
+              <div class="rname">서울숲</div>
+              <div class="rmeta"><span class="cat-tag">공원</span><span class="dot">·</span><span class="raddr">성동구 뚝섬로 273</span></div>
+              <div class="rdist">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1c2.2 0 4 1.8 4 4 0 2.7-4 6-4 6S2 7.7 2 5c0-2.2 1.8-4 4-4Z" stroke="#7A5A4E" stroke-width="1.4"/><circle cx="6" cy="5" r="1.3" fill="#7A5A4E"/></svg>
+                1.2km
+              </div>
+            </div>
+            <div class="cbox"></div>
+          </div>
+
+          <!-- bar -->
+          <div class="rcard">
+            <div class="ic">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 4h14l-6 7v7M13 18h-3M13 18h3" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="rinfo">
+              <div class="rname">성수 와인바 라온</div>
+              <div class="rmeta"><span class="cat-tag">바</span><span class="dot">·</span><span class="raddr">성동구 연무장길 41</span></div>
+              <div class="rdist">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1c2.2 0 4 1.8 4 4 0 2.7-4 6-4 6S2 7.7 2 5c0-2.2 1.8-4 4-4Z" stroke="#7A5A4E" stroke-width="1.4"/><circle cx="6" cy="5" r="1.3" fill="#7A5A4E"/></svg>
+                1.5km
+              </div>
+            </div>
+            <div class="cbox"></div>
+          </div>
+        </div>
+
+        <div class="bottombar">
+          <div class="add-btn">장소를 선택해 주세요</div>
+        </div>
+      </div>
+      <div class="caption">1 · 리치 결과 카드로 <span>검색</span></div>
+    </div>
+
+    <!-- ============ FRAME 2 ============ -->
+    <div class="frame-wrap">
+      <div class="phone">
+        <div class="statusbar">
+          <div class="time">9:41</div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><g fill="#5A4038"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></g></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 2C11.4 2 14 3.1 15.8 4.9L14.4 6.3C13 4.9 10.9 4 8.5 4C6.1 4 4 4.9 2.6 6.3L1.2 4.9C3 3.1 5.6 2 8.5 2Z" fill="#5A4038"/><path d="M8.5 6C9.9 6 11.2 6.5 12.1 7.5L8.5 11L4.9 7.5C5.8 6.5 7.1 6 8.5 6Z" fill="#5A4038"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="#5A4038" stroke-opacity="0.4"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#5A4038"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#5A4038" fill-opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="header">
+          <div class="back-btn">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#5A4038" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="header-title">장소 검색</div>
+        </div>
+
+        <div class="searchbar">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6.5" stroke="#FF8E72" stroke-width="2"/><path d="M14 14l4 4" stroke="#FF8E72" stroke-width="2" stroke-linecap="round"/></svg>
+          <div class="q">성수동</div>
+          <div class="clear">✕</div>
+        </div>
+
+        <div class="list-head">
+          <div class="lbl">검색 결과</div>
+          <div class="cnt" style="color:var(--primary);font-weight:700;">3곳 선택됨</div>
+        </div>
+
+        <div class="results">
+          <!-- cafe selected -->
+          <div class="rcard sel">
+            <div class="ic">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 9h13v4a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9Z" stroke="#FF8E72" stroke-width="1.8" stroke-linejoin="round"/><path d="M17 10h2a2 2 0 0 1 0 4h-2" stroke="#FF8E72" stroke-width="1.8"/><path d="M8 3v2M11.5 3v2" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <div class="rinfo">
+              <div class="rname">어니언 성수</div>
+              <div class="rmeta"><span class="cat-tag">카페</span><span class="dot">·</span><span class="raddr">성동구 아차산로9길 8</span></div>
+              <div class="rdist">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1c2.2 0 4 1.8 4 4 0 2.7-4 6-4 6S2 7.7 2 5c0-2.2 1.8-4 4-4Z" stroke="#7A5A4E" stroke-width="1.4"/><circle cx="6" cy="5" r="1.3" fill="#7A5A4E"/></svg>
+                320m
+              </div>
+            </div>
+            <div class="cbox on">
+              <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.2 3.2L13 5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+
+          <!-- restaurant selected -->
+          <div class="rcard sel">
+            <div class="ic">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M7 3v8M5 3v4a2 2 0 0 0 4 0V3M7 11v10" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"/><path d="M16 3c-1.5 0-2.5 2-2.5 5s1 4 2.5 4M16 12v9" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <div class="rinfo">
+              <div class="rname">소문난성수감자탕</div>
+              <div class="rmeta"><span class="cat-tag">음식점</span><span class="dot">·</span><span class="raddr">성동구 성수이로 88</span></div>
+              <div class="rdist">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1c2.2 0 4 1.8 4 4 0 2.7-4 6-4 6S2 7.7 2 5c0-2.2 1.8-4 4-4Z" stroke="#7A5A4E" stroke-width="1.4"/><circle cx="6" cy="5" r="1.3" fill="#7A5A4E"/></svg>
+                640m
+              </div>
+            </div>
+            <div class="cbox on">
+              <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.2 3.2L13 5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+
+          <!-- park selected -->
+          <div class="rcard sel">
+            <div class="ic">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 4l5 8H7l5-8Z" stroke="#FF8E72" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 12v8" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"/><path d="M8.5 8h7" stroke="#FF8E72" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </div>
+            <div class="rinfo">
+              <div class="rname">서울숲</div>
+              <div class="rmeta"><span class="cat-tag">공원</span><span class="dot">·</span><span class="raddr">성동구 뚝섬로 273</span></div>
+              <div class="rdist">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1c2.2 0 4 1.8 4 4 0 2.7-4 6-4 6S2 7.7 2 5c0-2.2 1.8-4 4-4Z" stroke="#7A5A4E" stroke-width="1.4"/><circle cx="6" cy="5" r="1.3" fill="#7A5A4E"/></svg>
+                1.2km
+              </div>
+            </div>
+            <div class="cbox on">
+              <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.2 3.2L13 5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+
+          <!-- bar not selected -->
+          <div class="rcard">
+            <div class="ic">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 4h14l-6 7v7M13 18h-3M13 18h3" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="rinfo">
+              <div class="rname">성수 와인바 라온</div>
+              <div class="rmeta"><span class="cat-tag">바</span><span class="dot">·</span><span class="raddr">성동구 연무장길 41</span></div>
+              <div class="rdist">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1c2.2 0 4 1.8 4 4 0 2.7-4 6-4 6S2 7.7 2 5c0-2.2 1.8-4 4-4Z" stroke="#7A5A4E" stroke-width="1.4"/><circle cx="6" cy="5" r="1.3" fill="#7A5A4E"/></svg>
+                1.5km
+              </div>
+            </div>
+            <div class="cbox"></div>
+          </div>
+        </div>
+
+        <div class="bottombar">
+          <div class="add-btn active">
+            <span class="pill">3</span> 3곳 한 번에 추가
+          </div>
+        </div>
+      </div>
+      <div class="caption">2 · 3곳 체크 → <span>한 번에 추가</span></div>
+    </div>
+
+    <!-- ============ FRAME 3 ============ -->
+    <div class="frame-wrap">
+      <div class="phone">
+        <div class="statusbar">
+          <div class="time">9:41</div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><g fill="#5A4038"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></g></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 2C11.4 2 14 3.1 15.8 4.9L14.4 6.3C13 4.9 10.9 4 8.5 4C6.1 4 4 4.9 2.6 6.3L1.2 4.9C3 3.1 5.6 2 8.5 2Z" fill="#5A4038"/><path d="M8.5 6C9.9 6 11.2 6.5 12.1 7.5L8.5 11L4.9 7.5C5.8 6.5 7.1 6 8.5 6Z" fill="#5A4038"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" fill="none" stroke="#5A4038" stroke-opacity="0.4"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#5A4038"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#5A4038" fill-opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="toast">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.2 3.2L13 5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          3곳이 추가됐어요
+        </div>
+
+        <div class="header">
+          <div class="back-btn">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#5A4038" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="header-title">오늘의 일기</div>
+        </div>
+
+        <div class="diary-scroll">
+          <div class="d-datebadge">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2.5" width="11" height="10" rx="2" stroke="#7A5A4E" stroke-width="1.4"/><path d="M1.5 5.5h11M4.5 1v2M9.5 1v2" stroke="#7A5A4E" stroke-width="1.4" stroke-linecap="round"/></svg>
+            2026년 7월 2일 · 목요일
+          </div>
+
+          <div class="d-writer">
+            <div class="d-ava">현</div>
+            <div>
+              <div class="nm">승현</div>
+              <div class="role">오늘의 작성자</div>
+            </div>
+          </div>
+
+          <div class="d-textbox">
+            성수동에서 하루 종일 데이트했다. 아침엔 카페에서 커피 마시고, 점심은 감자탕, 저녁 산책은 서울숲으로. <span class="ph">완벽한 하루였어 🧡</span>
+          </div>
+
+          <div class="sec-label">
+            <svg class="pin" viewBox="0 0 24 24" fill="none"><path d="M12 2c3.9 0 7 3.1 7 7 0 5-7 13-7 13S5 14 5 9c0-3.9 3.1-7 7-7Z" stroke="#FF8E72" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="#FF8E72"/></svg>
+            다녀온 장소
+          </div>
+
+          <div class="chips">
+            <div class="chip">
+              <span class="cic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 9h13v4a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M17 10h2a2 2 0 0 1 0 4h-2" stroke="#fff" stroke-width="1.8"/></svg></span>
+              어니언 성수
+              <span class="x">✕</span>
+            </div>
+            <div class="chip">
+              <span class="cic"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3v8M5 3v4a2 2 0 0 0 4 0V3M7 11v10" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M16 3c-1.5 0-2.5 2-2.5 5s1 4 2.5 4M16 12v9" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+              소문난성수감자탕
+              <span class="x">✕</span>
+            </div>
+            <div class="chip">
+              <span class="cic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 4l5 8H7l5-8Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 12v8" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+              서울숲
+              <span class="x">✕</span>
+            </div>
+          </div>
+
+          <button class="add-more">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 2v11M2 7.5h11" stroke="#FF8E72" stroke-width="2" stroke-linecap="round"/></svg>
+            장소 더 추가
+          </button>
+        </div>
+      </div>
+      <div class="caption">3 · 일기에 <span>코럴 칩 3개</span></div>
+    </div>
+
+  </div>
+</body>
+</html>

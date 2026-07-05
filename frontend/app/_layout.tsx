@@ -1,7 +1,7 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Component, ReactNode, useEffect, useRef } from 'react';
-import { ActivityIndicator, AppState, AppStateStatus, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, AppStateStatus, Keyboard, Pressable, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { setOnUnauthorized } from '../lib/api';
 import { AppAlert } from '../components/AppAlert';
@@ -51,6 +51,11 @@ export default function RootLayout() {
     const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
       const prev = appState.current;
       appState.current = next;
+      // 백그라운드로 나갈 때 키보드를 내려, 복귀 시 KeyboardAvoidingView가
+      // 잔여 키보드 높이만큼 화면을 밀어올려 백지처럼 보이던 문제를 방지.
+      if (next === 'background' || next === 'inactive') {
+        Keyboard.dismiss();
+      }
       if (prev.match(/inactive|background/) && next === 'active') {
         // 이미 인증된 상태면 세션은 건드리지 않고 데이터만 조용히 갱신.
         if (useAuthStore.getState().status === 'authenticated') {

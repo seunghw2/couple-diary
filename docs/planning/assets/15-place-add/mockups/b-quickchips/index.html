@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>장소 추가 · B안 — 원탭 추천</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gothic+A1:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFF6EF; --card:#FFFDFA; --primary:#FF8E72; --coralSoft:#FFA98C;
+    --coralSofter:#FFC7B0; --text:#5A4038; --subText:#7A5A4E; --border:#F1E2D6;
+    --placeholder:#B39685; --star:#FFB443; --white:#FFFFFF;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:#EDE4DB;
+    font-family:'Gothic A1',sans-serif;
+    color:var(--text);
+    padding:48px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page-title{
+    font-family:'Jua',sans-serif;
+    font-size:26px;
+    color:var(--text);
+    margin-bottom:6px;
+  }
+  .page-sub{
+    font-size:14px;
+    color:var(--subText);
+    margin-bottom:36px;
+  }
+  .stage{
+    display:flex;
+    flex-direction:row;
+    gap:36px;
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+  .frame-wrap{display:flex;flex-direction:column;align-items:center;}
+  .caption{
+    margin-top:18px;
+    font-family:'Jua',sans-serif;
+    font-size:15px;
+    color:var(--text);
+    background:var(--white);
+    padding:7px 16px;
+    border-radius:999px;
+    box-shadow:0 4px 12px rgba(90,64,56,.08);
+  }
+  .caption span{color:var(--subText);font-family:'Gothic A1';font-weight:500;font-size:13px;}
+
+  /* iPhone frame */
+  .phone{
+    width:390px;height:844px;
+    background:var(--bg);
+    border-radius:44px;
+    overflow:hidden;
+    position:relative;
+    box-shadow:0 24px 60px rgba(90,64,56,.22), 0 4px 14px rgba(90,64,56,.10);
+    border:1px solid rgba(255,255,255,.6);
+  }
+  .statusbar{
+    height:52px;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 30px;
+    font-family:'Gothic A1';font-weight:700;font-size:15px;color:var(--text);
+  }
+  .statusbar .icons{display:flex;align-items:center;gap:7px;}
+
+  /* Header of sheet */
+  .sheet-head{
+    padding:6px 22px 14px;
+  }
+  .sheet-title{
+    font-family:'Jua',sans-serif;font-size:22px;color:var(--text);
+  }
+  .sheet-desc{font-size:12.5px;color:var(--subText);margin-top:3px;}
+
+  /* search bar (secondary/small) */
+  .search{
+    margin:4px 22px 8px;
+    display:flex;align-items:center;gap:8px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:11px 14px;
+  }
+  .search .mag{width:16px;height:16px;flex:0 0 auto;}
+  .search .ph{color:var(--placeholder);font-size:13.5px;}
+
+  .body{
+    padding:6px 22px 22px;
+    height:calc(844px - 52px - 62px);
+    overflow:hidden;
+  }
+  .section-label{
+    display:flex;align-items:center;gap:7px;
+    font-family:'Jua',sans-serif;font-size:15px;color:var(--text);
+    margin:16px 2px 10px;
+  }
+  .section-label .dot{font-size:15px;}
+  .section-label small{font-family:'Gothic A1';font-weight:500;font-size:11px;color:var(--placeholder);}
+
+  /* chip cards */
+  .chip-row{
+    display:flex;flex-wrap:wrap;gap:9px;
+  }
+  .chip{
+    display:flex;align-items:center;gap:8px;
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-radius:999px;
+    padding:9px 14px 9px 11px;
+    font-size:13.5px;font-weight:700;color:var(--text);
+    box-shadow:0 2px 6px rgba(90,64,56,.05);
+    transition:.15s;
+    position:relative;
+  }
+  .chip .ico{
+    width:26px;height:26px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--bg);
+    flex:0 0 auto;
+  }
+  .chip .ico svg{width:15px;height:15px;}
+  .chip .meta{font-family:'Gothic A1';font-weight:500;font-size:11px;color:var(--placeholder);margin-left:2px;}
+  .chip .plus{color:var(--coralSoft);font-weight:800;font-size:15px;margin-left:1px;}
+
+  /* selected chip */
+  .chip.sel{
+    background:var(--primary);
+    border-color:var(--primary);
+    color:var(--white);
+    box-shadow:0 6px 14px rgba(255,142,114,.35);
+  }
+  .chip.sel .ico{background:rgba(255,255,255,.24);}
+  .chip.sel .ico svg{stroke:var(--white);}
+  .chip.sel .meta{color:rgba(255,255,255,.8);}
+  .chip.sel .check{
+    width:19px;height:19px;border-radius:50%;
+    background:var(--white);
+    display:flex;align-items:center;justify-content:center;
+    margin-left:2px;flex:0 0 auto;
+  }
+  .chip.sel .check svg{width:11px;height:11px;stroke:var(--primary);}
+
+  /* nearby cards (bigger) */
+  .near-card{
+    display:flex;align-items:center;gap:12px;
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-radius:20px;
+    padding:13px 14px;
+    box-shadow:0 3px 10px rgba(90,64,56,.05);
+    margin-bottom:9px;
+  }
+  .near-card .ico{
+    width:42px;height:42px;border-radius:14px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--bg);flex:0 0 auto;
+  }
+  .near-card .ico svg{width:20px;height:20px;}
+  .near-card .info{flex:1;min-width:0;}
+  .near-card .nm{font-weight:700;font-size:14.5px;color:var(--text);}
+  .near-card .sub{font-size:11.5px;color:var(--subText);margin-top:2px;}
+  .near-card .add{
+    width:30px;height:30px;border-radius:50%;
+    background:var(--bg);
+    border:1.5px solid var(--coralSofter);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--primary);font-weight:800;font-size:17px;flex:0 0 auto;
+  }
+  .near-card.sel{
+    background:var(--primary);border-color:var(--primary);
+    box-shadow:0 6px 16px rgba(255,142,114,.32);
+  }
+  .near-card.sel .ico{background:rgba(255,255,255,.22);}
+  .near-card.sel .ico svg{stroke:var(--white);}
+  .near-card.sel .nm{color:var(--white);}
+  .near-card.sel .sub{color:rgba(255,255,255,.82);}
+  .near-card.sel .add{background:var(--white);border-color:var(--white);}
+  .near-card.sel .add svg{width:13px;height:13px;stroke:var(--primary);}
+
+  /* bottom bar */
+  .bottombar{
+    position:absolute;left:0;right:0;bottom:0;
+    padding:14px 22px 30px;
+    background:linear-gradient(180deg,rgba(255,246,239,0) 0%,var(--bg) 32%);
+  }
+  .cta{
+    width:100%;
+    background:var(--primary);
+    color:var(--white);
+    font-family:'Jua',sans-serif;font-size:17px;
+    border:none;border-radius:18px;
+    padding:16px;
+    box-shadow:0 8px 20px rgba(255,142,114,.4);
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .cta.dim{background:var(--coralSofter);box-shadow:none;}
+  .cta .cnt{
+    background:rgba(255,255,255,.28);
+    border-radius:999px;padding:1px 9px;font-size:14px;
+  }
+
+  /* ---- Frame 3: diary view ---- */
+  .diary{padding:8px 22px;}
+  .diary-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:24px;
+    padding:20px 18px;
+    box-shadow:0 6px 18px rgba(90,64,56,.07);
+  }
+  .diary-date{font-family:'Jua',sans-serif;font-size:20px;color:var(--text);}
+  .diary-date small{font-family:'Gothic A1';font-weight:500;font-size:12px;color:var(--placeholder);display:block;margin-top:2px;}
+  .diary-body{
+    font-size:13.5px;line-height:1.7;color:var(--subText);
+    margin:16px 0 4px;
+  }
+  .place-head{
+    display:flex;align-items:center;gap:6px;
+    font-family:'Jua',sans-serif;font-size:14px;color:var(--text);
+    margin:20px 0 11px;
+  }
+  .place-head .pin{width:15px;height:15px;}
+  .place-chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .p-chip{
+    display:flex;align-items:center;gap:6px;
+    background:var(--primary);color:var(--white);
+    border-radius:999px;padding:8px 13px 8px 10px;
+    font-weight:700;font-size:12.5px;
+    box-shadow:0 4px 10px rgba(255,142,114,.3);
+  }
+  .p-chip .ico{
+    width:18px;height:18px;border-radius:50%;
+    background:rgba(255,255,255,.24);
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+  }
+  .p-chip .ico svg{width:11px;height:11px;stroke:var(--white);}
+  .photo-row{display:flex;gap:9px;margin-top:18px;}
+  .photo{flex:1;height:78px;border-radius:16px;background:var(--coralSofter);opacity:.55;}
+  .photo:nth-child(2){background:var(--star);opacity:.42;}
+  .toast{
+    margin:16px 22px 0;
+    background:var(--white);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:12px 16px;
+    display:flex;align-items:center;gap:9px;
+    box-shadow:0 6px 16px rgba(90,64,56,.08);
+    font-size:12.5px;font-weight:500;color:var(--subText);
+  }
+  .toast .badge{
+    width:24px;height:24px;border-radius:50%;
+    background:var(--primary);display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+  }
+  .toast .badge svg{width:13px;height:13px;stroke:var(--white);}
+  .toast b{color:var(--text);font-weight:700;}
+</style>
+</head>
+<body>
+
+<div class="page-title">장소 추가 · B안 — 원탭 추천</div>
+<div class="page-sub">검색 대신 탭 한 번. 최근·단골·근처 추천을 탭하면 바로 담긴다.</div>
+
+<div class="stage">
+
+  <!-- ===================== FRAME 1 : 기본(추천 섹션) ===================== -->
+  <div class="frame-wrap">
+    <div class="phone">
+      <div class="statusbar">
+        <span>9:41</span>
+        <div class="icons">
+          <!-- signal -->
+          <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#5A4038"/><rect x="4.5" y="4.5" width="3" height="7.5" rx="1" fill="#5A4038"/><rect x="9" y="2" width="3" height="10" rx="1" fill="#5A4038"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#5A4038"/></svg>
+          <!-- wifi -->
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#5A4038" stroke-width="1.6"><path d="M1 3.6a11 11 0 0 1 14 0"/><path d="M3.5 6.3a7 7 0 0 1 9 0"/><path d="M6 8.9a3 3 0 0 1 4 0"/></svg>
+          <!-- battery -->
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="#5A4038" stroke-opacity=".5"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#5A4038"/><rect x="23" y="4" width="1.5" height="4" rx="1" fill="#5A4038" fill-opacity=".5"/></svg>
+        </div>
+      </div>
+
+      <div class="sheet-head">
+        <div class="sheet-title">다녀온 장소 추가</div>
+        <div class="sheet-desc">늘 가던 곳이라면 탭 한 번이면 끝이에요</div>
+      </div>
+
+      <div class="search">
+        <svg class="mag" viewBox="0 0 20 20" fill="none" stroke="#B39685" stroke-width="2"><circle cx="8.5" cy="8.5" r="6"/><path d="M14 14l4 4"/></svg>
+        <span class="ph">직접 찾으려면 검색…</span>
+      </div>
+
+      <div class="body">
+        <!-- 최근 간 곳 -->
+        <div class="section-label"><span class="dot">🕑</span>최근 간 곳 <small>지난 일기에서</small></div>
+        <div class="chip-row">
+          <div class="chip">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h11v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z"/><path d="M15 9h2a2 2 0 0 1 0 4h-2"/><path d="M7 4v1M10 4v1"/></svg></span>
+            연남동 브릭카페<span class="plus">＋</span>
+          </div>
+          <div class="chip">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"><path d="M7 3v6a2 2 0 0 0 4 0V3M9 9v11"/><path d="M17 3c-1.5 1-2 3-2 5s.5 3 2 3v9"/></svg></span>
+            성수 파스타집<span class="plus">＋</span>
+          </div>
+          <div class="chip">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"><path d="M12 3s6 4 6 9a6 6 0 0 1-12 0c0-5 6-9 6-9z"/><path d="M12 20v0" opacity="0"/></svg></span>
+            서울숲<span class="plus">＋</span>
+          </div>
+          <div class="chip">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h11v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z"/><path d="M15 9h2a2 2 0 0 1 0 4h-2"/><path d="M7 4v1M10 4v1"/></svg></span>
+            망원 커피룸<span class="plus">＋</span>
+          </div>
+        </div>
+
+        <!-- 자주 가는 곳 -->
+        <div class="section-label"><span class="dot">💛</span>자주 가는 곳 <small>우리 단골</small></div>
+        <div class="chip-row">
+          <div class="chip">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h11v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z"/><path d="M15 9h2a2 2 0 0 1 0 4h-2"/><path d="M7 4v1M10 4v1"/></svg></span>
+            동네 카페 온<span class="meta">12번</span>
+          </div>
+          <div class="chip">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M8 12h8M12 8v8" opacity="0"/><circle cx="12" cy="12" r="3.5"/></svg></span>
+            을지로 노가리집<span class="meta">8번</span>
+          </div>
+          <div class="chip">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"><path d="M12 3s6 4 6 9a6 6 0 0 1-12 0c0-5 6-9 6-9z"/></svg></span>
+            한강 잠원지구<span class="meta">6번</span>
+          </div>
+        </div>
+
+        <!-- 지금 근처 -->
+        <div class="section-label"><span class="dot">📍</span>지금 근처 <small>현재 위치 주변</small></div>
+        <div class="near-card">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h11v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z"/><path d="M15 9h2a2 2 0 0 1 0 4h-2"/><path d="M7 4v1M10 4v1"/></svg></span>
+          <div class="info"><div class="nm">모카골드 로스터리</div><div class="sub">카페 · 120m</div></div>
+          <div class="add">＋</div>
+        </div>
+        <div class="near-card">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"><path d="M7 3v6a2 2 0 0 0 4 0V3M9 9v11"/><path d="M17 3c-1.5 1-2 3-2 5s.5 3 2 3v9"/></svg></span>
+          <div class="info"><div class="nm">소반 한식당</div><div class="sub">음식점 · 210m</div></div>
+          <div class="add">＋</div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">① 기본 · 추천 칩 <span>탭할 준비 완료</span></div>
+  </div>
+
+  <!-- ===================== FRAME 2 : 선택됨 ===================== -->
+  <div class="frame-wrap">
+    <div class="phone">
+      <div class="statusbar">
+        <span>9:41</span>
+        <div class="icons">
+          <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#5A4038"/><rect x="4.5" y="4.5" width="3" height="7.5" rx="1" fill="#5A4038"/><rect x="9" y="2" width="3" height="10" rx="1" fill="#5A4038"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#5A4038"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#5A4038" stroke-width="1.6"><path d="M1 3.6a11 11 0 0 1 14 0"/><path d="M3.5 6.3a7 7 0 0 1 9 0"/><path d="M6 8.9a3 3 0 0 1 4 0"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="#5A4038" stroke-opacity=".5"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#5A4038"/><rect x="23" y="4" width="1.5" height="4" rx="1" fill="#5A4038" fill-opacity=".5"/></svg>
+        </div>
+      </div>
+
+      <div class="sheet-head">
+        <div class="sheet-title">다녀온 장소 추가</div>
+        <div class="sheet-desc">탭한 곳이 코럴로 담겼어요</div>
+      </div>
+
+      <div class="search">
+        <svg class="mag" viewBox="0 0 20 20" fill="none" stroke="#B39685" stroke-width="2"><circle cx="8.5" cy="8.5" r="6"/><path d="M14 14l4 4"/></svg>
+        <span class="ph">직접 찾으려면 검색…</span>
+      </div>
+
+      <div class="body">
+        <div class="section-label"><span class="dot">🕑</span>최근 간 곳 <small>지난 일기에서</small></div>
+        <div class="chip-row">
+          <div class="chip sel">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h11v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z"/><path d="M15 9h2a2 2 0 0 1 0 4h-2"/><path d="M7 4v1M10 4v1"/></svg></span>
+            연남동 브릭카페
+            <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+          </div>
+          <div class="chip">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"><path d="M7 3v6a2 2 0 0 0 4 0V3M9 9v11"/><path d="M17 3c-1.5 1-2 3-2 5s.5 3 2 3v9"/></svg></span>
+            성수 파스타집<span class="plus">＋</span>
+          </div>
+          <div class="chip sel">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M12 3s6 4 6 9a6 6 0 0 1-12 0c0-5 6-9 6-9z"/></svg></span>
+            서울숲
+            <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+          </div>
+          <div class="chip">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h11v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z"/><path d="M15 9h2a2 2 0 0 1 0 4h-2"/><path d="M7 4v1M10 4v1"/></svg></span>
+            망원 커피룸<span class="plus">＋</span>
+          </div>
+        </div>
+
+        <div class="section-label"><span class="dot">💛</span>자주 가는 곳 <small>우리 단골</small></div>
+        <div class="chip-row">
+          <div class="chip sel">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h11v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z"/><path d="M15 9h2a2 2 0 0 1 0 4h-2"/><path d="M7 4v1M10 4v1"/></svg></span>
+            동네 카페 온
+            <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+          </div>
+          <div class="chip">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="3.5"/></svg></span>
+            을지로 노가리집<span class="meta">8번</span>
+          </div>
+          <div class="chip">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"><path d="M12 3s6 4 6 9a6 6 0 0 1-12 0c0-5 6-9 6-9z"/></svg></span>
+            한강 잠원지구<span class="meta">6번</span>
+          </div>
+        </div>
+
+        <div class="section-label"><span class="dot">📍</span>지금 근처 <small>현재 위치 주변</small></div>
+        <div class="near-card">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h11v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z"/><path d="M15 9h2a2 2 0 0 1 0 4h-2"/><path d="M7 4v1M10 4v1"/></svg></span>
+          <div class="info"><div class="nm">모카골드 로스터리</div><div class="sub">카페 · 120m</div></div>
+          <div class="add">＋</div>
+        </div>
+      </div>
+
+      <div class="bottombar">
+        <button class="cta">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+          3곳 추가하기 <span class="cnt">3</span>
+        </button>
+      </div>
+    </div>
+    <div class="caption">② 선택됨 <span>탭 → 코럴 + 체크</span></div>
+  </div>
+
+  <!-- ===================== FRAME 3 : 일기에 반영 ===================== -->
+  <div class="frame-wrap">
+    <div class="phone">
+      <div class="statusbar">
+        <span>9:41</span>
+        <div class="icons">
+          <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#5A4038"/><rect x="4.5" y="4.5" width="3" height="7.5" rx="1" fill="#5A4038"/><rect x="9" y="2" width="3" height="10" rx="1" fill="#5A4038"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#5A4038"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#5A4038" stroke-width="1.6"><path d="M1 3.6a11 11 0 0 1 14 0"/><path d="M3.5 6.3a7 7 0 0 1 9 0"/><path d="M6 8.9a3 3 0 0 1 4 0"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="#5A4038" stroke-opacity=".5"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#5A4038"/><rect x="23" y="4" width="1.5" height="4" rx="1" fill="#5A4038" fill-opacity=".5"/></svg>
+        </div>
+      </div>
+
+      <div class="sheet-head">
+        <div class="sheet-title">오늘의 일기</div>
+        <div class="sheet-desc">장소가 일기에 담겼어요</div>
+      </div>
+
+      <div class="toast">
+        <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+        <span><b>3곳</b>이 다녀온 장소에 추가됐어요</span>
+      </div>
+
+      <div class="diary">
+        <div class="diary-card">
+          <div class="diary-date">7월 2일 수요일<small>맑음 · 우리의 234번째 날</small></div>
+          <div class="diary-body">
+            오후에 브릭카페에서 라떼 한 잔 하고, 서울숲 산책까지. 저녁엔 단골 카페 온에서 마무리한 완벽한 하루였어 🤍
+          </div>
+
+          <div class="place-head">
+            <svg class="pin" viewBox="0 0 24 24" fill="none" stroke="#FF8E72" stroke-width="2" stroke-linecap="round"><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+            다녀온 장소
+          </div>
+          <div class="place-chips">
+            <div class="p-chip">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"><path d="M4 8h11v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z"/><path d="M15 9h2a2 2 0 0 1 0 4h-2"/><path d="M7 4v1M10 4v1"/></svg></span>
+              연남동 브릭카페
+            </div>
+            <div class="p-chip">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"><path d="M12 3s6 4 6 9a6 6 0 0 1-12 0c0-5 6-9 6-9z"/></svg></span>
+              서울숲
+            </div>
+            <div class="p-chip">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"><path d="M4 8h11v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z"/><path d="M15 9h2a2 2 0 0 1 0 4h-2"/><path d="M7 4v1M10 4v1"/></svg></span>
+              동네 카페 온
+            </div>
+          </div>
+
+          <div class="photo-row">
+            <div class="photo"></div>
+            <div class="photo"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">③ 완료 <span>일기 장소 섹션에 코럴 칩</span></div>
+  </div>
+
+</div>
+</body>
+</html>
