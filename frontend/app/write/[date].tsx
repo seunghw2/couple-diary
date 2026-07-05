@@ -460,7 +460,10 @@ export default function WriteScreen() {
                     onPress={() => setMood(m.key)}
                     style={[styles.moodItem, on && [styles.moodSelected, { borderColor: c.primary }]]}
                   >
-                    <Icon name={m.icon} size={24} color={on ? c.primary : colors.subText} />
+                    <Text style={styles.moodEmoji}>{m.emoji}</Text>
+                    <Text style={[styles.moodLabel, on && { color: c.primary, fontWeight: '700' }]}>
+                      {m.label}
+                    </Text>
                   </Pressable>
                 );
               })}
@@ -901,17 +904,20 @@ const styles = StyleSheet.create({
   sectionLabel: { ...font.title },
   moodRow: { flexDirection: 'row', justifyContent: 'space-between' },
   moodItem: {
-    width: 48,
-    height: 48,
+    width: 52,
+    paddingVertical: 8,
     borderRadius: radius.md,
     backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 3,
     borderWidth: 2,
     borderColor: 'transparent',
     ...shadow,
   },
   moodSelected: { borderColor: colors.primary },
+  moodEmoji: { fontSize: 24, lineHeight: 28 },
+  moodLabel: { fontSize: 10, color: colors.subText },
 
   ratingCard: {
     marginTop: spacing.lg,

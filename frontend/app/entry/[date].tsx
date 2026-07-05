@@ -24,7 +24,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, entryApi, isLocked } from '../../lib/api';
 import { dDay, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
 import { confirmAsync, showAlert } from '../../lib/dialog';
-import { moodIcon } from '../../constants/content';
+import { moodEmoji, moodLabel } from '../../constants/content';
 import { useCoupleStore } from '../../store/useCoupleStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useNotifStore } from '../../store/useNotifStore';
@@ -631,10 +631,10 @@ function SideCard({
         {side.mood ? (
           <Pill tone="coral">
             <View style={styles.pillRow}>
-              {moodIcon(side.mood) ? (
-                <Icon name={moodIcon(side.mood)!} size={14} color={colors.text} />
+              {moodEmoji(side.mood) ? (
+                <Text style={styles.pillEmoji}>{moodEmoji(side.mood)}</Text>
               ) : null}
-              <Text style={styles.pillLabel}>기분</Text>
+              <Text style={styles.pillLabel}>{moodLabel(side.mood) ?? '기분'}</Text>
             </View>
           </Pill>
         ) : null}
@@ -748,6 +748,7 @@ const styles = StyleSheet.create({
   waitText: { ...font.body, color: colors.subText, textAlign: 'center', lineHeight: 22 },
 
   pillRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  pillEmoji: { fontSize: 13 },
   pillLabel: { ...font.label, color: colors.text },
 
   sideHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

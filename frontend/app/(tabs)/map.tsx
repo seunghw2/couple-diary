@@ -196,9 +196,7 @@ export default function MapScreen() {
             </Pressable>
           </View>
           <Text style={styles.sheetSub}>
-            {counts[selected] >= 2
-              ? `우리가 ${counts[selected]}번 다녀온 곳이에요 · 탭해서 자세히`
-              : '우리가 함께 다녀온 곳이에요 · 탭해서 자세히'}
+            {`${counts[selected] || 1}개의 추억이 있는 곳이에요.`}
           </Text>
         </View>
       )}
