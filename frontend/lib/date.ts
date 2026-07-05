@@ -67,6 +67,10 @@ export function timeAgo(iso: string | null | undefined): string {
 /** 해당 연/월(1~12)의 캘린더 그리드를 앞뒤 빈칸 포함해 생성. */
 export type CalendarCell = { date: string | null; day: number | null };
 
+/**
+ * 항상 6주(42칸) 고정 그리드. 달별 주 수(5/6)에 상관없이 높이가 일정하도록
+ * 앞뒤를 빈칸으로 패딩한다. 빈칸(date:null)은 렌더 시 비표시.
+ */
 export function buildMonthGrid(year: number, month: number): CalendarCell[] {
   const first = new Date(year, month - 1, 1);
   const startDow = first.getDay(); // 0=일
@@ -76,7 +80,7 @@ export function buildMonthGrid(year: number, month: number): CalendarCell[] {
   for (let d = 1; d <= daysInMonth; d++) {
     cells.push({ date: `${year}-${pad2(month)}-${pad2(d)}`, day: d });
   }
-  // 마지막 주 채우기 (7의 배수)
-  while (cells.length % 7 !== 0) cells.push({ date: null, day: null });
+  // 6주(42칸) 고정: 뒤쪽을 빈칸으로 채워 항상 같은 높이.
+  while (cells.length < 42) cells.push({ date: null, day: null });
   return cells;
 }

@@ -44,6 +44,21 @@ export default function CoupleConnectScreen() {
     })();
   }, []);
 
+  // 상대가 내 코드로 연결하면 이 화면이 멈춰 있으므로, 화면에 있는 동안
+  // 주기적으로 연결 상태를 재조회한다. coupled=true가 되면 _layout 가드가 홈으로 보냄.
+  useEffect(() => {
+    const POLL_MS = 4000;
+    const id = setInterval(() => {
+      // 이미 연결됐으면 더 폴링하지 않음(가드가 곧 이동시킴).
+      if (useAuthStore.getState().coupled) {
+        clearInterval(id);
+        return;
+      }
+      void useAuthStore.getState().bootstrap();
+    }, POLL_MS);
+    return () => clearInterval(id);
+  }, []);
+
   async function onCopy() {
     if (!myCode) return;
     await Clipboard.setStringAsync(myCode);

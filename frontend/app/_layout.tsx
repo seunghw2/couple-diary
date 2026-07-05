@@ -14,7 +14,7 @@ import { colors, font, spacing } from '../theme/theme';
 export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
-  const { status, coupled, bootstrap } = useAuthStore();
+  const { status, coupled, user, bootstrap } = useAuthStore();
   const { loaded: coupleLoaded, refresh: refreshCouple, reset: resetCouple } = useCoupleStore();
 
   // 앱 로드시 세션 확인 + 401 전역 핸들러 등록(토큰 만료 → 로그인 복귀)
@@ -37,10 +37,13 @@ export default function RootLayout() {
     }
   }, [status]);
 
-  // 커플 연결되면 알림 조회(연결 직후·복귀 포함). 미연결이면 비움.
+  // 커플 연결되면 커플 정보/알림 조회(연결 직후·복귀 포함). 미연결이면 비움.
+  // 상대가 원격으로 연결한 경우 polling이 coupled를 true로 바꾸므로 여기서 커플 데이터도 로드.
   useEffect(() => {
-    if (status === 'authenticated' && coupled) void useNotifStore.getState().fetch();
-    else useNotifStore.getState().reset();
+    if (status === 'authenticated' && coupled) {
+      void refreshCouple();
+      void useNotifStore.getState().fetch();
+    } else useNotifStore.getState().reset();
   }, [status, coupled]);
 
   // ── 백그라운드 복귀(active) 시: bootstrap 전체 재실행 금지, 데이터만 조용히 refetch ──
@@ -80,12 +83,19 @@ export default function RootLayout() {
       return;
     }
 
-    // authenticated: 커플 상태 확정 전에는 대기
+    // authenticated: 온보딩 미완료(생일 미설정)면 커플연결/홈 전에 온보딩으로.
+    const second = segs[1] as string | undefined;
+    const onOnboarding = inAuth && second === 'onboarding';
+    const needsOnboarding = !!user && !user.birthday;
+    if (needsOnboarding) {
+      if (!onOnboarding) router.replace('/(auth)/onboarding');
+      return;
+    }
+
+    // 커플 상태 확정 전에는 대기
     if (!coupleLoaded) return;
 
     const connected = coupled;
-    // 현재 세그먼트 파악
-    const second = segs[1] as string | undefined;
     const onConnectScreen = inAuth && second === 'couple-connect';
 
     if (!connected) {
@@ -93,7 +103,7 @@ export default function RootLayout() {
     } else if (inAuth) {
       router.replace('/(tabs)');
     }
-  }, [status, coupleLoaded, coupled, segments]);
+  }, [status, coupleLoaded, coupled, user, segments]);
 
   if (status === 'unknown') {
     return (
