@@ -35,9 +35,6 @@ public class User {
     @Column(name = "avatar_color")
     private String avatarColor;
 
-    @Column(name = "profile_image_url")
-    private String profileImageUrl;
-
     /** 카카오 회원번호(문자열 보관). 카카오로 로그인한 유저만 채워진다. */
     @Column(name = "kakao_id")
     private String kakaoId;

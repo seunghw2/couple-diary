@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -12,10 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
-import { authApi, uploadPhoto } from '../lib/api';
-import { API_URL } from '../lib/config';
-import { confirmAsync, showAlert } from '../lib/dialog';
+import { authApi } from '../lib/api';
+import { confirmAsync } from '../lib/dialog';
 import { todayISO } from '../lib/date';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCoupleStore } from '../store/useCoupleStore';
@@ -51,63 +48,6 @@ export default function AccountScreen() {
   const [bdayMsg, setBdayMsg] = useState<string | null>(null);
   const [bdayPickerOpen, setBdayPickerOpen] = useState(false);
   const [annivPickerOpen, setAnnivPickerOpen] = useState(false);
-
-  const [photoSaving, setPhotoSaving] = useState(false);
-
-  const profileUri = user?.profileImageUrl
-    ? user.profileImageUrl.startsWith('http')
-      ? user.profileImageUrl
-      : `${API_URL}${user.profileImageUrl}`
-    : null;
-  const avatarInitial = (user?.nickname ?? '?').trim().charAt(0).toUpperCase() || '?';
-
-  /** 갤러리에서 사진 선택 → 업로드 → /api/me 반영. */
-  async function onPickProfile() {
-    if (photoSaving) return;
-    try {
-      if (Platform.OS !== 'web') {
-        const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (!perm.granted) {
-          showAlert('사진 접근 권한이 필요해요', '설정에서 사진 접근을 허용해 주세요.');
-          return;
-        }
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        quality: 0.7,
-      });
-      if (result.canceled || result.assets.length === 0) return;
-      const asset = result.assets[0];
-      setPhotoSaving(true);
-      const { url } = await uploadPhoto({
-        uri: asset.uri,
-        fileName: asset.fileName,
-        mimeType: asset.mimeType,
-      });
-      const updated = await authApi.updateMe({ profileImageUrl: url });
-      setUser(updated);
-    } catch {
-      showAlert('프로필 사진 변경에 실패했어요', '잠시 후 다시 시도해 주세요.');
-    } finally {
-      setPhotoSaving(false);
-    }
-  }
-
-  /** 프로필 사진 삭제(빈 문자열로 초기화). */
-  async function onDeleteProfile() {
-    if (photoSaving) return;
-    const ok = await confirmAsync('프로필 사진 삭제', '프로필 사진을 삭제할까요?', '삭제', true);
-    if (!ok) return;
-    setPhotoSaving(true);
-    try {
-      const updated = await authApi.updateMe({ profileImageUrl: '' });
-      setUser(updated);
-    } catch {
-      showAlert('삭제에 실패했어요', '잠시 후 다시 시도해 주세요.');
-    } finally {
-      setPhotoSaving(false);
-    }
-  }
 
   async function onSaveBirthday() {
     const v = birthday.trim();
@@ -189,38 +129,7 @@ export default function AccountScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Card style={styles.photoCard}>
-            <Text style={styles.label}>프로필 사진</Text>
-            <View style={styles.avatarWrap}>
-              {profileUri ? (
-                <Image source={{ uri: profileUri }} style={styles.avatar} />
-              ) : (
-                <View style={[styles.avatar, styles.avatarFallback, { backgroundColor: c.primary }]}>
-                  <Text style={styles.avatarText}>{avatarInitial}</Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.photoBtnRow}>
-              <Button
-                label={profileUri ? '사진 변경' : '사진 추가'}
-                variant="soft"
-                onPress={onPickProfile}
-                loading={photoSaving}
-                style={styles.photoBtn}
-              />
-              {profileUri ? (
-                <Button
-                  label="삭제"
-                  variant="ghost"
-                  onPress={onDeleteProfile}
-                  disabled={photoSaving}
-                  style={styles.photoBtn}
-                />
-              ) : null}
-            </View>
-          </Card>
-
-          <Card style={{ marginTop: spacing.lg }}>
+          <Card>
             <Text style={styles.label}>닉네임</Text>
             <Text style={styles.sub}>{user?.email ?? ''}</Text>
             <View style={styles.nickRow}>
@@ -311,13 +220,6 @@ const styles = StyleSheet.create({
   topTitle: { ...font.h2 },
   scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.xxl * 2 },
   label: { ...font.label, marginBottom: spacing.xs },
-  photoCard: { alignItems: 'center' },
-  avatarWrap: { marginTop: spacing.md, marginBottom: spacing.md },
-  avatar: { width: 96, height: 96, borderRadius: 48, backgroundColor: colors.border },
-  avatarFallback: { alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: colors.white, fontSize: 40, fontWeight: '800' },
-  photoBtnRow: { flexDirection: 'row', gap: spacing.sm, alignSelf: 'stretch' },
-  photoBtn: { flex: 1, height: 48, paddingHorizontal: spacing.lg },
   hint: { ...font.caption, marginTop: 2, marginBottom: spacing.xs },
   value: { ...font.title },
   sub: { ...font.caption, marginTop: 2 },

@@ -112,7 +112,7 @@ export async function uploadPhoto(image: PickedImage): Promise<{ url: string }> 
 // ─────────────────────────── 타입 (백엔드 계약) ───────────────────────────
 // JSON은 jackson non_null → null 필드는 아예 생략됨. 그래서 전부 optional.
 
-/** 내 계정 요약 (GET/PATCH /api/me, 로그인 응답). */
+/** 내 계정 요약 (GET/PATCH /api/me, 로그인 응답). profileImage 없음. */
 export type UserSummary = {
   id: number;
   email: string;
@@ -120,7 +120,6 @@ export type UserSummary = {
   avatarColor: string;
   birthday?: string; // YYYY-MM-DD
   inviteCode: string;
-  profileImageUrl?: string; // 상대경로(/files/...). 없으면 미설정.
 };
 
 /** 상대 요약. */
@@ -128,7 +127,6 @@ export type PartnerSummary = {
   id: number;
   nickname: string;
   avatarColor: string;
-  profileImageUrl?: string; // 상대경로(/files/...). 없으면 미설정.
 };
 
 export type DevLoginResponse = { accessToken: string; user: UserSummary };
@@ -258,9 +256,8 @@ export const authApi = {
   kakaoLogin: (code: string, redirectUri: string) =>
     api.post<AuthResponse>('/api/auth/kakao', { code, redirectUri }, false),
   me: () => api.get<MeResponse>('/api/me'),
-  updateMe: (
-    patch: Partial<Pick<UserSummary, 'nickname' | 'avatarColor' | 'birthday' | 'profileImageUrl'>>
-  ) => api.patch<UserSummary>('/api/me', patch),
+  updateMe: (patch: Partial<Pick<UserSummary, 'nickname' | 'avatarColor' | 'birthday'>>) =>
+    api.patch<UserSummary>('/api/me', patch),
 };
 
 /** 계산된 기념일 항목 (GET /api/couple/anniversaries). */
