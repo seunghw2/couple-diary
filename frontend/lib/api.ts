@@ -281,6 +281,14 @@ export const locationApi = {
     api.get<{ locations: string[]; counts?: LocationCount[] }>('/api/locations'),
 };
 
+/** 카카오 로컬 키워드 검색 결과(백엔드 프록시). */
+export type PlaceResult = { name: string; address: string; category?: string };
+
+export const placeApi = {
+  search: (query: string) =>
+    api.get<{ places: PlaceResult[] }>(`/api/places?query=${encodeURIComponent(query)}`),
+};
+
 // ─────────────────────────── 알림 (인앱) ───────────────────────────
 
 export type NotificationType =

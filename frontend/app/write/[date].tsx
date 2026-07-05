@@ -29,6 +29,7 @@ import { showAlert } from '../../lib/dialog';
 import { invalidateAfterMutation } from '../../store/useDataCache';
 import { MOODS, TEMPLATE_PROMPTS } from '../../constants/content';
 import { Button, Card, Icon, PhotoThumb, StarRating } from '../../components/ui';
+import { KakaoPlaceSearch } from '../../components/KakaoPlaceSearch';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
 type Step = 'mode' | 'form';
@@ -81,6 +82,7 @@ export default function WriteScreen() {
   const [locations, setLocations] = useState<string[]>([]); // 다중 장소 칩
   const [locationInput, setLocationInput] = useState('');
   const [prevLocations, setPrevLocations] = useState<string[]>([]); // 이전 장소 추천
+  const [placeSearchOpen, setPlaceSearchOpen] = useState(false); // 카카오 장소 검색 시트
   const [photoUrls, setPhotoUrls] = useState<string[]>([]); // 업로드 완료된 /files/... 경로
   const [uploading, setUploading] = useState(false);
 
@@ -477,7 +479,15 @@ export default function WriteScreen() {
                 ))}
               </View>
             ) : null}
-            {/* 입력 + 추가 */}
+            {/* 카카오맵에서 검색 */}
+            <Pressable
+              style={[styles.mapSearchBtn, { borderColor: c.primary }]}
+              onPress={() => setPlaceSearchOpen(true)}
+            >
+              <Icon name="map" size={18} color={c.primary} />
+              <Text style={[styles.mapSearchText, { color: c.primary }]}>카카오맵에서 장소 찾기</Text>
+            </Pressable>
+            {/* 직접 입력 + 추가 */}
             <View style={styles.locationRow}>
               <Icon name="add-circle-outline" size={18} color={colors.subText} />
               <TextInput
@@ -485,7 +495,7 @@ export default function WriteScreen() {
                 onChangeText={setLocationInput}
                 onSubmitEditing={() => addLocation(locationInput)}
                 returnKeyType="done"
-                placeholder="장소 추가 (예: 성수동 · 대림창고)"
+                placeholder="직접 입력 (예: 성수동 · 대림창고)"
                 placeholderTextColor={colors.placeholder}
                 style={styles.locationInput}
               />
@@ -534,6 +544,13 @@ export default function WriteScreen() {
           </ScrollView>
         )}
       </KeyboardAvoidingView>
+
+      <KakaoPlaceSearch
+        visible={placeSearchOpen}
+        onClose={() => setPlaceSearchOpen(false)}
+        onSelect={addLocation}
+        alreadyAdded={locations}
+      />
     </SafeAreaView>
   );
 }
@@ -893,8 +910,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.card,
   },
+  mapSearchBtn: {
+    marginTop: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    height: 48,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+  },
+  mapSearchText: { ...font.body, fontWeight: '700' },
   locationRow: {
-    marginTop: spacing.lg,
+    marginTop: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
