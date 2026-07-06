@@ -5,6 +5,7 @@ import { tokenStore } from '../lib/tokenStore';
 // 순환참조지만 두 스토어 모두 useAuthStore를 런타임(함수 내부)에서만 쓰므로 안전.
 import { useCoupleStore } from './useCoupleStore';
 import { useNotifStore } from './useNotifStore';
+import { useQuestionStore } from './useQuestionStore';
 
 // 동시 bootstrap 중복 방지(커플연결 폴링·pull-to-refresh·resume가 겹쳐도 me() 한 번만).
 let bootstrapInflight: Promise<void> | null = null;
@@ -94,6 +95,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     // 커플·알림 스토어도 즉시 초기화(가드 이펙트 타이밍에 의존하지 않게).
     useCoupleStore.getState().reset();
     useNotifStore.getState().reset();
+    useQuestionStore.getState().reset();
   },
 
   setUser: (user) => set({ user }),

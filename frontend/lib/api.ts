@@ -283,6 +283,109 @@ export const questionApi = {
   list: () => api.get<QuestionResponse[]>('/api/questions'),
 };
 
+// ─────────────────────────── 오늘의 질문 (편지함) ───────────────────────────
+// 백엔드 계약: base path /api/questions. jackson non_null → null 필드는 생략, 전부 optional.
+// (위 questionApi.list = 일기 작성용 질문 풀. 이 dailyQuestionApi = '오늘의 질문' 편지함 기능.)
+
+/** 오늘의 질문 진행 상태. */
+export type TodayQuestionState =
+  | 'BEFORE_ARRIVAL' // 아직 도착 시간 전
+  | 'NEEDS_CHOICE' // 봉투 2개 중 하나 골라야 함
+  | 'NEEDS_ANSWER' // 질문 확정됨, 내 답장 필요
+  | 'WAITING_PARTNER' // 내 답 봉인됨, 상대 대기
+  | 'OPENED'; // 둘 다 답해 열림
+
+/** 봉투(선택지) 한 장. */
+export type QuestionChoice = { id: number; text: string; slot: number };
+
+/** 확정된 오늘의 질문. */
+export type DailyQuestion = { id: number; text: string };
+
+/** 답장(내/상대 공통). sealed=봉인(내용 숨김). */
+export type QuestionAnswer = {
+  id: number;
+  text?: string;
+  sealed: boolean;
+  /** 상대가 내 답에 하트를 눌렀는지 (myAnswer 쪽). */
+  reactedByPartner?: boolean;
+  /** 내가 상대 답에 하트를 눌렀는지 (partnerAnswer 쪽). */
+  reactedByMe?: boolean;
+};
+
+/** GET /api/questions/today. */
+export type TodayQuestion = {
+  date: string; // YYYY-MM-DD
+  state: TodayQuestionState;
+  arrivalTime: string; // HH:mm
+  coupled: boolean;
+  choices?: QuestionChoice[];
+  question?: DailyQuestion;
+  chosenBy?: { id: number; nickname: string };
+  chosenByMe?: boolean;
+  myAnswer?: QuestionAnswer;
+  partnerAnswer?: QuestionAnswer;
+  partnerSealed?: boolean;
+  streak: number;
+  missedYesterday?: boolean;
+};
+
+/** GET /api/questions/archive 리스트 항목. */
+export type ArchiveItem = {
+  date: string; // YYYY-MM-DD
+  questionText: string;
+  opened: boolean;
+  chosenByNickname?: string;
+};
+
+/** GET /api/questions/archive. */
+export type ArchiveResponse = {
+  items: ArchiveItem[];
+  nextCursor?: string;
+  totalOpened: number;
+  streak: number;
+  milestone?: string;
+};
+
+/** GET /api/questions/archive/{date}. */
+export type ArchiveDetail = {
+  date: string; // YYYY-MM-DD
+  questionText: string;
+  chosenBy?: { id: number; nickname: string };
+  opened: boolean;
+  myAnswer?: { text?: string; sealed: boolean };
+  partnerAnswer?: { text?: string; sealed: boolean };
+  partnerNickname?: string;
+};
+
+/** GET/PUT /api/questions/settings. */
+export type QuestionSettings = {
+  notifyOn: boolean;
+  arrivalTime: string; // HH:mm
+  showStreak: boolean;
+  milestoneOn: boolean;
+};
+
+export const dailyQuestionApi = {
+  today: () => api.get<TodayQuestion>('/api/questions/daily/today'),
+  choose: (questionId: number) =>
+    api.post<TodayQuestion>('/api/questions/daily/today/choose', { questionId }),
+  answer: (text: string) => api.post<TodayQuestion>('/api/questions/daily/today/answer', { text }),
+  /** 상대 답장에 하트 토글. 백엔드가 단일 POST로 토글(추가/해제), 204 반환. */
+  react: (answerId: number) =>
+    api.post<void>(`/api/questions/daily/answers/${answerId}/react`),
+  archive: (cursor?: string, limit?: number) => {
+    const params = new URLSearchParams();
+    if (cursor) params.set('cursor', cursor);
+    if (limit != null) params.set('limit', String(limit));
+    const qs = params.toString();
+    return api.get<ArchiveResponse>(`/api/questions/daily/archive${qs ? `?${qs}` : ''}`);
+  },
+  archiveDetail: (date: string) => api.get<ArchiveDetail>(`/api/questions/daily/archive/${date}`),
+  getSettings: () => api.get<QuestionSettings>('/api/questions/daily/settings'),
+  updateSettings: (patch: QuestionSettings) =>
+    api.put<QuestionSettings>('/api/questions/daily/settings', patch),
+};
+
 /** 이전에 쓴 장소 추천 목록. */
 /** 장소별 방문 일수(지도 핀 뱃지용). */
 export type LocationCount = { name: string; count: number };
