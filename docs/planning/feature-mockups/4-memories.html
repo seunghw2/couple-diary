@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 추억 다시보기</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  body {
+    background: #e9e9ec;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 40px 0;
+  }
+
+  /* Phone frame */
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #1c1c1e;
+    border-radius: 56px;
+    padding: 14px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.35);
+    position: relative;
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: #FBF3EE;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Status bar */
+  .statusbar {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    padding-top: 8px;
+    flex-shrink: 0;
+    color: #3B2D28;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .statusbar .icons { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+  .battery {
+    width: 24px; height: 12px; border: 1.5px solid #3B2D28;
+    border-radius: 3px; position: relative; display: inline-block;
+  }
+  .battery::after {
+    content: ''; position: absolute; right: -3px; top: 3px;
+    width: 2px; height: 4px; background: #3B2D28; border-radius: 0 1px 1px 0;
+  }
+  .battery::before {
+    content: ''; position: absolute; left: 1.5px; top: 1.5px; bottom: 1.5px;
+    width: 15px; background: #3B2D28; border-radius: 1px;
+  }
+
+  /* Header */
+  .header {
+    padding: 6px 24px 14px;
+    flex-shrink: 0;
+  }
+  .logo {
+    font-size: 17px; font-weight: 800; color: #F47C63;
+    letter-spacing: -.3px; margin-bottom: 14px;
+  }
+  .header h1 {
+    font-size: 27px; font-weight: 800; color: #3B2D28;
+    letter-spacing: -.6px;
+  }
+  .header .sub {
+    font-size: 13px; color: #9B8B84; margin-top: 5px; font-weight: 500;
+  }
+
+  /* Scroll area */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 20px 20px;
+  }
+  .content::-webkit-scrollbar { display: none; }
+
+  /* Section label */
+  .section-label {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 13px; font-weight: 800; color: #F47C63;
+    margin: 16px 4px 12px; letter-spacing: -.2px;
+  }
+  .section-label .pill {
+    background: #FFE7DF; color: #F47C63;
+    font-size: 11px; font-weight: 700; padding: 3px 9px;
+    border-radius: 20px; letter-spacing: 0;
+  }
+
+  /* On-this-day card */
+  .memory-card {
+    background: #fff; border-radius: 22px; overflow: hidden;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+    margin-bottom: 20px;
+  }
+  .memory-photo {
+    height: 168px; position: relative;
+    background: linear-gradient(135deg, #FFC9A8 0%, #F47C63 55%, #E85D7A 100%);
+  }
+  .memory-photo::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 72% 30%, rgba(255,255,255,.35) 0%, transparent 40%),
+      radial-gradient(circle at 20% 80%, rgba(255,255,255,.18) 0%, transparent 45%);
+  }
+  .memory-photo .date-badge {
+    position: absolute; top: 14px; left: 14px; z-index: 2;
+    background: rgba(28,20,18,.42); backdrop-filter: blur(4px);
+    color: #fff; font-size: 12px; font-weight: 700;
+    padding: 6px 12px; border-radius: 20px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .memory-photo .year-tag {
+    position: absolute; bottom: 14px; right: 14px; z-index: 2;
+    background: #fff; color: #F47C63;
+    font-size: 12px; font-weight: 800;
+    padding: 5px 11px; border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  }
+
+  .memory-body { padding: 16px 18px 18px; }
+
+  /* Two moods side by side (교환일기 차별화) */
+  .moods {
+    display: flex; gap: 10px; margin-bottom: 14px;
+  }
+  .mood {
+    flex: 1; background: #FFF1EC; border-radius: 16px;
+    padding: 12px 13px; position: relative;
+  }
+  .mood.hers { background: #FFF1EC; }
+  .mood.his { background: #F3F0FF; }
+  .mood .who {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 7px;
+  }
+  .mood .avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+  }
+  .mood.hers .avatar { background: #F47C63; }
+  .mood.his .avatar { background: #8B7FD4; }
+  .mood .name { font-size: 11px; font-weight: 700; color: #9B8B84; }
+  .mood .emo { font-size: 15px; font-weight: 800; color: #3B2D28; display: flex; align-items: center; gap: 5px; }
+  .mood .line {
+    font-size: 12px; color: #6b5b54; margin-top: 6px; line-height: 1.45;
+  }
+
+  .memory-quote {
+    font-size: 14px; color: #3B2D28; line-height: 1.55;
+    font-weight: 500; padding: 2px 2px;
+  }
+  .memory-actions {
+    display: flex; gap: 10px; margin-top: 15px;
+  }
+  .btn {
+    flex: 1; text-align: center; padding: 11px;
+    border-radius: 14px; font-size: 13px; font-weight: 700;
+    border: none;
+  }
+  .btn.primary { background: #F47C63; color: #fff; }
+  .btn.ghost { background: #FFE7DF; color: #F47C63; }
+
+  /* Highlight row (기념일 회고) */
+  .highlight {
+    display: flex; align-items: center; gap: 13px;
+    background: #fff; border-radius: 22px; padding: 15px 16px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+    margin-bottom: 20px;
+  }
+  .highlight .thumb {
+    width: 54px; height: 54px; border-radius: 16px; flex-shrink: 0;
+    background: linear-gradient(135deg, #FFB3C1 0%, #F47C63 100%);
+  }
+  .highlight .txt { flex: 1; }
+  .highlight .t1 { font-size: 14px; font-weight: 800; color: #3B2D28; }
+  .highlight .t2 { font-size: 12px; color: #9B8B84; margin-top: 3px; }
+  .highlight .arrow { color: #C9BAB2; font-size: 20px; font-weight: 700; }
+
+  /* Time capsule card */
+  .capsule {
+    background: linear-gradient(160deg, #3B2D28 0%, #5a3f38 100%);
+    border-radius: 22px; padding: 20px 20px 22px;
+    box-shadow: 0 8px 24px rgba(80,45,35,.28);
+    position: relative; overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .capsule::before {
+    content: ''; position: absolute; top: -40px; right: -30px;
+    width: 130px; height: 130px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(244,124,99,.35) 0%, transparent 70%);
+  }
+  .capsule .cap-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    position: relative; z-index: 2;
+  }
+  .cap-lock {
+    width: 46px; height: 46px; border-radius: 14px;
+    background: rgba(244,124,99,.22);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 21px;
+  }
+  .cap-dday {
+    background: #F47C63; color: #fff;
+    font-size: 12px; font-weight: 800;
+    padding: 6px 12px; border-radius: 20px;
+  }
+  .capsule .cap-title {
+    color: #fff; font-size: 18px; font-weight: 800;
+    margin-top: 15px; position: relative; z-index: 2;
+    letter-spacing: -.3px;
+  }
+  .capsule .cap-desc {
+    color: #d8c5bd; font-size: 13px; margin-top: 6px; line-height: 1.5;
+    position: relative; z-index: 2;
+  }
+  .cap-open-at {
+    display: flex; align-items: center; gap: 7px;
+    margin-top: 16px; position: relative; z-index: 2;
+  }
+  .cap-open-at .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: #F47C63;
+  }
+  .cap-open-at span {
+    color: #FFC9A8; font-size: 12px; font-weight: 700;
+  }
+  /* Two sealed slots showing both wrote */
+  .cap-seals {
+    display: flex; gap: 8px; margin-top: 16px;
+    position: relative; z-index: 2;
+  }
+  .seal {
+    flex: 1; background: rgba(255,255,255,.08);
+    border: 1px dashed rgba(255,255,255,.2);
+    border-radius: 12px; padding: 9px 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .seal .s-av {
+    width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  }
+  .seal.hers .s-av { background: #F47C63; }
+  .seal.his .s-av { background: #8B7FD4; }
+  .seal .s-txt { color: #e8d9d3; font-size: 11px; font-weight: 600; }
+  .seal .s-txt b { color: #fff; display: block; font-size: 11px; }
+
+  .cap-cta {
+    display: block; width: 100%; margin-top: 16px;
+    background: #F47C63; color: #fff; border: none;
+    padding: 13px; border-radius: 14px;
+    font-size: 14px; font-weight: 800;
+    position: relative; z-index: 2;
+  }
+  .cap-hint {
+    text-align: center; font-size: 11px; color: #9B8B84;
+    margin-top: 14px;
+  }
+
+  /* Bottom tab bar */
+  .tabbar {
+    height: 84px; background: #fff; flex-shrink: 0;
+    border-top: 1px solid #F3E6DF;
+    display: flex; justify-content: space-around;
+    padding-top: 10px;
+    box-shadow: 0 -4px 20px rgba(180,120,100,.06);
+  }
+  .tab {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 600; color: #C9BAB2;
+    flex: 1;
+  }
+  .tab.active { color: #F47C63; }
+  .tab .ico { font-size: 21px; }
+  .home-indicator {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px; border-radius: 3px; background: #1c1c1e;
+    opacity: .85;
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="screen">
+
+      <!-- Status bar -->
+      <div class="statusbar">
+        <span>9:41</span>
+        <div class="icons">
+          <span>&#9679;&#9679;&#9679;</span>
+          <span>&#128246;</span>
+          <span class="battery"></span>
+        </div>
+      </div>
+
+      <!-- Header -->
+      <div class="header">
+        <div class="logo">love today &#9829;</div>
+        <h1>추억 다시보기</h1>
+        <div class="sub">2026년 7월 2일 · 오늘의 기억을 꺼내볼까요</div>
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+
+        <!-- On this day -->
+        <div class="section-label">
+          &#128338; 1년 전 오늘
+          <span class="pill">On this day</span>
+        </div>
+
+        <div class="memory-card">
+          <div class="memory-photo">
+            <div class="date-badge">&#128197; 2025. 7. 2 · 수요일</div>
+            <div class="year-tag">1년 전</div>
+          </div>
+          <div class="memory-body">
+
+            <!-- 서로의 그날 감정 나란히 (교환일기 차별화) -->
+            <div class="moods">
+              <div class="mood hers">
+                <div class="who">
+                  <div class="avatar">&#127801;</div>
+                  <div class="name">지은</div>
+                </div>
+                <div class="emo">&#128522; 설렘</div>
+                <div class="line">"드디어 같이 첫 여행!"</div>
+              </div>
+              <div class="mood his">
+                <div class="who">
+                  <div class="avatar">&#11088;</div>
+                  <div class="name">현우</div>
+                </div>
+                <div class="emo">&#128513; 신남</div>
+                <div class="line">"바다 진짜 좋았다"</div>
+              </div>
+            </div>
+
+            <div class="memory-quote">
+              강릉 바다에서 하루종일 걸었던 날. 소금빵 나눠먹고 파도 소리 들으며 앉아있었지.
+            </div>
+
+            <div class="memory-actions">
+              <button class="btn primary">그날 일기 열기</button>
+              <button class="btn ghost">&#9829; 다시 아껴두기</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Anniversary highlight -->
+        <div class="highlight">
+          <div class="thumb"></div>
+          <div class="txt">
+            <div class="t1">우리 100일엔 이랬어</div>
+            <div class="t2">2025. 4. 18 · 첫 손편지를 주고받은 날</div>
+          </div>
+          <div class="arrow">&#8250;</div>
+        </div>
+
+        <!-- Time capsule -->
+        <div class="section-label">
+          &#128231; 곧 열릴 타임캡슐
+        </div>
+
+        <div class="capsule">
+          <div class="cap-top">
+            <div class="cap-lock">&#128274;</div>
+            <div class="cap-dday">D-14</div>
+          </div>
+          <div class="cap-title">1주년에게 보내는 편지</div>
+          <div class="cap-desc">둘이 함께 봉인한 편지가 곧 열려요.<br>그날의 우리에게 무슨 말을 남겼을까요?</div>
+
+          <div class="cap-open-at">
+            <span class="dot"></span>
+            <span>2026. 7. 16 오전 9시 개봉 예정</span>
+          </div>
+
+          <!-- 커플 공동 봉인 (차별화) -->
+          <div class="cap-seals">
+            <div class="seal hers">
+              <div class="s-av"></div>
+              <div class="s-txt"><b>지은</b>봉인 완료</div>
+            </div>
+            <div class="seal his">
+              <div class="s-av"></div>
+              <div class="s-txt"><b>현우</b>봉인 완료</div>
+            </div>
+          </div>
+
+          <button class="cap-cta">&#128274; 열리는 날 알림 받기</button>
+        </div>
+
+        <div class="cap-hint">새 타임캡슐 만들기 &#43;</div>
+
+      </div>
+
+      <!-- Tab bar -->
+      <div class="tabbar">
+        <div class="tab active">
+          <div class="ico">&#128197;</div>
+          <span>달력</span>
+        </div>
+        <div class="tab">
+          <div class="ico">&#128506;</div>
+          <span>지도</span>
+        </div>
+        <div class="tab">
+          <div class="ico">&#9881;</div>
+          <span>설정</span>
+        </div>
+      </div>
+
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+</body>
+</html>

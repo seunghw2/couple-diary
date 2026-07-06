@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 홈 화면 위젯</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background:#e9eaec;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:40px 0;
+  }
+
+  /* ===== Phone frame ===== */
+  .phone {
+    position:relative;
+    width:390px; height:844px;
+    background:#1c1c1e;
+    border-radius:56px;
+    padding:14px;
+    box-shadow:0 40px 90px rgba(0,0,0,.35), 0 0 0 2px #2a2a2c;
+  }
+  .screen {
+    position:relative;
+    width:100%; height:100%;
+    border-radius:44px;
+    overflow:hidden;
+    /* iOS home wallpaper: warm cream gradient to match brand */
+    background:
+      radial-gradient(120% 80% at 20% 0%, #FFE7DF 0%, rgba(255,231,223,0) 55%),
+      radial-gradient(120% 90% at 90% 30%, #FFF1EC 0%, rgba(255,241,236,0) 50%),
+      linear-gradient(160deg, #FBF3EE 0%, #F6E5DD 55%, #F0D6CB 100%);
+  }
+
+  /* Dynamic island */
+  .island {
+    position:absolute; top:12px; left:50%; transform:translateX(-50%);
+    width:118px; height:34px; background:#000; border-radius:20px; z-index:50;
+  }
+
+  /* Status bar */
+  .statusbar {
+    position:absolute; top:0; left:0; right:0; height:54px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 30px 0; z-index:40;
+    color:#3B2D28; font-weight:700; font-size:15px;
+  }
+  .sb-right { display:flex; align-items:center; gap:7px; font-size:14px; }
+  .sb-batt { width:24px; height:12px; border:1.5px solid #3B2D28; border-radius:3px; position:relative; padding:1.5px; }
+  .sb-batt::after { content:""; position:absolute; right:-3px; top:3px; width:2px; height:6px; background:#3B2D28; border-radius:0 2px 2px 0; }
+  .sb-batt i { display:block; height:100%; width:75%; background:#3B2D28; border-radius:1px; }
+
+  /* Home content */
+  .home {
+    position:absolute; top:64px; left:0; right:0; bottom:0;
+    padding:8px 22px 0;
+    display:flex; flex-direction:column;
+  }
+
+  /* Widget row (large photo + right column) */
+  .widget-row { display:flex; gap:16px; margin-bottom:16px; }
+
+  .widget {
+    background:#fff;
+    border-radius:22px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+    overflow:hidden;
+    position:relative;
+  }
+
+  /* --- Large photo widget (Locket-style) --- */
+  .w-photo {
+    width:170px; height:170px;
+    background:
+      radial-gradient(90% 70% at 30% 25%, #ffd9b0 0%, rgba(255,217,176,0) 60%),
+      linear-gradient(150deg,#F47C63 0%, #e85f45 45%, #c9452f 100%);
+    display:flex; flex-direction:column; justify-content:flex-end;
+  }
+  .w-photo .sun {
+    position:absolute; top:26px; right:30px; width:44px; height:44px;
+    border-radius:50%;
+    background:radial-gradient(circle,#fff6da 0%, #ffdf8f 60%, rgba(255,223,143,0) 72%);
+  }
+  .w-photo .hills {
+    position:absolute; bottom:44px; left:0; right:0; height:60px;
+    background:
+      radial-gradient(80% 100% at 20% 100%, #b03a26 0%, rgba(176,58,38,0) 60%),
+      radial-gradient(80% 100% at 75% 100%, #a83420 0%, rgba(168,52,32,0) 60%);
+  }
+  .w-photo .caption {
+    position:relative; z-index:2;
+    padding:9px 12px 12px;
+    background:linear-gradient(transparent, rgba(0,0,0,.28));
+    color:#fff;
+  }
+  .w-photo .cap-name { font-size:12px; font-weight:800; letter-spacing:-.2px; display:flex; align-items:center; gap:5px; }
+  .w-photo .cap-name .dot { width:6px; height:6px; border-radius:50%; background:#7CF29A; box-shadow:0 0 6px #7CF29A; }
+  .w-photo .cap-time { font-size:10px; font-weight:600; opacity:.85; margin-top:2px; }
+
+  .right-col { display:flex; flex-direction:column; gap:16px; flex:1; }
+
+  /* --- D-day widget --- */
+  .w-dday {
+    height:77px;
+    background:linear-gradient(135deg,#FFF1EC 0%, #FFE7DF 100%);
+    padding:12px 14px;
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  .w-dday .label { font-size:10px; font-weight:700; color:#9B8B84; letter-spacing:.3px; }
+  .w-dday .big { font-size:26px; font-weight:800; color:#F47C63; line-height:1.05; letter-spacing:-1px; }
+  .w-dday .big small { font-size:12px; color:#3B2D28; font-weight:700; }
+  .w-dday .heart { position:absolute; top:11px; right:13px; color:#F47C63; font-size:14px; }
+
+  /* --- Mood widget --- */
+  .w-mood {
+    height:77px;
+    background:#fff;
+    padding:11px 14px;
+    display:flex; align-items:center; gap:11px;
+  }
+  .w-mood .face {
+    width:44px; height:44px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(145deg,#FFE7DF,#F47C63);
+    display:flex; align-items:center; justify-content:center; font-size:22px;
+  }
+  .w-mood .m-txt .m-name { font-size:11px; font-weight:800; color:#3B2D28; }
+  .w-mood .m-txt .m-state { font-size:10px; color:#9B8B84; font-weight:600; margin-top:2px; }
+  .w-mood .m-txt .m-mood { font-size:12px; font-weight:700; color:#F47C63; margin-top:3px; }
+
+  /* --- Wide "recent diary" widget --- */
+  .w-diary {
+    width:100%; height:96px;
+    background:#fff;
+    margin-bottom:20px;
+    padding:14px 16px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .w-diary .thumb {
+    width:66px; height:66px; border-radius:16px; flex-shrink:0;
+    background:linear-gradient(150deg,#FFE7DF,#F47C63 130%);
+    position:relative; overflow:hidden;
+  }
+  .w-diary .thumb::after {
+    content:"✎"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:24px; color:#fff; opacity:.9;
+  }
+  .w-diary .d-body { flex:1; min-width:0; }
+  .w-diary .d-head { display:flex; justify-content:space-between; align-items:center; }
+  .w-diary .d-logo { font-size:11px; font-weight:800; color:#F47C63; }
+  .w-diary .d-logo span { color:#3B2D28; }
+  .w-diary .d-time { font-size:10px; color:#9B8B84; font-weight:600; }
+  .w-diary .d-title { font-size:14px; font-weight:800; color:#3B2D28; margin-top:5px; letter-spacing:-.3px; }
+  .w-diary .d-prev {
+    font-size:11.5px; color:#9B8B84; font-weight:500; margin-top:3px; line-height:1.35;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+
+  /* App icon grid */
+  .apps { display:grid; grid-template-columns:repeat(4,1fr); gap:20px 18px; padding:0 2px; }
+  .app { display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .app .ic {
+    width:58px; height:58px; border-radius:15px;
+    box-shadow:0 3px 8px rgba(0,0,0,.12);
+    display:flex; align-items:center; justify-content:center; font-size:26px;
+  }
+  .app .nm { font-size:10px; color:#3B2D28; font-weight:600; }
+  .ic-today {
+    background:linear-gradient(150deg,#F47C63,#e85f45);
+    color:#fff; font-size:22px; font-weight:800; position:relative;
+  }
+  .ic-today .badge {
+    position:absolute; top:-5px; right:-5px; min-width:19px; height:19px; padding:0 5px;
+    background:#ff3b30; border-radius:10px; color:#fff; font-size:11px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; border:2px solid #FBF3EE;
+  }
+  .ic-a{background:linear-gradient(150deg,#7ab8ff,#4a90e2);}
+  .ic-b{background:linear-gradient(150deg,#7CE0A3,#34b96b);}
+  .ic-c{background:linear-gradient(150deg,#ffd36b,#f5a623);}
+  .ic-d{background:linear-gradient(150deg,#c8a8ff,#9b6bff);}
+  .ic-e{background:linear-gradient(150deg,#ff9aa8,#ff5c78);}
+  .ic-f{background:linear-gradient(150deg,#b8c0cc,#8892a0);}
+  .ic-g{background:linear-gradient(150deg,#8fd3ff,#3aa0ff);}
+
+  .pagedots { display:flex; justify-content:center; gap:7px; margin:14px 0 12px; }
+  .pagedots i { width:6px; height:6px; border-radius:50%; background:rgba(59,45,40,.25); }
+  .pagedots i.on { background:rgba(59,45,40,.7); }
+
+  /* Dock */
+  .dock {
+    position:absolute; left:12px; right:12px; bottom:14px; height:90px;
+    background:rgba(255,255,255,.55);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border-radius:30px;
+    display:flex; align-items:center; justify-content:space-around; padding:0 18px;
+    box-shadow:0 8px 24px rgba(180,120,100,.14);
+  }
+  .dock .ic { width:56px; height:56px; border-radius:14px; box-shadow:0 3px 8px rgba(0,0,0,.14); display:flex; align-items:center; justify-content:center; font-size:25px; }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="screen">
+      <div class="island"></div>
+
+      <div class="statusbar">
+        <div>9:41</div>
+        <div class="sb-right">
+          <span>▮▮▮</span>
+          <span>令</span>
+          <span class="sb-batt"><i></i></span>
+        </div>
+      </div>
+
+      <div class="home">
+
+        <!-- Widget cluster -->
+        <div class="widget-row">
+          <!-- Locket-style photo -->
+          <div class="widget w-photo">
+            <div class="sun"></div>
+            <div class="hills"></div>
+            <div class="caption">
+              <div class="cap-name"><span class="dot"></span>지훈이가 방금</div>
+              <div class="cap-time">오후 6:12 · 퇴근길 노을</div>
+            </div>
+          </div>
+
+          <div class="right-col">
+            <!-- D-day -->
+            <div class="widget w-dday">
+              <span class="heart">♥</span>
+              <div class="label">우리 함께한 지</div>
+              <div class="big">427<small>일째</small></div>
+            </div>
+            <!-- Mood -->
+            <div class="widget w-mood">
+              <div class="face">☺</div>
+              <div class="m-txt">
+                <div class="m-name">지훈</div>
+                <div class="m-state">오늘 일기 작성 완료</div>
+                <div class="m-mood">기분 · 설렘</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wide recent diary widget -->
+        <div class="widget w-diary">
+          <div class="thumb"></div>
+          <div class="d-body">
+            <div class="d-head">
+              <div class="d-logo">love today <span>♥</span></div>
+              <div class="d-time">방금 전</div>
+            </div>
+            <div class="d-title">오늘의 노을이 너무 예뻤어</div>
+            <div class="d-prev">퇴근하는데 하늘이 온통 주황빛이더라. 너랑 같이 봤으면 딱이었을 텐데, 그래서 한 컷 남겨…</div>
+          </div>
+        </div>
+
+        <!-- App grid -->
+        <div class="apps">
+          <div class="app"><div class="ic ic-today">t<div class="badge">1</div></div><div class="nm">투데이</div></div>
+          <div class="app"><div class="ic ic-a">☎</div><div class="nm">전화</div></div>
+          <div class="app"><div class="ic ic-b">✉</div><div class="nm">메시지</div></div>
+          <div class="app"><div class="ic ic-c">☀</div><div class="nm">날씨</div></div>
+          <div class="app"><div class="ic ic-d">♪</div><div class="nm">음악</div></div>
+          <div class="app"><div class="ic ic-e">◈</div><div class="nm">사진</div></div>
+          <div class="app"><div class="ic ic-f">⚙</div><div class="nm">설정</div></div>
+          <div class="app"><div class="ic ic-g">▦</div><div class="nm">지도</div></div>
+        </div>
+
+        <div class="pagedots"><i class="on"></i><i></i><i></i></div>
+      </div>
+
+      <!-- Dock -->
+      <div class="dock">
+        <div class="ic ic-a">☎</div>
+        <div class="ic ic-g">▦</div>
+        <div class="ic ic-e">◈</div>
+        <div class="ic ic-today">t</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

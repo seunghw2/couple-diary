@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 궁합 퀴즈</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background:#e9eaec;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .phone {
+    position:relative;
+    width:390px; height:844px;
+    background:#1c1c1e;
+    border-radius:44px;
+    padding:12px;
+    box-shadow:0 40px 90px rgba(60,40,35,.35);
+  }
+  .screen {
+    position:relative;
+    width:100%; height:100%;
+    background:#FBF3EE;
+    border-radius:34px;
+    overflow:hidden;
+    display:flex; flex-direction:column;
+  }
+
+  /* status bar */
+  .statusbar {
+    height:44px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 26px;
+    font-size:14px; font-weight:700; color:#3B2D28;
+  }
+  .statusbar .right { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .signal { display:inline-block; width:16px; height:10px;
+    background:linear-gradient(90deg,#3B2D28 0 60%, #b9ada7 60% 100%);
+    -webkit-mask:linear-gradient(#000 0 0); mask:none;
+    clip-path: polygon(0 60%,20% 60%,20% 100%,0 100%, 25% 40%,45% 40%,45% 100%,25% 100%, 50% 20%,70% 20%,70% 100%,50% 100%, 75% 0,95% 0,95% 100%,75% 100%);
+    border-radius:1px;
+  }
+  .batt { width:22px; height:11px; border:1.5px solid #3B2D28; border-radius:3px; position:relative; }
+  .batt::after { content:""; position:absolute; left:1.5px; top:1.5px; bottom:1.5px; width:70%; background:#3B2D28; border-radius:1px; }
+  .batt::before { content:""; position:absolute; right:-3px; top:3px; width:2px; height:5px; background:#3B2D28; border-radius:0 1px 1px 0; }
+
+  /* header */
+  .header {
+    padding:6px 22px 10px;
+    flex-shrink:0;
+  }
+  .logo { font-size:15px; font-weight:800; color:#F47C63; letter-spacing:-.2px; }
+  .htitle { margin-top:12px; display:flex; align-items:flex-end; justify-content:space-between; }
+  .htitle h1 { font-size:23px; font-weight:800; color:#3B2D28; letter-spacing:-.5px; }
+  .weekpill {
+    background:#FFE7DF; color:#F47C63; font-size:11px; font-weight:800;
+    padding:5px 11px; border-radius:20px;
+  }
+
+  /* body scroll */
+  .body {
+    flex:1; overflow-y:auto;
+    padding:4px 22px 100px;
+  }
+
+  /* score hero card */
+  .hero {
+    background:linear-gradient(160deg,#FFF1EC 0%, #FFE7DF 100%);
+    border-radius:26px;
+    padding:26px 22px 22px;
+    text-align:center;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+    position:relative;
+    overflow:hidden;
+  }
+  .hero .spark { position:absolute; font-size:16px; opacity:.5; }
+  .hero .s1 { top:16px; left:22px; }
+  .hero .s2 { top:26px; right:26px; font-size:12px; }
+  .hero .s3 { bottom:60px; left:30px; font-size:11px; opacity:.4; }
+  .hero .cap { font-size:12px; font-weight:700; color:#c98a78; letter-spacing:1px; }
+  .ring {
+    width:150px; height:150px; margin:14px auto 6px;
+    border-radius:50%;
+    background:
+      radial-gradient(closest-side, #fff 78%, transparent 79% 100%),
+      conic-gradient(#F47C63 0 86%, #FFD9CC 86% 100%);
+    display:flex; align-items:center; justify-content:center; flex-direction:column;
+    box-shadow:0 8px 20px rgba(244,124,99,.20);
+  }
+  .ring .num { font-size:46px; font-weight:800; color:#F47C63; line-height:1; letter-spacing:-1px; }
+  .ring .pct { font-size:20px; font-weight:800; color:#F47C63; }
+  .ring .lab { font-size:11px; font-weight:700; color:#9B8B84; margin-top:4px; }
+  .hero .msg { font-size:15px; font-weight:800; color:#3B2D28; margin-top:4px; }
+  .hero .sub { font-size:12.5px; color:#9B8B84; margin-top:6px; line-height:1.5; }
+
+  /* avatars row */
+  .who { display:flex; align-items:center; justify-content:center; gap:14px; margin-top:16px; }
+  .ava { display:flex; flex-direction:column; align-items:center; gap:5px; }
+  .dot { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 10px rgba(180,120,100,.18); }
+  .dot.a { background:#FFD9CC; }
+  .dot.b { background:#D9ECF0; }
+  .ava span { font-size:11px; font-weight:700; color:#9B8B84; }
+  .who .heart { font-size:15px; color:#F47C63; }
+
+  /* section title */
+  .sect { display:flex; align-items:center; justify-content:space-between; margin:22px 2px 12px; }
+  .sect h2 { font-size:15px; font-weight:800; color:#3B2D28; }
+  .sect .cnt { font-size:12px; font-weight:700; color:#9B8B84; }
+
+  /* answer list card */
+  .qitem {
+    background:#fff; border-radius:22px; padding:15px 16px; margin-bottom:12px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+  }
+  .qrow { display:flex; align-items:flex-start; gap:11px; }
+  .badge { width:26px; height:26px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:#fff; margin-top:1px; }
+  .badge.ok { background:#F47C63; }
+  .badge.no { background:#c9bcb6; }
+  .qtext { flex:1; }
+  .qtext .q { font-size:13.5px; font-weight:800; color:#3B2D28; line-height:1.35; }
+  .ans { display:flex; gap:8px; margin-top:10px; }
+  .chip { flex:1; border-radius:13px; padding:8px 10px; font-size:12px; font-weight:700; }
+  .chip .k { display:block; font-size:10px; font-weight:800; color:#b6a89f; margin-bottom:3px; letter-spacing:.3px; }
+  .chip.pick { background:#FFF1EC; color:#3B2D28; }
+  .chip.pick.match { background:#FFE7DF; }
+  .chip .v { color:#3B2D28; }
+
+  .talk {
+    margin-top:11px; background:#FBF3EE; border-radius:13px; padding:9px 11px;
+    display:flex; gap:8px; align-items:center;
+    font-size:11.5px; font-weight:700; color:#c07a66;
+  }
+  .talk .ic { font-size:13px; }
+
+  /* CTA */
+  .cta {
+    background:#F47C63; color:#fff; border:none;
+    width:100%; padding:15px; border-radius:18px;
+    font-size:14.5px; font-weight:800; margin-top:8px;
+    box-shadow:0 8px 20px rgba(244,124,99,.28);
+    display:flex; align-items:center; justify-content:center; gap:7px;
+  }
+  .ghost { text-align:center; font-size:12px; font-weight:700; color:#9B8B84; margin-top:14px; }
+
+  /* tabbar */
+  .tabbar {
+    position:absolute; bottom:0; left:0; right:0;
+    height:82px; background:rgba(255,255,255,.94);
+    backdrop-filter:blur(12px);
+    border-top:1px solid rgba(180,120,100,.10);
+    display:flex; justify-content:space-around; align-items:flex-start;
+    padding-top:12px;
+  }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10.5px; font-weight:700; color:#c3b6ae; }
+  .tab.on { color:#F47C63; }
+  .tab .ti { font-size:20px; }
+  .homebar { position:absolute; bottom:9px; left:50%; transform:translateX(-50%); width:134px; height:5px; background:#3B2D28; opacity:.85; border-radius:3px; }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="screen">
+
+      <!-- status bar -->
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="right"><span class="signal"></span> 5G <span class="batt"></span></span>
+      </div>
+
+      <!-- header -->
+      <div class="header">
+        <div class="logo">love today &#9829;</div>
+        <div class="htitle">
+          <h1>궁합 퀴즈 결과</h1>
+          <span class="weekpill">7월 1주차</span>
+        </div>
+      </div>
+
+      <div class="body">
+
+        <!-- hero score -->
+        <div class="hero">
+          <span class="spark s1">&#10022;</span>
+          <span class="spark s2">&#10023;</span>
+          <span class="spark s3">&#10022;</span>
+          <div class="cap">이번 주 우리 궁합</div>
+          <div class="ring">
+            <div><span class="num">86</span><span class="pct">%</span></div>
+            <div class="lab">5문항 중 4개 일치</div>
+          </div>
+          <div class="msg">척하면 척! 텔레파시 커플 &#128149;</div>
+          <div class="sub">지난주보다 <b style="color:#F47C63;">+12%</b> 올랐어요.<br>딱 하나 어긋난 답, 오늘 얘기 나눠볼까요?</div>
+
+          <div class="who">
+            <div class="ava"><div class="dot a">&#128522;</div><span>승환</span></div>
+            <span class="heart">&#9829;</span>
+            <div class="ava"><div class="dot b">&#128524;</div><span>지은</span></div>
+          </div>
+        </div>
+
+        <!-- items -->
+        <div class="sect">
+          <h2>문항별 결과</h2>
+          <span class="cnt">서로의 답 맞히기</span>
+        </div>
+
+        <!-- matched -->
+        <div class="qitem">
+          <div class="qrow">
+            <div class="badge ok">&#10003;</div>
+            <div class="qtext">
+              <div class="q">지은이가 가장 가고 싶은 데이트는?</div>
+              <div class="ans">
+                <div class="chip pick match"><span class="k">승환의 예측</span><span class="v">🌊 바다 드라이브</span></div>
+                <div class="chip pick match"><span class="k">지은의 진심</span><span class="v">🌊 바다 드라이브</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- matched 2 -->
+        <div class="qitem">
+          <div class="qrow">
+            <div class="badge ok">&#10003;</div>
+            <div class="qtext">
+              <div class="q">우리 첫 데이트, 누가 더 떨었을까?</div>
+              <div class="ans">
+                <div class="chip pick match"><span class="k">승환의 예측</span><span class="v">나(승환)</span></div>
+                <div class="chip pick match"><span class="k">지은의 진심</span><span class="v">승환이</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- mismatch — talk trigger -->
+        <div class="qitem" style="outline:2px solid #FFE7DF;">
+          <div class="qrow">
+            <div class="badge no">&#10005;</div>
+            <div class="qtext">
+              <div class="q">지은이의 요즘 최애 야식은?</div>
+              <div class="ans">
+                <div class="chip pick"><span class="k">승환의 예측</span><span class="v">🍗 치킨</span></div>
+                <div class="chip pick"><span class="k">지은의 진심</span><span class="v">🍜 라면</span></div>
+              </div>
+              <div class="talk">
+                <span class="ic">&#128172;</span>
+                <span>여기서 어긋났어요 — 오늘 일기에 대화거리로 담아둘까요?</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="cta">&#128172; 오답으로 대화 시작하기</button>
+        <div class="ghost">결과를 우리 일기에 저장하기 &#8250;</div>
+
+      </div>
+
+      <!-- tab bar -->
+      <div class="tabbar">
+        <div class="tab"><span class="ti">&#128197;</span>달력</div>
+        <div class="tab"><span class="ti">&#128506;&#65039;</span>지도</div>
+        <div class="tab on"><span class="ti">&#127919;</span>퀴즈</div>
+        <div class="tab"><span class="ti">&#9881;&#65039;</span>설정</div>
+      </div>
+      <div class="homebar"></div>
+
+    </div>
+  </div>
+</body>
+</html>

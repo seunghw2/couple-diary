@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘의 질문 · love today</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #e9e9ec;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 32px 0;
+  }
+
+  /* ---------- phone frame ---------- */
+  .phone {
+    position: relative;
+    width: 390px;
+    height: 844px;
+    background: #FBF3EE;
+    border: 12px solid #1c1c1e;
+    border-radius: 44px;
+    box-shadow: 0 30px 60px rgba(60,40,35,.28);
+    overflow: hidden;
+  }
+  /* notch */
+  .notch {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 128px; height: 26px;
+    background: #1c1c1e;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    z-index: 40;
+  }
+
+  /* ---------- status bar ---------- */
+  .statusbar {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #3B2D28;
+  }
+  .statusbar .right { display: flex; align-items: center; gap: 6px; }
+  .signal { display: inline-flex; align-items: flex-end; gap: 2px; height: 11px; }
+  .signal i { width: 3px; background: #3B2D28; border-radius: 1px; }
+  .signal i:nth-child(1){height:4px}.signal i:nth-child(2){height:6px}
+  .signal i:nth-child(3){height:8px}.signal i:nth-child(4){height:11px}
+  .wifi { font-size: 13px; }
+  .battery {
+    width: 24px; height: 12px; border: 1.5px solid #3B2D28;
+    border-radius: 3px; position: relative; padding: 1.5px;
+  }
+  .battery::after {
+    content:""; position:absolute; right:-3.5px; top:3px;
+    width:2px; height:5px; background:#3B2D28; border-radius:0 1px 1px 0;
+  }
+  .battery b { display:block; height:100%; width:80%; background:#3B2D28; border-radius:1px; }
+
+  /* ---------- app header ---------- */
+  .appbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 22px 12px;
+  }
+  .logo { font-size: 20px; font-weight: 800; color: #3B2D28; letter-spacing: -.3px; }
+  .logo span { color: #F47C63; }
+  .bell {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: #FFF1EC; display: flex; align-items: center; justify-content: center;
+    font-size: 17px; position: relative;
+  }
+  .bell::after {
+    content:""; position:absolute; top:9px; right:10px;
+    width:7px; height:7px; background:#F47C63; border-radius:50%;
+    border: 1.5px solid #FFF1EC;
+  }
+
+  /* ---------- scroll body ---------- */
+  .body {
+    height: calc(844px - 50px - 56px - 84px);
+    overflow: hidden;
+    padding: 4px 22px 20px;
+  }
+
+  /* page title row */
+  .pgtitle { display:flex; align-items:center; gap:8px; margin: 4px 2px 14px; }
+  .pgtitle h1 { font-size: 22px; font-weight: 800; color: #3B2D28; letter-spacing:-.4px; }
+  .streak {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 5px;
+    background: #FFE7DF; color: #F47C63;
+    padding: 6px 12px; border-radius: 999px;
+    font-size: 13px; font-weight: 800;
+  }
+
+  /* ---------- question card ---------- */
+  .qcard {
+    background: #fff; border-radius: 22px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+    padding: 22px 20px 20px; margin-bottom: 16px;
+  }
+  .qmeta { display:flex; align-items:center; gap:8px; margin-bottom: 12px; }
+  .qday {
+    font-size: 12px; font-weight: 800; color: #F47C63;
+    background: #FFF1EC; padding: 4px 10px; border-radius: 999px;
+    letter-spacing: .2px;
+  }
+  .qdate { font-size: 12px; color: #9B8B84; font-weight: 600; }
+  .qmark {
+    margin-left: auto; font-size: 26px; font-weight: 800; color: #FFD9CD;
+    line-height: 1; font-family: Georgia, serif;
+  }
+  .qtext {
+    font-size: 20px; font-weight: 800; color: #3B2D28;
+    line-height: 1.42; letter-spacing: -.3px;
+  }
+  .qtext em { color: #F47C63; font-style: normal; }
+
+  /* unlocked banner */
+  .unlocked {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 16px; padding: 11px 14px;
+    background: #FFF1EC; border-radius: 14px;
+    font-size: 13px; font-weight: 700; color: #F47C63;
+  }
+  .unlocked .dot { font-size: 15px; }
+
+  /* ---------- answers ---------- */
+  .answers { display: flex; flex-direction: column; gap: 14px; margin-bottom: 8px; }
+  .abubble {
+    background: #fff; border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.10);
+    padding: 16px 18px 15px;
+    position: relative;
+  }
+  .ahead { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  .av-me  { background: #FFE7DF; }
+  .av-you { background: #E9F3EF; }
+  .aname { font-size: 14px; font-weight: 800; color: #3B2D28; }
+  .atime { font-size: 11px; color: #9B8B84; font-weight: 600; margin-left: auto; }
+  .atext { font-size: 15px; color: #3B2D28; line-height: 1.55; }
+  .abubble.you { background: #FFF9F6; }
+
+  /* little heart reaction on partner's answer */
+  .react {
+    position: absolute; right: 16px; bottom: -10px;
+    background: #fff; border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(180,120,100,.16);
+    padding: 4px 9px; font-size: 12px; font-weight: 800; color: #F47C63;
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  /* history strip */
+  .histrow { display:flex; align-items:center; margin: 20px 2px 10px; }
+  .histrow h2 { font-size: 15px; font-weight: 800; color: #3B2D28; }
+  .histrow a { margin-left:auto; font-size: 12px; color: #9B8B84; font-weight: 700; }
+  .histcard {
+    background: #fff; border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(180,120,100,.09);
+    padding: 13px 15px; display: flex; align-items: center; gap: 12px;
+  }
+  .histq { font-size: 13px; color: #3B2D28; font-weight: 700; line-height:1.4; }
+  .histmeta { font-size: 11px; color: #9B8B84; margin-top: 2px; font-weight:600; }
+  .histstate {
+    margin-left: auto; flex-shrink:0;
+    font-size: 11px; font-weight: 800; color: #F47C63;
+    background: #FFF1EC; padding: 5px 9px; border-radius: 999px;
+  }
+
+  /* ---------- bottom tab bar ---------- */
+  .tabbar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 84px; background: rgba(255,255,255,.94);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid #F3E4DC;
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding-top: 12px;
+  }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tab .ic { font-size: 21px; }
+  .tab .lb { font-size: 11px; font-weight: 700; color: #C9B8B0; }
+  .tab.active .lb { color: #F47C63; }
+  .tab.active .ic { filter: none; }
+  .tab.inactive .ic { filter: grayscale(1) opacity(.5); }
+  .home-ind {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 128px; height: 5px; background: #1c1c1e; border-radius: 3px; opacity: .85;
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+
+    <!-- status bar -->
+    <div class="statusbar">
+      <div class="time">9:41</div>
+      <div class="right">
+        <span class="signal"><i></i><i></i><i></i><i></i></span>
+        <span class="wifi">&#128246;</span>
+        <span class="battery"><b></b></span>
+      </div>
+    </div>
+
+    <!-- app bar -->
+    <div class="appbar">
+      <div class="logo">love today <span>&#9829;</span></div>
+      <div class="bell">&#128276;</div>
+    </div>
+
+    <div class="body">
+      <!-- page title + streak -->
+      <div class="pgtitle">
+        <h1>오늘의 질문</h1>
+        <div class="streak">&#128293; 12일 연속</div>
+      </div>
+
+      <!-- question card -->
+      <div class="qcard">
+        <div class="qmeta">
+          <span class="qday">Day 12</span>
+          <span class="qdate">7월 2일 수요일</span>
+          <span class="qmark">&#8221;</span>
+        </div>
+        <div class="qtext">우리가 처음 만난 날, 상대의 <em>첫인상</em>은 솔직히 어땠어?</div>
+        <div class="unlocked">
+          <span class="dot">&#128275;</span> 둘 다 답해서 서로의 답이 열렸어요!
+        </div>
+      </div>
+
+      <!-- answers -->
+      <div class="answers">
+        <div class="abubble">
+          <div class="ahead">
+            <div class="avatar av-me">&#128105;</div>
+            <div class="aname">나</div>
+            <div class="atime">오전 8:12</div>
+          </div>
+          <div class="atext">사실 좀 무뚝뚝해 보여서 긴장했는데, 웃을 때 눈이 접히는 거 보고 마음 풀렸어 &#128522;</div>
+        </div>
+
+        <div class="abubble you">
+          <div class="ahead">
+            <div class="avatar av-you">&#128104;</div>
+            <div class="aname">지훈</div>
+            <div class="atime">오전 9:03</div>
+          </div>
+          <div class="atext">완전 밝고 씩씩해서 놀랐어. 첫날인데 리드해줘서 편했음. 이날 반했나봐 ㅎㅎ</div>
+          <div class="react">&#10084;&#65039; 내가 눌렀어요</div>
+        </div>
+      </div>
+
+      <!-- history -->
+      <div class="histrow">
+        <h2>지난 질문</h2>
+        <a>전체 보기</a>
+      </div>
+      <div class="histcard">
+        <div>
+          <div class="histq">서로에게 가장 고마웠던 순간은?</div>
+          <div class="histmeta">7월 1일 · 둘 다 답함</div>
+        </div>
+        <div class="histstate">공개됨</div>
+      </div>
+    </div>
+
+    <!-- bottom tabs -->
+    <div class="tabbar">
+      <div class="tab inactive"><div class="ic">&#128197;</div><div class="lb">달력</div></div>
+      <div class="tab inactive"><div class="ic">&#128506;&#65039;</div><div class="lb">지도</div></div>
+      <div class="tab active"><div class="ic">&#128172;</div><div class="lb">질문</div></div>
+      <div class="tab inactive"><div class="ic">&#9881;&#65039;</div><div class="lb">설정</div></div>
+    </div>
+    <div class="home-ind"></div>
+  </div>
+</body>
+</html>
