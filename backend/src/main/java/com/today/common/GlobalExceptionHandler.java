@@ -6,11 +6,14 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -56,6 +59,15 @@ public class GlobalExceptionHandler {
     // 필수 쿼리 파라미터 누락 (?query=, ?name=, ?path= 없음) → 500 대신 400
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ErrorResponse> handleMissingParam(MissingServletRequestParameterException e) {
+        ErrorCode ec = ErrorCode.INVALID_INPUT;
+        return ResponseEntity.status(ec.getStatus())
+                .body(new ErrorResponse(ec.getCode(), ec.getMessage(), null));
+    }
+
+    // Content-Type 누락/미지원, 멀티파트 file 파트 누락/비-멀티파트 요청 → 500 대신 400
+    @ExceptionHandler({ HttpMediaTypeNotSupportedException.class, MissingServletRequestPartException.class,
+            MultipartException.class })
+    public ResponseEntity<ErrorResponse> handleBadRequestType(Exception e) {
         ErrorCode ec = ErrorCode.INVALID_INPUT;
         return ResponseEntity.status(ec.getStatus())
                 .body(new ErrorResponse(ec.getCode(), ec.getMessage(), null));

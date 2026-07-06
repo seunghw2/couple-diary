@@ -115,9 +115,26 @@ public class UserService {
     @Transactional
     public UserSummary updateMe(Long userId, UpdateMeRequest req) {
         User user = getUser(userId);
-        if (req.nickname() != null) user.setNickname(req.nickname());
-        if (req.avatarColor() != null) user.setAvatarColor(req.avatarColor());
-        if (req.birthday() != null) user.setBirthday(req.birthday());
+        // 부분 업데이트지만 넘어온 값은 검증(빈 닉네임·이상한 색·미래 생일 방지).
+        if (req.nickname() != null) {
+            String nick = req.nickname().trim();
+            if (nick.isEmpty()) throw new ApiException(ErrorCode.INVALID_INPUT, "닉네임을 입력해 주세요.");
+            if (nick.length() > 30) throw new ApiException(ErrorCode.INVALID_INPUT, "닉네임은 30자 이하로 해 주세요.");
+            user.setNickname(nick);
+        }
+        if (req.avatarColor() != null) {
+            String color = req.avatarColor().trim();
+            if (!color.matches("^#[0-9a-fA-F]{6}$")) {
+                throw new ApiException(ErrorCode.INVALID_INPUT, "색상 형식이 올바르지 않아요.");
+            }
+            user.setAvatarColor(color);
+        }
+        if (req.birthday() != null) {
+            if (req.birthday().isAfter(java.time.LocalDate.now())) {
+                throw new ApiException(ErrorCode.INVALID_INPUT, "생일은 미래일 수 없어요.");
+            }
+            user.setBirthday(req.birthday());
+        }
         return UserSummary.of(user);
     }
 
