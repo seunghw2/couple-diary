@@ -33,6 +33,20 @@ export function formatDday(dday: number): string {
   return dday >= 0 ? `D+${dday}` : `D${dday}`;
 }
 
+/** 특정 날짜 기준 D-day(기념일=1일차). 일기 상세 등 '오늘'이 아닌 날짜용. */
+export function dDayOn(
+  anniversaryDate: string | null | undefined,
+  targetDate: string | null | undefined
+): number | null {
+  if (!anniversaryDate || !targetDate) return null;
+  const start = parseISO(anniversaryDate);
+  const t = parseISO(targetDate);
+  const a = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const b = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+  const diff = Math.round((b.getTime() - a.getTime()) / 86400000);
+  return diff + 1;
+}
+
 const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토'];
 
 export function weekdayKo(date: string): string {

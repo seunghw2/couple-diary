@@ -22,7 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_URL } from '../../lib/config';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, entryApi, isLocked } from '../../lib/api';
-import { dDay, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
+import { dDayOn, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
 import { confirmAsync, showAlert } from '../../lib/dialog';
 import { moodIcon } from '../../constants/content';
 import { useCoupleStore } from '../../store/useCoupleStore';
@@ -199,7 +199,8 @@ export default function EntryDetailScreen() {
     }
   }
 
-  const dday = couple?.ddayCount ?? dDay(couple?.anniversaryDate);
+  // 이 일기 '날짜' 기준 D-day(오늘값 하드코딩 X).
+  const dday = dDayOn(couple?.anniversaryDate, dateStr);
   const status = detail?.status ?? 'EMPTY';
   const mineWritten = !!detail?.myEntry;
   const partnerEntry = detail?.partnerEntry;

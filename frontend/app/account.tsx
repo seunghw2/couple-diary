@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -48,6 +48,15 @@ export default function AccountScreen() {
   const [bdayMsg, setBdayMsg] = useState<string | null>(null);
   const [bdayPickerOpen, setBdayPickerOpen] = useState(false);
   const [annivPickerOpen, setAnnivPickerOpen] = useState(false);
+
+  // 직접 진입 시 스토어가 늦게 로드돼 필드가 비던 문제 방지: 값이 도착하면 프리필.
+  // (스토어 값이 바뀔 때만 동기화 → 사용자가 입력 중인 값은 덮지 않음)
+  useEffect(() => {
+    if (couple?.anniversaryDate) setAnniv(couple.anniversaryDate);
+  }, [couple?.anniversaryDate]);
+  useEffect(() => {
+    if (user?.birthday) setBirthday(user.birthday);
+  }, [user?.birthday]);
 
   async function onSaveBirthday() {
     const v = birthday.trim();
