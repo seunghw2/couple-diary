@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분리형 V3 · ① 질문 봉인</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui,-apple-system,sans-serif; }
+  body { background:#EFEAE6; display:flex; flex-direction:column; align-items:center; padding:32px 0; }
+  .caption { text-align:center; margin-bottom:14px; }
+  .caption .tag { color:#F47C63; font-weight:800; font-size:16px; }
+  .caption .sub { color:#3B2D28; font-weight:800; font-size:16px; }
+  .phone { width:390px; height:844px; background:#FBF3EE; border:44px solid #1c1c1e; border-radius:64px; overflow:hidden; position:relative; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+  .screen { width:100%; height:100%; overflow:hidden; display:flex; flex-direction:column; }
+  .statusbar { height:44px; display:flex; align-items:center; justify-content:space-between; padding:0 28px; font-size:15px; font-weight:600; color:#3B2D28; }
+  .statusbar .dots { letter-spacing:2px; }
+  .header { padding:8px 24px 4px; text-align:center; }
+  .logo { color:#F47C63; font-weight:800; font-size:15px; letter-spacing:.3px; }
+  .content { flex:1; padding:14px 22px 0; overflow:hidden; display:flex; flex-direction:column; }
+  .step-row { display:flex; align-items:center; gap:8px; justify-content:center; margin-bottom:10px; }
+  .step-pill { display:flex; align-items:center; gap:6px; background:#FFF1EC; border-radius:20px; padding:5px 12px; }
+  .step-num { width:20px; height:20px; border-radius:50%; background:#F47C63; color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  .step-num.off { background:#E8D8D0; color:#B7A398; }
+  .step-lbl { font-size:12px; font-weight:700; color:#3B2D28; }
+  .step-lbl.off { color:#B7A398; }
+  .step-dash { color:#D9C6BC; font-size:13px; }
+  .title { font-size:22px; font-weight:800; color:#3B2D28; text-align:center; margin:6px 0 3px; letter-spacing:-.3px; }
+  .title .wax { color:#F47C63; }
+  .subtitle { font-size:13px; color:#9B8B84; text-align:center; margin-bottom:16px; }
+  .letters { display:flex; flex-direction:column; gap:14px; }
+
+  .letter { background:#fff; border-radius:22px; box-shadow:0 8px 24px rgba(180,120,100,.12); padding:20px 20px 18px; position:relative; border:1.5px solid #FFE7DF; transition:.3s; }
+  .letter .flap { position:absolute; top:0; left:0; right:0; height:26px; border-radius:22px 22px 0 0; background:linear-gradient(#FFF1EC,#FFE7DF); clip-path:polygon(0 0,100% 0,50% 100%); opacity:.7; }
+  .letter .kicker { font-size:11px; font-weight:700; color:#F47C63; letter-spacing:1px; margin-bottom:8px; position:relative; z-index:1; }
+  .letter .q { font-size:17px; font-weight:700; color:#3B2D28; line-height:1.5; font-family:Georgia,serif; position:relative; z-index:1; }
+  .letter .hint { font-size:11px; color:#B7A398; margin-top:12px; }
+
+  /* selected letter with wax seal */
+  .letter.selected { border:2px solid #F47C63; box-shadow:0 12px 30px rgba(244,124,99,.24); }
+  .letter.selected .kicker { color:#F47C63; }
+  .wax-seal { position:absolute; top:-14px; right:18px; width:52px; height:52px; border-radius:50%; background:radial-gradient(circle at 38% 32%,#F98E76,#E5573C 70%,#C7462E); box-shadow:0 6px 14px rgba(197,70,46,.4), inset 0 -3px 6px rgba(0,0,0,.25), inset 0 3px 6px rgba(255,255,255,.3); display:flex; align-items:center; justify-content:center; color:#FFDCCF; font-size:22px; z-index:3; animation:stamp .5s cubic-bezier(.34,1.56,.64,1); }
+  .wax-seal::before { content:""; position:absolute; inset:5px; border-radius:50%; border:1.5px dashed rgba(255,220,207,.5); }
+  @keyframes stamp { 0%{ transform:scale(1.8) rotate(-12deg); opacity:0; } 60%{ opacity:1; } 100%{ transform:scale(1) rotate(0); } }
+  .selected-tag { display:inline-flex; align-items:center; gap:5px; margin-top:12px; background:#FFF1EC; color:#F47C63; font-size:11px; font-weight:700; padding:4px 10px; border-radius:12px; position:relative; z-index:1; }
+
+  /* faded (disappearing) letter */
+  .letter.faded { opacity:.42; border-color:#EADFD9; box-shadow:0 4px 12px rgba(180,120,100,.06); filter:grayscale(.2); }
+  .letter.faded .q { color:#9B8B84; }
+  .fade-tag { display:inline-flex; align-items:center; gap:5px; margin-top:12px; background:#F3ECE7; color:#B7A398; font-size:11px; font-weight:600; padding:4px 10px; border-radius:12px; }
+
+  .footer { padding:14px 22px 20px; }
+  .note { display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px; color:#9B8B84; margin-bottom:12px; }
+  .note .k { font-size:14px; }
+  .seal-btn { width:100%; height:56px; border:none; border-radius:20px; background:#F47C63; color:#fff; font-size:16px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 10px 22px rgba(244,124,99,.34); letter-spacing:.2px; }
+  .seal-btn .waxmini { width:24px; height:24px; border-radius:50%; background:radial-gradient(circle at 38% 32%,#FFCBBB,#E5573C 75%); display:flex; align-items:center; justify-content:center; font-size:12px; color:#FFDCCF; box-shadow:inset 0 -2px 3px rgba(0,0,0,.25); }
+  .homebar { position:absolute; bottom:9px; left:50%; transform:translateX(-50%); width:134px; height:5px; border-radius:3px; background:#3B2D28; opacity:.28; }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <div class="tag">분리형 V3</div>
+    <div class="sub">두 번의 봉인 &nbsp; ① 질문 봉인(선택)</div>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="dots">●●● 📶 100%</span>
+      </div>
+
+      <div class="header">
+        <div class="logo">love today ♥</div>
+      </div>
+
+      <div class="content">
+        <div class="step-row">
+          <div class="step-pill">
+            <span class="step-num">1</span>
+            <span class="step-lbl">질문 봉인</span>
+          </div>
+          <span class="step-dash">···</span>
+          <div class="step-pill">
+            <span class="step-num off">2</span>
+            <span class="step-lbl off">답장 봉인</span>
+          </div>
+        </div>
+
+        <div class="title">오늘의 질문을 <span class="wax">봉인해요</span></div>
+        <div class="subtitle">두 편지 중 하나만 오늘의 질문이 돼요 · 1/2</div>
+
+        <div class="letters">
+          <div class="letter selected">
+            <div class="flap"></div>
+            <div class="wax-seal">♥</div>
+            <div class="kicker">오늘의 편지 · A</div>
+            <div class="q">"우리가 처음 만난 날, 너의 첫인상은 어땠어?"</div>
+            <div class="selected-tag">◆ 이 질문을 골랐어요</div>
+          </div>
+
+          <div class="letter faded">
+            <div class="flap"></div>
+            <div class="kicker">오늘의 편지 · B</div>
+            <div class="q">"요즘 가장 고맙다고 느낀 순간이 있었어?"</div>
+            <div class="fade-tag">✕ 고르지 않아 오늘 사라져요</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="note"><span class="k">🕯</span> 봉인하면 이 질문으로 정해져요 (답장은 다음 단계)</div>
+        <button class="seal-btn">
+          <span class="waxmini">♥</span>
+          오늘의 질문으로 봉인하기
+        </button>
+      </div>
+
+      <div class="homebar"></div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분리형 V1 · ① 오늘의 편지 정하기</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #EFEAE6;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 32px 0 48px;
+  }
+  .caption {
+    text-align: center;
+    margin-bottom: 14px;
+    max-width: 390px;
+  }
+  .caption .tag {
+    font-weight: 800;
+    font-size: 16px;
+    color: #F47C63;
+  }
+  .caption .tag .dark { color: #3B2D28; }
+  .caption .sub {
+    margin-top: 4px;
+    font-size: 13px;
+    color: #9B8B84;
+  }
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #FBF3EE;
+    border: 44px solid #1c1c1e;
+    border-radius: 66px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  }
+  .statusbar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #3B2D28;
+  }
+  .statusbar .right { letter-spacing: 2px; font-size: 13px; }
+  .screen {
+    height: calc(844px - 44px);
+    padding: 8px 22px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  /* faint streaks */
+  .streak {
+    position: absolute;
+    border-radius: 40px;
+    opacity: .5;
+    pointer-events: none;
+  }
+  .streak.s1 { width: 120px; height: 120px; background: #FFF1EC; top: 120px; right: -40px; }
+  .streak.s2 { width: 90px; height: 90px; background: #FFE7DF; bottom: 160px; left: -30px; opacity:.4; }
+  .brand {
+    text-align: center;
+    font-weight: 800;
+    font-size: 15px;
+    color: #F47C63;
+    letter-spacing: .5px;
+    margin: 4px 0 18px;
+  }
+  .head {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+  }
+  .head h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 23px;
+    font-weight: 800;
+    color: #3B2D28;
+    line-height: 1.35;
+  }
+  .head p {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #9B8B84;
+  }
+  .envelopes {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    z-index: 2;
+  }
+  .env {
+    background: #ffffff;
+    border-radius: 22px;
+    padding: 20px 20px 18px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+    border: 2px solid transparent;
+    position: relative;
+  }
+  /* envelope flap graphic */
+  .flap {
+    height: 34px;
+    margin: -20px -20px 14px;
+    border-radius: 22px 22px 0 0;
+    background: linear-gradient(#FFF1EC, #FFE7DF);
+    position: relative;
+    overflow: hidden;
+  }
+  .flap::before {
+    content: "";
+    position: absolute;
+    top: -22px; left: 50%;
+    width: 0; height: 0;
+    border-left: 175px solid transparent;
+    border-right: 175px solid transparent;
+    border-top: 34px solid #FFE1D6;
+    transform: translateX(-50%);
+    opacity: .55;
+  }
+  .env .label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #F47C63;
+    letter-spacing: .4px;
+    margin-bottom: 8px;
+  }
+  .env .qline {
+    font-family: Georgia, serif;
+    font-size: 17px;
+    line-height: 1.5;
+    color: #3B2D28;
+    font-weight: 700;
+  }
+  .env .hint {
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: #B7A79F;
+  }
+  /* selected state */
+  .env.selected {
+    border-color: #F47C63;
+    box-shadow: 0 10px 28px rgba(244,124,99,.28);
+  }
+  .env.selected .flap { background: linear-gradient(#FFE7DF, #FFD9CD); }
+  .seal {
+    position: absolute;
+    top: -12px; right: 18px;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: #F47C63;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 4px 10px rgba(244,124,99,.4);
+    z-index: 3;
+  }
+  .check {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: #F47C63;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 800;
+  }
+  .env.selected .hint { color: #F47C63; font-weight: 700; }
+  .cta {
+    position: absolute;
+    left: 22px; right: 22px;
+    bottom: 22px;
+    z-index: 3;
+  }
+  .cta .note {
+    text-align: center;
+    font-size: 12px;
+    color: #9B8B84;
+    margin-bottom: 12px;
+  }
+  .btn {
+    width: 100%;
+    background: #F47C63;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 18px;
+    font-size: 16px;
+    font-weight: 800;
+    box-shadow: 0 8px 20px rgba(244,124,99,.35);
+    letter-spacing: .3px;
+  }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <div class="tag">분리형 V1&nbsp;&nbsp;<span class="dark">· 고르고 나중에 답장&nbsp;&nbsp;&nbsp;① 오늘의 편지 정하기</span></div>
+    <div class="sub">먼저 본 사람이 봉투 하나만 고르면 끝 — 답장은 아직</div>
+  </div>
+
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="right">●●● ▮</span>
+    </div>
+    <div class="screen">
+      <div class="streak s1"></div>
+      <div class="streak s2"></div>
+
+      <div class="brand">love today ♥</div>
+
+      <div class="head">
+        <h1>오늘 두 통의 편지가<br>왔어요</h1>
+        <p>하나만 골라요 · 고른 질문이 오늘의 편지가 돼요</p>
+      </div>
+
+      <div class="envelopes">
+        <div class="env selected">
+          <div class="check">✓</div>
+          <div class="flap"></div>
+          <div class="label">첫 번째 봉투</div>
+          <div class="qline">"요즘 나를 가장<br>웃게 한 순간은?"</div>
+          <div class="hint">이 편지로 정할게요</div>
+        </div>
+
+        <div class="env">
+          <div class="flap"></div>
+          <div class="label">두 번째 봉투</div>
+          <div class="qline">"우리가 처음 만난 날,<br>기억나는 장면은?"</div>
+          <div class="hint">고르면 오늘은 사라져요</div>
+        </div>
+      </div>
+
+      <div class="cta">
+        <div class="note">고른 질문에 답장은 나중에 각자 써요</div>
+        <button class="btn">오늘의 편지로 정하기</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분리형 V1 · ② 답장은 따로</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #EFEAE6;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 32px 0 48px;
+  }
+  .caption {
+    text-align: center;
+    margin-bottom: 14px;
+    max-width: 390px;
+  }
+  .caption .tag {
+    font-weight: 800;
+    font-size: 16px;
+    color: #F47C63;
+  }
+  .caption .tag .dark { color: #3B2D28; }
+  .caption .sub {
+    margin-top: 4px;
+    font-size: 13px;
+    color: #9B8B84;
+  }
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #FBF3EE;
+    border: 44px solid #1c1c1e;
+    border-radius: 66px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  }
+  .statusbar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #3B2D28;
+  }
+  .statusbar .right { letter-spacing: 2px; font-size: 13px; }
+  .screen {
+    height: calc(844px - 44px);
+    padding: 8px 22px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .streak {
+    position: absolute;
+    border-radius: 40px;
+    opacity: .45;
+    pointer-events: none;
+  }
+  .streak.s1 { width: 110px; height: 110px; background: #FFF1EC; top: 200px; right: -36px; }
+  .streak.s2 { width: 80px; height: 80px; background: #FFE7DF; bottom: 200px; left: -26px; opacity:.4; }
+  .brand {
+    text-align: center;
+    font-weight: 800;
+    font-size: 15px;
+    color: #F47C63;
+    letter-spacing: .5px;
+    margin: 4px 0 16px;
+  }
+  /* decided card */
+  .decided {
+    background: #ffffff;
+    border-radius: 22px;
+    padding: 18px 18px 16px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+    position: relative;
+    z-index: 2;
+    border: 1.5px solid #FFE7DF;
+  }
+  .decided .top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .decided .top .ico {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: #F47C63;
+    color: #fff;
+    display: flex; align-items:center; justify-content:center;
+    font-size: 14px;
+  }
+  .decided .top .t {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #3B2D28;
+  }
+  .decided .q {
+    font-family: Georgia, serif;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: #3B2D28;
+  }
+  .badge {
+    display: inline-block;
+    margin-top: 12px;
+    background: #FFF1EC;
+    color: #F47C63;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 11px;
+    border-radius: 12px;
+  }
+  .pills {
+    margin-top: 14px;
+    display: flex;
+    gap: 8px;
+  }
+  .pill {
+    flex: 1;
+    border-radius: 14px;
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .pill .who { display:block; font-size: 11px; color:#9B8B84; margin-bottom:3px; font-weight:600; }
+  .pill.me { background: #FFE7DF; color: #F47C63; }
+  .pill.you { background: #F4F0ED; color: #B7A79F; }
+  .pill.me .st { color: #F47C63; }
+  .divider {
+    text-align: center;
+    margin: 20px 0 14px;
+    font-size: 12.5px;
+    color: #B7A79F;
+    position: relative;
+    z-index: 2;
+  }
+  /* letter paper */
+  .letter {
+    background: #ffffff;
+    border-radius: 22px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+  }
+  .letter .lhead {
+    padding: 14px 18px 8px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #F47C63;
+    letter-spacing: .3px;
+  }
+  .paper {
+    padding: 4px 20px 14px;
+    background-image: repeating-linear-gradient(
+      transparent, transparent 31px, #F1E4DE 31px, #F1E4DE 32px);
+    min-height: 150px;
+  }
+  .paper .line {
+    font-family: Georgia, serif;
+    font-size: 15px;
+    line-height: 32px;
+    color: #3B2D28;
+  }
+  .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 18px;
+    background: #F47C63;
+    vertical-align: -3px;
+    margin-left: 1px;
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .seal-btn {
+    margin: 14px 18px 18px;
+  }
+  .btn {
+    width: 100%;
+    background: #F47C63;
+    color: #fff;
+    border: none;
+    border-radius: 18px;
+    padding: 16px;
+    font-size: 15px;
+    font-weight: 800;
+    box-shadow: 0 8px 20px rgba(244,124,99,.32);
+    letter-spacing: .3px;
+  }
+  .btn .heart { margin-left: 4px; }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <div class="tag">분리형 V1&nbsp;&nbsp;<span class="dark">· 고르고 나중에 답장&nbsp;&nbsp;&nbsp;② 답장은 따로</span></div>
+    <div class="sub">질문은 정해졌고, 답장은 각자 편할 때 써요</div>
+  </div>
+
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="right">●●● ▮</span>
+    </div>
+    <div class="screen">
+      <div class="streak s1"></div>
+      <div class="streak s2"></div>
+
+      <div class="brand">love today ♥</div>
+
+      <div class="decided">
+        <div class="top">
+          <span class="ico">✓</span>
+          <span class="t">오늘의 편지가 정해졌어요</span>
+        </div>
+        <div class="q">"요즘 나를 가장<br>웃게 한 순간은?"</div>
+        <span class="badge">지훈이 골랐어요 ♥</span>
+        <div class="pills">
+          <div class="pill me">
+            <span class="who">나</span>
+            <span class="st">✎ 쓰는 중</span>
+          </div>
+          <div class="pill you">
+            <span class="who">지훈</span>
+            <span class="st">… 아직 답장 전</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider">— 둘 다 답하면 편지가 열려요 —</div>
+
+      <div class="letter">
+        <div class="lhead">내 답장 쓰기</div>
+        <div class="paper">
+          <div class="line">지난 주말 네가 만든 서툰<span class="cursor"></span></div>
+        </div>
+        <div class="seal-btn">
+          <button class="btn">답장 봉인하기 <span class="heart">♥</span></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

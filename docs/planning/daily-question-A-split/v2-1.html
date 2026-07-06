@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분리형 V2 · 오늘의 질문 정하기 ①</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, -apple-system, sans-serif; }
+  body { background:#EFEAE6; display:flex; flex-direction:column; align-items:center; padding:32px 0; min-height:100vh; }
+  .caption { text-align:center; margin-bottom:14px; }
+  .caption .tag { color:#F47C63; font-weight:800; font-size:16px; }
+  .caption .tag b { color:#3B2D28; }
+  .caption .sub { color:#3B2D28; font-size:14px; margin-top:4px; font-weight:600; }
+  .phone { width:390px; height:844px; background:#FBF3EE; border:44px solid #1c1c1e; border-radius:64px; overflow:hidden; position:relative; box-shadow:0 20px 60px rgba(0,0,0,.28); }
+  .screen { width:100%; height:100%; overflow-y:auto; position:relative; }
+  .statusbar { height:44px; display:flex; align-items:center; justify-content:space-between; padding:0 26px; font-size:15px; font-weight:700; color:#3B2D28; }
+  .statusbar .dots { letter-spacing:2px; }
+  .header { text-align:center; padding:6px 0 12px; }
+  .logo { color:#F47C63; font-weight:800; font-size:17px; letter-spacing:.3px; }
+  .datetxt { color:#9B8B84; font-size:12px; margin-top:3px; }
+  .content { padding:6px 20px 26px; }
+
+  .lead { text-align:center; margin:4px 0 4px; }
+  .lead .t1 { color:#3B2D28; font-size:16px; font-weight:800; }
+  .lead .t1 span { color:#F47C63; }
+  .lead .t2 { color:#9B8B84; font-size:12.5px; font-weight:600; margin-top:5px; }
+
+  .role-chip { display:inline-flex; align-items:center; gap:5px; background:#FFE7DF; color:#C25A44; font-size:11px; font-weight:800; padding:5px 12px; border-radius:20px; margin:12px auto 6px; }
+  .role-wrap { text-align:center; }
+
+  /* letter cards */
+  .qcard { background:#fff; border-radius:22px; padding:18px 18px 16px; box-shadow:0 8px 24px rgba(180,120,100,.12); margin-top:14px; position:relative; border:2px solid transparent; }
+  .qcard.picked { border-color:#F47C63; box-shadow:0 10px 26px rgba(244,124,99,.22); }
+  .qcard .top { display:flex; align-items:flex-start; gap:12px; }
+  .radio { width:22px; height:22px; border-radius:50%; border:2px solid #E5CFC6; flex-shrink:0; margin-top:2px; position:relative; }
+  .qcard.picked .radio { border-color:#F47C63; background:#F47C63; }
+  .qcard.picked .radio::after { content:"✓"; color:#fff; font-size:13px; font-weight:900; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
+  .qmeta { flex:1; }
+  .qlabel { font-size:10.5px; color:#F47C63; font-weight:800; letter-spacing:.5px; }
+  .qcard.dim .qlabel { color:#B89B92; }
+  .qtext { font-size:16px; color:#3B2D28; font-weight:800; line-height:1.5; margin-top:6px; font-family:Georgia,'Times New Roman',serif; }
+  .qcard.dim { background:#FBF3EE; box-shadow:none; opacity:.82; }
+  .qcard.dim .qtext { color:#8f7d75; }
+  .qcard.dim .radio { border-color:#E5CFC6; }
+
+  /* linepaper preview inside letter for texture */
+  .lines { margin-top:12px; border-top:1px dashed #FFE0D4; padding-top:10px; }
+  .lines .ln { border-bottom:1px solid #FFE7DF; height:14px; }
+  .qcard.dim .lines .ln { border-bottom-color:#EDE0DA; }
+
+  .picked-badge { position:absolute; top:-10px; right:16px; background:#F47C63; color:#fff; font-size:10px; font-weight:800; padding:4px 11px; border-radius:20px; }
+  .gone-note { display:flex; align-items:center; gap:6px; margin-top:12px; color:#B89B92; font-size:11.5px; font-style:italic; }
+  .gone-note .dot { width:14px; height:14px; border-radius:50%; border:1.5px dashed #D8C2B9; display:inline-flex; align-items:center; justify-content:center; font-size:8px; font-style:normal; }
+
+  .noreply { text-align:center; color:#B89B92; font-size:11.5px; font-weight:600; margin:20px 0 6px; }
+  .noreply .pen { opacity:.55; }
+
+  .cta { background:#F47C63; color:#fff; border:none; width:100%; padding:16px; border-radius:16px; font-size:16px; font-weight:800; box-shadow:0 8px 20px rgba(244,124,99,.35); margin-top:8px; }
+  .cta .seal { margin-left:6px; }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <div class="tag">분리형 V2 <b>· 오늘의 질문 정하기 &nbsp; ① 질문 정하기(비교·확정)</b></div>
+    <div class="sub">먼저 본 사람이 오늘의 질문을 골라요 · 답장은 이따 각자</div>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="dots">● ● ●</span></div>
+      <div class="header">
+        <div class="logo">love today ♥</div>
+        <div class="datetxt">7월 6일 월요일</div>
+      </div>
+
+      <div class="content">
+        <div class="lead">
+          <div class="t1">오늘의 질문을 <span>골라주세요</span></div>
+          <div class="t2">답장은 이따 각자 써요</div>
+        </div>
+
+        <div class="role-wrap">
+          <span class="role-chip">✎ 오늘은 지은이 큐레이터</span>
+        </div>
+
+        <!-- picked question -->
+        <div class="qcard picked">
+          <div class="picked-badge">이걸로 정할게요</div>
+          <div class="top">
+            <div class="radio"></div>
+            <div class="qmeta">
+              <div class="qlabel">질문 1</div>
+              <div class="qtext">요즘 나한테 가장 고마웠던 순간이 언제야?</div>
+            </div>
+          </div>
+          <div class="lines"><div class="ln"></div><div class="ln"></div></div>
+        </div>
+
+        <!-- other question -->
+        <div class="qcard dim">
+          <div class="top">
+            <div class="radio"></div>
+            <div class="qmeta">
+              <div class="qlabel">질문 2</div>
+              <div class="qtext">우리가 같이 가고 싶은 여행지 하나만 꼽는다면?</div>
+            </div>
+          </div>
+          <div class="gone-note"><span class="dot">✕</span> 안 고르면 이 질문은 오늘 사라져요</div>
+        </div>
+
+        <div class="noreply"><span class="pen">✎</span> 여기선 답장을 쓰지 않아요 · 정하기만!</div>
+
+        <button class="cta">이 질문으로 정하기<span class="seal">♥</span></button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

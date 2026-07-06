@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분리형 V2 · 오늘의 질문 정하기 ②</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, -apple-system, sans-serif; }
+  body { background:#EFEAE6; display:flex; flex-direction:column; align-items:center; padding:32px 0; min-height:100vh; }
+  .caption { text-align:center; margin-bottom:14px; }
+  .caption .tag { color:#F47C63; font-weight:800; font-size:16px; }
+  .caption .tag b { color:#3B2D28; }
+  .caption .sub { color:#3B2D28; font-size:14px; margin-top:4px; font-weight:600; }
+  .phone { width:390px; height:844px; background:#FBF3EE; border:44px solid #1c1c1e; border-radius:64px; overflow:hidden; position:relative; box-shadow:0 20px 60px rgba(0,0,0,.28); }
+  .screen { width:100%; height:100%; overflow-y:auto; position:relative; }
+  .statusbar { height:44px; display:flex; align-items:center; justify-content:space-between; padding:0 26px; font-size:15px; font-weight:700; color:#3B2D28; }
+  .statusbar .dots { letter-spacing:2px; }
+  .header { text-align:center; padding:6px 0 12px; }
+  .logo { color:#F47C63; font-weight:800; font-size:17px; letter-spacing:.3px; }
+  .datetxt { color:#9B8B84; font-size:12px; margin-top:3px; }
+  .content { padding:6px 20px 26px; }
+
+  /* banner: 지은이 정했어요 */
+  .banner { background:linear-gradient(135deg,#FFF1EC,#FFE7DF); border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:11px; box-shadow:0 6px 18px rgba(180,120,100,.10); }
+  .banner .ava { width:34px; height:34px; border-radius:50%; background:#F47C63; color:#fff; font-weight:800; font-size:15px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .banner .bt1 { color:#3B2D28; font-size:13.5px; font-weight:800; }
+  .banner .bt1 span { color:#C25A44; }
+  .banner .bt2 { color:#9B8B84; font-size:11px; font-weight:600; margin-top:2px; }
+  .banner .seal-mini { margin-left:auto; font-size:18px; color:#F47C63; }
+
+  /* chosen question card */
+  .qcard { background:#fff; border-radius:22px; padding:18px 18px 16px; box-shadow:0 8px 24px rgba(180,120,100,.12); margin-top:14px; }
+  .qlabel { font-size:10.5px; color:#F47C63; font-weight:800; letter-spacing:.5px; }
+  .qtext { font-size:17px; color:#3B2D28; font-weight:800; line-height:1.5; margin-top:6px; font-family:Georgia,'Times New Roman',serif; }
+
+  /* status pills */
+  .pills { display:flex; gap:10px; margin-top:16px; }
+  .pill { flex:1; border-radius:14px; padding:11px 12px; display:flex; align-items:center; gap:9px; font-size:12.5px; font-weight:700; }
+  .pill .ava { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#fff; flex-shrink:0; }
+  .pill.me { background:#FFF1EC; color:#3B2D28; border:1.5px solid #F47C63; }
+  .pill.me .ava { background:#F47C63; }
+  .pill .st { display:block; font-size:10.5px; font-weight:700; margin-top:1px; }
+  .pill.me .st { color:#C25A44; }
+  .pill.partner { background:#FBF3EE; color:#9B8B84; border:1.5px dashed #E5CFC6; }
+  .pill.partner .ava { background:#C9B8B0; }
+  .pill.partner .st { color:#B89B92; }
+  .pill .who { font-size:12.5px; font-weight:800; }
+
+  /* section label */
+  .sec { text-align:center; color:#9B8B84; font-size:11.5px; font-weight:700; margin:20px 0 8px; letter-spacing:.3px; }
+  .sec b { color:#F47C63; }
+
+  /* my letter linepaper */
+  .letter { background:#fff; border-radius:22px; padding:16px 16px 14px; box-shadow:0 8px 24px rgba(180,120,100,.12); }
+  .linepaper { background:#FFF1EC; border-radius:12px; padding:14px 14px 16px; }
+  .linepaper .line { border-bottom:1px solid #FFE0D4; height:27px; display:flex; align-items:flex-end; }
+  .linepaper .writing { font-family:Georgia, serif; color:#3B2D28; font-size:14px; padding-bottom:5px; }
+  .cursor { display:inline-block; width:1.5px; height:16px; background:#F47C63; margin-left:1px; vertical-align:-3px; animation:blink 1s steps(1) infinite; }
+  @keyframes blink { 50%{opacity:0;} }
+
+  .hint { text-align:center; color:#B89B92; font-size:11px; font-weight:600; margin:12px 0 4px; }
+
+  .cta { background:#F47C63; color:#fff; border:none; width:100%; padding:16px; border-radius:16px; font-size:16px; font-weight:800; box-shadow:0 8px 20px rgba(244,124,99,.35); margin-top:8px; }
+  .cta .seal { margin-left:6px; }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <div class="tag">분리형 V2 <b>· 오늘의 질문 정하기 &nbsp; ② 각자 답장 쓰기</b></div>
+    <div class="sub">질문은 정해졌어요 · 이제 둘이 각자 답장을 써요</div>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="dots">● ● ●</span></div>
+      <div class="header">
+        <div class="logo">love today ♥</div>
+        <div class="datetxt">7월 6일 월요일</div>
+      </div>
+
+      <div class="content">
+        <div class="banner">
+          <div class="ava">지</div>
+          <div>
+            <div class="bt1"><span>지은</span>이 오늘의 질문을 정했어요</div>
+            <div class="bt2">이제 각자 답장을 써주세요</div>
+          </div>
+          <div class="seal-mini">♥</div>
+        </div>
+
+        <div class="qcard">
+          <div class="qlabel">오늘의 질문</div>
+          <div class="qtext">요즘 나한테 가장<br>고마웠던 순간이 언제야?</div>
+        </div>
+
+        <div class="pills">
+          <div class="pill me">
+            <div class="ava">나</div>
+            <div><span class="who">나</span><span class="st">✎ 쓰는 중</span></div>
+          </div>
+          <div class="pill partner">
+            <div class="ava">지</div>
+            <div><span class="who">지은</span><span class="st">아직 안 썼어요</span></div>
+          </div>
+        </div>
+
+        <div class="sec">━ <b>내 답장</b> 쓰기 ━</div>
+
+        <div class="letter">
+          <div class="linepaper">
+            <div class="line"><span class="writing">지난주에 내가 야근할 때 밥 챙겨준 거,</span></div>
+            <div class="line"><span class="writing">별거 아닌 것 같아도 진짜 고마웠어<span class="cursor"></span></span></div>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+        </div>
+
+        <div class="hint">봉인하면 상대가 답할 때까지 편지가 잠겨요</div>
+
+        <button class="cta">답장 봉인하기<span class="seal">♥</span></button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
