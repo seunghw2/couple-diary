@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A안 · 감성 편지함 ② 서로의 답 열림</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #EFEAE6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  .caption {
+    font-size: 17px;
+    color: #3B2D28;
+    margin-bottom: 14px;
+    letter-spacing: -0.2px;
+  }
+  .caption .an { color: #F47C63; font-weight: 800; }
+  .caption .rest { font-weight: 600; }
+
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #1c1c1e;
+    border-radius: 56px;
+    padding: 14px;
+    box-shadow: 0 30px 60px rgba(60,40,35,.35);
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: #FBF3EE;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .statusbar {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #3B2D28;
+    flex-shrink: 0;
+  }
+  .statusbar .dots { display: flex; gap: 5px; align-items: center; font-size: 12px; letter-spacing:1px;}
+
+  .content {
+    flex: 1;
+    padding: 6px 22px 22px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .logo { font-size: 17px; font-weight: 800; color: #3B2D28; letter-spacing: -0.3px; }
+  .logo .heart { color: #F47C63; }
+  .opened-pill {
+    display: flex; align-items: center; gap: 5px;
+    background: #FFE7DF;
+    padding: 6px 12px; border-radius: 14px;
+    font-size: 12px; color:#F47C63; font-weight: 800;
+  }
+
+  /* today's question banner */
+  .q-banner {
+    background: #FFFFFF;
+    border-radius: 22px;
+    padding: 16px 20px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+    text-align: center;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .q-banner::before {
+    content: "♥";
+    position: absolute;
+    top: -13px; left: 50%; transform: translateX(-50%);
+    width: 30px; height: 30px;
+    background: #F47C63; color:#fff; border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 13px;
+    box-shadow: 0 4px 10px rgba(244,124,99,.4);
+  }
+  .q-banner .lbl { font-size: 10.5px; color:#C9A99C; font-weight:700; letter-spacing:1.5px; margin-bottom: 6px; }
+  .q-banner .q {
+    font-family: Georgia, serif;
+    font-size: 17px; color:#3B2D28; font-weight:600; line-height:1.4; letter-spacing:-0.3px;
+  }
+
+  /* two letters */
+  .letters {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .lp {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 15px 17px 13px;
+    box-shadow: 0 6px 18px rgba(180,120,100,.10);
+    position: relative;
+  }
+  .lp.mine { background: #FFF1EC; }
+  .lp .lh {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 9px;
+  }
+  .lp .who { display:flex; align-items:center; gap:8px; }
+  .lp .avatar {
+    width: 24px; height:24px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 11px; font-weight: 800; color:#fff;
+  }
+  .lp.mine .avatar { background:#F47C63; }
+  .lp.theirs .avatar { background:#C9A99C; }
+  .lp .name { font-size: 13px; font-weight:700; color:#3B2D28; }
+  .lp .time { font-size: 11px; color:#9B8B84; font-weight:600; }
+  .lp .body {
+    font-family: Georgia, serif;
+    font-size: 14.5px; line-height: 1.55; color:#3B2D28;
+    padding-bottom: 8px;
+  }
+  .lp .react {
+    display:flex; align-items:center; gap:6px;
+    padding-top: 9px;
+    border-top: 1px solid rgba(155,139,132,.14);
+  }
+  .lp .heart-btn {
+    display:flex; align-items:center; gap:5px;
+    background:#FFE7DF; color:#F47C63;
+    padding: 4px 10px; border-radius:12px;
+    font-size: 11.5px; font-weight:800;
+  }
+  .lp.theirs .heart-btn { background:#FBF3EE; color:#9B8B84; }
+  .lp .react .hint { font-size: 11px; color:#9B8B84; }
+
+  /* archive entry */
+  .archive {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 15px 18px;
+    box-shadow: 0 6px 18px rgba(180,120,100,.10);
+    margin-top: auto;
+  }
+  .archive .ah {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 11px;
+  }
+  .archive .ah .t {
+    font-size: 13.5px; font-weight:800; color:#3B2D28;
+    display:flex; align-items:center; gap:7px;
+  }
+  .archive .ah .go { font-size: 12.5px; color:#F47C63; font-weight:700; }
+  .archive .prev {
+    display:flex; gap:10px; align-items:flex-start;
+    padding: 8px 0;
+  }
+  .archive .prev + .prev { border-top: 1px solid rgba(155,139,132,.12); }
+  .archive .prev .env { font-size: 15px; margin-top:1px; opacity:.8; }
+  .archive .prev .txt { flex:1; }
+  .archive .prev .txt .pq {
+    font-size: 12.5px; color:#3B2D28; font-weight:700; margin-bottom:2px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .archive .prev .txt .pd { font-size: 11px; color:#9B8B84; }
+</style>
+</head>
+<body>
+  <div class="caption"><span class="an">A안 · 감성 편지함</span><span class="rest">&nbsp;&nbsp;&nbsp;② 서로의 답 열림</span></div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="dots">●●● &#9679; ▮</span>
+      </div>
+
+      <div class="content">
+        <div class="topbar">
+          <div class="logo">love today <span class="heart">♥</span></div>
+          <div class="opened-pill">✧ 편지 열림</div>
+        </div>
+
+        <div class="q-banner">
+          <div class="lbl">2026 · 7 · 6  오늘의 질문</div>
+          <div class="q">우리가 처음 만난 날, 솔직한 첫인상은?</div>
+        </div>
+
+        <div class="letters">
+          <div class="lp mine">
+            <div class="lh">
+              <div class="who"><div class="avatar">나</div><div class="name">나의 답장</div></div>
+              <div class="time">오전 9:12</div>
+            </div>
+            <div class="body">생각보다 말수가 적어서 조금 무뚝뚝한 사람인 줄 알았는데, 헤어질 때 웃는 게 예뻐서 계속 떠올랐어.</div>
+            <div class="react">
+              <span class="heart-btn">♥ 받음</span>
+              <span class="hint">상대가 이 답에 하트를 남겼어요</span>
+            </div>
+          </div>
+
+          <div class="lp theirs">
+            <div class="lh">
+              <div class="who"><div class="avatar">유</div><div class="name">유진</div></div>
+              <div class="time">오전 9:40</div>
+            </div>
+            <div class="body">되게 다정한 눈빛이라고 생각했어. 긴장했는데 네가 먼저 말 걸어줘서 마음이 놓였던 게 첫 기억이야.</div>
+            <div class="react">
+              <span class="heart-btn">♡ 하트 보내기</span>
+              <span class="hint">이 편지에 마음을 남겨보세요</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="archive">
+          <div class="ah">
+            <div class="t">📮 지난 편지함</div>
+            <div class="go">전체 보기 →</div>
+          </div>
+          <div class="prev">
+            <span class="env">✉︎</span>
+            <div class="txt">
+              <div class="pq">요즘 나한테 가장 고마웠던 순간은?</div>
+              <div class="pd">7월 5일 · 둘 다 답함</div>
+            </div>
+          </div>
+          <div class="prev">
+            <span class="env">✉︎</span>
+            <div class="txt">
+              <div class="pq">10년 뒤 우리는 어디서 뭘 하고 있을까?</div>
+              <div class="pd">7월 4일 · 둘 다 답함</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

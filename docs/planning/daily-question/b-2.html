@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B안 · 티키타카 ② 공개·채팅 반응</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    background:#EFEAE6;
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100vh; padding:40px 0;
+  }
+  .caption { font-size:17px; margin-bottom:14px; text-align:center; color:#3B2D28; }
+  .caption b { color:#F47C63; font-weight:800; }
+  .phone {
+    width:390px; height:844px; background:#1c1c1e; border-radius:56px;
+    padding:14px; box-shadow:0 30px 60px rgba(0,0,0,.28);
+  }
+  .screen {
+    width:100%; height:100%; background:#FBF3EE; border-radius:44px;
+    overflow:hidden; position:relative; display:flex; flex-direction:column;
+  }
+  .statusbar {
+    height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px; font-size:15px; font-weight:700; color:#3B2D28; flex-shrink:0;
+  }
+  .statusbar .dots { display:flex; gap:5px; align-items:center; font-size:12px; }
+  .appbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:6px 22px 10px; flex-shrink:0;
+  }
+  .logo { font-size:19px; font-weight:800; color:#3B2D28; }
+  .logo span { color:#F47C63; }
+  .avatars { display:flex; }
+  .av { width:32px; height:32px; border-radius:50%; border:2px solid #FBF3EE;
+    display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .av:nth-child(2){ margin-left:-10px; }
+  .av.a{ background:#FFD9CE; } .av.b{ background:#D9E8FF; }
+
+  .body { flex:1; overflow-y:auto; padding:2px 20px 22px; }
+
+  /* matched banner */
+  .banner {
+    background:linear-gradient(135deg,#F47C63,#F79576);
+    border-radius:22px; padding:16px 20px; color:#fff; text-align:center;
+    box-shadow:0 10px 22px rgba(244,124,99,.32); position:relative; overflow:hidden;
+  }
+  .banner .big{ font-size:19px; font-weight:800; }
+  .banner .sub{ font-size:12.5px; opacity:.95; margin-top:3px; font-weight:600; }
+  .banner .spark{ position:absolute; font-size:22px; opacity:.6; }
+  .banner .s1{ left:14px; top:10px; } .banner .s2{ right:16px; bottom:8px; }
+
+  /* question recap pill */
+  .qrecap {
+    display:flex; align-items:center; gap:8px; justify-content:center;
+    margin:16px 0 6px; font-size:13px; color:#9B8B84; font-weight:700;
+  }
+  .qrecap b{ color:#3B2D28; }
+
+  /* chat */
+  .chat { display:flex; flex-direction:column; gap:16px; padding:8px 0 4px; }
+  .row { display:flex; gap:8px; align-items:flex-end; max-width:82%; }
+  .row.me { align-self:flex-end; flex-direction:row-reverse; }
+  .row.you { align-self:flex-start; }
+  .cav {
+    width:30px; height:30px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+  }
+  .cav.a{ background:#FFD9CE; } .cav.b{ background:#D9E8FF; }
+  .bubble { position:relative; border-radius:20px; padding:13px 16px; font-size:14.5px; line-height:1.4; }
+  .bubble .pick{ font-weight:800; font-size:15px; display:block; margin-bottom:2px; }
+  .me .bubble {
+    background:linear-gradient(135deg,#F47C63,#F0684E); color:#fff;
+    border-bottom-right-radius:6px; box-shadow:0 6px 14px rgba(240,104,78,.3);
+  }
+  .you .bubble {
+    background:#fff; color:#3B2D28; border-bottom-left-radius:6px;
+    box-shadow:0 6px 16px rgba(180,120,100,.12);
+  }
+  /* reaction chip on bubble */
+  .react {
+    position:absolute; bottom:-12px; background:#fff; border-radius:16px;
+    padding:3px 8px; font-size:13px; box-shadow:0 4px 10px rgba(180,120,100,.18);
+    display:flex; gap:2px; align-items:center;
+  }
+  .me .react{ left:-6px; } .you .react{ right:-6px; }
+  .react b{ font-size:11px; color:#9B8B84; font-weight:700; margin-left:1px; }
+
+  /* streak calendar */
+  .card {
+    background:#fff; border-radius:22px; padding:18px 18px; margin-top:22px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+  }
+  .card-h { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .card-h .t{ font-size:15px; font-weight:800; color:#3B2D28; }
+  .card-h .n{ font-size:12.5px; font-weight:800; color:#F47C63; background:#FFE7DF; padding:4px 10px; border-radius:14px;}
+  .cal { display:grid; grid-template-columns:repeat(7,1fr); gap:9px; }
+  .dot {
+    aspect-ratio:1; border-radius:12px; display:flex; align-items:center;
+    justify-content:center; font-size:15px; background:#FFF1EC; color:#C3B4AC;
+    font-weight:700; font-size:12px;
+  }
+  .dot.on { background:#FFE7DF; }
+  .dot.fire { background:linear-gradient(135deg,#F47C63,#F79576); }
+  .dot.today { border:2.5px solid #F47C63; background:#fff; }
+
+  /* badges */
+  .badges { display:flex; gap:10px; margin-top:14px; }
+  .badge {
+    flex:1; background:#FBF3EE; border-radius:16px; padding:12px 8px; text-align:center;
+    border:1.5px solid #F1E4DC;
+  }
+  .badge.new{ border-color:#F47C63; background:#FFF1EC; position:relative; }
+  .badge.new::after{ content:"NEW"; position:absolute; top:-8px; right:8px; font-size:9px; font-weight:800; color:#fff; background:#F47C63; padding:2px 6px; border-radius:8px;}
+  .badge .em{ font-size:26px; }
+  .badge .bl{ font-size:11px; font-weight:800; color:#3B2D28; margin-top:5px; }
+  .badge.locked{ opacity:.45; }
+</style>
+</head>
+<body>
+  <div class="caption"><b>B안 · 티키타카</b>&nbsp;&nbsp;&nbsp;② 공개·채팅 반응</div>
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="dots">●●● &nbsp;📶&nbsp; 🔋</span>
+      </div>
+      <div class="appbar">
+        <div class="logo">love today <span>♥</span></div>
+        <div class="avatars">
+          <div class="av a">🐰</div>
+          <div class="av b">🐻</div>
+        </div>
+      </div>
+
+      <div class="body">
+        <!-- matched banner -->
+        <div class="banner">
+          <span class="spark s1">✨</span><span class="spark s2">🎉</span>
+          <div class="big">오늘도 통했다! 🔥</div>
+          <div class="sub">둘 다 아침형! 스트릭 13일째 · +20 하트</div>
+        </div>
+
+        <div class="qrecap">⚡ <b>아침형 vs 저녁형</b> · 오늘의 티키타카</div>
+
+        <!-- chat -->
+        <div class="chat">
+          <div class="row you">
+            <div class="cav b">🐻</div>
+            <div class="bubble">
+              <span class="pick">🐤 아침형</span>
+              나도 알람 없이 눈 떠짐 ㅋㅋ 커피 내려놓을게
+              <div class="react">❤️😆<b>나</b></div>
+            </div>
+          </div>
+
+          <div class="row me">
+            <div class="cav a">🐰</div>
+            <div class="bubble">
+              <span class="pick">🐤 아침형</span>
+              6시엔 이미 일어나 있음ㅎ 우리 잘 맞네!
+              <div class="react">🥰<b>곰돌이</b></div>
+            </div>
+          </div>
+
+          <div class="row you">
+            <div class="cav b">🐻</div>
+            <div class="bubble">
+              그럼 주말 아침 데이트 콜? ☀️
+              <div class="react">💯🔥<b>나</b></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- streak calendar -->
+        <div class="card">
+          <div class="card-h">
+            <span class="t">🔥 우리 불꽃 캘린더</span>
+            <span class="n">13일 연속</span>
+          </div>
+          <div class="cal">
+            <div class="dot fire">🔥</div>
+            <div class="dot fire">🔥</div>
+            <div class="dot fire">🔥</div>
+            <div class="dot fire">🔥</div>
+            <div class="dot fire">🔥</div>
+            <div class="dot fire">🔥</div>
+            <div class="dot fire">🔥</div>
+            <div class="dot fire">🔥</div>
+            <div class="dot fire">🔥</div>
+            <div class="dot fire">🔥</div>
+            <div class="dot fire">🔥</div>
+            <div class="dot fire">🔥</div>
+            <div class="dot today">오늘</div>
+            <div class="dot on"></div>
+          </div>
+
+          <!-- badges -->
+          <div class="badges">
+            <div class="badge new">
+              <div class="em">🎯</div>
+              <div class="bl">텔레파시</div>
+            </div>
+            <div class="badge">
+              <div class="em">🔥</div>
+              <div class="bl">불꽃 10일</div>
+            </div>
+            <div class="badge locked">
+              <div class="em">💎</div>
+              <div class="bl">30일 도전</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

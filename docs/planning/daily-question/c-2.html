@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C안 · 카드덱 딥토크 · 카드·질문/답</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  body {
+    background: #EFEAE6;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0 60px;
+    min-height: 100vh;
+  }
+  .caption {
+    font-size: 17px;
+    color: #3B2D28;
+    margin-bottom: 14px;
+    letter-spacing: -0.2px;
+  }
+  .caption b { color: #F47C63; font-weight: 800; }
+  .caption .step { color: #3B2D28; font-weight: 700; margin-left: 8px; }
+
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #1c1c1e;
+    border-radius: 56px;
+    padding: 14px;
+    box-shadow: 0 30px 70px rgba(60,40,30,0.28);
+    position: relative;
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: #FBF3EE;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .statusbar {
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #3B2D28;
+    flex-shrink: 0;
+  }
+  .statusbar .icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+
+  /* top nav */
+  .topnav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 22px 8px;
+    flex-shrink: 0;
+  }
+  .topnav .back { font-size: 20px; color: #3B2D28; font-weight: 700; }
+  .topnav .nav-deck { font-size: 13.5px; font-weight: 800; color: #3B2D28; letter-spacing: -0.2px; }
+  .topnav .nav-idx { font-size: 12px; color: #9B8B84; font-weight: 600; }
+
+  .body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 22px 20px;
+  }
+  .body::-webkit-scrollbar { display: none; }
+
+  /* the flipped rich card */
+  .card {
+    border-radius: 26px;
+    padding: 26px 24px 28px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(150deg, #2B3A5B 0%, #3E5588 60%, #5A73A8 100%);
+    box-shadow: 0 22px 46px rgba(40,55,90,0.4);
+    margin-bottom: 20px;
+  }
+  .card::after {
+    content: "";
+    position: absolute;
+    bottom: -70px; left: -40px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(180,205,255,0.18), transparent 70%);
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    top: -8px; left: 22px; right: 22px;
+    height: 18px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.12);
+  }
+  .card .c-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 26px;
+  }
+  .card .c-deck { font-size: 12.5px; font-weight: 700; color: rgba(234,240,250,0.85); letter-spacing: 0.3px; }
+  .card .c-level {
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #2B3A5B;
+    background: #EAF0FA;
+    padding: 5px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.2px;
+  }
+  .card .c-mark { font-size: 30px; color: rgba(255,255,255,0.35); font-weight: 800; line-height: 1; }
+  .card .c-q {
+    font-size: 25px;
+    font-weight: 800;
+    color: #FFFFFF;
+    line-height: 1.4;
+    letter-spacing: -0.5px;
+    margin: 8px 0 26px;
+  }
+  .card .c-hint {
+    font-size: 11.5px;
+    color: rgba(234,240,250,0.7);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+  }
+  .card .c-dots { display: flex; gap: 5px; margin-left: auto; }
+  .card .c-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.3); }
+  .card .c-dots i.on { background: #FFE7DF; }
+
+  /* my answer */
+  .answer-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: #9B8B84;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    margin: 4px 4px 10px;
+  }
+  .my-answer {
+    background: #FFFFFF;
+    border: 1.5px solid #FFE7DF;
+    border-radius: 20px;
+    padding: 16px 16px 14px;
+    margin-bottom: 22px;
+    box-shadow: 0 8px 20px rgba(120,80,70,0.07);
+  }
+  .my-answer .ma-text {
+    font-size: 15px;
+    color: #3B2D28;
+    line-height: 1.6;
+    letter-spacing: -0.2px;
+    min-height: 66px;
+  }
+  .my-answer .cursor { display: inline-block; width: 2px; height: 17px; background: #F47C63; vertical-align: -3px; margin-left: 1px; }
+  .my-answer .ma-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #F4EAE4;
+  }
+  .my-answer .ma-count { font-size: 11.5px; color: #C4B4AC; font-weight: 600; }
+  .my-answer .ma-save {
+    font-size: 13px;
+    font-weight: 800;
+    color: #FFF;
+    background: #F47C63;
+    padding: 9px 20px;
+    border-radius: 20px;
+    letter-spacing: -0.2px;
+  }
+
+  /* partner locked answer */
+  .partner {
+    background: linear-gradient(135deg, #FFF1EC, #FFE7DF);
+    border-radius: 20px;
+    padding: 20px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 8px;
+  }
+  .partner .p-lock {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: #F47C63;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: #FFF;
+    flex-shrink: 0;
+    box-shadow: 0 6px 14px rgba(244,124,99,0.4);
+  }
+  .partner .p-info { flex: 1; }
+  .partner .p-title { font-size: 14px; font-weight: 800; color: #3B2D28; letter-spacing: -0.2px; }
+  .partner .p-sub { font-size: 12px; color: #9B8B84; margin-top: 3px; letter-spacing: -0.1px; }
+  .partner .p-status {
+    font-size: 11px; font-weight: 800; color: #F47C63;
+    background: #FFF; padding: 5px 11px; border-radius: 14px;
+    flex-shrink: 0;
+  }
+
+  /* next card hint pill */
+  .next-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 20px 0 6px;
+    font-size: 12.5px;
+    color: #9B8B84;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+  }
+  .next-hint .nh-card {
+    width: 20px; height: 26px;
+    border-radius: 5px;
+    background: linear-gradient(150deg, #7A3A55, #B25B72);
+    display: inline-block;
+    box-shadow: 0 3px 8px rgba(120,60,80,0.3);
+  }
+
+  .home-ind { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: #3B2D28; opacity: 0.25; }
+</style>
+</head>
+<body>
+  <div class="caption"><b>C안</b> · 카드덱 딥토크 <span class="step">② 카드·질문/답</span></div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="icons">&#9679;&#9679;&#9679; &#128246; &#128267;</span>
+      </div>
+
+      <div class="topnav">
+        <span class="back">&#8249;</span>
+        <span class="nav-deck">&#127756; 우리의 미래</span>
+        <span class="nav-idx">13번째 카드</span>
+      </div>
+
+      <div class="body">
+        <!-- flipped rich card -->
+        <div class="card">
+          <div class="c-top">
+            <span class="c-deck">우리의 미래 덱</span>
+            <span class="c-level">Lv.3 · 깊음</span>
+          </div>
+          <div class="c-mark">&#8220;</div>
+          <div class="c-q">10년 뒤 우리는 어디서 뭘 하고 있을까?</div>
+          <div class="c-hint">
+            <span>덱 · 가벼움에서 깊음으로</span>
+            <span class="c-dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+          </div>
+        </div>
+
+        <!-- my answer -->
+        <div class="answer-label">내 답</div>
+        <div class="my-answer">
+          <div class="ma-text">바닷가 근처 작은 집에서, 아침엔 같이 커피 내리고 각자 좋아하는 일 하다가 저녁엔 산책하고 있을 것 같아<span class="cursor"></span></div>
+          <div class="ma-foot">
+            <span class="ma-count">76자</span>
+            <span class="ma-save">답 남기기</span>
+          </div>
+        </div>
+
+        <!-- partner locked -->
+        <div class="answer-label">상대의 답</div>
+        <div class="partner">
+          <div class="p-lock">&#128274;</div>
+          <div class="p-info">
+            <div class="p-title">지금은 잠겨 있어요</div>
+            <div class="p-sub">둘 다 답을 남기면 서로의 카드가 열려요</div>
+          </div>
+          <span class="p-status">답 완료</span>
+        </div>
+
+        <!-- next card hint -->
+        <div class="next-hint">
+          <span class="nh-card"></span>
+          답을 남기면 · 다음 카드가 기다려요
+        </div>
+      </div>
+
+      <div class="home-ind"></div>
+    </div>
+  </div>
+</body>
+</html>

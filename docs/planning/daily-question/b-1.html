@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B안 · 티키타카 ① 질문·빠른 답변</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    background:#EFEAE6;
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100vh; padding:40px 0;
+  }
+  .caption {
+    font-size:17px; margin-bottom:14px; text-align:center; color:#3B2D28;
+  }
+  .caption b { color:#F47C63; font-weight:800; }
+  .phone {
+    width:390px; height:844px; background:#1c1c1e; border-radius:56px;
+    padding:14px; box-shadow:0 30px 60px rgba(0,0,0,.28);
+  }
+  .screen {
+    width:100%; height:100%; background:#FBF3EE; border-radius:44px;
+    overflow:hidden; position:relative; display:flex; flex-direction:column;
+  }
+  /* status bar */
+  .statusbar {
+    height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px; font-size:15px; font-weight:700; color:#3B2D28; flex-shrink:0;
+  }
+  .statusbar .dots { display:flex; gap:5px; align-items:center; font-size:12px; }
+  /* header */
+  .appbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:6px 22px 12px; flex-shrink:0;
+  }
+  .logo { font-size:19px; font-weight:800; color:#3B2D28; }
+  .logo span { color:#F47C63; }
+  .avatars { display:flex; }
+  .av {
+    width:32px; height:32px; border-radius:50%; border:2px solid #FBF3EE;
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+  }
+  .av:nth-child(2){ margin-left:-10px; }
+  .av.a{ background:#FFD9CE; } .av.b{ background:#D9E8FF; }
+
+  .body { flex:1; overflow-y:auto; padding:4px 22px 24px; }
+
+  /* streak hero */
+  .streak-hero {
+    background:linear-gradient(135deg,#F47C63,#F79576);
+    border-radius:24px; padding:20px 22px; color:#fff;
+    box-shadow:0 10px 24px rgba(244,124,99,.34);
+    position:relative; overflow:hidden;
+  }
+  .streak-hero::after{
+    content:"🔥"; position:absolute; right:-14px; top:-18px;
+    font-size:120px; opacity:.14; transform:rotate(8deg);
+  }
+  .streak-top { display:flex; align-items:baseline; gap:10px; }
+  .streak-num { font-size:44px; font-weight:800; line-height:1; }
+  .streak-num small{ font-size:18px; font-weight:700; }
+  .streak-label { font-size:13px; opacity:.95; margin-top:4px; font-weight:600; }
+  .gauge {
+    margin-top:16px; background:rgba(255,255,255,.28);
+    border-radius:20px; height:12px; overflow:hidden;
+  }
+  .gauge > i {
+    display:block; height:100%; width:50%;
+    background:#fff; border-radius:20px;
+  }
+  .gauge-cap{ font-size:11.5px; margin-top:7px; opacity:.95; font-weight:600; display:flex; justify-content:space-between;}
+
+  /* question card */
+  .qcard {
+    background:#fff; border-radius:22px; padding:22px 20px 20px; margin-top:18px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+  }
+  .qtag {
+    display:inline-flex; align-items:center; gap:6px;
+    background:#FFE7DF; color:#F47C63; font-weight:800; font-size:12px;
+    padding:6px 12px; border-radius:20px;
+  }
+  .qtext {
+    font-size:22px; font-weight:800; color:#3B2D28; line-height:1.35;
+    margin-top:14px; letter-spacing:-.3px;
+  }
+  .qsub{ font-size:13px; color:#9B8B84; margin-top:6px; font-weight:600;}
+
+  /* balance chips */
+  .balance { display:flex; gap:12px; margin-top:20px; }
+  .chip {
+    flex:1; border-radius:20px; padding:18px 12px; text-align:center;
+    border:2.5px solid #FFE7DF; background:#FFF1EC; cursor:pointer;
+    transition:.15s;
+  }
+  .chip.sel {
+    border-color:#F47C63; background:#F47C63;
+    box-shadow:0 8px 18px rgba(244,124,99,.3);
+  }
+  .chip .emo { font-size:30px; }
+  .chip .lab { font-size:15px; font-weight:800; color:#3B2D28; margin-top:6px; }
+  .chip.sel .lab { color:#fff; }
+  .chip .pct { font-size:11px; font-weight:700; color:#9B8B84; margin-top:2px; }
+  .chip.sel .pct { color:rgba(255,255,255,.85); }
+
+  /* one line add */
+  .addline {
+    margin-top:16px; background:#FBF3EE; border:1.5px solid #F1E4DC;
+    border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:8px;
+  }
+  .addline input {
+    border:none; background:transparent; flex:1; font-size:14.5px;
+    color:#3B2D28; outline:none; font-family:inherit;
+  }
+  .addline input::placeholder{ color:#C3B4AC; }
+  .addline .cnt{ font-size:11px; color:#C3B4AC; font-weight:700; }
+
+  /* submit button */
+  .submit {
+    margin-top:16px; width:100%; border:none; cursor:pointer;
+    background:linear-gradient(135deg,#F47C63,#F0684E);
+    color:#fff; font-size:17px; font-weight:800; font-family:inherit;
+    padding:17px; border-radius:22px;
+    box-shadow:0 10px 22px rgba(240,104,78,.36);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+
+  /* partner status */
+  .pstatus {
+    margin-top:18px; display:flex; align-items:center; gap:10px;
+    justify-content:center; font-size:13px; color:#9B8B84; font-weight:600;
+  }
+  .pstatus .pav{
+    width:26px; height:26px; border-radius:50%; background:#D9E8FF;
+    display:flex; align-items:center; justify-content:center; font-size:13px;
+  }
+  .typing { display:inline-flex; gap:3px; align-items:center; }
+  .typing i{ width:5px; height:5px; border-radius:50%; background:#F47C63; display:inline-block; }
+  .pstatus b{ color:#3B2D28; font-weight:800; }
+</style>
+</head>
+<body>
+  <div class="caption"><b>B안 · 티키타카</b>&nbsp;&nbsp;&nbsp;① 질문·빠른 답변</div>
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="dots">●●● &nbsp;📶&nbsp; 🔋</span>
+      </div>
+      <div class="appbar">
+        <div class="logo">love today <span>♥</span></div>
+        <div class="avatars">
+          <div class="av a">🐰</div>
+          <div class="av b">🐻</div>
+        </div>
+      </div>
+
+      <div class="body">
+        <!-- streak hero -->
+        <div class="streak-hero">
+          <div class="streak-top">
+            <span style="font-size:34px;">🔥</span>
+            <div>
+              <div class="streak-num">12<small>일 연속</small></div>
+              <div class="streak-label">불꽃이 활활! 오늘도 이어가요</div>
+            </div>
+          </div>
+          <div class="gauge"><i></i></div>
+          <div class="gauge-cap"><span>오늘 진행</span><span>1/2 답변 완료</span></div>
+        </div>
+
+        <!-- question card -->
+        <div class="qcard">
+          <span class="qtag">⚡ 오늘의 티키타카</span>
+          <div class="qtext">둘 중 하나!<br>아침형 🐤 vs 저녁형 🦉</div>
+          <div class="qsub">고민 말고 10초 안에 골라봐요</div>
+
+          <div class="balance">
+            <div class="chip sel">
+              <div class="emo">🐤</div>
+              <div class="lab">아침형</div>
+              <div class="pct">나의 선택</div>
+            </div>
+            <div class="chip">
+              <div class="emo">🦉</div>
+              <div class="lab">저녁형</div>
+              <div class="pct">탭해서 선택</div>
+            </div>
+          </div>
+
+          <div class="addline">
+            <span>✏️</span>
+            <input placeholder="한 줄 덧붙이기 (선택)" value="6시엔 이미 일어나 있음ㅎ">
+            <span class="cnt">14/40</span>
+          </div>
+
+          <button class="submit">답하기 ✨</button>
+        </div>
+
+        <!-- partner status -->
+        <div class="pstatus">
+          <span class="pav">🐻</span>
+          <span>곰돌이님 <b>입력 중</b></span>
+          <span class="typing"><i></i><i></i><i></i></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
