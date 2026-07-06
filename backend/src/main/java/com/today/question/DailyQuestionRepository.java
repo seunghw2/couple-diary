@@ -10,6 +10,11 @@ public interface DailyQuestionRepository extends JpaRepository<DailyQuestion, Lo
 
     List<DailyQuestion> findByCouple_IdAndDate(Long coupleId, LocalDate date);
 
+    boolean existsByCouple_Id(Long coupleId);
+
+    /** 가장 최근 기간의 한 행(마감 판정·직전 기간 확인용). */
+    java.util.Optional<DailyQuestion> findTopByCouple_IdOrderByDateDescSlotDesc(Long coupleId);
+
     Optional<DailyQuestion> findByCouple_IdAndDateAndChosenTrue(Long coupleId, LocalDate date);
 
     /** 과거(오늘 제외) chosen 질문을 날짜 내림차순으로. 아카이브용. */

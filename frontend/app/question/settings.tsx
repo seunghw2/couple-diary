@@ -155,7 +155,7 @@ export default function QuestionSettingsScreen() {
             />
           </Card>
 
-          <Text style={styles.midnightHint}>답장은 매일 자정에 마감돼요. 그때까지 답하면 편지가 열려요.</Text>
+          <Text style={styles.midnightHint}>답장은 질문 받은 다음날 이 시간까지예요. 그때까지 둘 다 답하면 편지가 열려요.</Text>
 
           <Button label="저장" onPress={onSave} loading={saving} style={{ marginTop: spacing.xl }} />
         </ScrollView>

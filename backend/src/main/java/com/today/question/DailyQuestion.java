@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /** 커플에게 하루에 배정된 질문 후보(슬롯 1|2 두 개). 그 중 하나가 chosen 된다. (couple, date, slot) 유니크. */
 @Entity
@@ -51,9 +52,13 @@ public class DailyQuestion {
     @JoinColumn(name = "chosen_by")
     private User chosenBy;
 
+    /** 답장 마감 시각(다음 도착시간). 배정 시 확정 저장 — 이후 도착시간 설정을 바꿔도 진행 중 편지엔 영향 없음. */
+    @Column(name = "deadline")
+    private LocalDateTime deadline;
+
     @Builder
     public DailyQuestion(Couple couple, LocalDate date, QuestionPool question, String renderedText,
-                         int slot, Boolean chosen, User chosenBy) {
+                         int slot, Boolean chosen, User chosenBy, LocalDateTime deadline) {
         this.couple = couple;
         this.date = date;
         this.question = question;
@@ -61,6 +66,7 @@ public class DailyQuestion {
         this.slot = slot;
         this.chosen = chosen != null && chosen;
         this.chosenBy = chosenBy;
+        this.deadline = deadline;
     }
 
     /** 커플에게 보여줄 최종 문장(렌더된 게 있으면 그것, 없으면 원문). */

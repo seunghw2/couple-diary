@@ -234,7 +234,7 @@ export default function QuestionScreen() {
               </Text>
             </View>
             <StatusPill icon="hourglass-outline" text="상대의 답장을 기다리는 중" tone="partner" />
-            <Text style={styles.midnightHint}>오늘 자정까지 답하지 않으면 편지는 봉인된 채 보관돼요.</Text>
+            <Text style={styles.midnightHint}>질문 받은 다음날 {today.arrivalTime}까지 답하면 편지가 열려요.</Text>
           </View>
         ) : (
           /* OPENED — 둘 다 열림 */

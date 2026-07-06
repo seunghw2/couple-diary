@@ -72,24 +72,20 @@ public class QuestionService {
         }
         User me = memberOf(couple, userId);
         User partner = partnerOf(couple, userId);
-        LocalDate today = LocalDate.now(KST);
-        LocalTime now = LocalTime.now(KST);
 
         QuestionSetting setting = requireSetting(couple);
-        String arrival = setting.getArrivalTime().format(HM);
+        LocalTime arrivalT = setting.getArrivalTime();
+        String arrival = arrivalT.format(HM);
 
+        // 현재 기간 질문 보장(마감=저장된 deadline 기준). 첫 도착 전이면 빈 리스트.
+        List<DailyQuestion> todays = ensureCurrentPeriod(couple, arrivalT);
+        if (todays.isEmpty()) {
+            LocalDate d = effectiveDate(arrivalT);
+            return base(d, "BEFORE_ARRIVAL", arrival, computeStreak(couple.getId(), d), false).build();
+        }
+        LocalDate today = todays.get(0).getDate();
         int streak = computeStreak(couple.getId(), today);
         Boolean missedYesterday = computeMissedYesterday(couple.getId(), today);
-
-        List<DailyQuestion> todays = dailyQuestionRepository.findByCouple_IdAndDate(couple.getId(), today);
-
-        // 아직 배정 전
-        if (todays.isEmpty()) {
-            if (now.isBefore(setting.getArrivalTime())) {
-                return base(today, "BEFORE_ARRIVAL", arrival, streak, missedYesterday).build();
-            }
-            todays = assignToday(couple, today);
-        }
 
         // 선택된 질문 찾기
         DailyQuestion chosen = todays.stream().filter(DailyQuestion::isChosen).findFirst().orElse(null);
@@ -165,7 +161,8 @@ public class QuestionService {
         Couple couple = coupleRepository.findByMember(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.COUPLE_NOT_FOUND));
         User me = memberOf(couple, userId);
-        LocalDate today = LocalDate.now(KST);
+        LocalDate today = activePeriodDate(couple);
+        if (today == null) throw new ApiException(ErrorCode.INVALID_INPUT);
 
         List<DailyQuestion> todays = dailyQuestionRepository.findByCouple_IdAndDate(couple.getId(), today);
         if (todays.isEmpty()) {
@@ -198,7 +195,8 @@ public class QuestionService {
         Couple couple = coupleRepository.findByMember(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.COUPLE_NOT_FOUND));
         User me = memberOf(couple, userId);
-        LocalDate today = LocalDate.now(KST);
+        LocalDate today = activePeriodDate(couple);
+        if (today == null) throw new ApiException(ErrorCode.INVALID_INPUT);
 
         DailyQuestion chosen = dailyQuestionRepository
                 .findByCouple_IdAndDateAndChosenTrue(couple.getId(), today)
@@ -309,40 +307,22 @@ public class QuestionService {
         }
     }
 
-    // ===================== 스케줄러용 (도착시간·자정 마감) =====================
+    // ===================== 스케줄러용 (도착시간) =====================
 
-    /** 도착시간이 지난 커플에게 오늘의 질문을 배정하고 도착 알림 생성(중복 방지). 스케줄러가 주기 호출. */
+    /**
+     * 도착시간이 지난 커플에게 새 기간 질문을 배정하고 도착 알림 생성(중복 방지). 스케줄러가 주기 호출.
+     * 마감(직전 기간 '지나간 편지' 알림)은 assignToday가 새 기간 배정 시 함께 처리한다.
+     */
     @Transactional
     public void runArrivalNotifications() {
-        LocalDate today = LocalDate.now(KST);
-        LocalTime now = LocalTime.now(KST);
         for (QuestionSetting s : settingRepository.findAll()) {
             if (!s.isNotifyOn()) continue;
-            if (now.isBefore(s.getArrivalTime())) continue;
             Couple couple = s.getCouple();
             if (couple == null) continue;
-            List<DailyQuestion> todays = dailyQuestionRepository.findByCouple_IdAndDate(couple.getId(), today);
-            if (todays.isEmpty()) {
-                todays = assignToday(couple, today);
-            }
+            // 현재 기간 보장(마감됐으면 새 발급 + 직전 마감 알림). 첫 도착 전이면 빈 리스트 → skip.
+            List<DailyQuestion> todays = ensureCurrentPeriod(couple, s.getArrivalTime());
             if (todays.isEmpty()) continue;
-            notificationService.onQuestionArrived(couple.getUser1(), couple.getUser2(), today);
-        }
-    }
-
-    /** 자정: 어제 선택했지만 열리지 못한 편지가 있는 커플에게 '지나간 편지' 알림. 스케줄러가 하루 1회. */
-    @Transactional
-    public void runMissedNotifications() {
-        LocalDate yesterday = LocalDate.now(KST).minusDays(1);
-        for (QuestionSetting s : settingRepository.findAll()) {
-            if (!s.isNotifyOn()) continue;
-            Couple couple = s.getCouple();
-            if (couple == null) continue;
-            DailyQuestion chosen = dailyQuestionRepository
-                    .findByCouple_IdAndDateAndChosenTrue(couple.getId(), yesterday).orElse(null);
-            if (chosen != null && !bothSealed(chosen)) {
-                notificationService.onQuestionMissed(couple.getUser1(), couple.getUser2(), yesterday);
-            }
+            notificationService.onQuestionArrived(couple.getUser1(), couple.getUser2(), todays.get(0).getDate());
         }
     }
 
@@ -352,7 +332,9 @@ public class QuestionService {
     public ArchiveResponse archive(Long userId, String cursor, int limit) {
         Couple couple = coupleRepository.findByMember(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.COUPLE_NOT_FOUND));
-        LocalDate today = LocalDate.now(KST);
+        // 현재 진행 중인 기간은 아카이브에서 제외(마감된 것만 노출).
+        LocalDate active = activePeriodDate(couple);
+        LocalDate today = active != null ? active : LocalDate.now(KST).plusDays(1);
 
         int pageSize = Math.max(1, Math.min(limit, 50));
         LocalDate cursorDate = parseCursor(cursor);
@@ -478,7 +460,69 @@ public class QuestionService {
      * 나머지 slot: 비템플릿 활성 풀에서 요일 리듬 목표 톤 분포로 가중 랜덤. 최근 45일 회피,
      * 2개는 tone·theme가 서로 다르게. 풀 부족 시 회피/제약 완화.</p>
      */
-    private List<DailyQuestion> assignToday(Couple couple, LocalDate today) {
+    /** 마감 경계(도착시간) 기준 '논리적 오늘'. 지금이 오늘 도착시간 이전이면 어제(아직 어제 편지가 유효). */
+    private LocalDate effectiveDate(LocalTime arrival) {
+        LocalDate d = LocalDate.now(KST);
+        return LocalTime.now(KST).isBefore(arrival) ? d.minusDays(1) : d;
+    }
+
+    /** now 이후의 첫 도착시각(= 이번에 발급하는 편지의 마감). */
+    private LocalDateTime nextArrivalAfter(LocalDateTime now, LocalTime arrival) {
+        LocalDateTime na = now.toLocalDate().atTime(arrival);
+        while (!na.isAfter(now)) na = na.plusDays(1);
+        return na;
+    }
+
+    /** 새 기간의 date: effectiveDate, 단 직전 기간보다 반드시 이후(유니크·단조 보장). */
+    private LocalDate nextPeriodDate(DailyQuestion latest, LocalTime arrival) {
+        LocalDate d = effectiveDate(arrival);
+        if (latest != null && !d.isAfter(latest.getDate())) {
+            d = latest.getDate().plusDays(1);
+        }
+        return d;
+    }
+
+    /** 진행 중(마감 전) 최신 기간의 date. 없거나 마감됐으면 null. */
+    private LocalDate activePeriodDate(Couple couple) {
+        DailyQuestion latest = dailyQuestionRepository
+                .findTopByCouple_IdOrderByDateDescSlotDesc(couple.getId()).orElse(null);
+        if (latest != null && latest.getDeadline() != null
+                && LocalDateTime.now(KST).isBefore(latest.getDeadline())) {
+            return latest.getDate();
+        }
+        return null;
+    }
+
+    /**
+     * 현재 기간의 질문 후보(2개)를 보장. 진행 중이면 그대로, 마감/없음이면 새로 발급(직전 마감 알림 포함).
+     * 첫 커플이 첫 도착시간 전이면 빈 리스트(BEFORE_ARRIVAL)를 반환.
+     * 마감시각은 질문에 저장되어, 이후 도착시간을 바꿔도 진행 중 편지엔 영향 없음.
+     */
+    private List<DailyQuestion> ensureCurrentPeriod(Couple couple, LocalTime arrival) {
+        DailyQuestion latest = dailyQuestionRepository
+                .findTopByCouple_IdOrderByDateDescSlotDesc(couple.getId()).orElse(null);
+        LocalDateTime now = LocalDateTime.now(KST);
+
+        boolean active = latest != null && latest.getDeadline() != null && now.isBefore(latest.getDeadline());
+        if (active) {
+            return dailyQuestionRepository.findByCouple_IdAndDate(couple.getId(), latest.getDate());
+        }
+        // 첫 커플이 첫 도착시간 전 — 대기.
+        if (latest == null && now.toLocalTime().isBefore(arrival)) {
+            return List.of();
+        }
+        LocalDate periodDate = nextPeriodDate(latest, arrival);
+        LocalDateTime deadline = nextArrivalAfter(now, arrival);
+        return assignToday(couple, periodDate, deadline);
+    }
+
+    private List<DailyQuestion> assignToday(Couple couple, LocalDate today, LocalDateTime deadline) {
+        // 새 기간 배정 직전, 직전 기간이 열리지 못했으면 '지나간 편지' 알림(마감 = 다음 도착시간).
+        dailyQuestionRepository.findTopByCouple_IdOrderByDateDescSlotDesc(couple.getId())
+                .filter(prev -> !bothSealed(prev))
+                .ifPresent(prev -> notificationService.onQuestionMissed(
+                        couple.getUser1(), couple.getUser2(), prev.getDate()));
+
         List<QuestionPool> nonTemplate = poolRepository.findByActiveTrueAndIsTemplateFalse();
         if (nonTemplate.isEmpty()) {
             throw new ApiException(ErrorCode.QUESTION_NOT_FOUND);
@@ -535,10 +579,10 @@ public class QuestionService {
         try {
             DailyQuestion s1 = dailyQuestionRepository.save(DailyQuestion.builder()
                     .couple(couple).date(today).question(picks.get(0).pool)
-                    .renderedText(picks.get(0).renderedText).slot(1).build());
+                    .renderedText(picks.get(0).renderedText).slot(1).deadline(deadline).build());
             DailyQuestion s2 = dailyQuestionRepository.save(DailyQuestion.builder()
                     .couple(couple).date(today).question(picks.get(1).pool)
-                    .renderedText(picks.get(1).renderedText).slot(2).build());
+                    .renderedText(picks.get(1).renderedText).slot(2).deadline(deadline).build());
             // 배정된 pool usedCount++
             picks.get(0).pool.setUsedCount(picks.get(0).pool.getUsedCount() + 1);
             picks.get(1).pool.setUsedCount(picks.get(1).pool.getUsedCount() + 1);
