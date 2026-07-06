@@ -134,11 +134,7 @@ export default function QuestionScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <Header
-        streak={today.streak}
-        showStreak={showStreak}
-        onArchive={today.coupled ? () => router.push('/question/archive') : undefined}
-      />
+      <Header streak={today.streak} showStreak={showStreak} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
@@ -252,11 +248,12 @@ export default function QuestionScreen() {
             <LetterCard question={today.question?.text}>
               <ChosenLine chosenByMe={today.chosenByMe} nickname={today.chosenBy?.nickname} />
             </LetterCard>
-            <SealedAnswer label="내 답장" text={today.myAnswer?.text} who="mine" />
-            <Pressable style={styles.editLink} onPress={() => router.push('/question/write')} hitSlop={8}>
-              <Icon name="create-outline" size={14} color={c.primary} />
-              <Text style={[styles.editLinkText, { color: c.primary }]}>답장 수정</Text>
-            </Pressable>
+            <SealedAnswer
+              label="내 답장"
+              text={today.myAnswer?.text}
+              who="mine"
+              onEdit={() => router.push('/question/write')}
+            />
             <View style={[styles.lockCard, shadow]}>
               <Icon name="lock-closed-outline" size={22} color={c.coralSoft} />
               <Text style={styles.lockText}>
@@ -277,16 +274,24 @@ export default function QuestionScreen() {
               label={me?.nickname ? `${me.nickname}의 답장` : '내 답장'}
               text={today.myAnswer?.text}
               who="mine"
+              onEdit={() => router.push('/question/write')}
             />
-            <Pressable style={styles.editLink} onPress={() => router.push('/question/write')} hitSlop={8}>
-              <Icon name="create-outline" size={14} color={c.primary} />
-              <Text style={[styles.editLinkText, { color: c.primary }]}>내 답장 수정</Text>
-            </Pressable>
             <OpenedAnswer
               label={partner?.nickname ? `${partner.nickname}의 답장` : '상대의 답장'}
               text={today.partnerAnswer?.text}
               who="partner"
             />
+
+            {/* 지난 편지함 — 두 답장 아래, 댓글 위(항상 같은 위치) */}
+            <Pressable
+              style={[styles.letterboxLink, { borderColor: c.coralSofter }]}
+              onPress={() => router.push('/question/archive')}
+              hitSlop={6}
+            >
+              <Icon name="albums-outline" size={16} color={c.primary} />
+              <Text style={[styles.letterboxLinkText, { color: c.primary }]}>지난 편지함 보기</Text>
+              <Icon name="chevron-forward" size={15} color={c.primary} />
+            </Pressable>
 
             {/* 댓글 */}
             <View style={styles.commentSection}>
@@ -345,16 +350,8 @@ function CommentRow({ comment, mine }: { comment: CommentView; mine: boolean }) 
   );
 }
 
-/** 상단 헤더 — 제목 + 지난 편지함 + 은은한 스트릭. */
-function Header({
-  streak,
-  showStreak,
-  onArchive,
-}: {
-  streak: number;
-  showStreak: boolean;
-  onArchive?: () => void;
-}) {
+/** 상단 헤더 — 제목 + 은은한 스트릭. */
+function Header({ streak, showStreak }: { streak: number; showStreak: boolean }) {
   const c = useColors();
   return (
     <View style={styles.header}>
@@ -368,17 +365,6 @@ function Header({
             <Icon name="heart" size={13} color={c.primary} />
             <Text style={[styles.streakText, { color: c.primary }]}>{streak}일째</Text>
           </View>
-        ) : null}
-        {onArchive ? (
-          <Pressable
-            onPress={onArchive}
-            hitSlop={8}
-            style={[styles.archiveBtn, { backgroundColor: c.coralSofter }]}
-            accessibilityLabel="지난 편지함"
-          >
-            <Icon name="albums-outline" size={15} color={c.primary} />
-            <Text style={[styles.archiveBtnText, { color: c.primary }]}>편지함</Text>
-          </Pressable>
         ) : null}
       </View>
     </View>
@@ -407,16 +393,30 @@ function ChosenLine({ chosenByMe, nickname }: { chosenByMe?: boolean; nickname?:
   return <Text style={styles.chosenLine}>{text}</Text>;
 }
 
-/** 봉인된 답장(내용 살짝 흐리게 or '봉인됨'). */
-function SealedAnswer({ label, text, who }: { label: string; text?: string; who: 'mine' | 'partner' }) {
-  const tint = who === 'mine' ? colors.primary : colors.partner;
+/** 봉인된 답장(내용 살짝 흐리게 or '봉인됨'). mine이면 onEdit로 헤더 우측 '수정'. */
+function SealedAnswer({
+  label,
+  text,
+  who,
+  onEdit,
+}: {
+  label: string;
+  text?: string;
+  who: 'mine' | 'partner';
+  onEdit?: () => void;
+}) {
+  const c = useColors();
+  const tint = who === 'mine' ? c.primary : colors.partner;
   return (
     <View style={[styles.answerCard, shadow]}>
       <View style={styles.answerHead}>
         <Text style={[styles.answerLabel, { color: tint }]}>{label}</Text>
-        <View style={styles.sealTag}>
-          <Icon name="lock-closed" size={11} color={colors.subText} />
-          <Text style={styles.sealTagText}>봉인됨</Text>
+        <View style={styles.headRight}>
+          {onEdit ? <EditTag onPress={onEdit} color={c.primary} /> : null}
+          <View style={styles.sealTag}>
+            <Icon name="lock-closed" size={11} color={colors.subText} />
+            <Text style={styles.sealTagText}>봉인됨</Text>
+          </View>
         </View>
       </View>
       {text ? (
@@ -430,17 +430,38 @@ function SealedAnswer({ label, text, who }: { label: string; text?: string; who:
   );
 }
 
-/** 열린 답장(양쪽 공개). */
-function OpenedAnswer({ label, text, who }: { label: string; text?: string; who: 'mine' | 'partner' }) {
+/** 열린 답장(양쪽 공개). mine이면 onEdit로 카드 헤더 우측에 '수정'. */
+function OpenedAnswer({
+  label,
+  text,
+  who,
+  onEdit,
+}: {
+  label: string;
+  text?: string;
+  who: 'mine' | 'partner';
+  onEdit?: () => void;
+}) {
   const c = useColors();
   const tint = who === 'mine' ? c.primary : colors.partner;
   return (
     <View style={[styles.answerCard, shadow]}>
       <View style={styles.answerHead}>
         <Text style={[styles.answerLabel, { color: tint }]}>{label}</Text>
+        {onEdit ? <EditTag onPress={onEdit} color={c.primary} /> : null}
       </View>
       <Text style={styles.answerText}>{text ?? ''}</Text>
     </View>
+  );
+}
+
+/** 카드 헤더 우측 '수정' 태그(밖으로 안 삐져나오게 카드 안에서 처리). */
+function EditTag({ onPress, color }: { onPress: () => void; color: string }) {
+  return (
+    <Pressable onPress={onPress} hitSlop={8} style={styles.editTag} accessibilityLabel="답장 수정">
+      <Icon name="create-outline" size={13} color={color} />
+      <Text style={[styles.editTagText, { color }]}>수정</Text>
+    </Pressable>
   );
 }
 
@@ -569,17 +590,22 @@ const styles = StyleSheet.create({
   sealedText: { ...font.body, color: colors.placeholder, marginTop: spacing.sm, fontStyle: 'italic' },
   sealTag: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   sealTagText: { ...font.caption, color: colors.subText },
-  editLink: {
+  headRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  editTag: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingVertical: 2, paddingHorizontal: 2 },
+  editTagText: { ...font.caption, fontWeight: '800' },
+  // 지난 편지함(답장 아래·댓글 위)
+  letterboxLink: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    alignSelf: 'flex-end',
-    marginTop: spacing.xs,
-    marginBottom: spacing.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    backgroundColor: '#FFF3EC',
   },
-  editLinkText: { ...font.caption, fontWeight: '700' },
+  letterboxLinkText: { ...font.label, fontWeight: '800' },
 
   // 잠금 카드
   lockCard: {
@@ -606,16 +632,6 @@ const styles = StyleSheet.create({
   },
   statusPillText: { ...font.label, fontWeight: '600' },
   midnightHint: { ...font.caption, color: colors.subText, textAlign: 'center', marginTop: spacing.md },
-
-  archiveBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    borderRadius: radius.pill,
-    paddingHorizontal: 11,
-    paddingVertical: 6,
-  },
-  archiveBtnText: { ...font.caption, fontWeight: '800' },
 
   partnerSealedHint: { ...font.caption, color: colors.subText, textAlign: 'center', marginTop: spacing.md },
 
