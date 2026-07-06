@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  title: { fontSize: 24, fontWeight: '800' },
+  title: { fontSize: 26, fontWeight: '800' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   streak: {
     flexDirection: 'row',

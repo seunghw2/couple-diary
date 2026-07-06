@@ -29,7 +29,10 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>설정</Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, { color: c.primary }]}>설정</Text>
+          <Icon name="settings-sharp" size={19} color={c.primary} />
+        </View>
 
         {/* 프로필 헤더 → 내 정보 */}
         <Pressable onPress={() => router.push('/account')} style={({ pressed }) => [pressed && styles.pressed]}>
@@ -130,7 +133,8 @@ function SettingsRow({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.xxl * 2 },
-  title: { ...font.h1 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title: { fontSize: 26, fontWeight: '800' },
   pressed: { opacity: 0.6 },
 
   profileCard: {

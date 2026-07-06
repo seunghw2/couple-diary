@@ -84,7 +84,10 @@ export default function MapScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* 헤더 */}
       <View style={styles.header}>
-        <Text style={styles.title}>우리의 지도</Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, { color: c.primary }]}>우리의 지도</Text>
+          <Icon name="map" size={20} color={c.primary} />
+        </View>
         <Text style={styles.sub}>
           {query.trim() ? '검색 결과 ' : '우리가 함께 간 곳 '}
           <Text style={[styles.count, { color: c.primary }]}>
@@ -247,7 +250,8 @@ function PillSeg({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.sm },
-  title: { ...font.h1 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title: { fontSize: 26, fontWeight: '800' },
   sub: { ...font.body, color: colors.subText, marginTop: 2 },
   count: { fontWeight: '800' },
   controls: {
