@@ -51,6 +51,12 @@ export default function SettingsScreen() {
         <Text style={styles.groupLabel}>더 보기</Text>
         <View style={styles.groupCard}>
           <SettingsRow
+            icon="mail-outline"
+            tint={c.primary}
+            label="오늘의 질문"
+            onPress={() => router.push('/question/settings')}
+          />
+          <SettingsRow
             icon="gift-outline"
             tint={c.primary}
             label="기념일 보기"
@@ -151,8 +157,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     minHeight: 52,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
-  rowLast: {},
+  rowLast: { borderBottomWidth: 0 },
   rowIcon: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   rowLabel: { ...font.body, flex: 1, color: colors.text },
   rowRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },

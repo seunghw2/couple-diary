@@ -274,7 +274,6 @@ export default function QuestionScreen() {
 /** 상단 헤더 — 제목 + 은은한 스트릭 + 설정. */
 function Header({ streak, showStreak }: { streak: number; showStreak: boolean }) {
   const c = useColors();
-  const router = useRouter();
   return (
     <View style={styles.header}>
       <View style={styles.titleRow}>
@@ -288,9 +287,6 @@ function Header({ streak, showStreak }: { streak: number; showStreak: boolean })
             <Text style={[styles.streakText, { color: c.primary }]}>{streak}일째</Text>
           </View>
         ) : null}
-        <Pressable onPress={() => router.push('/question/settings')} hitSlop={10}>
-          <Icon name="options-outline" size={22} color={colors.subText} />
-        </Pressable>
       </View>
     </View>
   );
