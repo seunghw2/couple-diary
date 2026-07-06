@@ -1,0 +1,1586 @@
+[
+{
+"text": "오늘 하루 중 '이건 좀 좋았다' 싶은 순간은?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 네 기분을 색으로 표현하면 무슨 색이야?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 하루를 한 단어로 요약하면?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 문득 나 생각난 순간 있었어?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 가장 오래 머문 감정은 뭐였어?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 하루 중 다시 돌려보고 싶은 장면 있어?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 나를 웃게 만든 게 뭐였어?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 제일 편했던 순간은 언제였어?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 아침에 눈 뜨면 제일 먼저 드는 생각은?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 하늘 봤어? 어땠어?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 나한테 작은 위로가 됐던 건 뭐야?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 하루 중 제일 기다려지는 시간은 언제야?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 예상 못 했는데 기분 좋아진 일 있어?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 마신 것 중에 제일 맛있었던 건?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 하루 중 잠깐 멍때린 순간 있었어? 무슨 생각했어?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 네 하루에 리듬을 주는 습관이 있다면 뭐야?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 하루, 나한테 미리 말해주고 싶었던 게 있어?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 들은 노래 중 마음에 남은 거 있어?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 자기 전에 제일 자주 하는 생각은?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 딱 5분만 더 있고 싶었던 순간은?",
+"theme": "오늘/일상",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 너를 제일 편하게 해주는 장소나 순간은?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "비 오는 날이 좋아, 맑은 날이 좋아? 왜?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 계속 손이 가는 음식이 뭐야?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "여행 가면 계획파야, 즉흥파야?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "너를 기분 좋게 만드는 냄새가 있어?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "카페 가면 늘 시키는 거 있어?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "아침형 인간이야, 밤에 살아나는 사람이야?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 빠져 있는 게 뭐야?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "혼자만의 시간엔 주로 뭐 하면서 채워?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "산이 좋아, 바다가 좋아?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "네가 제일 좋아하는 계절은 언제야? 이유도 궁금해.",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 반복해서 듣는 노래 있어?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "집에서 제일 좋아하는 자리는 어디야?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "따뜻한 거 좋아해, 시원한 거 좋아해?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "영화 볼 때 극장파야, 집에서 보는 파야?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 사고 싶은 거 하나만 딱 고른다면?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "네가 생각하는 완벽한 주말은 어떤 모습이야?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "매운 거 좋아하는 편이야? 어느 정도까지 가?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 보는 것 중에 나한테도 추천하고 싶은 거 있어?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "너를 설레게 하는 순간은 보통 어떤 때야?",
+"theme": "취향/선호",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "최근에 나한테서 새로 발견한 모습 있어?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "내가 제일 나다워 보이는 순간은 언제인 거 같아?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "내가 요즘 좀 지쳐 보였던 적 있어?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "나한테서 제일 자주 보이는 습관이 뭐야?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "내가 웃을 때 어떤 표정이 제일 기억에 남아?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 내가 뭐에 신나 있는 거 같아?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "내가 말 안 해도 눈치챈 내 기분 있었어?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "나랑 처음 만났을 때 첫인상 기억나?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "내가 요즘 자주 하는 말버릇 있어?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "나를 동물로 비유하면 뭐 같아? 왜?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "내가 제일 사랑스러워 보이는 순간이 언제야?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 나 뭔가 달라진 거 느낀 적 있어?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "내가 집중할 때 어떤 모습인지 궁금해. 어때?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "나한테 은근히 반전 매력이라고 느끼는 게 있어?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "내가 화났을 때랑 삐졌을 때, 어떻게 구분해?",
+"theme": "서로 관찰하기",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "이번 주에 나한테 딱 하나 해줬으면 하는 거 있어?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 나한테 제일 듣고 싶은 말이 뭐야?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "지칠 때 내가 어떻게 해주면 제일 힘이 나?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 같이 하고 싶은데 아직 못 한 거 있어?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "내가 좀 더 자주 해줬으면 하는 게 있어?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "다음에 데이트하면 어디 가고 싶어?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 나한테 살짝 서운했던 거 있으면 말해줄래?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘은 나한테 뭐 하나 부탁해도 돼. 뭐 해줄까?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "힘든 하루 끝에 내가 뭘 해주면 좋겠어?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "이번 주말엔 뭘 같이 하면 네가 제일 행복할까?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 내 애정표현 중에 뭐가 제일 좋아?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "다음 기념일엔 어떻게 보내고 싶어?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "내가 요즘 놓치고 있는 너의 마음이 있을까?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리끼리만 하는 작은 이벤트 하나 만든다면 뭐가 좋을까?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 나랑 더 이야기 나누고 싶었던 주제 있어?",
+"theme": "다정한 부탁",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "네가 절대 포기 못 하는 가치가 하나 있다면 뭐야?",
+"theme": "작은 가치관",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "행복이 뭐라고 생각해? 요즘 기준으로.",
+"theme": "작은 가치관",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "돈이랑 시간 중에 요즘 뭐가 더 소중해?",
+"theme": "작은 가치관",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "사람을 볼 때 제일 중요하게 보는 게 뭐야?",
+"theme": "작은 가치관",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "'좋은 어른'이 뭐라고 생각해?",
+"theme": "작은 가치관",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "네가 생각하는 '잘 산다'는 어떤 모습이야?",
+"theme": "작은 가치관",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "약속을 지키는 것과 솔직한 것, 하나 고른다면?",
+"theme": "작은 가치관",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 네 삶에서 제일 우선순위 높은 게 뭐야?",
+"theme": "작은 가치관",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "후회 없이 사는 게 가능하다고 생각해?",
+"theme": "작은 가치관",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "네가 남들보다 좀 예민하게 지키는 원칙이 있어?",
+"theme": "작은 가치관",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "돈으로 살 수 없는 것 중에 제일 갖고 싶은 게 뭐야?",
+"theme": "작은 가치관",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "네가 생각하는 '좋은 관계'의 조건은 뭐야?",
+"theme": "작은 가치관",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘의 나를 한 문장으로 소개한다면?",
+"theme": "나라는 사람",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "어릴 때 꿈이 뭐였어? 지금은 어때?",
+"theme": "나라는 사람",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "너를 가장 잘 설명하는 단어 세 개는?",
+"theme": "나라는 사람",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "스스로가 대견했던 최근 순간이 있어?",
+"theme": "나라는 사람",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "네가 고치고 싶은데 잘 안 되는 점이 있어?",
+"theme": "나라는 사람",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "너를 만든 결정적인 경험 하나만 꼽는다면?",
+"theme": "나라는 사람",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "혼자 있을 때의 너랑 사람들 앞의 너, 많이 달라?",
+"theme": "나라는 사람",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 스스로한테 자주 하는 말이 있어?",
+"theme": "나라는 사람",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "네가 제일 자랑스러워하는 너의 모습은 뭐야?",
+"theme": "나라는 사람",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "스트레스 받을 때 너만의 해소법이 있어?",
+"theme": "나라는 사람",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "10대의 너가 지금의 너를 보면 뭐라고 할까?",
+"theme": "나라는 사람",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 제일 자주 드는 감정이 뭐야?",
+"theme": "나라는 사람",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "너를 성장시킨 사람이나 순간이 있어?",
+"theme": "나라는 사람",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "네가 남몰래 자신 있어 하는 게 있어?",
+"theme": "나라는 사람",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 너를 제일 힘 나게 하는 원동력이 뭐야?",
+"theme": "나라는 사람",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리가 함께한 순간 중 제일 먼저 떠오르는 장면은?",
+"theme": "추억/함께한 시간",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 첫 데이트 기억나? 그날 어땠어?",
+"theme": "추억/함께한 시간",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "나랑 있으면서 제일 많이 웃었던 날이 언제야?",
+"theme": "추억/함께한 시간",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 둘만 아는 추억 하나 꺼내볼래?",
+"theme": "추억/함께한 시간",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "같이 갔던 곳 중에 다시 가고 싶은 데 있어?",
+"theme": "추억/함께한 시간",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리가 처음으로 '통했다' 느낀 순간이 언제였어?",
+"theme": "추억/함께한 시간",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "나한테 반한 결정적인 순간이 있었어?",
+"theme": "추억/함께한 시간",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리가 함께 넘긴 힘든 순간 중 기억나는 게 있어?",
+"theme": "추억/함께한 시간",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "같이 먹은 음식 중에 제일 기억에 남는 건?",
+"theme": "추억/함께한 시간",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 처음 손잡았을 때 어떤 기분이었어?",
+"theme": "추억/함께한 시간",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "지금까지 나한테 받은 것 중 제일 기억에 남는 건?",
+"theme": "추억/함께한 시간",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 사이 별명이나 우리끼리 쓰는 말 있잖아, 제일 좋아하는 거 뭐야?",
+"theme": "추억/함께한 시간",
+"tone": "light",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "함께 본 것 중에 오래 마음에 남은 풍경 있어?",
+"theme": "추억/함께한 시간",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리가 처음 싸우고 화해했던 거 기억나?",
+"theme": "추억/함께한 시간",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "지난 계절, 우리가 함께한 것 중 제일 좋았던 건?",
+"theme": "추억/함께한 시간",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 나한테 가장 고마웠던 순간은?",
+"theme": "마음/애정표현",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "나의 어떤 점이 제일 사랑스러워?",
+"theme": "마음/애정표현",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "나를 사랑한다고 느끼는 순간이 언제야?",
+"theme": "마음/애정표현",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "지금 이 순간, 나한테 제일 하고 싶은 말은?",
+"theme": "마음/애정표현",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "내가 곁에 있어서 달라진 게 있다면 뭐야?",
+"theme": "마음/애정표현",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "나를 떠올리면 제일 먼저 드는 마음이 뭐야?",
+"theme": "마음/애정표현",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "말로는 잘 못 했지만 늘 고마웠던 게 있어?",
+"theme": "마음/애정표현",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "내가 너한테 어떤 존재인지 한 문장으로 말해줄래?",
+"theme": "마음/애정표현",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "나를 사랑하는 방식 중에 스스로 마음에 드는 게 있어?",
+"theme": "마음/애정표현",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 나한테 더 표현하고 싶었던 마음이 있어?",
+"theme": "마음/애정표현",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "내가 없으면 제일 아쉬울 것 같은 순간은 언제야?",
+"theme": "마음/애정표현",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 사랑을 한 문장으로 적는다면 어떻게 쓸래?",
+"theme": "마음/애정표현",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "10년 뒤 우리는 어디서 뭘 하고 있을까?",
+"theme": "미래/약속",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리가 함께 꼭 이루고 싶은 게 있다면 뭐야?",
+"theme": "미래/약속",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "언젠가 둘이 꼭 가보고 싶은 곳 있어?",
+"theme": "미래/약속",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리가 나이 들어서도 계속 하고 싶은 게 있다면?",
+"theme": "미래/약속",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리끼리 지키고 싶은 약속 하나 만든다면 뭐가 좋을까?",
+"theme": "미래/약속",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "1년 뒤 우리는 어떤 모습이면 좋겠어?",
+"theme": "미래/약속",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "미래의 우리한테 미리 하고 싶은 말 있어?",
+"theme": "미래/약속",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리만의 전통 하나 만든다면 어떤 게 좋을까?",
+"theme": "미래/약속",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "함께 배우거나 도전해보고 싶은 거 있어?",
+"theme": "미래/약속",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리가 언젠가 살고 싶은 집은 어떤 모습이야?",
+"theme": "미래/약속",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "앞으로 우리가 서로한테 계속 지켜줬으면 하는 건?",
+"theme": "미래/약속",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "다음 여행은 어디로 떠나고 싶어?",
+"theme": "미래/약속",
+"tone": "light",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 사이에서 제일 소중한 게 뭐라고 생각해?",
+"theme": "관계 돌아보기",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 우리 관계, 몇 점 주고 싶어? 이유도 궁금해.",
+"theme": "관계 돌아보기",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리가 처음보다 더 나아진 점이 있다면 뭘까?",
+"theme": "관계 돌아보기",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리가 서로한테 제일 잘 맞는 부분이 뭐라고 생각해?",
+"theme": "관계 돌아보기",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 대화 방식에서 좋은 점, 아쉬운 점이 뭐야?",
+"theme": "관계 돌아보기",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "요즘 우리한테 필요한 게 뭐라고 느껴?",
+"theme": "관계 돌아보기",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리가 싸울 때 더 잘해보고 싶은 부분이 있어?",
+"theme": "관계 돌아보기",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 관계에서 당연하게 여겨서 놓친 게 있을까?",
+"theme": "관계 돌아보기",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "서로를 더 잘 이해하려면 뭐가 필요할까?",
+"theme": "관계 돌아보기",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리가 함께 자란 부분이 있다면 뭐라고 생각해?",
+"theme": "관계 돌아보기",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "이 교환일기를 쓰면서 우리한테 생긴 변화가 있어?",
+"theme": "관계 돌아보기",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리만의 강점을 하나 꼽는다면 뭘까?",
+"theme": "관계 돌아보기",
+"tone": "deep",
+"depth": 3,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "복권 당첨되면 둘이 제일 먼저 뭐 할까?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 둘이 초능력 하나씩 갖는다면?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "무인도에 딱 하나만 가져갈 수 있다면 뭐 챙길래?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 커플이 웹툰 주인공이면 제목이 뭐일 것 같아?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "타임머신 타면 우리 언제로 돌아가고 싶어?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "둘이 같이 가게 차린다면 무슨 가게 할까?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 둘을 이모지 두 개로 표현하면 뭐야?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "하루 동안 서로 몸이 바뀐다면 제일 먼저 뭐 해볼래?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 커플 테마송을 정한다면 무슨 노래야?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "만약 유령이 된다면 나 놀래킬 거야, 지켜줄 거야?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "둘이 좀비 아포칼립스에 떨어지면 누가 리더 할까?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 커플 굿즈 만든다면 뭘 만들고 싶어?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "내일 하루 뭐든 공짜라면 둘이 뭐부터 할까?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리를 캐릭터로 만들면 각자 필살기가 뭘까?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "둘이 예능 나가면 어떤 프로그램이 딱일 것 같아?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리한테 반려동물 생긴다면 이름 뭐라고 지을래?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "순간이동 능력 생기면 지금 둘이 어디로 튈까?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 둘이 밴드 결성하면 밴드 이름은?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "로또 1등 하면 나한테 뭐 사줄 거야?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 커플 별자리를 새로 만든다면 무슨 모양일까?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "둘이 세계여행 티켓 생기면 첫 나라는 어디?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 사랑 이야기가 영화면 장르가 뭐일까?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "서로한테 마법 주문 하나 걸 수 있다면 뭐 걸래?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "둘이 하루 왕과 왕비 된다면 첫 명령은 뭐야?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 커플 슬로건 하나 정한다면 뭐라고 외칠래?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "동화 속 커플이 된다면 우리 어떤 이야기일까?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "둘 중 하나가 갑자기 연예인 되면 무슨 분야일까?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리만의 기념일을 하나 새로 만든다면 무슨 날?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "둘이 방탈출 가면 누가 정답 먼저 맞힐 것 같아?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리 관계에 게임처럼 레벨이 있다면 지금 몇 레벨?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "오늘 나 대신 하루를 살아준다면 뭘 제일 바꿔주고 싶어?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 2,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "우리한테 로봇 집사 생기면 제일 먼저 뭘 시킬래?",
+"theme": "상상/놀이",
+"tone": "fun",
+"depth": 1,
+"contextTrigger": null,
+"isTemplate": false
+},
+{
+"text": "곧 {N}일이야. 그날 뭐 하고 싶어?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 2,
+"contextTrigger": "anniversary",
+"isTemplate": true
+},
+{
+"text": "{N}일을 함께 걸어온 지금, 서로한테 제일 고마운 건?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 3,
+"contextTrigger": "anniversary",
+"isTemplate": true
+},
+{
+"text": "{N}일이라니, 처음이랑 지금 우리 뭐가 제일 달라졌어?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 3,
+"contextTrigger": "anniversary",
+"isTemplate": true
+},
+{
+"text": "{상대}야, 이번 생일에 제일 받고 싶은 하루는?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 2,
+"contextTrigger": "birthday",
+"isTemplate": true
+},
+{
+"text": "{상대} 생일이 다가와. 요즘 제일 해주고 싶은 건?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 2,
+"contextTrigger": "birthday",
+"isTemplate": true
+},
+{
+"text": "{상대}야, 이번 한 살, 우리랑 어떤 한 해로 채우고 싶어?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 3,
+"contextTrigger": "birthday",
+"isTemplate": true
+},
+{
+"text": "벌써 편지 {N}통째야. 요즘 우리 어때?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 2,
+"contextTrigger": "streak",
+"isTemplate": true
+},
+{
+"text": "{N}일 연속 편지 중! 이 습관에서 제일 좋은 건?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 2,
+"contextTrigger": "streak",
+"isTemplate": true
+},
+{
+"text": "편지 {N}통을 쌓는 동안, 나에 대해 새로 알게 된 거 있어?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 3,
+"contextTrigger": "streak",
+"isTemplate": true
+},
+{
+"text": "올여름 우리 꼭 같이 하고 싶은 건?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 2,
+"contextTrigger": "season",
+"isTemplate": true
+},
+{
+"text": "요즘 계절, 너랑 제일 하고 싶은 게 뭐야?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 2,
+"contextTrigger": "season",
+"isTemplate": true
+},
+{
+"text": "이 계절이 오면 떠오르는 우리 추억 있어?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 2,
+"contextTrigger": "season",
+"isTemplate": true
+},
+{
+"text": "우리 첫 편지야. 요즘 네 하루는 어때?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 1,
+"contextTrigger": "firstletter",
+"isTemplate": true
+},
+{
+"text": "첫 편지라 좀 설레지 않아? 지금 네 마음 그대로 들려줄래?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 2,
+"contextTrigger": "firstletter",
+"isTemplate": true
+},
+{
+"text": "오랜만의 편지! 그동안 제일 생각났던 순간은?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 2,
+"contextTrigger": "comeback",
+"isTemplate": true
+},
+{
+"text": "다시 편지 앞이야. 그사이 나한테 못 한 말 있었어?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 2,
+"contextTrigger": "comeback",
+"isTemplate": true
+},
+{
+"text": "곧 {N}주년이야. 그날 우리 뭐 하고 싶어?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 3,
+"contextTrigger": "anniversary",
+"isTemplate": true
+},
+{
+"text": "{N}주년인 지금, 서로한테 제일 고마운 건 뭐야?",
+"theme": "맥락/기념",
+"tone": "context",
+"depth": 3,
+"contextTrigger": "anniversary",
+"isTemplate": true
+}
+]

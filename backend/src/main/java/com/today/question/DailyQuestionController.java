@@ -59,6 +59,13 @@ public class DailyQuestionController {
         return ResponseEntity.noContent().build();
     }
 
+    /** 오늘의 질문 '별로예요' 신고(내 커플로 1회). 서로 다른 커플 3팀 이상이면 자동 비활성. */
+    @PostMapping("/{questionId}/report")
+    public ResponseEntity<Void> report(@PathVariable Long questionId) {
+        questionService.report(SecurityUtil.currentUserId(), questionId);
+        return ResponseEntity.noContent().build();
+    }
+
     /** 과거 오픈된 편지 목록(날짜 내림차순, 커서 페이지네이션). */
     @GetMapping("/archive")
     public ArchiveResponse archive(

@@ -32,6 +32,8 @@ app:
     allowed-origins: "http://localhost:8081,http://localhost:19006,http://localhost:5001,exp://*,https://*.trycloudflare.com,https://today.hammerslog.trade,https://today-web.hammerslog.trade"
   upload:
     dir: ${UPLOAD_DIR:${user.home}/couple-diary-uploads}
+  # 관리자 배치 질문 생성 엔드포인트(/api/admin/**) 인증 토큰. 미설정(빈 값)이면 모든 요청 403.
+  admin-token: ${ADMIN_TOKEN:}
   kakao:
     # 카카오 로컬 REST API 키(장소 키워드 검색 프록시용). 클라이언트에 노출하지 않고 서버에서만 사용.
     rest-key: ${KAKAO_REST_KEY:be9e8e34057ddefce22d6f52732c3c7a}

@@ -60,7 +60,9 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/api/health",
-                                "/actuator/**"
+                                "/actuator/**",
+                                // 관리자 배치 생성: JWT 대신 X-Admin-Token 헤더로 컨트롤러에서 직접 인증
+                                "/api/admin/**"
                         ).permitAll()
                         // 업로드 사진 정적 서빙: UUID 파일명 난독화로 MVP에서는 공개 GET 허용
                         .requestMatchers(HttpMethod.GET, "/files/**").permitAll()

@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { QuestionAnswer } from '../../lib/api';
-import { showAlert } from '../../lib/dialog';
+import { dailyQuestionApi, QuestionAnswer } from '../../lib/api';
+import { confirmAsync, showAlert, showToast } from '../../lib/dialog';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useQuestionStore } from '../../store/useQuestionStore';
 import { Button, Card, Icon } from '../../components/ui';
@@ -33,11 +33,15 @@ export default function QuestionScreen() {
   const [chosenSlot, setChosenSlot] = useState<number | null>(null);
   const [choosing, setChoosing] = useState(false);
   const [reacting, setReacting] = useState(false);
+  // 신고한 봉투 id들(로컬) — 화면에서 흐리게 비활성 처리, 중복 신고 방지.
+  const [reportedIds, setReportedIds] = useState<number[]>([]);
+  const [reportingId, setReportingId] = useState<number | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       loadToday();
       setChosenSlot(null);
+      setReportedIds([]);
     }, [loadToday])
   );
 
@@ -70,6 +74,24 @@ export default function QuestionScreen() {
       showAlert('하트를 전하지 못했어요', '잠시 후 다시 시도해 주세요.');
     } finally {
       setReacting(false);
+    }
+  }
+
+  async function onReport(choice: { id: number; slot: number }) {
+    if (reportingId != null || reportedIds.includes(choice.id)) return;
+    const ok = await confirmAsync('이 질문 덜 보여드릴까요?', '비슷한 질문을 앞으로 조금 덜 보여드릴게요.');
+    if (!ok) return;
+    setReportingId(choice.id);
+    try {
+      await dailyQuestionApi.report(choice.id);
+      setReportedIds((prev) => (prev.includes(choice.id) ? prev : [...prev, choice.id]));
+      // 신고한 봉투가 선택돼 있었다면 선택 해제.
+      setChosenSlot((s) => (s === choice.slot ? null : s));
+      showToast('덜 보여드릴게요');
+    } catch {
+      showAlert('신고를 전하지 못했어요', '잠시 후 다시 시도해 주세요.');
+    } finally {
+      setReportingId(null);
     }
   }
 
@@ -135,16 +157,19 @@ export default function QuestionScreen() {
             <Text style={styles.sectionHint}>오늘 함께 나눌 편지를 하나 골라요</Text>
             <View style={styles.envelopes}>
               {(today.choices ?? []).map((ch) => {
-                const selected = chosenSlot === ch.slot;
+                const reported = reportedIds.includes(ch.id);
+                const selected = !reported && chosenSlot === ch.slot;
                 return (
                   <Pressable
                     key={ch.id}
-                    onPress={() => setChosenSlot(ch.slot)}
+                    onPress={() => !reported && setChosenSlot(ch.slot)}
+                    disabled={reported}
                     style={[
                       styles.envelope,
                       shadow,
                       { borderColor: selected ? c.primary : colors.border },
                       selected && { backgroundColor: '#FFF3E4' },
+                      reported && styles.envelopeReported,
                     ]}
                   >
                     <View style={[styles.seal, { backgroundColor: selected ? c.primary : c.coralSofter }]}>
@@ -155,7 +180,20 @@ export default function QuestionScreen() {
                       <View style={styles.envCheck}>
                         <Icon name="checkmark-circle" size={20} color={c.primary} />
                       </View>
-                    ) : null}
+                    ) : reported ? (
+                      <Text style={styles.envReportedTag}>덜 보여드릴게요</Text>
+                    ) : (
+                      // 은은한 신고 — 카드 우상단 흐린 아이콘.
+                      <Pressable
+                        onPress={() => onReport(ch)}
+                        disabled={reportingId != null}
+                        hitSlop={10}
+                        style={styles.envReport}
+                        accessibilityLabel="이 질문 별로예요"
+                      >
+                        <Icon name="ellipsis-horizontal" size={16} color={colors.placeholder} />
+                      </Pressable>
+                    )}
                   </Pressable>
                 );
               })}
@@ -428,6 +466,15 @@ const styles = StyleSheet.create({
   },
   envelopeText: { ...font.title, fontWeight: '600', lineHeight: 24 },
   envCheck: { position: 'absolute', top: spacing.md, right: spacing.md },
+  envReport: { position: 'absolute', top: spacing.md, right: spacing.md, opacity: 0.6, padding: 2 },
+  envelopeReported: { opacity: 0.45 },
+  envReportedTag: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.md,
+    ...font.caption,
+    color: colors.placeholder,
+  },
 
   // 편지지 카드
   letter: {

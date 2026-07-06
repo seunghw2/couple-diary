@@ -1,16 +1,28 @@
 package com.today.question;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
- * 오늘의 질문 풀({@link QuestionPool}) 시드. 비어 있을 때만 삽입.
+ * 오늘의 질문 풀({@link QuestionPool}) 시드.
+ *
+ * <p>{@code question-seed.json}이 있으면 <b>text 기준 upsert</b>: 같은 text가 있으면 태그
+ * (theme/tone/depth/contextTrigger/isTemplate) 갱신 + active=true, 없으면 insert(source='seed').
+ * JSON에 없는 기존 source='seed' 행은 삭제하지 않고 active=false 로만 내린다(FK 보존).</p>
+ *
+ * <p>JSON이 없으면 기존 동작(풀이 비었을 때만 하드코딩 시드 삽입)을 유지한다.</p>
  * (별개 '20문답' 시더 {@code com.today.config.QuestionSeeder}와 무관.)
  */
 @Slf4j
@@ -19,12 +31,88 @@ import java.util.List;
 @RequiredArgsConstructor
 public class QuestionPoolSeeder implements CommandLineRunner {
 
+    private static final String SEED_JSON = "question-seed.json";
+
     private final QuestionPoolRepository poolRepository;
+    private final ObjectMapper objectMapper;
+
+    /** question-seed.json 한 항목. */
+    record SeedRow(String text, String theme, String tone, Integer depth,
+                  String contextTrigger, Boolean isTemplate) {}
 
     @Override
     public void run(String... args) {
-        if (poolRepository.count() > 0) return;
+        List<SeedRow> rows = loadSeedJson();
+        if (rows != null) {
+            upsertFromJson(rows);
+        } else if (poolRepository.count() == 0) {
+            legacySeed();
+        }
+    }
 
+    private List<SeedRow> loadSeedJson() {
+        ClassPathResource resource = new ClassPathResource(SEED_JSON);
+        if (!resource.exists()) return null;
+        try (InputStream in = resource.getInputStream()) {
+            CollectionType type = objectMapper.getTypeFactory()
+                    .constructCollectionType(List.class, SeedRow.class);
+            List<SeedRow> rows = objectMapper.readValue(in, type);
+            return rows == null ? List.of() : rows;
+        } catch (Exception e) {
+            log.warn("Failed to read {} — skipping seed upsert", SEED_JSON, e);
+            return null;
+        }
+    }
+
+    private void upsertFromJson(List<SeedRow> rows) {
+        Set<String> jsonTexts = new HashSet<>();
+        int inserted = 0, updated = 0;
+
+        for (SeedRow row : rows) {
+            if (row == null || row.text() == null || row.text().isBlank()) continue;
+            String text = row.text().trim();
+            jsonTexts.add(text);
+            int depth = row.depth() == null ? 1 : row.depth();
+
+            QuestionPool existing = poolRepository.findFirstByText(text).orElse(null);
+            if (existing != null) {
+                existing.setTheme(row.theme());
+                existing.setTone(row.tone());
+                existing.setDepth(depth < 1 ? 1 : depth);
+                existing.setContextTrigger(row.contextTrigger());
+                existing.setTemplate(row.isTemplate() != null && row.isTemplate());
+                existing.setActive(true);
+                updated++;
+            } else {
+                poolRepository.save(QuestionPool.builder()
+                        .text(text)
+                        .theme(row.theme())
+                        .tone(row.tone())
+                        .depth(depth)
+                        .contextTrigger(row.contextTrigger())
+                        .isTemplate(row.isTemplate() != null && row.isTemplate())
+                        .active(true)
+                        .source("seed")
+                        .build());
+                inserted++;
+            }
+        }
+
+        // JSON에 없는 기존 seed 행은 비활성(삭제 금지 — FK 보존).
+        int deactivated = 0;
+        for (QuestionPool p : poolRepository.findBySource("seed")) {
+            if (p.isActive() && !jsonTexts.contains(p.getText())) {
+                p.setActive(false);
+                deactivated++;
+            }
+        }
+
+        log.info("Seed upsert from {}: inserted={}, updated={}, deactivated={}",
+                SEED_JSON, inserted, updated, deactivated);
+    }
+
+    /** 시드 JSON이 없을 때의 기존 하드코딩 시드(풀이 비었을 때만). */
+    private void legacySeed() {
         List<QuestionPool> seed = new ArrayList<>();
         // category ∈ 일상/추억/미래/마음/취향, depth 1(가벼움)~3(깊음)
         add(seed, "우리가 처음 만난 날, 솔직한 첫인상은?", "추억", 2);
@@ -59,7 +147,7 @@ public class QuestionPoolSeeder implements CommandLineRunner {
         add(seed, "우리가 함께한 시간 중 다시 살고 싶은 하루는?", "추억", 2);
 
         poolRepository.saveAll(seed);
-        log.info("Seeded {} daily question pool entries", seed.size());
+        log.info("Seeded {} daily question pool entries (legacy)", seed.size());
     }
 
     private void add(List<QuestionPool> list, String text, String category, int depth) {

@@ -373,6 +373,8 @@ export const dailyQuestionApi = {
   /** 상대 답장에 하트 토글. 백엔드가 단일 POST로 토글(추가/해제), 204 반환. */
   react: (answerId: number) =>
     api.post<void>(`/api/questions/daily/answers/${answerId}/react`),
+  /** '이 질문 별로예요' 신고. 해당 봉투(선택지)를 덜 보여주도록 요청. */
+  report: (questionId: number) => api.post<void>(`/api/questions/daily/${questionId}/report`),
   archive: (cursor?: string, limit?: number) => {
     const params = new URLSearchParams();
     if (cursor) params.set('cursor', cursor);

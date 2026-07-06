@@ -36,6 +36,10 @@ public class DailyQuestion {
     @JoinColumn(name = "question_id", nullable = false)
     private QuestionPool question;
 
+    /** 맥락 템플릿 질문을 커플별 데이터로 치환한 문장. null이면 question.text 사용. */
+    @Column(name = "rendered_text", length = 500)
+    private String renderedText;
+
     /** 후보 슬롯 1|2. */
     @Column(name = "slot", nullable = false)
     private int slot;
@@ -48,13 +52,19 @@ public class DailyQuestion {
     private User chosenBy;
 
     @Builder
-    public DailyQuestion(Couple couple, LocalDate date, QuestionPool question, int slot,
-                         Boolean chosen, User chosenBy) {
+    public DailyQuestion(Couple couple, LocalDate date, QuestionPool question, String renderedText,
+                         int slot, Boolean chosen, User chosenBy) {
         this.couple = couple;
         this.date = date;
         this.question = question;
+        this.renderedText = renderedText;
         this.slot = slot;
         this.chosen = chosen != null && chosen;
         this.chosenBy = chosenBy;
+    }
+
+    /** 커플에게 보여줄 최종 문장(렌더된 게 있으면 그것, 없으면 원문). */
+    public String displayText() {
+        return renderedText != null ? renderedText : (question == null ? null : question.getText());
     }
 }
