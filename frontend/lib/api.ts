@@ -256,6 +256,9 @@ export const authApi = {
    */
   kakaoLogin: (code: string, redirectUri: string) =>
     api.post<AuthResponse>('/api/auth/kakao', { code, redirectUri }, false),
+  /** Apple 로그인. 프론트가 받은 identityToken(+최초 1회 이름)을 서버가 검증해 우리 JWT로 교환. */
+  appleLogin: (identityToken: string, fullName?: string | null) =>
+    api.post<AuthResponse>('/api/auth/apple', { identityToken, fullName }, false),
   me: () => api.get<MeResponse>('/api/me'),
   updateMe: (patch: Partial<Pick<UserSummary, 'nickname' | 'avatarColor' | 'birthday'>>) =>
     api.patch<UserSummary>('/api/me', patch),

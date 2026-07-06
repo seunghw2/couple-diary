@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
 import { ApiException } from '../../lib/api';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -27,13 +28,17 @@ const KAKAO_LABEL = '#191600';
 export default function LoginScreen() {
   const devLogin = useAuthStore((s) => s.devLogin);
   const kakaoLogin = useAuthStore((s) => s.kakaoLogin);
+  const appleLogin = useAuthStore((s) => s.appleLogin);
   const [nickname, setNickname] = useState('');
   const [loading, setLoading] = useState(false);
   const [kakaoLoading, setKakaoLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const canSubmit = nickname.trim().length > 0;
-  const busy = loading || kakaoLoading;
+  const busy = loading || kakaoLoading || appleLoading;
+  // Apple 로그인은 iOS에서만 노출(가이드라인상 필수, 다른 플랫폼엔 버튼 자체가 없음).
+  const showApple = Platform.OS === 'ios';
 
   async function onLogin() {
     if (!canSubmit) return;
@@ -46,6 +51,25 @@ export default function LoginScreen() {
       setError(e instanceof ApiException ? e.message : '로그인에 실패했어요. 백엔드 연결을 확인해 주세요.');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function onApple() {
+    setError(null);
+    setAppleLoading(true);
+    try {
+      await appleLogin();
+      // 성공 시 _layout 가드가 라우팅. 취소면 그대로 로그인 화면 유지.
+    } catch (e) {
+      setError(
+        e instanceof ApiException
+          ? e.message
+          : e instanceof Error
+            ? e.message
+            : 'Apple 로그인에 실패했어요.',
+      );
+    } finally {
+      setAppleLoading(false);
     }
   }
 
@@ -84,6 +108,25 @@ export default function LoginScreen() {
           </View>
 
           <View style={[styles.form, shadow]}>
+            {showApple ? (
+              <View style={styles.appleWrap}>
+                <AppleAuthentication.AppleAuthenticationButton
+                  buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                  buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                  cornerRadius={radius.md}
+                  style={styles.appleBtn}
+                  onPress={() => {
+                    if (!busy) onApple();
+                  }}
+                />
+                {appleLoading ? (
+                  <View style={styles.appleOverlay}>
+                    <ActivityIndicator color={colors.white} />
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
+
             <Pressable
               onPress={onKakao}
               disabled={busy}
@@ -146,6 +189,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderRadius: radius.lg,
     padding: spacing.xl,
+  },
+  appleWrap: { marginBottom: spacing.md },
+  appleBtn: { height: 52, width: '100%' },
+  appleOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   kakaoBtn: {
     backgroundColor: KAKAO_YELLOW,

@@ -1,5 +1,6 @@
 package com.today.auth;
 
+import com.today.user.UserDtos.AppleLoginRequest;
 import com.today.user.UserDtos.AuthResponse;
 import com.today.user.UserDtos.DevLoginRequest;
 import com.today.user.UserDtos.KakaoLoginRequest;
@@ -38,6 +39,15 @@ public class AuthController {
     @PostMapping("/kakao")
     public AuthResponse kakaoLogin(@Valid @RequestBody KakaoLoginRequest req) {
         return userService.kakaoLogin(req);
+    }
+
+    /**
+     * Apple 로그인. 프론트(expo-apple-authentication)가 받은 identityToken을 검증해
+     * 사용자 upsert 후 우리 JWT를 발급한다. Apple 가이드라인 4.8 대응.
+     */
+    @PostMapping("/apple")
+    public AuthResponse appleLogin(@Valid @RequestBody AppleLoginRequest req) {
+        return userService.appleLogin(req);
     }
 
     /**

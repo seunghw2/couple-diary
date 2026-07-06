@@ -1,5 +1,7 @@
 package com.today.user;
 
+import com.today.auth.AppleClient;
+import com.today.auth.AppleClient.AppleUser;
 import com.today.auth.JwtTokenProvider;
 import com.today.auth.KakaoClient;
 import com.today.auth.KakaoClient.KakaoUser;
@@ -41,6 +43,7 @@ public class UserService {
     private final CoupleRepository coupleRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final KakaoClient kakaoClient;
+    private final AppleClient appleClient;
 
     // 계정 삭제 시 관련 데이터를 FK 안전 순서로 정리하기 위한 리포지토리들.
     private final DiaryDayRepository diaryDayRepository;
@@ -86,6 +89,39 @@ public class UserService {
                 .orElseGet(() -> createKakaoUser(kakaoUser));
         String token = jwtTokenProvider.createAccessToken(user.getId());
         return new AuthResponse(token, UserSummary.of(user));
+    }
+
+    /**
+     * Apple 로그인. identityToken을 검증해 sub(appleId)로 upsert 후 우리 JWT를 발급한다.
+     * Apple은 이메일/이름을 최초 1회만 주므로, 재로그인 시엔 저장된 유저를 그대로 쓴다.
+     */
+    @Transactional
+    public AuthResponse appleLogin(AppleLoginRequest req) {
+        AppleUser appleUser = appleClient.verify(req.identityToken());
+        User user = userRepository.findByAppleId(appleUser.appleId())
+                .orElseGet(() -> createAppleUser(appleUser, req.fullName()));
+        String token = jwtTokenProvider.createAccessToken(user.getId());
+        return new AuthResponse(token, UserSummary.of(user));
+    }
+
+    private User createAppleUser(AppleUser appleUser, String fullName) {
+        // email은 NOT NULL & unique → Apple이 미제공(비공개 릴레이 거부 등)하면 결정적 대체값.
+        String email = (appleUser.email() != null && !appleUser.email().isBlank())
+                ? appleUser.email().trim()
+                : "apple_" + appleUser.appleId() + "@today.local";
+        if (userRepository.findByEmail(email).isPresent()) {
+            email = "apple_" + appleUser.appleId() + "@today.local";
+        }
+        String nickname = (fullName != null && !fullName.isBlank()) ? fullName.trim() : "친구";
+        String color = AVATAR_COLORS[Math.abs(appleUser.appleId().hashCode()) % AVATAR_COLORS.length];
+        User user = User.builder()
+                .email(email)
+                .nickname(nickname)
+                .avatarColor(color)
+                .appleId(appleUser.appleId())
+                .inviteCode(uniqueInviteCode())
+                .build();
+        return userRepository.save(user);
     }
 
     private User createKakaoUser(KakaoUser kakaoUser) {

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { ApiException, authApi, PartnerSummary, UserSummary } from '../lib/api';
+import { loginWithApple } from '../lib/appleAuth';
 import { loginWithKakao } from '../lib/kakaoAuth';
 import { tokenStore } from '../lib/tokenStore';
 // 순환참조지만 두 스토어 모두 useAuthStore를 런타임(함수 내부)에서만 쓰므로 안전.
@@ -19,6 +20,8 @@ type AuthState = {
   devLogin: (nickname: string) => Promise<void>;
   /** 카카오 웹 OAuth 로그인. 사용자가 취소하면 false, 로그인 성공 시 true. */
   kakaoLogin: () => Promise<boolean>;
+  /** Apple 로그인(iOS 전용). 사용자가 취소하면 false, 로그인 성공 시 true. */
+  appleLogin: () => Promise<boolean>;
   logout: () => Promise<void>;
   setUser: (user: UserSummary) => void;
 };
@@ -79,6 +82,22 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (!token) return false; // 사용자 취소
     await tokenStore.saveToken(token);
     set({ status: 'authenticated' });
+    // 로그인 직후 내 정보/커플 상태 동기화
+    try {
+      const me = await authApi.me();
+      set({ user: me.user, coupled: me.coupled, partner: me.partner ?? null });
+    } catch {
+      /* 무시: 가드가 재조회 */
+    }
+    return true;
+  },
+
+  appleLogin: async () => {
+    const cred = await loginWithApple();
+    if (!cred) return false; // 사용자 취소
+    const res = await authApi.appleLogin(cred.identityToken, cred.fullName);
+    await tokenStore.saveToken(res.accessToken);
+    set({ status: 'authenticated', user: res.user });
     // 로그인 직후 내 정보/커플 상태 동기화
     try {
       const me = await authApi.me();

@@ -17,7 +17,8 @@ import java.time.LocalDateTime;
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_user_email", columnNames = "email"),
                 @UniqueConstraint(name = "uk_user_invite_code", columnNames = "invite_code"),
-                @UniqueConstraint(name = "uk_user_kakao_id", columnNames = "kakao_id")
+                @UniqueConstraint(name = "uk_user_kakao_id", columnNames = "kakao_id"),
+                @UniqueConstraint(name = "uk_user_apple_id", columnNames = "apple_id")
         })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
@@ -39,6 +40,10 @@ public class User {
     @Column(name = "kakao_id")
     private String kakaoId;
 
+    /** Apple 고유 사용자 식별자(sub). Apple로 로그인한 유저만 채워진다. */
+    @Column(name = "apple_id")
+    private String appleId;
+
     @Column
     private LocalDate birthday;
 
@@ -49,11 +54,12 @@ public class User {
     private LocalDateTime createdAt;
 
     @Builder
-    public User(String email, String nickname, String avatarColor, String kakaoId, LocalDate birthday, String inviteCode) {
+    public User(String email, String nickname, String avatarColor, String kakaoId, String appleId, LocalDate birthday, String inviteCode) {
         this.email = email;
         this.nickname = nickname;
         this.avatarColor = avatarColor;
         this.kakaoId = kakaoId;
+        this.appleId = appleId;
         this.birthday = birthday;
         this.inviteCode = inviteCode;
     }

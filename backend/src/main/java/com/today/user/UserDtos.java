@@ -18,6 +18,15 @@ public class UserDtos {
             @NotBlank String redirectUri
     ) {}
 
+    /**
+     * Apple 로그인. 프론트(expo-apple-authentication)가 받은 identityToken(JWT)을 넘긴다.
+     * fullName은 Apple이 최초 로그인 1회만 제공하므로 옵셔널(닉네임 초기값).
+     */
+    public record AppleLoginRequest(
+            @NotBlank String identityToken,
+            String fullName
+    ) {}
+
     public record AuthResponse(String accessToken, UserSummary user) {}
 
     public record UpdateMeRequest(

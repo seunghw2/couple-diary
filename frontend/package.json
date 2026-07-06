@@ -6,6 +6,7 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@tabler/icons-react-native": "^3.44.0",
     "expo": "~54.0.35",
+    "expo-apple-authentication": "~8.0.8",
     "expo-clipboard": "~8.0.7",
     "expo-constants": "~18.0.13",
     "expo-image": "~3.0.11",
