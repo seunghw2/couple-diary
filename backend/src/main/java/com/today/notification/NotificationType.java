@@ -6,5 +6,10 @@ public enum NotificationType {
     COMMENT,         // 댓글
     POKE,            // 콕 찌르기
     ANNIVERSARY,     // 기념일 D-day
-    COUPLE_CONNECTED // 커플 연결됨(코드 주인에게)
+    COUPLE_CONNECTED, // 커플 연결됨(코드 주인에게)
+    QUESTION_ARRIVED, // 오늘의 질문 두 통 도착(도착시간)
+    QUESTION_CHOSEN,  // 상대가 오늘 질문을 골랐어요
+    QUESTION_ANSWERED,// 상대가 답장했어요(내 차례)
+    QUESTION_OPENED,  // 둘 다 답해 편지가 열렸어요
+    QUESTION_MISSED   // 어제 편지가 지나갔어요(자정 마감)
 }

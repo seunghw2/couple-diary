@@ -60,6 +60,7 @@ public class QuestionService {
     private final QuestionSettingRepository settingRepository;
     private final QuestionPoolRepository poolRepository;
     private final QuestionReportRepository reportRepository;
+    private final com.today.notification.NotificationService notificationService;
 
     // ===================== today =====================
 
@@ -185,7 +186,7 @@ public class QuestionService {
 
         target.setChosen(true);
         target.setChosenBy(me);
-        // TODO: 상대에게 "질문이 선택됐어요" 알림
+        notificationService.onQuestionChosen(me, partnerOf(couple, userId), today);
 
         return today(userId);
     }
@@ -226,7 +227,16 @@ public class QuestionService {
                     .sealedAt(LocalDateTime.now())
                     .build());
         }
-        // TODO: 상대에게 "답이 도착했어요" 알림 (양쪽 봉인 시 OPENED 알림)
+        // 상대 답장 봉인 여부로 열림/대기 알림 분기.
+        User partner = partnerOf(couple, userId);
+        boolean partnerSealed = partner != null && answerRepository
+                .findByDailyQuestion_IdAndAuthor_Id(chosen.getId(), partner.getId())
+                .map(a -> a.getSealedAt() != null).orElse(false);
+        if (partnerSealed) {
+            notificationService.onQuestionOpened(me, partner, today);
+        } else {
+            notificationService.onQuestionAnswered(me, partner, today);
+        }
 
         return today(userId);
     }
@@ -296,6 +306,43 @@ public class QuestionService {
         question.setReportedCount((int) distinctCouples);
         if (distinctCouples >= REPORT_DEACTIVATE_THRESHOLD) {
             question.setActive(false);
+        }
+    }
+
+    // ===================== 스케줄러용 (도착시간·자정 마감) =====================
+
+    /** 도착시간이 지난 커플에게 오늘의 질문을 배정하고 도착 알림 생성(중복 방지). 스케줄러가 주기 호출. */
+    @Transactional
+    public void runArrivalNotifications() {
+        LocalDate today = LocalDate.now(KST);
+        LocalTime now = LocalTime.now(KST);
+        for (QuestionSetting s : settingRepository.findAll()) {
+            if (!s.isNotifyOn()) continue;
+            if (now.isBefore(s.getArrivalTime())) continue;
+            Couple couple = s.getCouple();
+            if (couple == null) continue;
+            List<DailyQuestion> todays = dailyQuestionRepository.findByCouple_IdAndDate(couple.getId(), today);
+            if (todays.isEmpty()) {
+                todays = assignToday(couple, today);
+            }
+            if (todays.isEmpty()) continue;
+            notificationService.onQuestionArrived(couple.getUser1(), couple.getUser2(), today);
+        }
+    }
+
+    /** 자정: 어제 선택했지만 열리지 못한 편지가 있는 커플에게 '지나간 편지' 알림. 스케줄러가 하루 1회. */
+    @Transactional
+    public void runMissedNotifications() {
+        LocalDate yesterday = LocalDate.now(KST).minusDays(1);
+        for (QuestionSetting s : settingRepository.findAll()) {
+            if (!s.isNotifyOn()) continue;
+            Couple couple = s.getCouple();
+            if (couple == null) continue;
+            DailyQuestion chosen = dailyQuestionRepository
+                    .findByCouple_IdAndDateAndChosenTrue(couple.getId(), yesterday).orElse(null);
+            if (chosen != null && !bothSealed(chosen)) {
+                notificationService.onQuestionMissed(couple.getUser1(), couple.getUser2(), yesterday);
+            }
         }
     }
 

@@ -106,6 +106,59 @@ public class NotificationService {
                 .build());
     }
 
+    // ===================== 오늘의 질문 알림 =====================
+
+    /** 같은 날짜·타입 알림이 이미 있으면 생성 안 함(중복 방지). */
+    private void createIfAbsent(User recipient, NotificationType type, String title, String body, LocalDate date) {
+        if (recipient == null) return;
+        if (notificationRepository.existsByRecipient_IdAndTypeAndEntryDate(recipient.getId(), type, date)) {
+            return;
+        }
+        notificationRepository.save(Notification.builder()
+                .recipient(recipient).type(type).title(title).body(body).entryDate(date).build());
+    }
+
+    /** 도착시간: 오늘의 질문 두 통 도착 — 양쪽에게. */
+    @Transactional
+    public void onQuestionArrived(User a, User b, LocalDate date) {
+        createIfAbsent(a, NotificationType.QUESTION_ARRIVED, "오늘의 편지가 도착했어요",
+                "오늘의 질문 두 통이 왔어요 — 하나 골라 답장해요 💌", date);
+        createIfAbsent(b, NotificationType.QUESTION_ARRIVED, "오늘의 편지가 도착했어요",
+                "오늘의 질문 두 통이 왔어요 — 하나 골라 답장해요 💌", date);
+    }
+
+    /** 상대가 오늘 질문을 골랐어요 — 고르지 않은 상대에게. */
+    @Transactional
+    public void onQuestionChosen(User chooser, User partner, LocalDate date) {
+        if (chooser == null || partner == null) return;
+        createIfAbsent(partner, NotificationType.QUESTION_CHOSEN, "오늘의 질문이 정해졌어요",
+                chooser.getNickname() + "님이 오늘 질문을 골랐어요 — 답장해 볼까요?", date);
+    }
+
+    /** 상대가 답장을 남겼는데 아직 내 차례일 때 — 아직 안 쓴 상대에게. */
+    @Transactional
+    public void onQuestionAnswered(User answerer, User partner, LocalDate date) {
+        if (answerer == null || partner == null) return;
+        createIfAbsent(partner, NotificationType.QUESTION_ANSWERED, "상대가 답장했어요",
+                answerer.getNickname() + "님이 답장을 남겼어요 — 나도 쓰면 편지가 열려요", date);
+    }
+
+    /** 둘 다 답해 편지가 열렸어요 — 양쪽에게. */
+    @Transactional
+    public void onQuestionOpened(User a, User b, LocalDate date) {
+        createIfAbsent(a, NotificationType.QUESTION_OPENED, "편지가 열렸어요", "오늘의 편지가 서로 열렸어요 💗", date);
+        createIfAbsent(b, NotificationType.QUESTION_OPENED, "편지가 열렸어요", "오늘의 편지가 서로 열렸어요 💗", date);
+    }
+
+    /** 자정 마감: 어제 편지가 열리지 못하고 지나갔어요 — 양쪽에게. */
+    @Transactional
+    public void onQuestionMissed(User a, User b, LocalDate date) {
+        createIfAbsent(a, NotificationType.QUESTION_MISSED, "편지가 지나갔어요",
+                "어제 편지는 답장이 다 오지 않아 열리지 않았어요", date);
+        createIfAbsent(b, NotificationType.QUESTION_MISSED, "편지가 지나갔어요",
+                "어제 편지는 답장이 다 오지 않아 열리지 않았어요", date);
+    }
+
     // ===================== 엔드포인트 =====================
 
     @Transactional
