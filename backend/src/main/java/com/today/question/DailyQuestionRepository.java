@@ -20,4 +20,9 @@ public interface DailyQuestionRepository extends JpaRepository<DailyQuestion, Lo
     /** 과거(오늘 제외) chosen 질문을 날짜 내림차순으로. 아카이브용. */
     List<DailyQuestion> findByCouple_IdAndChosenTrueAndDateLessThanOrderByDateDesc(
             Long coupleId, LocalDate date);
+
+    // 계정 삭제: 커플의 모든 daily question. 자식(answer/reaction/comment) 정리에 id 목록 사용.
+    List<DailyQuestion> findByCouple_Id(Long coupleId);
+
+    void deleteByCouple_Id(Long coupleId);
 }

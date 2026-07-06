@@ -131,6 +131,8 @@ export default function RootLayout() {
           <Stack.Screen name="question/archive" options={{ presentation: 'card' }} />
           <Stack.Screen name="question/[date]" options={{ presentation: 'card' }} />
           <Stack.Screen name="question/settings" options={{ presentation: 'card' }} />
+          <Stack.Screen name="legal/privacy" options={{ presentation: 'card' }} />
+          <Stack.Screen name="legal/terms" options={{ presentation: 'card' }} />
         </Stack>
         <AppAlert />
         <AppToast />

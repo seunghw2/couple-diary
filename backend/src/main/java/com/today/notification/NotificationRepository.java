@@ -34,4 +34,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             Long recipientId, NotificationType type, LocalDateTime after);
 
     Optional<Notification> findByIdAndRecipient_Id(Long id, Long recipientId);
+
+    // 계정 삭제: 이 유저가 받은 모든 알림 제거.
+    void deleteByRecipient_Id(Long recipientId);
 }

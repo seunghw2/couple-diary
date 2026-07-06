@@ -64,6 +64,18 @@ export default function SettingsScreen() {
             tint={c.primary}
             label="기념일 보기"
             onPress={() => router.push('/anniversaries')}
+          />
+          <SettingsRow
+            icon="lock-closed-outline"
+            tint={c.primary}
+            label="개인정보 처리방침"
+            onPress={() => router.push('/legal/privacy')}
+          />
+          <SettingsRow
+            icon="document-text-outline"
+            tint={c.primary}
+            label="이용약관"
+            onPress={() => router.push('/legal/terms')}
             last
           />
         </View>

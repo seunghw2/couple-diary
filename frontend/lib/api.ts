@@ -259,6 +259,8 @@ export const authApi = {
   me: () => api.get<MeResponse>('/api/me'),
   updateMe: (patch: Partial<Pick<UserSummary, 'nickname' | 'avatarColor' | 'birthday'>>) =>
     api.patch<UserSummary>('/api/me', patch),
+  /** 계정 삭제 (앱스토어 필수). 내 계정과 커플·일기·편지 등 관련 데이터 전부 삭제. 204. */
+  deleteAccount: () => api.del<void>('/api/me'),
 };
 
 /** 계산된 기념일 항목 (GET /api/couple/anniversaries). */

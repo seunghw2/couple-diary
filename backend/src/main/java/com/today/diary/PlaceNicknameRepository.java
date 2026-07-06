@@ -10,4 +10,7 @@ public interface PlaceNicknameRepository extends JpaRepository<PlaceNickname, Lo
     Optional<PlaceNickname> findByCouple_IdAndName(Long coupleId, String name);
 
     List<PlaceNickname> findByCouple_Id(Long coupleId);
+
+    // 계정 삭제: 커플의 모든 장소 별명 제거.
+    void deleteByCouple_Id(Long coupleId);
 }

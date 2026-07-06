@@ -13,4 +13,7 @@ public interface CalendarMarkRepository extends JpaRepository<CalendarMark, Long
     Optional<CalendarMark> findByCouple_IdAndDate(Long coupleId, LocalDate date);
 
     void deleteByCouple_IdAndDate(Long coupleId, LocalDate date);
+
+    // 계정 삭제: 커플의 모든 캘린더 마커 제거.
+    void deleteByCouple_Id(Long coupleId);
 }

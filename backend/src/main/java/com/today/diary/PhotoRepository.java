@@ -17,4 +17,7 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
 
     // 업로드 URL 기반 사진만 삭제
     void deleteByEntry_IdAndUrlIsNotNull(Long entryId);
+
+    // 계정 삭제: 여러 entry의 사진 일괄 제거.
+    void deleteByEntry_IdIn(List<Long> entryIds);
 }

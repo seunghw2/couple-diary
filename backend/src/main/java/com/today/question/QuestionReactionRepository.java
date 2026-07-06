@@ -14,4 +14,7 @@ public interface QuestionReactionRepository extends JpaRepository<QuestionReacti
     List<QuestionReaction> findByAnswer_Id(Long answerId);
 
     void deleteByAnswer_IdAndUser_Id(Long answerId, Long userId);
+
+    // 계정 삭제: 여러 답변에 달린 하트 일괄 제거.
+    void deleteByAnswer_IdIn(List<Long> answerIds);
 }

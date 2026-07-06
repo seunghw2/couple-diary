@@ -3,15 +3,35 @@ package com.today.user;
 import com.today.auth.JwtTokenProvider;
 import com.today.auth.KakaoClient;
 import com.today.auth.KakaoClient.KakaoUser;
+import com.today.comment.CommentRepository;
 import com.today.common.ApiException;
 import com.today.common.ErrorCode;
 import com.today.common.InviteCodes;
 import com.today.couple.Couple;
 import com.today.couple.CoupleRepository;
+import com.today.diary.CalendarMarkRepository;
+import com.today.diary.DiaryDay;
+import com.today.diary.DiaryDayRepository;
+import com.today.diary.DiaryEntry;
+import com.today.diary.DiaryEntryRepository;
+import com.today.diary.EntryAnswerRepository;
+import com.today.diary.PhotoRepository;
+import com.today.diary.PlaceNicknameRepository;
+import com.today.notification.NotificationRepository;
+import com.today.question.DailyQuestion;
+import com.today.question.DailyQuestionRepository;
+import com.today.question.QuestionAnswer;
+import com.today.question.QuestionAnswerRepository;
+import com.today.question.QuestionCommentRepository;
+import com.today.question.QuestionReactionRepository;
+import com.today.question.QuestionReportRepository;
+import com.today.question.QuestionSettingRepository;
 import com.today.user.UserDtos.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +41,22 @@ public class UserService {
     private final CoupleRepository coupleRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final KakaoClient kakaoClient;
+
+    // 계정 삭제 시 관련 데이터를 FK 안전 순서로 정리하기 위한 리포지토리들.
+    private final DiaryDayRepository diaryDayRepository;
+    private final DiaryEntryRepository diaryEntryRepository;
+    private final PhotoRepository photoRepository;
+    private final EntryAnswerRepository entryAnswerRepository;
+    private final CommentRepository commentRepository;
+    private final CalendarMarkRepository calendarMarkRepository;
+    private final PlaceNicknameRepository placeNicknameRepository;
+    private final DailyQuestionRepository dailyQuestionRepository;
+    private final QuestionAnswerRepository questionAnswerRepository;
+    private final QuestionReactionRepository questionReactionRepository;
+    private final QuestionCommentRepository questionCommentRepository;
+    private final QuestionReportRepository questionReportRepository;
+    private final QuestionSettingRepository questionSettingRepository;
+    private final NotificationRepository notificationRepository;
 
     private static final String[] AVATAR_COLORS =
             {"#FF6B6B", "#4ECDC4", "#FFD93D", "#6C5CE7", "#FF8CC8", "#38B000"};
@@ -147,5 +183,70 @@ public class UserService {
         if (c.getUser1().getId().equals(userId)) return c.getUser2();
         if (c.getUser2().getId().equals(userId)) return c.getUser1();
         return null;
+    }
+
+    /**
+     * 계정 삭제 (Apple 5.1.1(v) 필수). 내 계정과 관련 데이터를 하나의 트랜잭션에서 FK 안전 순서로 하드 삭제한다.
+     *
+     * 커플이 있으면 커플 범위 공유 데이터(오늘의 질문/답/하트/댓글/신고/설정, 일기 day/entry/사진/답/댓글,
+     * 캘린더 마커, 장소 별명)를 먼저 지우고 커플을 삭제한다. couple은 user1/user2 NOT NULL FK라 유저보다 먼저 정리.
+     * 상대 유저 레코드는 남기되, 커플이 사라져 '미연결' 상태가 된다.
+     *
+     * 삭제 순서(자식 → 부모)를 지키지 않으면 FK 위반이 난다.
+     */
+    @Transactional
+    public void deleteAccount(Long userId) {
+        User user = getUser(userId);
+
+        coupleRepository.findByMember(userId).ifPresent(couple -> {
+            Long coupleId = couple.getId();
+
+            // ── 오늘의 질문(편지) 트리: reaction → answer/comment → daily_question ──
+            List<DailyQuestion> dailyQuestions = dailyQuestionRepository.findByCouple_Id(coupleId);
+            List<Long> dqIds = dailyQuestions.stream().map(DailyQuestion::getId).toList();
+            if (!dqIds.isEmpty()) {
+                List<QuestionAnswer> answers = questionAnswerRepository.findByDailyQuestion_IdIn(dqIds);
+                List<Long> answerIds = answers.stream().map(QuestionAnswer::getId).toList();
+                if (!answerIds.isEmpty()) {
+                    questionReactionRepository.deleteByAnswer_IdIn(answerIds);
+                }
+                questionCommentRepository.deleteByDailyQuestion_IdIn(dqIds);
+                questionAnswerRepository.deleteByDailyQuestion_IdIn(dqIds);
+            }
+            // chosen_by(user FK)까지 포함해 커플의 daily_question 전부 삭제.
+            dailyQuestionRepository.deleteByCouple_Id(coupleId);
+            questionReportRepository.deleteByCouple_Id(coupleId);
+            questionSettingRepository.deleteByCouple_Id(coupleId);
+
+            // ── 일기 트리: photo/entry_answer → entry → comment → day ──
+            List<DiaryDay> days = diaryDayRepository.findByCouple_Id(coupleId);
+            List<Long> dayIds = days.stream().map(DiaryDay::getId).toList();
+            if (!dayIds.isEmpty()) {
+                List<DiaryEntry> entries = diaryEntryRepository.findByDay_IdIn(dayIds);
+                List<Long> entryIds = entries.stream().map(DiaryEntry::getId).toList();
+                if (!entryIds.isEmpty()) {
+                    photoRepository.deleteByEntry_IdIn(entryIds);
+                    entryAnswerRepository.deleteByEntry_IdIn(entryIds);
+                    // entry는 element collection(locations, locationPoints)을 가지므로 엔티티 삭제로 정리.
+                    diaryEntryRepository.deleteAll(entries);
+                }
+                commentRepository.deleteByDay_IdIn(dayIds);
+                // day는 element collection(questionIds)을 가지므로 엔티티 삭제로 정리.
+                diaryDayRepository.deleteAll(days);
+            }
+
+            // 커플 범위 기타 데이터.
+            calendarMarkRepository.deleteByCouple_Id(coupleId);
+            placeNicknameRepository.deleteByCouple_Id(coupleId);
+
+            // 마지막으로 커플 삭제 → 상대는 '미연결' 상태가 된다.
+            coupleRepository.delete(couple);
+        });
+
+        // 내 알림 삭제.
+        notificationRepository.deleteByRecipient_Id(userId);
+
+        // 마지막으로 User 삭제.
+        userRepository.delete(user);
     }
 }

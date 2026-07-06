@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { authApi } from '../lib/api';
-import { confirmAsync } from '../lib/dialog';
+import { confirmAsync, showAlert } from '../lib/dialog';
 import { todayISO } from '../lib/date';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCoupleStore } from '../store/useCoupleStore';
@@ -119,6 +119,36 @@ export default function AccountScreen() {
     if (ok) logout();
   }
 
+  const [deleting, setDeleting] = useState(false);
+
+  async function confirmDeleteAccount() {
+    // 2단계 확인: 실수 삭제 방지. 되돌릴 수 없는 하드 삭제라 강조.
+    const first = await confirmAsync(
+      '계정 삭제',
+      '정말 삭제할까요? 되돌릴 수 없어요. 커플 연결, 일기, 편지, 사진이 모두 사라져요.',
+      '삭제',
+      true
+    );
+    if (!first) return;
+    const second = await confirmAsync(
+      '한 번 더 확인',
+      '이 작업은 취소할 수 없어요. 계정을 완전히 삭제할까요?',
+      '완전히 삭제',
+      true
+    );
+    if (!second) return;
+
+    setDeleting(true);
+    try {
+      await authApi.deleteAccount();
+      // 서버에서 삭제 완료 → 세션 정리 후 로그인으로. (가드가 /(auth)/login으로 보냄)
+      await logout();
+    } catch {
+      setDeleting(false);
+      showAlert('삭제 실패', '계정 삭제에 실패했어요. 잠시 후 다시 시도해 주세요.');
+    }
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
@@ -186,6 +216,21 @@ export default function AccountScreen() {
           <Pressable onPress={confirmLogout} style={{ marginTop: spacing.xxl, alignSelf: 'center' }}>
             <Text style={styles.logout}>로그아웃</Text>
           </Pressable>
+
+          {/* 계정 삭제 (앱스토어 필수) — 위험 강조. 커플·일기·편지·사진 전부 삭제. */}
+          <View style={styles.dangerZone}>
+            <Text style={styles.dangerHint}>
+              계정을 삭제하면 커플 연결과 일기, 편지, 사진이 모두 사라지고 되돌릴 수 없어요.
+            </Text>
+            <Pressable
+              onPress={confirmDeleteAccount}
+              disabled={deleting}
+              style={({ pressed }) => [styles.deleteBtn, (pressed || deleting) && { opacity: 0.6 }]}
+            >
+              <Icon name="trash-outline" size={18} color={colors.white} />
+              <Text style={styles.deleteBtnText}>{deleting ? '삭제 중…' : '계정 삭제'}</Text>
+            </Pressable>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -260,4 +305,18 @@ const styles = StyleSheet.create({
   dateText: { fontSize: 16, color: colors.text },
   msg: { ...font.caption, marginTop: spacing.sm },
   logout: { ...font.body, color: colors.danger, textDecorationLine: 'underline' },
+  dangerZone: { marginTop: spacing.xxl, alignItems: 'center' },
+  dangerHint: { ...font.caption, color: colors.subText, textAlign: 'center', marginBottom: spacing.md },
+  deleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.danger,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.xl,
+    height: 48,
+    alignSelf: 'stretch',
+  },
+  deleteBtnText: { ...font.body, color: colors.white, fontWeight: '700' },
 });
