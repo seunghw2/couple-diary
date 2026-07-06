@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>18 · 사랑의 언어</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #EFEAE6;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0;
+    min-height: 100vh;
+  }
+  .caption {
+    font-size: 18px;
+    margin-bottom: 14px;
+    letter-spacing: -.2px;
+  }
+  .caption .num { color: #F47C63; font-weight: 800; }
+  .caption .name { color: #3B2D28; font-weight: 800; }
+
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #1c1c1e;
+    border-radius: 44px;
+    padding: 12px;
+    box-shadow: 0 24px 60px rgba(60,40,35,.28);
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: #FBF3EE;
+    border-radius: 33px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* status bar */
+  .statusbar {
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #3B2D28;
+    flex-shrink: 0;
+  }
+  .statusbar .icons { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+
+  /* header */
+  .header {
+    padding: 4px 22px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .logo { font-size: 17px; font-weight: 800; color: #3B2D28; letter-spacing: -.3px; }
+  .logo .heart { color: #F47C63; }
+  .badge {
+    background: #FFE7DF;
+    color: #F47C63;
+    font-size: 11.5px;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* scroll body */
+  .body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 20px 100px;
+  }
+
+  .greeting { margin: 8px 2px 16px; }
+  .greeting h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #3B2D28;
+    line-height: 1.34;
+    letter-spacing: -.5px;
+  }
+  .greeting h1 .accent { color: #F47C63; }
+  .greeting p {
+    margin-top: 7px;
+    font-size: 13px;
+    color: #9B8B84;
+    font-weight: 500;
+  }
+
+  /* section label */
+  .sec-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: #9B8B84;
+    letter-spacing: .3px;
+    margin: 4px 4px 11px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* two-person summary row */
+  .lang-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .lang-card {
+    flex: 1;
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+    padding: 18px 15px 16px;
+    text-align: center;
+    position: relative;
+  }
+  .lang-card.me { background: linear-gradient(160deg, #FFF1EC 0%, #FFE7DF 100%); }
+  .lang-avatar {
+    width: 46px; height: 46px;
+    border-radius: 15px;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 23px;
+    background: #FFF1EC;
+    box-shadow: inset 0 0 0 1px rgba(244,124,99,.14);
+  }
+  .lang-card.me .lang-avatar { background: #fff; }
+  .who { font-size: 11.5px; font-weight: 800; color: #9B8B84; letter-spacing: .2px; }
+  .who .name-c { color: #F47C63; }
+  .lang-name {
+    font-size: 15.5px;
+    font-weight: 800;
+    color: #3B2D28;
+    letter-spacing: -.3px;
+    margin-top: 6px;
+  }
+  .lang-pct {
+    margin-top: 10px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(244,124,99,.16);
+    overflow: hidden;
+  }
+  .lang-pct span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #F47C63, #F0684E);
+  }
+  .lang-pct-num {
+    margin-top: 7px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #F47C63;
+  }
+
+  /* distribution mini chart */
+  .card {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+  .dist-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .dist-head .t { font-size: 14px; font-weight: 800; color: #3B2D28; letter-spacing: -.3px; }
+  .legend { display: flex; gap: 12px; font-size: 10.5px; font-weight: 700; color: #9B8B84; }
+  .legend .k { display: flex; align-items: center; gap: 5px; }
+  .legend .sw { width: 10px; height: 10px; border-radius: 4px; }
+  .legend .sw.me { background: #F47C63; }
+  .legend .sw.you { background: #F5C7BA; }
+
+  .dist-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 13px;
+  }
+  .dist-row:last-child { margin-bottom: 0; }
+  .dist-label {
+    width: 78px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #3B2D28;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .dist-bars { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .bar-track {
+    height: 8px;
+    border-radius: 999px;
+    background: #F6EDE8;
+    overflow: hidden;
+  }
+  .bar-track span { display: block; height: 100%; border-radius: 999px; }
+  .bar-track span.me { background: #F47C63; }
+  .bar-track span.you { background: #F5C7BA; }
+
+  /* today's practice hero */
+  .practice-card {
+    background: linear-gradient(150deg, #F47C63 0%, #F0684E 100%);
+    border-radius: 22px;
+    padding: 20px 20px 18px;
+    box-shadow: 0 12px 28px rgba(244,124,99,.34);
+    color: #fff;
+    margin-bottom: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .practice-card .bloom {
+    position: absolute;
+    width: 150px; height: 150px;
+    background: rgba(255,255,255,.12);
+    border-radius: 50%;
+    top: -66px; right: -46px;
+  }
+  .p-label {
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: .4px;
+    opacity: .95;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .p-target {
+    display: inline-block;
+    background: rgba(255,255,255,.18);
+    border-radius: 999px;
+    padding: 3px 9px;
+    font-size: 10.5px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .practice-card h2 {
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.42;
+    letter-spacing: -.3px;
+    position: relative;
+  }
+  .practice-card .why {
+    margin-top: 11px;
+    font-size: 12px;
+    line-height: 1.55;
+    opacity: .92;
+    position: relative;
+  }
+  .practice-card .why b { font-weight: 800; }
+  .p-actions { display: flex; gap: 10px; margin-top: 16px; position: relative; }
+  .p-btn {
+    border: none;
+    border-radius: 14px;
+    padding: 13px 0;
+    font-size: 13.5px;
+    font-weight: 800;
+    letter-spacing: -.2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    cursor: pointer;
+  }
+  .p-check {
+    flex: 1;
+    background: #fff;
+    color: #F0684E;
+    box-shadow: 0 6px 14px rgba(0,0,0,.12);
+  }
+  .p-diary {
+    flex: 1;
+    background: rgba(255,255,255,.18);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.4);
+  }
+  .p-check .box {
+    width: 16px; height: 16px;
+    border-radius: 6px;
+    border: 2px solid #F0684E;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* practice log / streak */
+  .log-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+  .log-head .t { font-size: 14px; font-weight: 800; color: #3B2D28; letter-spacing: -.3px; }
+  .streak-chip {
+    background: #FFE7DF;
+    color: #F47C63;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 5px 11px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .log-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid #F3E8E2;
+  }
+  .log-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .log-tick {
+    width: 26px; height: 26px;
+    border-radius: 9px;
+    background: #FFF1EC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .log-tick.done { background: #F47C63; }
+  .log-text { flex: 1; }
+  .log-text .lt { font-size: 12.5px; font-weight: 700; color: #3B2D28; letter-spacing: -.2px; }
+  .log-text .ls { font-size: 10.5px; color: #9B8B84; font-weight: 600; margin-top: 2px; }
+  .log-text .lt.faded { color: #C6B6AE; }
+
+  /* tab bar */
+  .tabbar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 84px;
+    background: rgba(251,243,238,.92);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid #F0E4DD;
+    display: flex;
+    justify-content: space-around;
+    padding-top: 12px;
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #C6B6AE;
+    width: 64px;
+  }
+  .tab.active { color: #F47C63; }
+  .tab .ic { font-size: 21px; line-height: 1; }
+  .svg-ic { display: block; }
+</style>
+</head>
+<body>
+
+  <div class="caption"><span class="num">18</span> <span class="name">· 사랑의 언어</span></div>
+
+  <div class="phone">
+    <div class="screen">
+
+      <!-- status bar -->
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="icons">
+          <span>&#9679;&#9679;&#9679;&#9679;</span>
+          <span>&#128246;</span>
+          <span>&#128267;</span>
+        </span>
+      </div>
+
+      <!-- header -->
+      <div class="header">
+        <div class="logo">love today <span class="heart">&#9829;</span></div>
+        <div class="badge">
+          <svg class="svg-ic" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-9.5-9C1 8.5 3 5 6.5 5 8.6 5 10.3 6.3 12 8.5 13.7 6.3 15.4 5 17.5 5 21 5 23 8.5 21.5 12 19 16.5 12 21 12 21z" fill="#F47C63"/></svg>
+          사랑의 언어
+        </div>
+      </div>
+
+      <div class="body">
+
+        <!-- greeting -->
+        <div class="greeting">
+          <h1>서로 사랑을 느끼는<br>방식이 이렇게 달라요<span class="accent">.</span></h1>
+          <p>짧은 진단으로 찾은 두 사람의 1순위 언어예요</p>
+        </div>
+
+        <!-- two-person summary -->
+        <div class="lang-row">
+          <div class="lang-card me">
+            <div class="lang-avatar">&#128075;</div>
+            <div class="who">나 · <span class="name-c">승환</span></div>
+            <div class="lang-name">스킨십</div>
+            <div class="lang-pct"><span style="width:74%"></span></div>
+            <div class="lang-pct-num">74%</div>
+          </div>
+          <div class="lang-card">
+            <div class="lang-avatar">&#127807;</div>
+            <div class="who">상대 · <span class="name-c">지우</span></div>
+            <div class="lang-name">함께하는 시간</div>
+            <div class="lang-pct"><span style="width:68%"></span></div>
+            <div class="lang-pct-num">68%</div>
+          </div>
+        </div>
+
+        <!-- distribution mini chart -->
+        <div class="sec-label">5가지 언어 분포</div>
+        <div class="card">
+          <div class="dist-head">
+            <div class="t">우리의 사랑 언어 지도</div>
+            <div class="legend">
+              <span class="k"><span class="sw me"></span>나</span>
+              <span class="k"><span class="sw you"></span>지우</span>
+            </div>
+          </div>
+
+          <div class="dist-row">
+            <div class="dist-label">&#128172; 인정하는 말</div>
+            <div class="dist-bars">
+              <div class="bar-track"><span class="me" style="width:40%"></span></div>
+              <div class="bar-track"><span class="you" style="width:55%"></span></div>
+            </div>
+          </div>
+          <div class="dist-row">
+            <div class="dist-label">&#9200; 함께하는 시간</div>
+            <div class="dist-bars">
+              <div class="bar-track"><span class="me" style="width:52%"></span></div>
+              <div class="bar-track"><span class="you" style="width:88%"></span></div>
+            </div>
+          </div>
+          <div class="dist-row">
+            <div class="dist-label">&#127873; 선물</div>
+            <div class="dist-bars">
+              <div class="bar-track"><span class="me" style="width:30%"></span></div>
+              <div class="bar-track"><span class="you" style="width:44%"></span></div>
+            </div>
+          </div>
+          <div class="dist-row">
+            <div class="dist-label">&#129309; 봉사</div>
+            <div class="dist-bars">
+              <div class="bar-track"><span class="me" style="width:48%"></span></div>
+              <div class="bar-track"><span class="you" style="width:62%"></span></div>
+            </div>
+          </div>
+          <div class="dist-row">
+            <div class="dist-label">&#129655; 스킨십</div>
+            <div class="dist-bars">
+              <div class="bar-track"><span class="me" style="width:94%"></span></div>
+              <div class="bar-track"><span class="you" style="width:36%"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- today's practice hero -->
+        <div class="sec-label">오늘 상대에게 이렇게 표현해보세요</div>
+        <div class="practice-card">
+          <div class="bloom"></div>
+          <div class="p-target">지우님의 언어 · 함께하는 시간</div>
+          <h2>퇴근길에 지우님이랑<br>30분 저녁 산책 같이 하기</h2>
+          <div class="why">
+            지우님은 <b>&lsquo;함께하는 시간&rsquo;</b>에서 사랑을 가장 크게 느껴요. 폰 없이 나란히 걷는 짧은 시간이 오늘의 큰 표현이 돼요.
+          </div>
+          <div class="p-actions">
+            <button class="p-btn p-check">
+              <span class="box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="#F0684E" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              실천 완료
+            </button>
+            <button class="p-btn p-diary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4z" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>
+              일기로 남기기
+            </button>
+          </div>
+        </div>
+
+        <!-- practice log -->
+        <div class="card">
+          <div class="log-head">
+            <div class="t">우리의 실천 기록</div>
+            <div class="streak-chip">&#128293; 5일 연속</div>
+          </div>
+          <div class="log-item">
+            <div class="log-tick done"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="log-text">
+              <div class="lt">퇴근하고 같이 장 보기</div>
+              <div class="ls">어제 · 지우님 &lsquo;함께하는 시간&rsquo;</div>
+            </div>
+          </div>
+          <div class="log-item">
+            <div class="log-tick done"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="log-text">
+              <div class="lt">자기 전 10분 꼭 안아주기</div>
+              <div class="ls">지우 → 승환 · &lsquo;스킨십&rsquo;</div>
+            </div>
+          </div>
+          <div class="log-item">
+            <div class="log-tick"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#E4CFC5" stroke-width="2"/></svg></div>
+            <div class="log-text">
+              <div class="lt faded">오늘의 산책 실천 대기 중</div>
+              <div class="ls">완료하면 두 사람 모두에게 알림이 가요</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- tab bar -->
+      <div class="tabbar">
+        <div class="tab">
+          <span class="ic">&#128197;</span>
+          달력
+        </div>
+        <div class="tab">
+          <span class="ic">&#128506;</span>
+          지도
+        </div>
+        <div class="tab active">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-9.5-9C1 8.5 3 5 6.5 5 8.6 5 10.3 6.3 12 8.5 13.7 6.3 15.4 5 17.5 5 21 5 23 8.5 21.5 12 19 16.5 12 21 12 21z" fill="#F47C63"/></svg>
+          언어
+        </div>
+        <div class="tab">
+          <span class="ic">&#9881;</span>
+          설정
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

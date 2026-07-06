@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>17 · 우리 소개</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #EFEAE6;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0;
+    min-height: 100vh;
+  }
+  .caption {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 14px;
+    letter-spacing: -0.3px;
+  }
+  .caption .num { color: #F47C63; }
+  .caption .name { color: #3B2D28; }
+
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #1c1c1e;
+    border-radius: 56px;
+    padding: 12px;
+    box-shadow: 0 30px 70px rgba(80,50,40,.35);
+    position: relative;
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: #FBF3EE;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* status bar */
+  .statusbar {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #3B2D28;
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 20;
+  }
+  .statusbar.onlight { color: #fff; }
+  .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+
+  .notch {
+    position: absolute;
+    top: 12px; left: 50%;
+    transform: translateX(-50%);
+    width: 120px; height: 30px;
+    background: #1c1c1e;
+    border-radius: 0 0 18px 18px;
+    z-index: 25;
+  }
+
+  /* scroll area */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 90px;
+  }
+
+  /* hero header */
+  .hero {
+    height: 340px;
+    position: relative;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,.35), transparent 45%),
+      linear-gradient(150deg, #F47C63 0%, #F79A80 45%, #FFB9A0 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 22px;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(60,30,20,.45), transparent 55%);
+  }
+  /* floating polaroid-ish photos as gradients */
+  .photo-cluster {
+    position: absolute;
+    top: 66px; right: 22px;
+    display: flex;
+    gap: 10px;
+  }
+  .poc {
+    width: 62px; height: 78px;
+    border-radius: 14px;
+    border: 3px solid rgba(255,255,255,.85);
+    box-shadow: 0 6px 16px rgba(80,40,30,.25);
+  }
+  .poc.a { background: linear-gradient(135deg,#FFD9B0,#F79A80); transform: rotate(-8deg); }
+  .poc.b { background: linear-gradient(135deg,#C9B6F0,#9B8BD8); transform: rotate(5deg); margin-top: 14px; }
+
+  .hero-body { position: relative; z-index: 5; }
+  .couple-nick {
+    color: #fff;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    text-shadow: 0 2px 10px rgba(60,30,20,.35);
+  }
+  .heart { color: #FFE7DF; }
+  .dday-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .dday-chip {
+    background: rgba(255,255,255,.92);
+    color: #F47C63;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(80,40,30,.2);
+  }
+  .since {
+    color: rgba(255,255,255,.9);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* section */
+  .body-pad { padding: 20px 18px 0; }
+  .sec-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #9B8B84;
+    letter-spacing: 0.4px;
+    margin: 24px 4px 12px;
+    text-transform: none;
+  }
+  .sec-title:first-child { margin-top: 6px; }
+
+  /* prompt cards */
+  .card {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+    padding: 18px 18px 16px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .prompt-q {
+    font-size: 13px;
+    font-weight: 700;
+    color: #F47C63;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .prompt-a {
+    font-size: 17px;
+    font-weight: 700;
+    color: #3B2D28;
+    line-height: 1.45;
+    letter-spacing: -0.3px;
+  }
+  .auto-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 12px;
+    background: #FFF1EC;
+    color: #C9755F;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 999px;
+  }
+  .authors {
+    position: absolute;
+    top: 16px; right: 16px;
+    display: flex;
+  }
+  .av {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; color: #fff;
+  }
+  .av.her { background: linear-gradient(135deg,#F79A80,#F47C63); }
+  .av.him { background: linear-gradient(135deg,#9B8BD8,#7A6AC0); margin-left: -9px; }
+
+  /* timeline */
+  .timeline {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+    padding: 22px 20px 8px;
+    margin-bottom: 20px;
+  }
+  .tl-item {
+    display: flex;
+    gap: 14px;
+    position: relative;
+    padding-bottom: 22px;
+  }
+  .tl-item:last-child { padding-bottom: 8px; }
+  .tl-line {
+    position: absolute;
+    left: 6px; top: 16px; bottom: -4px;
+    width: 2px;
+    background: linear-gradient(#FFE7DF, #FFE7DF);
+  }
+  .tl-item:last-child .tl-line { display: none; }
+  .tl-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #F47C63;
+    border: 3px solid #FFE7DF;
+    flex-shrink: 0;
+    margin-top: 3px;
+    position: relative;
+    z-index: 2;
+  }
+  .tl-dot.soft { background: #fff; border-color: #FFCBB8; }
+  .tl-body { flex: 1; }
+  .tl-date {
+    font-size: 12px;
+    font-weight: 700;
+    color: #9B8B84;
+    margin-bottom: 2px;
+  }
+  .tl-label {
+    font-size: 15px;
+    font-weight: 800;
+    color: #3B2D28;
+    letter-spacing: -0.3px;
+  }
+  .tl-note {
+    font-size: 12.5px;
+    color: #9B8B84;
+    margin-top: 3px;
+    line-height: 1.4;
+  }
+  .tl-emoji { margin-right: 5px; }
+  .tl-next .tl-label { color: #F47C63; }
+  .tl-count {
+    font-size: 11px;
+    font-weight: 700;
+    color: #C9755F;
+    background: #FFF1EC;
+    padding: 3px 9px;
+    border-radius: 999px;
+    margin-left: 6px;
+  }
+
+  /* add prompt cta */
+  .add-cta {
+    border: 2px dashed #FFCBB8;
+    background: #FFF7F3;
+    border-radius: 22px;
+    padding: 16px;
+    text-align: center;
+    color: #C9755F;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  /* bottom tab */
+  .tabbar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 84px;
+    background: rgba(255,255,255,.96);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid #F3E5DE;
+    display: flex;
+    justify-content: space-around;
+    padding-top: 12px;
+    z-index: 30;
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #C9BDB6;
+  }
+  .tab .ic { font-size: 21px; }
+  .tab.active { color: #F47C63; }
+
+  .home-ind {
+    position: absolute;
+    bottom: 9px; left: 50%;
+    transform: translateX(-50%);
+    width: 134px; height: 5px;
+    background: #3B2D28;
+    opacity: .25;
+    border-radius: 3px;
+    z-index: 40;
+  }
+</style>
+</head>
+<body>
+  <div class="caption"><span class="num">17</span> <span class="name">· 우리 소개</span></div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="statusbar onlight">
+        <span>9:41</span>
+        <span class="status-icons">●●● ⋙ ▮</span>
+      </div>
+
+      <div class="content">
+        <!-- HERO -->
+        <div class="hero">
+          <div class="photo-cluster">
+            <div class="poc a"></div>
+            <div class="poc b"></div>
+          </div>
+          <div class="hero-body">
+            <div class="couple-nick">지우 <span class="heart">♥</span> 도현</div>
+            <div class="dday-row">
+              <span class="dday-chip">함께한 지 D+412</span>
+              <span class="since">since 2025.05.17</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="body-pad">
+          <!-- PROMPTS -->
+          <div class="sec-title">우리를 소개하는 프롬프트</div>
+
+          <div class="card">
+            <div class="authors"><div class="av her">지</div><div class="av him">도</div></div>
+            <div class="prompt-q">✿ 우리가 처음 만난 곳</div>
+            <div class="prompt-a">성수동 골목의 작은 로스터리 카페.<br>비 오던 날, 우산 하나를 같이 썼어요.</div>
+            <div class="auto-tag">📍 지도 일기에서 자동 연결됨</div>
+          </div>
+
+          <div class="card">
+            <div class="authors"><div class="av her">지</div><div class="av him">도</div></div>
+            <div class="prompt-q">✿ 서로의 첫인상</div>
+            <div class="prompt-a">"웃을 때 눈이 사라지는 게 귀여웠어."<br>— 도현 · "생각보다 말이 많아서 놀랐지" — 지우</div>
+          </div>
+
+          <div class="card">
+            <div class="authors"><div class="av her">지</div><div class="av him">도</div></div>
+            <div class="prompt-q">✿ 우리만의 규칙</div>
+            <div class="prompt-a">싸워도 자기 전엔 꼭 화해하기.<br>매주 일요일은 폰 없이 산책하기.</div>
+          </div>
+
+          <div class="add-cta">＋ 새 프롬프트 답하기</div>
+
+          <!-- TIMELINE -->
+          <div class="sec-title">우리의 마일스톤</div>
+          <div class="timeline">
+            <div class="tl-item">
+              <div class="tl-line"></div>
+              <div class="tl-dot"></div>
+              <div class="tl-body">
+                <div class="tl-date">2025.05.17</div>
+                <div class="tl-label"><span class="tl-emoji">☕</span>처음 만난 날</div>
+                <div class="tl-note">성수 카페 · 첫 일기가 시작된 날</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-line"></div>
+              <div class="tl-dot"></div>
+              <div class="tl-body">
+                <div class="tl-date">2025.06.02</div>
+                <div class="tl-label"><span class="tl-emoji">💌</span>사귀기로 한 날</div>
+                <div class="tl-note">한강에서 · D-day의 진짜 시작</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-line"></div>
+              <div class="tl-dot soft"></div>
+              <div class="tl-body">
+                <div class="tl-date">2025.11.09</div>
+                <div class="tl-label"><span class="tl-emoji">✈️</span>첫 여행 <span class="tl-count">일기 8편</span></div>
+                <div class="tl-note">강릉 2박 3일</div>
+              </div>
+            </div>
+            <div class="tl-item tl-next">
+              <div class="tl-dot soft"></div>
+              <div class="tl-body">
+                <div class="tl-date">D-15 남음</div>
+                <div class="tl-label"><span class="tl-emoji">🎉</span>1주년까지</div>
+                <div class="tl-note">기념일 탭에서 함께 준비 중</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB BAR -->
+      <div class="tabbar">
+        <div class="tab"><span class="ic">📅</span>달력</div>
+        <div class="tab"><span class="ic">🗺️</span>지도</div>
+        <div class="tab active"><span class="ic">♥</span>우리</div>
+        <div class="tab"><span class="ic">⚙️</span>설정</div>
+      </div>
+      <div class="home-ind"></div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>16 · 데이트 스와이프</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    background:#EFEAE6;
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    min-height:100vh; padding:40px 0;
+  }
+
+  /* 넘버링 캡션 */
+  .caption {
+    font-size:18px; font-weight:800; margin-bottom:14px; letter-spacing:-.2px;
+  }
+  .caption .num { color:#F47C63; }
+  .caption .name { color:#3B2D28; }
+
+  /* 폰 프레임 */
+  .phone {
+    width:390px; height:844px; background:#1c1c1e; border-radius:56px;
+    padding:14px; box-shadow:0 30px 60px rgba(120,80,70,.28);
+    position:relative;
+  }
+  .screen {
+    width:100%; height:100%; background:#FBF3EE; border-radius:44px;
+    overflow:hidden; position:relative; display:flex; flex-direction:column;
+  }
+
+  /* 상태바 */
+  .statusbar {
+    height:52px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 30px 0 34px; font-size:15px; font-weight:700; color:#3B2D28;
+    flex-shrink:0;
+  }
+  .statusbar .icons { display:flex; gap:7px; align-items:center; font-size:13px; }
+  .notch {
+    position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    width:126px; height:34px; background:#1c1c1e; border-radius:0 0 20px 20px; z-index:20;
+  }
+
+  /* 헤더 */
+  .header {
+    padding:6px 22px 12px; flex-shrink:0;
+  }
+  .header .logo {
+    font-size:15px; font-weight:800; color:#F47C63; letter-spacing:-.3px; margin-bottom:12px;
+  }
+  .header .titlerow {
+    display:flex; align-items:flex-end; justify-content:space-between;
+  }
+  .header h1 { font-size:25px; font-weight:800; color:#3B2D28; letter-spacing:-.6px; }
+  .header .sub { font-size:12.5px; color:#9B8B84; margin-top:3px; font-weight:600; }
+  .matchcount {
+    background:#FFE7DF; color:#F47C63; font-weight:800; font-size:12.5px;
+    padding:8px 13px; border-radius:14px; display:flex; align-items:center; gap:5px;
+    box-shadow:0 4px 12px rgba(244,124,99,.16);
+  }
+
+  /* 카테고리 필터 */
+  .chips {
+    display:flex; gap:8px; padding:6px 22px 4px; flex-shrink:0; overflow:hidden;
+  }
+  .chip {
+    font-size:12.5px; font-weight:700; padding:7px 13px; border-radius:16px;
+    background:#fff; color:#9B8B84; box-shadow:0 3px 10px rgba(180,120,100,.08);
+    white-space:nowrap;
+  }
+  .chip.active { background:#F47C63; color:#fff; box-shadow:0 5px 14px rgba(244,124,99,.32); }
+
+  /* 카드 스택 영역 */
+  .deck {
+    flex:1; position:relative; margin:14px 22px 0;
+  }
+  .card {
+    position:absolute; left:0; right:0; top:0; bottom:0;
+    background:#fff; border-radius:22px; box-shadow:0 8px 24px rgba(180,120,100,.12);
+    overflow:hidden;
+  }
+  /* 뒤 카드들 */
+  .card.back2 {
+    transform:scale(.9) translateY(26px); opacity:.55;
+  }
+  .card.back1 {
+    transform:scale(.95) translateY(13px) rotate(-1.5deg); opacity:.8;
+  }
+  /* 앞 카드 (기울어짐) */
+  .card.front {
+    transform:rotate(3deg) translateX(6px);
+    box-shadow:0 18px 40px rgba(180,120,100,.22);
+  }
+
+  .card .photo {
+    height:66%; position:relative;
+    background:linear-gradient(135deg,#F9A88E 0%,#F47C63 55%,#E85D7F 100%);
+  }
+  .card.back1 .photo { background:linear-gradient(135deg,#8FB4D6 0%,#6E8FC4 100%); }
+  .card.back2 .photo { background:linear-gradient(135deg,#C4A6D6 0%,#9B7BC4 100%); }
+  .card .photo::after {
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(to bottom,rgba(0,0,0,0) 40%,rgba(0,0,0,.38) 100%);
+  }
+  /* 사진 위 데코 */
+  .photo .deco {
+    position:absolute; font-size:80px; opacity:.22; top:34px; left:50%;
+    transform:translateX(-50%);
+  }
+  .kcategory {
+    position:absolute; top:16px; left:16px; z-index:3;
+    background:rgba(255,255,255,.9); color:#F47C63; font-weight:800;
+    font-size:11.5px; padding:6px 11px; border-radius:12px;
+  }
+  .heartbadge {
+    position:absolute; top:16px; right:16px; z-index:3;
+    background:rgba(255,255,255,.9); color:#3B2D28; font-weight:800;
+    font-size:11.5px; padding:6px 10px; border-radius:12px;
+    display:flex; align-items:center; gap:4px;
+  }
+
+  /* 좋아요/패스 스탬프 */
+  .stamp {
+    position:absolute; top:26px; z-index:6; font-size:20px; font-weight:800;
+    padding:8px 14px; border-radius:12px; border:3px solid; transform:rotate(-14deg);
+    letter-spacing:1px;
+  }
+  .stamp.like { right:20px; color:#4CC38A; border-color:#4CC38A; background:rgba(76,195,138,.12); }
+
+  .card .info { padding:16px 18px 0; }
+  .card .info h2 { font-size:21px; font-weight:800; color:#3B2D28; letter-spacing:-.4px; }
+  .card .info .place { font-size:12.5px; color:#9B8B84; font-weight:600; margin-top:5px; display:flex; align-items:center; gap:4px; }
+  .card .tags { display:flex; gap:7px; margin-top:13px; flex-wrap:wrap; }
+  .card .tag {
+    font-size:11.5px; font-weight:700; color:#7A6A63; background:#FFF1EC;
+    padding:6px 11px; border-radius:12px; display:flex; align-items:center; gap:4px;
+  }
+
+  /* 하단 액션 버튼 */
+  .actions {
+    display:flex; align-items:center; justify-content:center; gap:18px;
+    padding:16px 0 8px; flex-shrink:0;
+  }
+  .btn {
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:#fff; cursor:pointer;
+  }
+  .btn.pass { width:58px; height:58px; font-size:24px; color:#9B8B84;
+    box-shadow:0 6px 16px rgba(180,120,100,.16); }
+  .btn.super { width:50px; height:50px; font-size:20px; color:#5AA8E8;
+    box-shadow:0 6px 16px rgba(90,168,232,.22); }
+  .btn.like {
+    width:70px; height:70px; font-size:30px; color:#fff;
+    background:linear-gradient(135deg,#F9A88E,#F47C63);
+    box-shadow:0 10px 22px rgba(244,124,99,.42);
+  }
+
+  /* 하단 탭바 */
+  .tabbar {
+    height:74px; background:#fff; border-top:1px solid #F2E6DF;
+    display:flex; align-items:flex-start; justify-content:space-around;
+    padding-top:11px; flex-shrink:0;
+  }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:3px;
+    font-size:10.5px; font-weight:700; color:#C9BBB3; }
+  .tab .ico { font-size:21px; line-height:1; }
+  .tab.active { color:#F47C63; }
+
+  .home-indicator {
+    position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+    width:134px; height:5px; background:#3B2D28; opacity:.85; border-radius:3px; z-index:30;
+  }
+</style>
+</head>
+<body>
+
+  <div class="caption"><span class="num">16</span> <span class="name">· 데이트 스와이프</span></div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="icons">&#9679;&#9679;&#9679;&nbsp; &#128246; &nbsp;&#128267;</span>
+      </div>
+
+      <!-- 헤더 -->
+      <div class="header">
+        <div class="logo">love today &#9829;</div>
+        <div class="titlerow">
+          <div>
+            <h1>오늘 뭐할까?</h1>
+            <div class="sub">둘 다 &#10084;&#65039;면 &lsquo;가고 싶은 곳&rsquo;에 담겨요</div>
+          </div>
+          <div class="matchcount">&#128293; 이번 주 매치 3</div>
+        </div>
+      </div>
+
+      <!-- 카테고리 필터 -->
+      <div class="chips">
+        <div class="chip active">전체</div>
+        <div class="chip">맛집</div>
+        <div class="chip">전시</div>
+        <div class="chip">액티비티</div>
+        <div class="chip">집데이트</div>
+      </div>
+
+      <!-- 카드 스택 -->
+      <div class="deck">
+        <!-- 뒤 카드 2 -->
+        <div class="card back2">
+          <div class="photo"><div class="deco">&#127916;</div></div>
+        </div>
+        <!-- 뒤 카드 1 -->
+        <div class="card back1">
+          <div class="photo"><div class="deco">&#127843;</div></div>
+        </div>
+        <!-- 앞 카드 -->
+        <div class="card front">
+          <div class="photo">
+            <div class="deco">&#128717;&#65039;</div>
+            <div class="stamp like">LIKE</div>
+            <div class="kcategory">&#127981;&#65039; 액티비티</div>
+            <div class="heartbadge">&#11088; 커플 82%</div>
+          </div>
+          <div class="info">
+            <h2>성수 소품샵 투어</h2>
+            <div class="place">&#128205; 서울 성동구 &middot; 성수동 골목</div>
+            <div class="tags">
+              <span class="tag">&#128694; 도보 5곳</span>
+              <span class="tag">&#128176; 3~5만원</span>
+              <span class="tag">&#9200; 반나절</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 액션 버튼 -->
+      <div class="actions">
+        <div class="btn pass">&#128078;</div>
+        <div class="btn super">&#11088;</div>
+        <div class="btn like">&#10084;&#65039;</div>
+      </div>
+
+      <!-- 탭바 -->
+      <div class="tabbar">
+        <div class="tab"><span class="ico">&#128197;</span>달력</div>
+        <div class="tab active"><span class="ico">&#128506;&#65039;</span>지도</div>
+        <div class="tab"><span class="ico">&#9881;&#65039;</span>설정</div>
+      </div>
+
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+
+</body>
+</html>

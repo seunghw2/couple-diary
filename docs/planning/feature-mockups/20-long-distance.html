@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>20 · 롱디 모드</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    background:#EFEAE6;
+    font-family:system-ui, -apple-system, sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding:40px 0 60px;
+    min-height:100vh;
+  }
+  .caption {
+    font-size:18px; margin-bottom:14px; letter-spacing:-.2px;
+  }
+  .caption .num { color:#F47C63; font-weight:800; }
+  .caption .name { color:#3B2D28; font-weight:800; }
+
+  /* phone */
+  .phone {
+    width:390px; height:844px;
+    background:#1c1c1e;
+    border-radius:56px;
+    padding:14px;
+    box-shadow:0 30px 70px rgba(60,40,35,.35);
+    position:relative;
+  }
+  .bezel {
+    position:absolute; inset:14px;
+    border-radius:44px;
+    background:#FBF3EE;
+    overflow:hidden;
+  }
+  .notch {
+    position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:150px; height:30px; background:#1c1c1e;
+    border-bottom-left-radius:18px; border-bottom-right-radius:18px;
+    z-index:30;
+  }
+  /* status bar */
+  .statusbar {
+    height:52px; display:flex; align-items:flex-end; justify-content:space-between;
+    padding:0 26px 6px; font-size:14px; font-weight:700; color:#3B2D28;
+    position:relative; z-index:20;
+  }
+  .statusbar .icons { display:flex; gap:6px; align-items:center; font-size:12px; }
+  .bat { width:22px; height:11px; border:1.5px solid #3B2D28; border-radius:3px; position:relative; }
+  .bat::after { content:""; position:absolute; right:-3px; top:3px; width:2px; height:5px; background:#3B2D28; border-radius:1px; }
+  .bat::before { content:""; position:absolute; left:1px; top:1px; bottom:1px; width:70%; background:#3B2D28; border-radius:1px; }
+
+  /* screen scroll */
+  .screen {
+    height:calc(844px - 28px - 52px);
+    overflow:hidden; position:relative;
+    display:flex; flex-direction:column;
+  }
+  .scroll { flex:1; overflow-y:auto; padding:0 18px 12px; }
+
+  /* header */
+  .apphead {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:2px 4px 14px;
+  }
+  .logo { font-size:19px; font-weight:800; color:#3B2D28; letter-spacing:-.3px; }
+  .logo .hh { color:#F47C63; }
+  .mode-pill {
+    background:#FFE7DF; color:#F47C63; font-size:12px; font-weight:800;
+    padding:6px 12px; border-radius:20px;
+  }
+
+  /* two cities */
+  .cities {
+    display:flex; gap:12px; margin-bottom:16px; position:relative;
+  }
+  .city {
+    flex:1; background:#fff; border-radius:22px; padding:16px 14px 15px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+    text-align:center; position:relative;
+  }
+  .city.night { background:linear-gradient(160deg,#3B2D5A,#2A2140); }
+  .avatar {
+    width:44px; height:44px; border-radius:50%; margin:0 auto 9px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; box-shadow:0 4px 10px rgba(180,120,100,.18);
+  }
+  .av-me { background:#FFD9CB; }
+  .av-you { background:#4A3D6B; }
+  .cname { font-size:12px; font-weight:700; letter-spacing:.3px; }
+  .city .cname { color:#9B8B84; }
+  .city.night .cname { color:#B9AED6; }
+  .ctime { font-size:30px; font-weight:800; letter-spacing:-1px; margin-top:3px; }
+  .city .ctime { color:#3B2D28; }
+  .city.night .ctime { color:#fff; }
+  .cmeta { font-size:12px; margin-top:5px; font-weight:600; }
+  .city .cmeta { color:#9B8B84; }
+  .city.night .cmeta { color:#B9AED6; }
+  .cweather { font-size:16px; margin-top:2px; }
+  .heartlink {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:34px; height:34px; border-radius:50%;
+    background:#FBF3EE; z-index:5;
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; color:#F47C63;
+    box-shadow:0 4px 12px rgba(180,120,100,.2);
+  }
+  .status-tag {
+    display:inline-block; margin-top:8px; font-size:10.5px; font-weight:700;
+    padding:3px 9px; border-radius:12px;
+  }
+  .tag-awake { background:#FFE7DF; color:#F47C63; }
+  .tag-sleep { background:rgba(255,255,255,.14); color:#D8CFF0; }
+
+  /* dday card */
+  .dday {
+    background:linear-gradient(155deg,#F47C63,#E85C41);
+    border-radius:26px; padding:22px 22px 20px; color:#fff;
+    box-shadow:0 12px 30px rgba(230,92,65,.34);
+    position:relative; overflow:hidden; margin-bottom:14px;
+  }
+  .dday::after {
+    content:"✈"; position:absolute; font-size:110px; right:-18px; bottom:-30px;
+    opacity:.12; transform:rotate(-18deg);
+  }
+  .dday-label { font-size:12.5px; font-weight:700; opacity:.92; letter-spacing:.2px; }
+  .dday-big { font-size:52px; font-weight:800; letter-spacing:-2px; line-height:1; margin:6px 0 2px; }
+  .dday-big small { font-size:20px; font-weight:700; opacity:.85; }
+  .dday-when { font-size:13px; opacity:.9; font-weight:600; }
+  .dday-foot {
+    display:flex; align-items:center; gap:7px; margin-top:15px;
+    padding-top:13px; border-top:1px solid rgba(255,255,255,.22);
+    font-size:12.5px; font-weight:600;
+  }
+  .dot { width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,.6); }
+
+  /* action buttons */
+  .actions { display:flex; gap:12px; margin-bottom:16px; }
+  .act {
+    flex:1; border:none; cursor:pointer;
+    border-radius:20px; padding:15px 10px 13px;
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    box-shadow:0 8px 22px rgba(180,120,100,.14);
+    font-family:inherit;
+  }
+  .act .ic { font-size:22px; }
+  .act .t { font-size:13.5px; font-weight:800; }
+  .act .s { font-size:10.5px; font-weight:600; }
+  .act-night { background:#2A2140; }
+  .act-night .t { color:#fff; }
+  .act-night .s { color:#B9AED6; }
+  .act-miss { background:#fff; }
+  .act-miss .t { color:#F47C63; }
+  .act-miss .s { color:#9B8B84; }
+
+  /* section title */
+  .sec-title {
+    font-size:13px; font-weight:800; color:#3B2D28; margin:2px 4px 10px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .sec-title span { color:#9B8B84; font-weight:600; font-size:11.5px; }
+
+  /* mini status cards */
+  .mini {
+    background:#fff; border-radius:20px; padding:14px; margin-bottom:11px;
+    box-shadow:0 8px 24px rgba(180,120,100,.1);
+    display:flex; gap:12px; align-items:flex-start;
+  }
+  .mini .mav {
+    width:38px; height:38px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:18px;
+  }
+  .mini-body { flex:1; }
+  .mini-top { display:flex; justify-content:space-between; align-items:baseline; }
+  .mini-name { font-size:13px; font-weight:800; color:#3B2D28; }
+  .mini-time { font-size:11px; color:#9B8B84; font-weight:600; }
+  .mini-text { font-size:13px; color:#3B2D28; line-height:1.5; margin-top:3px; }
+  .mini-mood { font-size:11.5px; color:#F47C63; font-weight:700; margin-top:6px; }
+
+  /* signal received banner */
+  .banner {
+    background:#FFF1EC; border:1.5px dashed #FFC9B8; border-radius:18px;
+    padding:12px 14px; margin-bottom:16px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .banner .b-ic { font-size:20px; }
+  .banner .b-text { font-size:12.5px; color:#3B2D28; font-weight:600; line-height:1.4; }
+  .banner .b-text b { color:#F47C63; }
+
+  /* bottom tab */
+  .tabbar {
+    height:70px; background:#fff; border-top:1px solid #F2E6DF;
+    display:flex; align-items:flex-start; padding-top:11px;
+    box-shadow:0 -4px 20px rgba(180,120,100,.06);
+  }
+  .tab { flex:1; text-align:center; }
+  .tab .ti { font-size:20px; display:block; opacity:.4; }
+  .tab .tl { font-size:10px; font-weight:700; color:#9B8B84; margin-top:3px; opacity:.7; }
+  .tab.on .ti { opacity:1; }
+  .tab.on .tl { color:#F47C63; opacity:1; }
+
+  .scroll::-webkit-scrollbar { display:none; }
+</style>
+</head>
+<body>
+  <div class="caption"><span class="num">20</span> · <span class="name">롱디 모드</span></div>
+
+  <div class="phone">
+    <div class="bezel">
+      <div class="notch"></div>
+      <div class="statusbar">
+        <div>9:41</div>
+        <div class="icons">
+          <span>●●●</span>
+          <span>令</span>
+          <div class="bat"></div>
+        </div>
+      </div>
+
+      <div class="screen">
+        <div class="scroll">
+
+          <div class="apphead">
+            <div class="logo">love today <span class="hh">♥</span></div>
+            <div class="mode-pill">롱디 모드</div>
+          </div>
+
+          <!-- two cities -->
+          <div class="cities">
+            <div class="city">
+              <div class="avatar av-me">🐰</div>
+              <div class="cname">서울 · 나</div>
+              <div class="ctime">15:24</div>
+              <div class="cmeta">맑음 24°</div>
+              <div class="cweather">☀️</div>
+              <div class="status-tag tag-awake">활동 중</div>
+            </div>
+            <div class="heartlink">♥</div>
+            <div class="city night">
+              <div class="avatar av-you">🐻</div>
+              <div class="cname">뉴욕 · 지훈</div>
+              <div class="ctime">02:24</div>
+              <div class="cmeta">흐림 11°</div>
+              <div class="cweather">🌙</div>
+              <div class="status-tag tag-sleep">자는 중</div>
+            </div>
+          </div>
+
+          <!-- signal banner -->
+          <div class="banner">
+            <div class="b-ic">🌙</div>
+            <div class="b-text">지훈님이 <b>잘 자 신호</b>를 보냈어요 · 3분 전<br>지금은 뉴욕의 새벽, 조용히 굿나잇을 눌러줄까요?</div>
+          </div>
+
+          <!-- dday -->
+          <div class="dday">
+            <div class="dday-label">다시 만나기까지</div>
+            <div class="dday-big">D<small>-</small>18</div>
+            <div class="dday-when">7월 20일 · 인천공항에서 만나요</div>
+            <div class="dday-foot">
+              <span>📍 우리 사이 12,400 km</span>
+              <span class="dot"></span>
+              <span>비행 14시간</span>
+            </div>
+          </div>
+
+          <!-- actions -->
+          <div class="actions">
+            <button class="act act-night">
+              <span class="ic">🌙</span>
+              <span class="t">잘 자 보내기</span>
+              <span class="s">같이 자요 신호</span>
+            </button>
+            <button class="act act-miss">
+              <span class="ic">💌</span>
+              <span class="t">보고 싶다</span>
+              <span class="s">지금 마음 전하기</span>
+            </button>
+          </div>
+
+          <!-- today's status -->
+          <div class="sec-title">오늘 서로의 안부 <span>· 시차를 넘어</span></div>
+
+          <div class="mini">
+            <div class="mav av-me">🐰</div>
+            <div class="mini-body">
+              <div class="mini-top">
+                <span class="mini-name">나</span>
+                <span class="mini-time">서울 14:50</span>
+              </div>
+              <div class="mini-text">점심 먹고 카페 왔어. 네가 좋아하던 그 라떼 시켰다 ☕</div>
+              <div class="mini-mood">기분 · 설렘</div>
+            </div>
+          </div>
+
+          <div class="mini">
+            <div class="mav av-you" style="background:#4A3D6B;">🐻</div>
+            <div class="mini-body">
+              <div class="mini-top">
+                <span class="mini-name">지훈</span>
+                <span class="mini-time">뉴욕 01:50</span>
+              </div>
+              <div class="mini-text">이제 자려고. 18일 뒤면 진짜 볼 수 있다는 게 안 믿겨. 잘 자 🌙</div>
+              <div class="mini-mood">기분 · 그리움</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- tab bar -->
+        <div class="tabbar">
+          <div class="tab"><span class="ti">📅</span><span class="tl">달력</span></div>
+          <div class="tab on"><span class="ti">🗺️</span><span class="tl">지도</span></div>
+          <div class="tab"><span class="ti">⚙️</span><span class="tl">설정</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

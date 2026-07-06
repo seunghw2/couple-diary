@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>19 · 지금 우리</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    background:#EFEAE6;
+    font-family:system-ui,-apple-system,"SF Pro",sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    min-height:100vh; padding:40px 0;
+  }
+  .caption {
+    text-align:center; font-size:18px; margin-bottom:14px; letter-spacing:-.2px;
+  }
+  .caption b { color:#F47C63; font-weight:800; }
+  .caption span { color:#3B2D28; font-weight:800; }
+
+  /* phone frame */
+  .phone {
+    width:390px; height:844px; background:#1c1c1e; border-radius:56px;
+    padding:14px; box-shadow:0 24px 60px rgba(90,60,50,.35);
+    position:relative;
+  }
+  .screen {
+    width:100%; height:100%; background:#FBF3EE; border-radius:44px;
+    overflow:hidden; position:relative; display:flex; flex-direction:column;
+  }
+  /* status bar */
+  .statusbar {
+    height:52px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 30px 0 34px; font-size:15px; font-weight:700; color:#3B2D28; flex-shrink:0;
+    padding-top:8px;
+  }
+  .statusbar .icons { display:flex; gap:6px; align-items:center; font-size:13px; }
+  .notch {
+    position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    width:120px; height:32px; background:#1c1c1e; border-radius:0 0 20px 20px; z-index:10;
+  }
+
+  /* header */
+  .header { padding:6px 22px 14px; flex-shrink:0; }
+  .logo { font-size:15px; font-weight:800; color:#F47C63; letter-spacing:-.3px; }
+  .header h1 { font-size:23px; font-weight:800; color:#3B2D28; margin-top:10px; letter-spacing:-.5px; }
+  .alarm-chip {
+    display:inline-flex; align-items:center; gap:6px; margin-top:9px;
+    background:#FFE7DF; color:#F47C63; font-size:12.5px; font-weight:700;
+    padding:6px 12px; border-radius:20px;
+  }
+  .alarm-chip .live { width:7px; height:7px; background:#F47C63; border-radius:50%; box-shadow:0 0 0 0 rgba(244,124,99,.5); animation:pulse 1.8s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(244,124,99,.5);} 70%{box-shadow:0 0 0 8px rgba(244,124,99,0);} 100%{box-shadow:0 0 0 0 rgba(244,124,99,0);} }
+
+  /* feed scroll */
+  .feed { flex:1; overflow:hidden; padding:2px 22px 0; }
+
+  .dual-card {
+    background:#fff; border-radius:22px; box-shadow:0 8px 24px rgba(180,120,100,.12);
+    padding:12px; margin-bottom:16px;
+  }
+  .who { display:flex; align-items:center; gap:9px; margin-bottom:11px; padding:0 2px; }
+  .avatar {
+    width:32px; height:32px; border-radius:50%; flex-shrink:0;
+    font-size:14px; display:flex; align-items:center; justify-content:center;
+  }
+  .avatar.me { background:linear-gradient(135deg,#F47C63,#ff9d7d); }
+  .avatar.you { background:linear-gradient(135deg,#8ab6d6,#a8d0c8); }
+  .who .name { font-size:14px; font-weight:800; color:#3B2D28; }
+  .who .time { font-size:11.5px; color:#9B8B84; font-weight:600; margin-left:auto; }
+  .who .time.late { color:#F47C63; }
+
+  /* BeReal dual image */
+  .bereal {
+    position:relative; width:100%; aspect-ratio:3/3.4; border-radius:16px; overflow:hidden;
+  }
+  .bereal .back { width:100%; height:100%; }
+  .g-cafe { background:linear-gradient(160deg,#d9b38c 0%,#c99a6e 40%,#7a5c46 100%); }
+  .g-street { background:linear-gradient(180deg,#ffd7a8 0%,#f7a76b 45%,#7c93b8 100%); }
+  .bereal .front {
+    position:absolute; top:11px; left:11px; width:30%; aspect-ratio:3/4;
+    border-radius:11px; border:2.5px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,.28);
+    overflow:hidden;
+  }
+  .g-face-a { background:linear-gradient(150deg,#ffe0c4,#f4a97e 70%,#c07a55); }
+  .g-face-b { background:linear-gradient(150deg,#ffe9d4,#f0b48c 70%,#b98866); }
+  .img-cap {
+    position:absolute; bottom:10px; left:0; right:0; text-align:center;
+    color:#fff; font-size:12.5px; font-weight:700; text-shadow:0 1px 6px rgba(0,0,0,.4);
+    letter-spacing:-.2px;
+  }
+  .reload-tag {
+    position:absolute; top:11px; right:11px; background:rgba(0,0,0,.4);
+    color:#fff; font-size:10px; font-weight:700; padding:4px 8px; border-radius:12px;
+    backdrop-filter:blur(4px);
+  }
+
+  /* streak + actions row (inside home, below cards would overflow — put streak bar) */
+  .streak-bar {
+    display:flex; align-items:center; gap:10px; margin:2px 22px 12px;
+    background:#fff; border-radius:22px; box-shadow:0 8px 24px rgba(180,120,100,.12);
+    padding:13px 16px;
+  }
+  .streak-flame { font-size:22px; }
+  .streak-txt { flex:1; }
+  .streak-txt .n { font-size:16px; font-weight:800; color:#3B2D28; }
+  .streak-txt .s { font-size:11.5px; color:#9B8B84; font-weight:600; margin-top:1px; }
+  .btns { display:flex; gap:8px; }
+  .btn {
+    font-size:12.5px; font-weight:800; padding:9px 13px; border-radius:16px; border:none;
+    letter-spacing:-.2px;
+  }
+  .btn.primary { background:#F47C63; color:#fff; }
+  .btn.ghost { background:#FFE7DF; color:#F47C63; }
+
+  /* reactions */
+  .reactions { display:flex; gap:6px; margin-top:11px; padding:0 2px 2px; align-items:center; }
+  .reax {
+    font-size:12px; font-weight:700; color:#3B2D28; background:#FFF1EC;
+    padding:6px 11px; border-radius:16px; display:flex; align-items:center; gap:4px;
+  }
+  .reax-add { color:#9B8B84; background:#F7EFEA; }
+
+  /* bottom tab */
+  .tabbar {
+    height:78px; background:#fff; border-top:1px solid #f0e6df; flex-shrink:0;
+    display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px;
+  }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10.5px; font-weight:700; color:#c3b4ac; }
+  .tab .ic { font-size:20px; }
+  .tab.active { color:#F47C63; }
+</style>
+</head>
+<body>
+  <div class="caption"><b>19</b> · <span>지금 우리</span></div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="icons">● ▂▄▆ 🔋</span>
+      </div>
+
+      <div class="header">
+        <div class="logo">love today ♥</div>
+        <h1>오늘의 순간</h1>
+        <div class="alarm-chip"><span class="live"></span>오후 3:24 알림 · 둘 다 공개됨</div>
+      </div>
+
+      <div class="feed">
+        <!-- ME -->
+        <div class="dual-card">
+          <div class="who">
+            <div class="avatar me">나</div>
+            <span class="name">승환</span>
+            <span class="time">3:24 · 정시 인증</span>
+          </div>
+          <div class="bereal">
+            <div class="back g-cafe"></div>
+            <div class="front g-face-a"></div>
+            <div class="img-cap">☕ 카페에서 마감 중</div>
+          </div>
+          <div class="reactions">
+            <div class="reax">❤️ 지현</div>
+            <div class="reax">😍</div>
+            <div class="reax reax-add">+ 반응</div>
+          </div>
+        </div>
+
+        <!-- YOU -->
+        <div class="dual-card">
+          <div class="who">
+            <div class="avatar you">지</div>
+            <span class="name">지현</span>
+            <span class="time late">3:41 · 늦은 인증</span>
+          </div>
+          <div class="bereal">
+            <div class="back g-street"></div>
+            <div class="front g-face-b"></div>
+            <div class="reload-tag">🔄 2번째</div>
+            <div class="img-cap">🚶‍♀️ 퇴근길 노을</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="streak-bar">
+        <span class="streak-flame">🔥</span>
+        <div class="streak-txt">
+          <div class="n">14일 연속</div>
+          <div class="s">오늘도 둘 다 남겼어요 · 일기에 자동 첨부됨</div>
+        </div>
+        <div class="btns">
+          <button class="btn ghost">다시 찍기</button>
+          <button class="btn primary">반응</button>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab active"><span class="ic">📅</span>달력</div>
+        <div class="tab"><span class="ic">🗺️</span>지도</div>
+        <div class="tab"><span class="ic">⚙️</span>설정</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
