@@ -134,7 +134,11 @@ export default function QuestionScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <Header streak={today.streak} showStreak={showStreak} />
+      <Header
+        streak={today.streak}
+        showStreak={showStreak}
+        onArchive={today.coupled ? () => router.push('/question/archive') : undefined}
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
@@ -298,12 +302,6 @@ export default function QuestionScreen() {
               ) : null}
               {commentError ? <Text style={styles.commentError}>{commentError}</Text> : null}
             </View>
-
-            <Pressable style={styles.archiveLink} onPress={() => router.push('/question/archive')} hitSlop={8}>
-              <Icon name="albums-outline" size={16} color={c.primary} />
-              <Text style={[styles.archiveLinkText, { color: c.primary }]}>지난 편지함</Text>
-              <Icon name="chevron-forward" size={16} color={c.primary} />
-            </Pressable>
           </View>
         )}
       </ScrollView>
@@ -347,8 +345,16 @@ function CommentRow({ comment, mine }: { comment: CommentView; mine: boolean }) 
   );
 }
 
-/** 상단 헤더 — 제목 + 은은한 스트릭 + 설정. */
-function Header({ streak, showStreak }: { streak: number; showStreak: boolean }) {
+/** 상단 헤더 — 제목 + 지난 편지함 + 은은한 스트릭. */
+function Header({
+  streak,
+  showStreak,
+  onArchive,
+}: {
+  streak: number;
+  showStreak: boolean;
+  onArchive?: () => void;
+}) {
   const c = useColors();
   return (
     <View style={styles.header}>
@@ -362,6 +368,17 @@ function Header({ streak, showStreak }: { streak: number; showStreak: boolean })
             <Icon name="heart" size={13} color={c.primary} />
             <Text style={[styles.streakText, { color: c.primary }]}>{streak}일째</Text>
           </View>
+        ) : null}
+        {onArchive ? (
+          <Pressable
+            onPress={onArchive}
+            hitSlop={8}
+            style={[styles.archiveBtn, { backgroundColor: c.coralSofter }]}
+            accessibilityLabel="지난 편지함"
+          >
+            <Icon name="albums-outline" size={15} color={c.primary} />
+            <Text style={[styles.archiveBtnText, { color: c.primary }]}>편지함</Text>
+          </Pressable>
         ) : null}
       </View>
     </View>
@@ -590,15 +607,15 @@ const styles = StyleSheet.create({
   statusPillText: { ...font.label, fontWeight: '600' },
   midnightHint: { ...font.caption, color: colors.subText, textAlign: 'center', marginTop: spacing.md },
 
-  archiveLink: {
+  archiveBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 4,
-    marginTop: spacing.xl,
-    paddingVertical: spacing.md,
+    borderRadius: radius.pill,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
   },
-  archiveLinkText: { ...font.label, fontWeight: '700' },
+  archiveBtnText: { ...font.caption, fontWeight: '800' },
 
   partnerSealedHint: { ...font.caption, color: colors.subText, textAlign: 'center', marginTop: spacing.md },
 

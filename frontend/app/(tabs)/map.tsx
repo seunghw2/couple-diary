@@ -118,7 +118,7 @@ export default function MapScreen() {
       </View>
 
       {/* 본문 */}
-      <View style={styles.body}>
+      <View style={[styles.body, { borderWidth: 1.5, borderColor: c.coralSofter }]}>
         {loading ? (
           <View style={styles.center}>
             <ActivityIndicator color={c.primary} />
