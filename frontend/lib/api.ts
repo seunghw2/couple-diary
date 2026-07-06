@@ -127,6 +127,7 @@ export type PartnerSummary = {
   id: number;
   nickname: string;
   avatarColor: string;
+  birthday?: string; // YYYY-MM-DD
 };
 
 export type DevLoginResponse = { accessToken: string; user: UserSummary };

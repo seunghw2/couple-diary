@@ -52,10 +52,11 @@ public class UserDtos {
     public record PartnerSummary(
             Long id,
             String nickname,
-            String avatarColor
+            String avatarColor,
+            LocalDate birthday
     ) {
         public static PartnerSummary of(User u) {
-            return new PartnerSummary(u.getId(), u.getNickname(), u.getAvatarColor());
+            return new PartnerSummary(u.getId(), u.getNickname(), u.getAvatarColor(), u.getBirthday());
         }
     }
 }

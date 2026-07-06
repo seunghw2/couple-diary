@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { MonthEntrySummary, calendarMarkApi } from '../../lib/api';
 import { dDay, formatDday, todayISO } from '../../lib/date';
+import { specialDaysInMonth } from '../../lib/anniversary';
 import { showAlert } from '../../lib/dialog';
 import { useCoupleStore } from '../../store/useCoupleStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -86,6 +87,20 @@ export default function HomeScreen() {
     () => couple?.ddayCount ?? dDay(couple?.anniversaryDate),
     [couple?.ddayCount, couple?.anniversaryDate]
   );
+
+  // 기념일/생일은 매년 반복 → 보고 있는 월에 해당하면 항상 캘린더에 표시.
+  // (사용자가 직접 콕 찍은 markDates와 합쳐서 하이라이트)
+  const markedAll = useMemo(() => {
+    const sp = specialDaysInMonth(cursor.year, cursor.month, {
+      anniversaryDate: couple?.anniversaryDate,
+      myBirthday: me?.birthday,
+      partnerBirthday: partner?.birthday,
+    });
+    if (sp.size === 0) return markDates;
+    const merged = new Set(markDates);
+    sp.forEach((_v, k) => merged.add(k));
+    return merged;
+  }, [cursor.year, cursor.month, couple?.anniversaryDate, me?.birthday, partner?.birthday, markDates]);
   const partnerName = partner?.nickname;
   const todayEntry = entries[today];
 
@@ -212,7 +227,7 @@ export default function HomeScreen() {
               entries={entries}
               today={today}
               onPressDate={openDate}
-              markedDates={markDates}
+              markedDates={markedAll}
             />
           )}
         </View>

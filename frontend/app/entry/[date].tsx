@@ -23,6 +23,7 @@ import { API_URL } from '../../lib/config';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, entryApi, isLocked } from '../../lib/api';
 import { dDayOn, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
+import { specialDayFor } from '../../lib/anniversary';
 import { confirmAsync, showAlert } from '../../lib/dialog';
 import { moodIcon } from '../../constants/content';
 import { useCoupleStore } from '../../store/useCoupleStore';
@@ -48,6 +49,7 @@ export default function EntryDetailScreen() {
   const dateStr = date ?? todayISO();
   const couple = useCoupleStore((s) => s.couple);
   const me = useAuthStore((s) => s.user);
+  const partner = useAuthStore((s) => s.partner);
   const poke = useNotifStore((s) => s.poke);
   const loadDetail = useDataCache((s) => s.loadDetail);
   const getDetail = useDataCache((s) => s.getDetail);
@@ -201,6 +203,14 @@ export default function EntryDetailScreen() {
 
   // 이 일기 '날짜' 기준 D-day(오늘값 하드코딩 X).
   const dday = dDayOn(couple?.anniversaryDate, dateStr);
+  // 이 날짜가 기념일/생일(매년 반복)이면 상단에 배지로 표시.
+  const special = specialDayFor(dateStr, {
+    anniversaryDate: couple?.anniversaryDate,
+    myBirthday: me?.birthday,
+    myName: me?.nickname,
+    partnerBirthday: partner?.birthday,
+    partnerName: partner?.nickname,
+  });
   const status = detail?.status ?? 'EMPTY';
   const mineWritten = !!detail?.myEntry;
   const partnerEntry = detail?.partnerEntry;
@@ -233,6 +243,16 @@ export default function EntryDetailScreen() {
             <View style={{ width: 24 }} />
           )}
         </View>
+
+        {/* 기념일/생일 배지 — 이 날짜가 특별한 날이면 헤더 바로 아래에 표시 */}
+        {special ? (
+          <View style={styles.specialBar}>
+            <View style={[styles.specialPill, { backgroundColor: c.coralSofter }]}>
+              <Icon name={special.icon} size={15} color={c.primary} />
+              <Text style={[styles.specialText, { color: c.primary }]}>{special.label}</Text>
+            </View>
+          </View>
+        ) : null}
 
         <ScrollView ref={scrollRef} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           {loading ? (
@@ -737,6 +757,16 @@ const styles = StyleSheet.create({
   back: { fontSize: 30, color: colors.subText },
   dateTitle: { ...font.h2 },
   dateSub: { ...font.caption },
+  specialBar: { alignItems: 'center', paddingHorizontal: spacing.xl, paddingBottom: spacing.sm },
+  specialPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+  },
+  specialText: { ...font.label, fontWeight: '700' },
   scroll: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xxl },
 
   emptyTitle: { ...font.title },
