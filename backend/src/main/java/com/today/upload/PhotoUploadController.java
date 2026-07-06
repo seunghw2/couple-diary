@@ -156,6 +156,8 @@ public class PhotoUploadController {
         if (name.endsWith(".png")) type = MediaType.IMAGE_PNG;
         else if (name.endsWith(".gif")) type = MediaType.IMAGE_GIF;
         else if (name.endsWith(".webp")) type = MediaType.parseMediaType("image/webp");
+        else if (name.endsWith(".heic")) type = MediaType.parseMediaType("image/heic");
+        else if (name.endsWith(".heif")) type = MediaType.parseMediaType("image/heif");
         return ResponseEntity.ok()
                 .contentType(type)
                 .cacheControl(CacheControl.maxAge(Duration.ofSeconds(CACHE_MAX_AGE_SECONDS)).cachePublic())

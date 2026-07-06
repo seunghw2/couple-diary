@@ -295,7 +295,12 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
     setPinnedName(name);
     setToast('지도를 길게 눌러 위치를 찍어주세요');
     setActive(null);
-    // pinned는 롱프레스가 채운다. 이름만 미리 담아둔다.
+    setNearby(null);
+    // 검색 0건 카드(zeroResults)를 숨겨 '위치 찍기' 흐름만 남긴다. 이름은 pinnedName에 보관.
+    setQuery('');
+    setResults([]);
+    setSearched(false);
+    // pinned는 롱프레스가 채운다.
   }
 
   const distanceOf = useCallback(
@@ -346,7 +351,7 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
 
         {/* 지도 */}
         <View style={styles.mapWrap}>
-          {KAKAO_JS_KEY ? (
+          {KAKAO_JS_KEY && Platform.OS !== 'web' ? (
             <WebView
               ref={webRef}
               style={styles.web}
@@ -361,12 +366,16 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
           ) : (
             <View style={styles.mapFallback}>
               <Icon name="map-outline" size={44} color={c.coralSoft} />
-              <Text style={styles.fallbackText}>지도를 보려면 Kakao 키가 필요해요</Text>
+              <Text style={styles.fallbackText}>
+                {Platform.OS === 'web'
+                  ? '지도는 앱에서 사용할 수 있어요.\n위에서 장소를 검색해 담아 주세요.'
+                  : '지도를 보려면 Kakao 키가 필요해요'}
+              </Text>
             </View>
           )}
 
           {/* 로딩 스켈레톤(지도 준비 전) */}
-          {!mapReady && KAKAO_JS_KEY ? (
+          {!mapReady && KAKAO_JS_KEY && Platform.OS !== 'web' ? (
             <View style={styles.mapLoading} pointerEvents="none">
               <ActivityIndicator color={c.primary} />
               <Text style={styles.mapLoadingText}>지도를 불러오는 중…</Text>
@@ -480,7 +489,7 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
           ) : null}
 
           {/* E2: 검색 0건 → 두 옵션 */}
-          {zeroResults ? (
+          {zeroResults && !pinned && !nearby && !active ? (
             <View style={styles.card}>
               <Text style={styles.cardTitle} numberOfLines={1}>‘{query.trim()}’ 못 찾았어요</Text>
               <Text style={styles.cardSub}>카카오맵에 없는 곳이거나 오타일 수 있어요. 어떻게 담을까요?</Text>

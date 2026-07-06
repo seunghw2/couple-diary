@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -28,7 +29,8 @@ export default function MapScreen() {
   const [nicknames, setNicknames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [mode, setMode] = useState<ViewMode>('map');
+  // 웹은 지도(WebView) 미지원 → 기본 리스트.
+  const [mode, setMode] = useState<ViewMode>(Platform.OS === 'web' ? 'list' : 'map');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -58,6 +60,8 @@ export default function MapScreen() {
   useFocusEffect(
     useCallback(() => {
       load();
+      // 상세에서 돌아오면 선택 프리뷰 카드를 닫아 토글이 가려지지 않게.
+      setSelected(null);
     }, [load])
   );
 
@@ -82,7 +86,11 @@ export default function MapScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>우리의 지도</Text>
         <Text style={styles.sub}>
-          우리가 함께 간 곳 <Text style={[styles.count, { color: c.primary }]}>{places.length}</Text>곳
+          {query.trim() ? '검색 결과 ' : '우리가 함께 간 곳 '}
+          <Text style={[styles.count, { color: c.primary }]}>
+            {query.trim() ? filtered.length : places.length}
+          </Text>
+          곳
         </Text>
       </View>
 
@@ -257,7 +265,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  searchInput: { flex: 1, ...font.body, paddingVertical: 0 },
+  // 웹 기본 파란 포커스 링 제거(테마와 충돌).
+  searchInput: { flex: 1, ...font.body, paddingVertical: 0, ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null) },
   togglePill: {
     position: 'absolute',
     bottom: spacing.lg,

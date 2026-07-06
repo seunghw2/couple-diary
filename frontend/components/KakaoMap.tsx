@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { KAKAO_JS_KEY } from '../lib/config';
 import { Icon } from './ui';
@@ -37,6 +37,17 @@ export function KakaoMap({ places, counts, onSelectPlace, onDeselect }: Props) {
   const webRef = useRef<WebView>(null);
 
   const html = useMemo(() => buildHtml(KAKAO_JS_KEY, places, counts ?? {}), [places, counts]);
+
+  // 웹은 react-native-webview 미지원 → Kakao 지도 렌더 불가. 리스트로 보라는 안내.
+  if (Platform.OS === 'web') {
+    return (
+      <View style={styles.fallback}>
+        <Icon name="map-outline" size={48} color={colors.coralSoft} style={{ marginBottom: spacing.md }} />
+        <Text style={styles.fallbackTitle}>지도는 앱에서 볼 수 있어요</Text>
+        <Text style={styles.fallbackSub}>웹에서는 지도가 표시되지 않아요.{'\n'}아래 ‘리스트’로 장소를 확인해 주세요.</Text>
+      </View>
+    );
+  }
 
   if (!KAKAO_JS_KEY) {
     return (

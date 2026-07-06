@@ -246,25 +246,23 @@ export default function WriteScreen() {
   }
 
   /** 지도 시트에서 확정한 장소들을 이름 칩 + 좌표 메타로 병합. */
+  // 피커는 initial=현재 locations 전체로 시작하므로, 확정 시 넘어온 바스켓이 '최종 상태'다.
+  // → add-only가 아니라 통째로 교체해야 피커에서 뺀 장소가 실제로 빠진다.
   function applyPickedPlaces(places: SelectedPlace[]) {
-    setLocations((prev) => {
-      const next = [...prev];
-      for (const pl of places) {
-        const nm = pl.name.trim();
-        if (nm && !next.includes(nm)) next.push(nm);
+    const names: string[] = [];
+    const points: LocationPoint[] = [];
+    const seen = new Set<string>();
+    for (const pl of places) {
+      const nm = pl.name.trim();
+      if (!nm || seen.has(nm)) continue;
+      seen.add(nm);
+      names.push(nm);
+      if (pl.lat != null && pl.lng != null) {
+        points.push({ name: nm, lat: pl.lat, lng: pl.lng, category: pl.category });
       }
-      return next;
-    });
-    setLocationPoints((prev) => {
-      const byName = new Map(prev.map((p) => [p.name, p]));
-      for (const pl of places) {
-        const nm = pl.name.trim();
-        if (nm && pl.lat != null && pl.lng != null) {
-          byName.set(nm, { name: nm, lat: pl.lat, lng: pl.lng, category: pl.category });
-        }
-      }
-      return Array.from(byName.values());
-    });
+    }
+    setLocations(names);
+    setLocationPoints(points);
   }
 
   /** 장면 질문의 개별 행 값. 미초기화면 최소 2개(장면 1/2) 빈칸 제공. */
