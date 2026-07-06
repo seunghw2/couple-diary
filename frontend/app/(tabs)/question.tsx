@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { CommentView, dailyQuestionApi, QuestionAnswer } from '../../lib/api';
+import { CommentView, dailyQuestionApi } from '../../lib/api';
 import { confirmAsync, showAlert, showToast } from '../../lib/dialog';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useQuestionStore } from '../../store/useQuestionStore';
@@ -30,7 +30,6 @@ export default function QuestionScreen() {
   const loading = useQuestionStore((s) => s.loading);
   const loadToday = useQuestionStore((s) => s.loadToday);
   const choose = useQuestionStore((s) => s.choose);
-  const react = useQuestionStore((s) => s.react);
   const comment = useQuestionStore((s) => s.comment);
 
   const scrollRef = useRef<ScrollView>(null);
@@ -40,7 +39,6 @@ export default function QuestionScreen() {
   const [commentError, setCommentError] = useState<string | null>(null);
   const [chosenSlot, setChosenSlot] = useState<number | null>(null);
   const [choosing, setChoosing] = useState(false);
-  const [reacting, setReacting] = useState(false);
   // 신고한 봉투 id들(로컬) — 화면에서 흐리게 비활성 처리, 중복 신고 방지.
   const [reportedIds, setReportedIds] = useState<number[]>([]);
   const [reportingId, setReportingId] = useState<number | null>(null);
@@ -70,18 +68,6 @@ export default function QuestionScreen() {
       showAlert('편지를 정하지 못했어요', '잠시 후 다시 시도해 주세요.');
     } finally {
       setChoosing(false);
-    }
-  }
-
-  async function onReact(answer: QuestionAnswer) {
-    if (reacting) return;
-    setReacting(true);
-    try {
-      await react(answer.id);
-    } catch {
-      showAlert('하트를 전하지 못했어요', '잠시 후 다시 시도해 주세요.');
-    } finally {
-      setReacting(false);
     }
   }
 
@@ -263,6 +249,10 @@ export default function QuestionScreen() {
               <ChosenLine chosenByMe={today.chosenByMe} nickname={today.chosenBy?.nickname} />
             </LetterCard>
             <SealedAnswer label="내 답장" text={today.myAnswer?.text} who="mine" />
+            <Pressable style={styles.editLink} onPress={() => router.push('/question/write')} hitSlop={8}>
+              <Icon name="create-outline" size={14} color={c.primary} />
+              <Text style={[styles.editLinkText, { color: c.primary }]}>답장 수정</Text>
+            </Pressable>
             <View style={[styles.lockCard, shadow]}>
               <Icon name="lock-closed-outline" size={22} color={c.coralSoft} />
               <Text style={styles.lockText}>
@@ -283,16 +273,15 @@ export default function QuestionScreen() {
               label={me?.nickname ? `${me.nickname}의 답장` : '내 답장'}
               text={today.myAnswer?.text}
               who="mine"
-              reactedByPartner={today.myAnswer?.reactedByPartner}
             />
+            <Pressable style={styles.editLink} onPress={() => router.push('/question/write')} hitSlop={8}>
+              <Icon name="create-outline" size={14} color={c.primary} />
+              <Text style={[styles.editLinkText, { color: c.primary }]}>내 답장 수정</Text>
+            </Pressable>
             <OpenedAnswer
               label={partner?.nickname ? `${partner.nickname}의 답장` : '상대의 답장'}
               text={today.partnerAnswer?.text}
               who="partner"
-              reactable={!!today.partnerAnswer}
-              reactedByMe={today.partnerAnswer?.reactedByMe}
-              onReact={() => today.partnerAnswer && onReact(today.partnerAnswer)}
-              reacting={reacting}
             />
 
             {/* 댓글 */}
@@ -424,49 +413,16 @@ function SealedAnswer({ label, text, who }: { label: string; text?: string; who:
   );
 }
 
-/** 열린 답장 + (상대 답이면) 하트 반응. */
-function OpenedAnswer({
-  label,
-  text,
-  who,
-  reactable,
-  reactedByMe,
-  reactedByPartner,
-  onReact,
-  reacting,
-}: {
-  label: string;
-  text?: string;
-  who: 'mine' | 'partner';
-  reactable?: boolean;
-  reactedByMe?: boolean;
-  reactedByPartner?: boolean;
-  onReact?: () => void;
-  reacting?: boolean;
-}) {
+/** 열린 답장(양쪽 공개). */
+function OpenedAnswer({ label, text, who }: { label: string; text?: string; who: 'mine' | 'partner' }) {
   const c = useColors();
   const tint = who === 'mine' ? c.primary : colors.partner;
   return (
     <View style={[styles.answerCard, shadow]}>
       <View style={styles.answerHead}>
         <Text style={[styles.answerLabel, { color: tint }]}>{label}</Text>
-        {/* 내 답에 상대가 하트를 눌렀으면 표시 */}
-        {who === 'mine' && reactedByPartner ? (
-          <View style={styles.reactedTag}>
-            <Icon name="heart" size={13} color={c.primary} />
-            <Text style={[styles.reactedTagText, { color: c.primary }]}>하트 받음</Text>
-          </View>
-        ) : null}
       </View>
       <Text style={styles.answerText}>{text ?? ''}</Text>
-      {reactable && onReact ? (
-        <Pressable style={styles.reactBtn} onPress={onReact} disabled={reacting} hitSlop={8}>
-          <Icon name={reactedByMe ? 'heart' : 'heart-outline'} size={20} color={c.primary} />
-          <Text style={[styles.reactBtnText, { color: c.primary }]}>
-            {reactedByMe ? '하트 전함' : '하트 보내기'}
-          </Text>
-        </Pressable>
-      ) : null}
     </View>
   );
 }
@@ -596,20 +552,17 @@ const styles = StyleSheet.create({
   sealedText: { ...font.body, color: colors.placeholder, marginTop: spacing.sm, fontStyle: 'italic' },
   sealTag: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   sealTagText: { ...font.caption, color: colors.subText },
-  reactedTag: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  reactedTagText: { ...font.caption, fontWeight: '600' },
-  reactBtn: {
+  editLink: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
-    marginTop: spacing.md,
-    backgroundColor: '#FFF3E4',
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    gap: 4,
+    alignSelf: 'flex-end',
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
   },
-  reactBtnText: { ...font.label, fontWeight: '700' },
+  editLinkText: { ...font.caption, fontWeight: '700' },
 
   // 잠금 카드
   lockCard: {

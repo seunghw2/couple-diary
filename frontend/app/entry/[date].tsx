@@ -21,7 +21,7 @@ import { Directory, File as FsFile, Paths } from 'expo-file-system';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_URL } from '../../lib/config';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, entryApi, isLocked } from '../../lib/api';
+import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, calendarMarkApi, entryApi, isLocked } from '../../lib/api';
 import { dDayOn, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
 import { specialDayFor } from '../../lib/anniversary';
 import { confirmAsync, showAlert } from '../../lib/dialog';
@@ -76,6 +76,25 @@ export default function EntryDetailScreen() {
   const scrollRef = useRef<ScrollView>(null);
   // 사진 풀스크린 뷰어: 열 사진 url 목록 + 시작 인덱스
   const [viewer, setViewer] = useState<{ urls: string[]; index: number } | null>(null);
+
+  // 캘린더에 콕 찍어둔 기념일 마크(이 날짜에 라벨이 있으면 상단 배지로 표시).
+  const [markLabel, setMarkLabel] = useState<string | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true;
+      calendarMarkApi
+        .list()
+        .then((res) => {
+          if (!alive) return;
+          const m = (res?.marks ?? []).find((x) => x.date === dateStr);
+          setMarkLabel(m ? (m.label?.trim() || '기념일') : null);
+        })
+        .catch(() => {});
+      return () => {
+        alive = false;
+      };
+    }, [dateStr])
+  );
 
   function openPhotoViewer(urls: string[], index: number) {
     if (urls.length === 0) return;
@@ -211,6 +230,9 @@ export default function EntryDetailScreen() {
     partnerBirthday: partner?.birthday,
     partnerName: partner?.nickname,
   });
+  // 상단 배지: 사용자가 캘린더에 콕 찍어둔 마크 라벨 우선, 없으면 반복 기념일/생일.
+  const badgeLabel = markLabel ?? special?.label ?? null;
+  const badgeIcon = special?.icon ?? 'heart';
   const status = detail?.status ?? 'EMPTY';
   const mineWritten = !!detail?.myEntry;
   const partnerEntry = detail?.partnerEntry;
@@ -244,12 +266,12 @@ export default function EntryDetailScreen() {
           )}
         </View>
 
-        {/* 기념일/생일 배지 — 이 날짜가 특별한 날이면 헤더 바로 아래에 표시 */}
-        {special ? (
+        {/* 기념일 배지 — 캘린더에 찍어둔 마크(라벨) 또는 반복 기념일/생일이면 헤더 아래 표시 */}
+        {badgeLabel ? (
           <View style={styles.specialBar}>
             <View style={[styles.specialPill, { backgroundColor: c.coralSofter }]}>
-              <Icon name={special.icon} size={15} color={c.primary} />
-              <Text style={[styles.specialText, { color: c.primary }]}>{special.label}</Text>
+              <Icon name={badgeIcon} size={15} color={c.primary} />
+              <Text style={[styles.specialText, { color: c.primary }]}>{badgeLabel}</Text>
             </View>
           </View>
         ) : null}

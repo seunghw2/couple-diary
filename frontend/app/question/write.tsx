@@ -31,17 +31,26 @@ export default function QuestionWriteScreen() {
   const [text, setText] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // 내 답장이 이미 있으면 '수정' 모드.
+  const isEdit = !!today?.myAnswer?.text;
+
   // 진입 시 최신 상태 확인.
   useEffect(() => {
     loadToday();
   }, [loadToday]);
 
-  // 답장 단계가 아니면(이미 답했거나 아직 확정 전) 뒤로.
+  // 답장 쓰기(NEEDS_ANSWER)도 아니고 내 답장(수정)도 없으면 뒤로.
   useEffect(() => {
-    if (!loading && today && today.state !== 'NEEDS_ANSWER') {
+    if (!loading && today && today.state !== 'NEEDS_ANSWER' && !today.myAnswer) {
       router.back();
     }
   }, [loading, today, router]);
+
+  // 수정 모드: 기존 답장 프리필(첫 로드 때만, 입력 중 값은 안 덮음).
+  useEffect(() => {
+    const prev = today?.myAnswer?.text;
+    if (prev) setText((cur) => (cur ? cur : prev));
+  }, [today?.myAnswer?.text]);
 
   const chosenLine = useMemo(() => {
     if (!today) return '';
@@ -70,7 +79,7 @@ export default function QuestionWriteScreen() {
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Icon name="chevron-back" size={28} color={colors.subText} />
         </Pressable>
-        <Text style={styles.topTitle}>답장 쓰기</Text>
+        <Text style={styles.topTitle}>{isEdit ? '답장 수정' : '답장 쓰기'}</Text>
         <View style={{ width: 28 }} />
       </View>
 
@@ -114,14 +123,16 @@ export default function QuestionWriteScreen() {
             </View>
 
             <Text style={styles.hint}>
-              {today?.partnerSealed
+              {isEdit
+                ? '수정한 내용으로 답장이 바뀌어요.'
+                : today?.partnerSealed
                 ? '봉인하면 바로 편지가 열려요.'
                 : '답장을 봉인하면 상대도 답할 때까지 서로의 편지가 잠겨 있어요.'}
             </Text>
 
             <Button
-              label="답장 봉인하기"
-              icon="lock-closed-outline"
+              label={isEdit ? '답장 수정하기' : '답장 봉인하기'}
+              icon={isEdit ? 'create-outline' : 'lock-closed-outline'}
               onPress={onSubmit}
               loading={saving}
               disabled={!canSubmit}

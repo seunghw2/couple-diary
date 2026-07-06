@@ -213,14 +213,12 @@ public class QuestionService {
 
         QuestionAnswer existing = answerRepository
                 .findByDailyQuestion_IdAndAuthor_Id(chosen.getId(), userId).orElse(null);
-        if (existing != null && existing.getSealedAt() != null) {
-            // 이미 봉인됨 — 재제출 불가
-            throw new ApiException(ErrorCode.INVALID_INPUT);
-        }
+        // 이미 봉인된 답도 '수정' 허용(텍스트만 갱신). 알림·열림 처리는 최초 봉인 때만.
+        boolean alreadySealed = existing != null && existing.getSealedAt() != null;
 
         if (existing != null) {
             existing.setText(text);
-            existing.setSealedAt(LocalDateTime.now());
+            if (existing.getSealedAt() == null) existing.setSealedAt(LocalDateTime.now());
         } else {
             answerRepository.save(QuestionAnswer.builder()
                     .dailyQuestion(chosen)
@@ -229,15 +227,18 @@ public class QuestionService {
                     .sealedAt(LocalDateTime.now())
                     .build());
         }
-        // 상대 답장 봉인 여부로 열림/대기 알림 분기.
-        User partner = partnerOf(couple, userId);
-        boolean partnerSealed = partner != null && answerRepository
-                .findByDailyQuestion_IdAndAuthor_Id(chosen.getId(), partner.getId())
-                .map(a -> a.getSealedAt() != null).orElse(false);
-        if (partnerSealed) {
-            notificationService.onQuestionOpened(me, partner, today);
-        } else {
-            notificationService.onQuestionAnswered(me, partner, today);
+
+        if (!alreadySealed) {
+            // 최초 봉인 시에만: 상대 답장 봉인 여부로 열림/대기 알림 분기.
+            User partner = partnerOf(couple, userId);
+            boolean partnerSealed = partner != null && answerRepository
+                    .findByDailyQuestion_IdAndAuthor_Id(chosen.getId(), partner.getId())
+                    .map(a -> a.getSealedAt() != null).orElse(false);
+            if (partnerSealed) {
+                notificationService.onQuestionOpened(me, partner, today);
+            } else {
+                notificationService.onQuestionAnswered(me, partner, today);
+            }
         }
 
         return today(userId);
