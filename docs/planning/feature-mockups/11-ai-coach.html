@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>11 · AI 관계 코치</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #EFEAE6;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0;
+    min-height: 100vh;
+  }
+  .caption {
+    font-size: 18px;
+    margin-bottom: 14px;
+    letter-spacing: -.2px;
+  }
+  .caption .num { color: #F47C63; font-weight: 800; }
+  .caption .name { color: #3B2D28; font-weight: 800; }
+
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #1c1c1e;
+    border-radius: 44px;
+    padding: 12px;
+    box-shadow: 0 24px 60px rgba(60,40,35,.28);
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: #FBF3EE;
+    border-radius: 33px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* status bar */
+  .statusbar {
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #3B2D28;
+    flex-shrink: 0;
+  }
+  .statusbar .icons { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+
+  /* header */
+  .header {
+    padding: 4px 22px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .logo { font-size: 17px; font-weight: 800; color: #3B2D28; letter-spacing: -.3px; }
+  .logo .heart { color: #F47C63; }
+  .coach-badge {
+    background: #FFE7DF;
+    color: #F47C63;
+    font-size: 11.5px;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* scroll body */
+  .body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 20px 100px;
+  }
+
+  .greeting {
+    margin: 8px 2px 18px;
+  }
+  .greeting h1 {
+    font-size: 23px;
+    font-weight: 800;
+    color: #3B2D28;
+    line-height: 1.32;
+    letter-spacing: -.5px;
+  }
+  .greeting h1 .accent { color: #F47C63; }
+  .greeting p {
+    margin-top: 7px;
+    font-size: 13px;
+    color: #9B8B84;
+    font-weight: 500;
+  }
+
+  /* weekly tip - coral hero card */
+  .tip-card {
+    background: linear-gradient(150deg, #F47C63 0%, #F0684E 100%);
+    border-radius: 22px;
+    padding: 22px 20px;
+    box-shadow: 0 12px 28px rgba(244,124,99,.34);
+    color: #fff;
+    margin-bottom: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .tip-card .bloom {
+    position: absolute;
+    width: 150px; height: 150px;
+    background: rgba(255,255,255,.12);
+    border-radius: 50%;
+    top: -60px; right: -40px;
+  }
+  .tip-label {
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: .4px;
+    opacity: .95;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .tip-label .dot { display:inline-block; width:14px; height:14px; }
+  .tip-card h2 {
+    font-size: 17.5px;
+    font-weight: 800;
+    line-height: 1.45;
+    letter-spacing: -.3px;
+    position: relative;
+  }
+  .tip-insight {
+    margin-top: 12px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    opacity: .92;
+    background: rgba(255,255,255,.14);
+    border-radius: 14px;
+    padding: 11px 13px;
+    position: relative;
+  }
+  .tip-insight b { font-weight: 800; }
+
+  /* section label */
+  .sec-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: #9B8B84;
+    letter-spacing: .3px;
+    margin: 4px 4px 11px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* white card base */
+  .card {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+
+  /* talk card */
+  .talk-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .talk-avatar {
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    background: #FFF1EC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    flex-shrink: 0;
+  }
+  .talk-head .meta .t { font-size: 13px; font-weight: 800; color: #3B2D28; }
+  .talk-head .meta .s { font-size: 11px; color: #9B8B84; margin-top: 2px; font-weight: 600; }
+
+  .talk-question {
+    background: #FFF1EC;
+    border-radius: 16px;
+    padding: 16px 16px;
+    font-size: 15.5px;
+    font-weight: 700;
+    color: #3B2D28;
+    line-height: 1.55;
+    letter-spacing: -.3px;
+    position: relative;
+  }
+  .talk-question .quote {
+    color: #F47C63;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 0;
+    vertical-align: -6px;
+    margin-right: 3px;
+  }
+  .talk-sub {
+    margin-top: 11px;
+    font-size: 12px;
+    color: #9B8B84;
+    line-height: 1.5;
+    font-weight: 500;
+    padding: 0 2px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .btn {
+    flex: 1;
+    border: none;
+    border-radius: 14px;
+    padding: 13px 0;
+    font-size: 13.5px;
+    font-weight: 800;
+    letter-spacing: -.2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .btn-primary { background: #F47C63; color: #fff; box-shadow: 0 6px 14px rgba(244,124,99,.3); }
+  .btn-ghost { background: #FFE7DF; color: #F47C63; }
+
+  /* date idea card */
+  .date-card { padding: 20px 20px 18px; }
+  .date-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .date-thumb {
+    width: 62px; height: 62px;
+    border-radius: 18px;
+    background: linear-gradient(140deg, #FFE7DF, #FFF1EC);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(244,124,99,.12);
+  }
+  .date-info { flex: 1; padding-top: 2px; }
+  .date-info .tag {
+    display: inline-block;
+    background: #FFE7DF;
+    color: #F47C63;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 4px 9px;
+    border-radius: 999px;
+    margin-bottom: 7px;
+  }
+  .date-info h3 {
+    font-size: 16px;
+    font-weight: 800;
+    color: #3B2D28;
+    letter-spacing: -.3px;
+    line-height: 1.35;
+  }
+  .date-info p {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #9B8B84;
+    line-height: 1.55;
+    font-weight: 500;
+  }
+  .date-meta {
+    display: flex;
+    gap: 14px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #F3E8E2;
+  }
+  .date-meta .chip {
+    font-size: 11.5px;
+    color: #9B8B84;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .date-meta .chip b { color: #3B2D28; }
+  .date-cta {
+    margin-top: 14px;
+    width: 100%;
+    text-align: center;
+    background: #FBF3EE;
+    color: #F47C63;
+    border: 1px solid #FFE7DF;
+    border-radius: 14px;
+    padding: 12px 0;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  /* bottom tab */
+  .tabbar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 84px;
+    background: rgba(251,243,238,.92);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid #F0E4DD;
+    display: flex;
+    justify-content: space-around;
+    padding-top: 12px;
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #C6B6AE;
+    width: 64px;
+  }
+  .tab.active { color: #F47C63; }
+  .tab .ic { font-size: 21px; line-height: 1; }
+
+  .svg-ic { display:block; }
+</style>
+</head>
+<body>
+
+  <div class="caption"><span class="num">11</span> <span class="name">· AI 관계 코치</span></div>
+
+  <div class="phone">
+    <div class="screen">
+
+      <!-- status bar -->
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="icons">
+          <span>&#9679;&#9679;&#9679;&#9679;</span>
+          <span>&#128246;</span>
+          <span>&#128267;</span>
+        </span>
+      </div>
+
+      <!-- header -->
+      <div class="header">
+        <div class="logo">love today <span class="heart">&#9829;</span></div>
+        <div class="coach-badge">
+          <svg class="svg-ic" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l1.6 6.4L20 10l-6.4 1.6L12 18l-1.6-6.4L4 10l6.4-1.6L12 2z" fill="#F47C63"/></svg>
+          AI 코치
+        </div>
+      </div>
+
+      <div class="body">
+
+        <!-- greeting -->
+        <div class="greeting">
+          <h1>승환님, 지우님과의<br>이번 주를 살펴봤어요<span class="accent">.</span></h1>
+          <p>일기 12편 · 기분 흐름 · 지도 기록을 바탕으로</p>
+        </div>
+
+        <!-- weekly tip hero -->
+        <div class="tip-card">
+          <div class="bloom"></div>
+          <div class="tip-label">
+            <svg class="dot" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l1.6 6.4L20 10l-6.4 1.6L12 18l-1.6-6.4L4 10l6.4-1.6L12 2z" fill="#fff"/></svg>
+            이번 주 관계 팁
+          </div>
+          <h2>요즘 둘 다 야근이 많았네요. 이번 주말, 저녁 산책 30분만 함께 걸어보는 건 어때요?</h2>
+          <div class="tip-insight">
+            지난 2주간 <b>&lsquo;피곤함&rsquo;</b> 기분이 늘고, 함께한 기록은 줄었어요. 짧아도 나란히 걷는 시간이 회복에 도움이 돼요.
+          </div>
+        </div>
+
+        <!-- today's talk -->
+        <div class="sec-label">오늘의 대화거리</div>
+        <div class="card">
+          <div class="talk-head">
+            <div class="talk-avatar">&#128172;</div>
+            <div class="meta">
+              <div class="t">이 이야기를 나눠보세요</div>
+              <div class="s">지우님의 최근 일기에서 발견했어요</div>
+            </div>
+          </div>
+          <div class="talk-question">
+            <span class="quote">&ldquo;</span>요즘 가장 마음이 편해지는 순간은 언제야? 그때 나도 옆에 있어주면 좋겠어.
+          </div>
+          <div class="talk-sub">지우님이 &lsquo;혼자 있는 시간&rsquo;을 자주 적었어요. 서로의 쉼을 이해하는 대화로 이어보세요.</div>
+          <div class="actions">
+            <button class="btn btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4z" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>
+              일기로 쓰기
+            </button>
+            <button class="btn btn-ghost">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 12l16-8-6 16-3-6-7-2z" stroke="#F47C63" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>
+              보내기
+            </button>
+          </div>
+        </div>
+
+        <!-- custom date idea -->
+        <div class="sec-label">우리에게 딱 맞는 데이트</div>
+        <div class="card date-card">
+          <div class="date-top">
+            <div class="date-thumb">&#127793;</div>
+            <div class="date-info">
+              <span class="tag">힐링 · 실내</span>
+              <h3>비 오는 주말, 동네 소품샵 &amp; 카페 코스</h3>
+              <p>지우님이 좋아한 &lsquo;조용한 골목&rsquo; 기록과 이번 주 날씨를 반영했어요.</p>
+            </div>
+          </div>
+          <div class="date-meta">
+            <span class="chip">&#128205; <b>망원동</b></span>
+            <span class="chip">&#9200; <b>2~3시간</b></span>
+            <span class="chip">&#128176; <b>부담 적음</b></span>
+          </div>
+          <button class="date-cta">이 데이트로 계획 세우기</button>
+        </div>
+
+      </div>
+
+      <!-- tab bar -->
+      <div class="tabbar">
+        <div class="tab">
+          <span class="ic">&#128197;</span>
+          달력
+        </div>
+        <div class="tab">
+          <span class="ic">&#128506;</span>
+          지도
+        </div>
+        <div class="tab active">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.9 5.6L20 10l-6.1 1.4L12 17l-1.9-5.6L4 10l6.1-1.4L12 3z" fill="#F47C63"/></svg>
+          코치
+        </div>
+        <div class="tab">
+          <span class="ic">&#9881;</span>
+          설정
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

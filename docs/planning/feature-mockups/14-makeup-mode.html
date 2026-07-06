@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>14 · 화해 모드</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  body {
+    background: #EFEAE6;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 0;
+  }
+
+  .caption {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 14px;
+    letter-spacing: -0.3px;
+  }
+  .caption .num { color: #F47C63; }
+  .caption .name { color: #3B2D28; }
+
+  /* phone frame */
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #1c1c1e;
+    border-radius: 56px;
+    padding: 14px;
+    box-shadow: 0 30px 70px rgba(120,80,70,.28);
+    position: relative;
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: #FBF3EE;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* status bar */
+  .statusbar {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #3B2D28;
+    flex-shrink: 0;
+  }
+  .statusbar .icons { display: flex; gap: 6px; align-items: center; }
+  .dot { display: inline-block; }
+  .battery {
+    width: 24px; height: 12px; border: 1.6px solid #3B2D28; border-radius: 3px;
+    position: relative; opacity: .85;
+  }
+  .battery::after { content:""; position:absolute; right:-4px; top:3px; width:2px; height:6px; background:#3B2D28; border-radius:0 2px 2px 0; }
+  .battery::before { content:""; position:absolute; left:1.5px; top:1.5px; bottom:1.5px; width:70%; background:#3B2D28; border-radius:1px; }
+
+  /* logo header */
+  .brand {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: #F47C63;
+    letter-spacing: 0.5px;
+    padding: 2px 0 12px;
+    flex-shrink: 0;
+  }
+  .brand .hh { color: #F47C63; }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 22px 24px;
+  }
+  .content::-webkit-scrollbar { display: none; }
+
+  /* calm hero header */
+  .hero {
+    text-align: center;
+    padding: 6px 8px 22px;
+  }
+  .hero .breathe {
+    width: 92px; height: 92px;
+    margin: 4px auto 16px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 45%, #FFE7DF 0%, #FFF1EC 70%);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 10px rgba(255,231,223,.45), 0 0 0 22px rgba(255,231,223,.22);
+    position: relative;
+  }
+  .hero .breathe .core {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(160deg, #F9977F, #F47C63);
+    box-shadow: 0 6px 16px rgba(244,124,99,.4);
+  }
+  .hero h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #3B2D28;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .hero p {
+    font-size: 13.5px;
+    color: #9B8B84;
+    line-height: 1.55;
+  }
+
+  /* cooldown status pill */
+  .cooldown {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #FFF1EC;
+    border: 1px solid #FFE7DF;
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+  }
+  .cooldown .ring {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: conic-gradient(#F47C63 0turn 0.62turn, #FFE7DF 0.62turn 1turn);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .cooldown .ring i {
+    width: 26px; height: 26px; border-radius: 50%; background: #FFF1EC;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 12px; font-weight: 800; color:#F47C63; font-style: normal;
+  }
+  .cooldown .ctxt { flex: 1; }
+  .cooldown .ctxt b { font-size: 13.5px; font-weight: 800; color: #3B2D28; display:block; }
+  .cooldown .ctxt span { font-size: 11.5px; color: #9B8B84; }
+
+  /* section label */
+  .sec-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: #9B8B84;
+    letter-spacing: 0.4px;
+    margin: 4px 4px 12px;
+  }
+
+  /* stance cards */
+  .stance {
+    background: #fff;
+    border-radius: 22px;
+    padding: 16px 16px 14px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+    margin-bottom: 12px;
+  }
+  .stance .row { display:flex; align-items:center; gap:10px; margin-bottom: 10px; }
+  .stance .av {
+    width: 30px; height: 30px; border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 15px; flex-shrink:0;
+  }
+  .stance .av.me { background:#FFE7DF; }
+  .stance .av.you { background:#E9E3F5; }
+  .stance .who { font-size: 12.5px; font-weight: 800; color:#3B2D28; }
+  .stance .who small { color:#9B8B84; font-weight:600; margin-left:4px; }
+  .stance .line {
+    font-size: 14px; color:#3B2D28; line-height:1.5;
+    background:#FBF3EE; border-radius:14px; padding: 11px 13px;
+  }
+  .stance .line.mine { background:#FFF1EC; }
+  .stance .placeholder { color:#B7A79F; font-style: normal; }
+
+  /* template chips */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 4px 2px 4px;
+  }
+  .chip {
+    background: #fff;
+    border: 1px solid #FFE7DF;
+    border-radius: 999px;
+    padding: 9px 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #F47C63;
+    box-shadow: 0 4px 12px rgba(180,120,100,.08);
+  }
+  .chip.soft { color:#3B2D28; border-color:#EEE3DC; }
+
+  /* weekly check-in mini */
+  .checkin {
+    background: linear-gradient(135deg, #FFF6F2, #FFF1EC);
+    border: 1px solid #FFE7DF;
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-top: 18px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .checkin .em { font-size: 22px; }
+  .checkin .txt b { font-size: 13px; font-weight:800; color:#3B2D28; display:block; margin-bottom:2px; }
+  .checkin .txt span { font-size: 11.5px; color:#9B8B84; line-height:1.4; }
+  .checkin .go { margin-left:auto; color:#F47C63; font-weight:800; font-size:18px; }
+
+  /* bottom CTA */
+  .footer {
+    padding: 14px 22px 30px;
+    background: linear-gradient(to top, #FBF3EE 72%, rgba(251,243,238,0));
+    flex-shrink: 0;
+  }
+  .cta {
+    width: 100%;
+    background: linear-gradient(135deg, #F9977F, #F47C63);
+    border: none;
+    border-radius: 20px;
+    padding: 17px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.2px;
+    box-shadow: 0 12px 26px rgba(244,124,99,.4);
+    display:flex; align-items:center; justify-content:center; gap:9px;
+  }
+  .cta .hearts { position:relative; display:inline-flex; }
+  .cta .hearts span:nth-child(2){ margin-left:-5px; }
+  .subtle {
+    text-align:center; font-size:11.5px; color:#9B8B84; margin-top:11px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="caption"><span class="num">14</span> <span class="name">· 화해 모드</span></div>
+
+  <div class="phone">
+    <div class="screen">
+
+      <!-- status bar -->
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="icons">
+          <span class="dot">●●●</span>
+          <span style="letter-spacing:-2px;">📶</span>
+          <span class="battery"></span>
+        </span>
+      </div>
+
+      <div class="brand">love today <span class="hh">♥</span></div>
+
+      <div class="content">
+
+        <!-- calm hero -->
+        <div class="hero">
+          <div class="breathe"><div class="core"></div></div>
+          <h1>잠깐, 마음을 가라앉혀요</h1>
+          <p>지금은 옳고 그름을 가릴 때가 아니에요.<br>천천히 숨을 고르고, 서로의 마음부터 들여다봐요.</p>
+        </div>
+
+        <!-- cooldown status -->
+        <div class="cooldown">
+          <div class="ring"><i>15</i></div>
+          <div class="ctxt">
+            <b>쿨다운 진행 중 · 15분 남음</b>
+            <span>이 시간 동안은 대화 대신 잠깐 쉬어가요</span>
+          </div>
+        </div>
+
+        <!-- stances -->
+        <div class="sec-label">서로의 마음, 한 줄로</div>
+
+        <div class="stance">
+          <div class="row">
+            <div class="av me">🙂</div>
+            <div class="who">나<small>승화</small></div>
+          </div>
+          <div class="line mine">약속 시간에 연락이 없어서 걱정되고 서운했어.</div>
+        </div>
+
+        <div class="stance">
+          <div class="row">
+            <div class="av you">😌</div>
+            <div class="who">상대<small>지은</small></div>
+          </div>
+          <div class="line"><span class="placeholder">아직 마음을 정리하고 있어요…</span></div>
+        </div>
+
+        <!-- templates -->
+        <div class="sec-label">이렇게 말해볼까요</div>
+        <div class="chips">
+          <div class="chip">먼저 미안해</div>
+          <div class="chip">네 마음 이제 알겠어</div>
+          <div class="chip soft">우리 얘기 다시 해볼래?</div>
+          <div class="chip soft">안아주고 싶어</div>
+          <div class="chip">고마워, 사랑해</div>
+        </div>
+
+        <!-- weekly check-in -->
+        <div class="checkin">
+          <div class="em">🌱</div>
+          <div class="txt">
+            <b>이번 주 관계 체크인</b>
+            <span>서운했던 것 · 고마웠던 것 한 줄씩 나눠요</span>
+          </div>
+          <div class="go">›</div>
+        </div>
+
+      </div>
+
+      <!-- CTA -->
+      <div class="footer">
+        <button class="cta">
+          <span class="hearts"><span>💛</span><span>💛</span></span>
+          우리 화해했어요
+        </button>
+        <div class="subtle">두 사람이 함께 눌러야 하트가 맞잡아져요</div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

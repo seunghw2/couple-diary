@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>15 · 다이어리 꾸미기</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    background:#EFEAE6;
+    font-family:system-ui,-apple-system,sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding:40px 0 60px;
+  }
+  .caption { font-size:18px; margin-bottom:14px; letter-spacing:-.3px; }
+  .caption .num { color:#F47C63; font-weight:800; }
+  .caption .name { color:#3B2D28; font-weight:800; }
+
+  /* phone frame */
+  .phone {
+    width:390px; height:844px; background:#1c1c1e;
+    border-radius:56px; padding:14px;
+    box-shadow:0 30px 60px rgba(120,80,70,.28);
+    position:relative;
+  }
+  .screen {
+    width:100%; height:100%; background:#FBF3EE;
+    border-radius:44px; overflow:hidden; position:relative;
+    display:flex; flex-direction:column;
+  }
+  /* status bar */
+  .statusbar {
+    height:52px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 30px; font-size:15px; font-weight:700; color:#3B2D28; flex-shrink:0;
+  }
+  .statusbar .right { display:flex; gap:6px; align-items:center; font-size:13px; }
+
+  /* header */
+  .header {
+    padding:4px 22px 12px; display:flex; align-items:center; justify-content:space-between;
+    flex-shrink:0;
+  }
+  .header .logo { font-size:19px; font-weight:800; color:#F47C63; letter-spacing:-.4px; }
+  .header .done {
+    background:#F47C63; color:#fff; font-weight:700; font-size:14px;
+    padding:8px 18px; border-radius:20px; box-shadow:0 6px 16px rgba(244,124,99,.35);
+  }
+
+  /* scroll body */
+  .body { flex:1; overflow:hidden; padding:0 22px; display:flex; flex-direction:column; }
+
+  .section-title { font-size:14px; font-weight:800; color:#3B2D28; margin:16px 2px 10px; letter-spacing:-.3px; }
+  .section-title .sub { font-weight:600; color:#9B8B84; font-size:12px; margin-left:6px; }
+
+  /* diary preview card */
+  .preview {
+    background:#fff; border-radius:22px; padding:18px 18px 16px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+    position:relative; overflow:hidden;
+  }
+  .preview .theme-bg {
+    position:absolute; inset:0;
+    background:linear-gradient(160deg,#FFF1EC 0%,#FFE7DF 100%);
+    opacity:.9;
+  }
+  .preview .cover-strip {
+    position:absolute; top:0; left:0; right:0; height:52px;
+    background:linear-gradient(90deg,#F9A88E,#F47C63);
+  }
+  .preview .inner { position:relative; z-index:2; }
+  .preview .cover-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .preview .cover-emoji { font-size:22px; filter:drop-shadow(0 2px 3px rgba(0,0,0,.15)); }
+  .preview .cover-title { color:#fff; font-weight:800; font-size:15px; }
+  .preview .cover-date { color:#fff; opacity:.85; font-size:11px; margin-left:auto; }
+
+  .preview .authors { display:flex; gap:8px; margin:6px 0 10px; }
+  .avatar {
+    width:30px; height:30px; border-radius:50%; display:flex; align-items:center;
+    justify-content:center; font-size:15px; border:2px solid #fff;
+    box-shadow:0 3px 8px rgba(180,120,100,.18);
+  }
+  .avatar.a { background:#FFD9CC; }
+  .avatar.b { background:#FFEBBF; }
+
+  .preview .diary-text {
+    font-size:13px; line-height:1.7; color:#3B2D28;
+    font-family:'Georgia',serif;
+  }
+  .preview .diary-text .hl { background:#FFE7DF; padding:0 3px; border-radius:4px; }
+
+  /* stuck stickers */
+  .stk { position:absolute; z-index:3; font-size:26px; filter:drop-shadow(0 3px 4px rgba(0,0,0,.12)); }
+  .stk.s1 { top:64px; right:22px; transform:rotate(12deg); }
+  .stk.s2 { top:118px; right:56px; font-size:20px; transform:rotate(-10deg); }
+  .stk.s3 { bottom:20px; right:26px; font-size:23px; transform:rotate(-6deg); }
+
+  /* theme scroller */
+  .theme-scroll { display:flex; gap:12px; overflow-x:auto; padding:2px 2px 8px; }
+  .theme-scroll::-webkit-scrollbar { display:none; }
+  .theme-chip { flex-shrink:0; text-align:center; }
+  .theme-thumb {
+    width:62px; height:82px; border-radius:16px; margin-bottom:6px;
+    box-shadow:0 6px 14px rgba(180,120,100,.14); position:relative; overflow:hidden;
+    border:3px solid transparent;
+  }
+  .theme-chip.active .theme-thumb { border-color:#F47C63; }
+  .theme-chip.active .theme-label { color:#F47C63; font-weight:800; }
+  .theme-label { font-size:11px; color:#9B8B84; font-weight:600; }
+  .t-basic { background:linear-gradient(160deg,#FFF1EC,#FFE7DF); }
+  .t-sunset { background:linear-gradient(160deg,#FBC2A0,#F47C63 60%,#B85C7A); }
+  .t-dot { background:#FFF1EC; }
+  .t-dot::after {
+    content:""; position:absolute; inset:0;
+    background-image:radial-gradient(#F9A88E 2.2px,transparent 2.3px);
+    background-size:12px 12px; opacity:.7;
+  }
+  .t-anniv { background:linear-gradient(160deg,#FFE7DF,#FFD9CC); }
+  .t-anniv::after { content:"♥"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:26px; color:#F47C63; }
+  .t-night { background:linear-gradient(160deg,#4A3A5C,#7A5C8A); }
+  .t-night::after { content:"✦"; position:absolute; top:10px; left:12px; color:#FFEBBF; font-size:12px; }
+  .lock-badge { position:absolute; top:4px; right:4px; font-size:10px; background:rgba(59,45,40,.55); color:#fff; padding:1px 5px; border-radius:8px; }
+
+  /* sticker palette grid */
+  .sticker-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; }
+  .sticker-cell {
+    aspect-ratio:1; background:#fff; border-radius:14px;
+    display:flex; align-items:center; justify-content:center; font-size:22px;
+    box-shadow:0 4px 12px rgba(180,120,100,.10);
+  }
+  .sticker-cell.sel { background:#FFE7DF; box-shadow:0 0 0 2px #F47C63 inset; }
+
+  /* font & color bar */
+  .opt-bar {
+    display:flex; align-items:center; gap:10px; margin-top:12px;
+    background:#fff; border-radius:18px; padding:12px 14px;
+    box-shadow:0 6px 18px rgba(180,120,100,.10);
+  }
+  .font-pills { display:flex; gap:7px; }
+  .font-pill {
+    padding:6px 12px; border-radius:12px; font-size:12px; font-weight:700;
+    background:#FFF1EC; color:#9B8B84;
+  }
+  .font-pill.on { background:#F47C63; color:#fff; }
+  .font-pill.serif { font-family:'Georgia',serif; }
+  .divider { width:1px; height:24px; background:#F0E4DE; }
+  .color-dots { display:flex; gap:8px; margin-left:auto; }
+  .cdot { width:22px; height:22px; border-radius:50%; box-shadow:0 2px 6px rgba(0,0,0,.10); }
+  .cdot.on { box-shadow:0 0 0 2px #fff, 0 0 0 4px #F47C63; }
+
+  /* bottom tab */
+  .tabbar {
+    height:78px; flex-shrink:0; background:#fff;
+    border-top:1px solid #F3E9E3;
+    display:flex; align-items:flex-start; justify-content:space-around;
+    padding-top:12px;
+    box-shadow:0 -4px 20px rgba(180,120,100,.06);
+  }
+  .tab { text-align:center; font-size:10px; color:#9B8B84; font-weight:600; }
+  .tab .ic { font-size:21px; display:block; margin-bottom:3px; }
+  .tab.on { color:#F47C63; }
+
+  .home-indicator {
+    position:absolute; bottom:9px; left:50%; transform:translateX(-50%);
+    width:130px; height:5px; background:#3B2D28; opacity:.25; border-radius:3px; z-index:5;
+  }
+</style>
+</head>
+<body>
+  <div class="caption"><span class="num">15</span> <span class="name">· 다이어리 꾸미기</span></div>
+
+  <div class="phone">
+    <div class="screen">
+      <!-- status bar -->
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="right">●●● ᯤ ▮</span>
+      </div>
+
+      <!-- header -->
+      <div class="header">
+        <div class="logo">love today ♥</div>
+        <div class="done">완료</div>
+      </div>
+
+      <div class="body">
+        <!-- preview card -->
+        <div class="preview">
+          <div class="theme-bg"></div>
+          <div class="cover-strip"></div>
+          <span class="stk s1">🌸</span>
+          <span class="stk s2">⭐</span>
+          <span class="stk s3">♥</span>
+          <div class="inner">
+            <div class="cover-row">
+              <span class="cover-emoji">🌅</span>
+              <span class="cover-title">우리의 여름밤</span>
+              <span class="cover-date">7월 2일</span>
+            </div>
+            <div class="authors">
+              <div class="avatar a">🐰</div>
+              <div class="avatar b">🐻</div>
+            </div>
+            <div class="diary-text">
+              오늘은 한강에서 <span class="hl">돗자리 데이트</span> 했다.
+              노을이 예뻐서 둘 다 한참을 바라봤어. 다음엔 야식도 챙겨오자 🍜
+            </div>
+          </div>
+        </div>
+
+        <!-- theme scroller -->
+        <div class="section-title">테마 <span class="sub">함께 꾸민 페이지가 서로에게 공유돼요</span></div>
+        <div class="theme-scroll">
+          <div class="theme-chip"><div class="theme-thumb t-basic"></div><div class="theme-label">기본</div></div>
+          <div class="theme-chip active"><div class="theme-thumb t-sunset"></div><div class="theme-label">노을</div></div>
+          <div class="theme-chip"><div class="theme-thumb t-dot"></div><div class="theme-label">도트</div></div>
+          <div class="theme-chip"><div class="theme-thumb t-anniv"></div><div class="theme-label">기념일</div></div>
+          <div class="theme-chip"><div class="theme-thumb t-night"><span class="lock-badge">시즌</span></div><div class="theme-label">별밤</div></div>
+        </div>
+
+        <!-- sticker palette -->
+        <div class="section-title">스티커</div>
+        <div class="sticker-grid">
+          <div class="sticker-cell sel">♥</div>
+          <div class="sticker-cell">🌸</div>
+          <div class="sticker-cell">⭐</div>
+          <div class="sticker-cell">🌈</div>
+          <div class="sticker-cell">☕</div>
+          <div class="sticker-cell">🍒</div>
+          <div class="sticker-cell">✿</div>
+          <div class="sticker-cell">🎀</div>
+          <div class="sticker-cell">☁️</div>
+          <div class="sticker-cell">🌙</div>
+          <div class="sticker-cell">🐾</div>
+          <div class="sticker-cell">✨</div>
+        </div>
+
+        <!-- font & color bar -->
+        <div class="opt-bar">
+          <div class="font-pills">
+            <div class="font-pill on">기본</div>
+            <div class="font-pill serif">손글씨</div>
+          </div>
+          <div class="divider"></div>
+          <div class="color-dots">
+            <div class="cdot on" style="background:#F47C63"></div>
+            <div class="cdot" style="background:#3B2D28"></div>
+            <div class="cdot" style="background:#7A5C8A"></div>
+            <div class="cdot" style="background:#4E8C7A"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- tab bar -->
+      <div class="tabbar">
+        <div class="tab"><span class="ic">📅</span>달력</div>
+        <div class="tab"><span class="ic">🗺️</span>지도</div>
+        <div class="tab on"><span class="ic">⚙️</span>설정</div>
+      </div>
+
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+</body>
+</html>
