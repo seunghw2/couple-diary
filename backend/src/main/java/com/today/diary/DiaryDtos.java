@@ -40,7 +40,7 @@ public class DiaryDtos {
             @Size(max = 100) String locationName,
             List<@Size(max = 100) String> locations,
             List<@Valid LocationPointInput> locationPoints,
-            @NotNull @Min(1) @Max(5) Integer rating,
+            @Min(1) @Max(5) Integer rating, // 별점 기능 제거 → 선택(있으면 1~5 검증)
             @NotBlank @Size(max = 100) String mood
     ) {}
 

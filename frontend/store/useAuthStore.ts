@@ -1,7 +1,13 @@
 import { create } from 'zustand';
-import { authApi, PartnerSummary, UserSummary } from '../lib/api';
+import { ApiException, authApi, PartnerSummary, UserSummary } from '../lib/api';
 import { loginWithKakao } from '../lib/kakaoAuth';
 import { tokenStore } from '../lib/tokenStore';
+// 순환참조지만 두 스토어 모두 useAuthStore를 런타임(함수 내부)에서만 쓰므로 안전.
+import { useCoupleStore } from './useCoupleStore';
+import { useNotifStore } from './useNotifStore';
+
+// 동시 bootstrap 중복 방지(커플연결 폴링·pull-to-refresh·resume가 겹쳐도 me() 한 번만).
+let bootstrapInflight: Promise<void> | null = null;
 
 type AuthState = {
   status: 'unknown' | 'authenticated' | 'guest';
@@ -23,22 +29,34 @@ export const useAuthStore = create<AuthState>((set) => ({
   partner: null,
 
   bootstrap: async () => {
-    const token = await tokenStore.getToken();
-    if (!token) {
-      set({ status: 'guest', user: null, coupled: false, partner: null });
-      return;
-    }
+    if (bootstrapInflight) return bootstrapInflight;
+    bootstrapInflight = (async () => {
+      const token = await tokenStore.getToken();
+      if (!token) {
+        set({ status: 'guest', user: null, coupled: false, partner: null });
+        return;
+      }
+      try {
+        const me = await authApi.me();
+        set({
+          status: 'authenticated',
+          user: me.user,
+          coupled: me.coupled,
+          partner: me.partner ?? null,
+        });
+      } catch (e) {
+        // 진짜 401(토큰 만료/무효)일 때만 토큰 삭제. 네트워크/5xx 같은 일시 오류엔
+        // 유효한 토큰을 지우지 않아, 연결 불안정으로 로그아웃되는 것을 막는다.
+        if (e instanceof ApiException && e.status === 401) {
+          await tokenStore.clear();
+        }
+        set({ status: 'guest', user: null, coupled: false, partner: null });
+      }
+    })();
     try {
-      const me = await authApi.me();
-      set({
-        status: 'authenticated',
-        user: me.user,
-        coupled: me.coupled,
-        partner: me.partner ?? null,
-      });
-    } catch {
-      await tokenStore.clear();
-      set({ status: 'guest', user: null, coupled: false, partner: null });
+      await bootstrapInflight;
+    } finally {
+      bootstrapInflight = null;
     }
   },
 
@@ -73,6 +91,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     await tokenStore.clear();
     set({ status: 'guest', user: null, coupled: false, partner: null });
+    // 커플·알림 스토어도 즉시 초기화(가드 이펙트 타이밍에 의존하지 않게).
+    useCoupleStore.getState().reset();
+    useNotifStore.getState().reset();
   },
 
   setUser: (user) => set({ user }),
