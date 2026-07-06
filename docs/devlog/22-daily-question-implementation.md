@@ -27,13 +27,30 @@
 - **상대 답장 라벨/문구가 `chosenBy`(질문 고른 사람) 기준**이라, 내가 질문을 고른 날엔 상대 답장이 내 닉네임("qaA")으로 잘못 표시됨 → 실제 상대 닉네임(`authStore.partner`)으로 정정(열림·대기 화면 3곳). 재검증 완료(아래 열림 캡처: "qaA의 답장" / "qaB의 답장").
 
 ## 화면
-| 봉투 선택(+탭 뱃지) | 답장 필요 | 답장 쓰기 |
-|---|---|---|
-| ![choice](captures/22-dq-choice.png) | ![need](captures/22-dq-needanswer.png) | ![write](captures/22-dq-write.png) |
 
-| 상대 대기 | 편지 열림(닉네임 수정) | 설정 |
-|---|---|---|
-| ![wait](captures/22-dq-waiting.png) | ![opened](captures/22-dq-opened.png) | ![settings](captures/22-dq-settings.png) |
+**봉투 선택 (+ 탭 뱃지)**
+
+![choice](captures/22-dq-choice.png)
+
+**답장 필요**
+
+![need](captures/22-dq-needanswer.png)
+
+**답장 쓰기**
+
+![write](captures/22-dq-write.png)
+
+**상대 대기**
+
+![wait](captures/22-dq-waiting.png)
+
+**편지 열림 (닉네임 수정 확인)**
+
+![opened](captures/22-dq-opened.png)
+
+**설정**
+
+![settings](captures/22-dq-settings.png)
 
 ## 남은 것(후속)
 - **AI 질문 생성 파이프라인**으로 `question_pool` 확장(현재 시드 30문항). 화면·스키마는 확정돼 내용 공급만 교체하면 됨.
