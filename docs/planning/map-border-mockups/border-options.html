@@ -1,0 +1,90 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, -apple-system, sans-serif; }
+  body { background:#E9E4DF; padding:36px; display:flex; gap:34px; align-items:flex-start; }
+  .col { display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .cap { font-size:17px; font-weight:800; color:#3B2D28; }
+  .cap b { color:#F47C63; }
+  .cap .d { display:block; font-size:13px; font-weight:600; color:#9B8B84; text-align:center; margin-top:2px; }
+  .phone { width:390px; height:760px; background:#FBF3EE; border-radius:44px; border:12px solid #1c1c1e; overflow:hidden; position:relative; }
+  .status { height:44px; display:flex; align-items:center; justify-content:space-between; padding:0 26px; font-size:14px; font-weight:700; color:#3B2D28; }
+  .content { padding:0 22px; }
+  .title { display:flex; align-items:center; gap:7px; }
+  .title h1 { font-size:26px; font-weight:800; color:#F47C63; }
+  .title .mi { width:20px; height:16px; }
+  .sub { font-size:15px; color:#9B8B84; margin-top:2px; }
+  .sub b { color:#F47C63; font-weight:800; }
+  .search { margin-top:14px; height:44px; background:#fff; border-radius:22px; display:flex; align-items:center; gap:10px; padding:0 18px; color:#B9AAA2; font-size:15px; box-shadow:0 4px 14px rgba(180,120,100,.08); }
+  /* 지도 영역 */
+  .map { margin-top:14px; height:452px; border-radius:18px; overflow:hidden; position:relative;
+         background:#ECEAE4; }
+  /* faux map texture */
+  .map .hw { position:absolute; height:12px; background:#F3D9A6; left:-20px; right:-40px; top:78px; transform:rotate(-9deg); }
+  .map .rd { position:absolute; background:#fff; }
+  .r1 { width:8px; top:0; bottom:0; left:130px; transform:rotate(6deg); }
+  .r2 { height:8px; left:0; right:0; top:250px; transform:rotate(-3deg); }
+  .r3 { width:6px; top:120px; bottom:-20px; left:270px; transform:rotate(-12deg); }
+  .blk { position:absolute; background:#E2DFD6; border-radius:5px; }
+  .b1{width:70px;height:52px;top:150px;left:40px}.b2{width:60px;height:46px;top:120px;left:180px}
+  .b3{width:80px;height:60px;top:300px;left:70px}.b4{width:66px;height:50px;top:330px;left:240px}
+  .grn{position:absolute;background:#DCE6D4;border-radius:8px}
+  .g1{width:90px;height:70px;top:30px;left:250px}.g2{width:70px;height:60px;top:360px;left:10px}
+  .pin { position:absolute; top:200px; left:172px; width:34px; height:34px; }
+  .pin .h { width:34px; height:34px; background:#F47C63; border-radius:50% 50% 50% 0; transform:rotate(-45deg); box-shadow:0 3px 8px rgba(0,0,0,.18); display:flex; align-items:center; justify-content:center; }
+  .pin .h span{ transform:rotate(45deg); color:#fff; font-size:15px; }
+  .plabel { position:absolute; top:238px; left:120px; background:#fff; border-radius:9px; padding:4px 10px; font-size:12px; font-weight:700; color:#3B2D28; box-shadow:0 2px 8px rgba(0,0,0,.12); white-space:nowrap; }
+  .toggle { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); background:#fff; border-radius:22px; display:flex; padding:4px; box-shadow:0 6px 18px rgba(180,120,100,.18); }
+  .toggle .seg{ padding:7px 18px; font-size:14px; font-weight:800; border-radius:18px; color:#9B8B84; display:flex; align-items:center; gap:5px; }
+  .toggle .on{ background:#F47C63; color:#fff; }
+  /* 하단 카드 (흐름 배치) */
+  .card { margin:12px 22px 0; background:#fff; border-radius:18px; padding:16px; box-shadow:0 8px 24px rgba(180,120,100,.12); display:flex; flex-direction:column; }
+  .card .row{ display:flex; align-items:center; gap:12px; }
+  .card .ic{ width:32px;height:32px;border-radius:16px;background:#FFE7DF;display:flex;align-items:center;justify-content:center;color:#F47C63;font-size:15px;}
+  .card .nm{ font-size:19px;font-weight:800;color:#3B2D28;flex:1; }
+  .card .ch{ color:#F47C63;font-size:20px;font-weight:800; }
+  .card .s{ font-size:14px;color:#9B8B84;margin-top:8px; }
+
+  /* ===== 테두리 3안 ===== */
+  .A .map { border:1px solid #E4D9D0; }
+  .B .map { border:1.5px solid #F3CDBF; }
+  .C .map { border:1px solid #E7DDD5; box-shadow:0 6px 18px rgba(180,120,100,.12); }
+</style></head>
+<body>
+  <!-- 공통 폰 템플릿을 3번, class로 테두리만 다르게 -->
+  <div class="col A">
+    <div class="cap"><b>A</b> · 얇은 뉴트럴 실선<span class="d">가장 미니멀 · 크림톤 hairline</span></div>
+    <div class="phone">__BODY__</div>
+  </div>
+  <div class="col B">
+    <div class="cap"><b>B</b> · 연코럴 실선<span class="d">브랜드 톤이 은은히 · 살짝 도드라짐</span></div>
+    <div class="phone">__BODY__</div>
+  </div>
+  <div class="col C">
+    <div class="cap"><b>C</b> · 실선 + 부드러운 그림자<span class="d">지도가 카드처럼 살짝 떠 보임</span></div>
+    <div class="phone">__BODY__</div>
+  </div>
+  <script>
+    const body = `
+      <div class="status"><span>9:41</span><span>5G ▮</span></div>
+      <div class="content">
+        <div class="title"><h1>우리의 지도</h1>
+          <svg class="mi" viewBox="0 0 24 20" fill="none" stroke="#F47C63" stroke-width="2" stroke-linejoin="round"><path d="M1 4l7-3 8 3 7-3v15l-7 3-8-3-7 3z"/><path d="M8 1v15M16 4v15"/></svg>
+        </div>
+        <div class="sub">우리가 함께 간 곳 <b>1</b>곳</div>
+        <div class="search"><span>🔍</span><span>장소·동네로 찾기</span></div>
+        <div class="map">
+          <div class="grn g1"></div><div class="grn g2"></div>
+          <div class="hw"></div>
+          <div class="rd r1"></div><div class="rd r2"></div><div class="rd r3"></div>
+          <div class="blk b1"></div><div class="blk b2"></div><div class="blk b3"></div><div class="blk b4"></div>
+          <div class="plabel">파크에비뉴B타워오피스텔</div>
+          <div class="pin"><div class="h"><span>♥</span></div></div>
+          <div class="toggle"><div class="seg on">🗺 지도</div><div class="seg">☰ 리스트</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="row"><div class="ic">♥</div><div class="nm">승환집</div><div class="ch">›</div></div>
+        <div class="s">1개의 추억이 있는 곳이에요.</div>
+      </div>`;
+    document.querySelectorAll('.phone').forEach(p => p.innerHTML = body);
+  </script>
+</body></html>

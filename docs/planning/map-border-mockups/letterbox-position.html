@@ -1,0 +1,55 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif;}
+  body{background:#E9E4DF;padding:36px;display:flex;gap:34px;align-items:flex-start;}
+  .col{display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .cap{font-size:17px;font-weight:800;color:#3B2D28;text-align:center;}
+  .cap b{color:#F47C63;} .cap .d{display:block;font-size:13px;font-weight:600;color:#9B8B84;margin-top:2px;}
+  .phone{width:390px;height:860px;background:#FBF3EE;border-radius:44px;border:12px solid #1c1c1e;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+  .status{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:14px;font-weight:700;color:#3B2D28;flex:none;}
+  .hdr{display:flex;align-items:center;justify-content:space-between;padding:6px 22px 8px;flex:none;}
+  .hdr .l{display:flex;align-items:center;gap:7px;} .hdr h1{font-size:24px;font-weight:800;color:#F47C63;}
+  .hdr .r{display:flex;align-items:center;gap:10px;}
+  .streak{background:#fff;border-radius:20px;padding:6px 12px;font-size:13px;font-weight:800;color:#F47C63;box-shadow:0 3px 10px rgba(180,120,100,.1);}
+  .boxbtn{display:flex;align-items:center;gap:4px;color:#F47C63;font-size:13px;font-weight:800;background:#FFE7DF;border-radius:16px;padding:6px 11px;}
+  .scroll{flex:1;overflow:hidden;padding:0 22px;}
+  .letter{background:#FFFBF4;border:1px solid #EEE3D8;border-radius:18px;padding:18px;position:relative;margin-top:4px;}
+  .letter .seal{position:absolute;top:-12px;left:18px;width:30px;height:30px;border-radius:15px;background:#F47C63;display:flex;align-items:center;justify-content:center;color:#fff;}
+  .letter .lb{font-size:11px;letter-spacing:1px;color:#D9A79A;margin-top:6px;} .letter .q{font-size:18px;font-weight:800;color:#3B2D28;margin-top:6px;}
+  .letter .by{font-size:12px;color:#9B8B84;font-style:italic;margin-top:8px;}
+  .ans{background:#fff;border-radius:16px;padding:14px;margin-top:12px;box-shadow:0 6px 18px rgba(180,120,100,.08);}
+  .ans .al{font-size:14px;font-weight:800;} .ans.mine .al{color:#F47C63;} .ans.p .al{color:#8B7BC4;}
+  .ans .at{font-size:15px;color:#3B2D28;margin-top:6px;}
+  .lbLink{display:flex;align-items:center;justify-content:center;gap:6px;color:#F47C63;font-weight:800;font-size:14px;padding:12px;}
+  .lbCard{display:flex;align-items:center;gap:8px;justify-content:center;background:#FFF3EC;border:1px solid #F6D9CD;border-radius:14px;color:#F47C63;font-weight:800;font-size:14px;padding:11px;margin-top:12px;}
+  .cmts{margin-top:14px;}
+  .clabel{display:flex;align-items:center;gap:6px;color:#F47C63;font-weight:800;font-size:15px;margin-bottom:8px;}
+  .bub{max-width:78%;border-radius:14px;padding:8px 12px;margin-top:8px;font-size:14px;}
+  .bub .who{font-size:11px;color:#9B8B84;margin-bottom:2px;}
+  .me{background:#FFDcCF;margin-left:auto;color:#3B2D28;}
+  .ot{background:#F1E7E0;margin-right:auto;color:#3B2D28;}
+  .inbar{flex:none;display:flex;align-items:center;gap:10px;padding:10px 18px 16px;border-top:1px solid #EFE4DC;background:#FBF3EE;}
+  .input{flex:1;background:#fff;border-radius:20px;padding:11px 16px;color:#B9AAA2;font-size:14px;}
+  .send{background:#FBD9CC;color:#F47C63;font-weight:800;border-radius:20px;padding:11px 18px;font-size:14px;}
+  .stickyLb{flex:none;display:flex;align-items:center;justify-content:center;gap:6px;color:#F47C63;font-weight:800;font-size:13px;padding:8px;background:#FFF3EC;border-top:1px solid #F6D9CD;}
+</style></head><body>
+<div class="col"><div class="cap"><b>A</b> · 상단 편지함 아이콘<span class="d">헤더 우측 고정 · 댓글 수와 무관하게 항상 접근</span></div><div class="phone" id="A"></div></div>
+<div class="col"><div class="cap"><b>B</b> · 답장 바로 아래<span class="d">두 답장 다음, 댓글 위 · 항상 같은 위치</span></div><div class="phone" id="B"></div></div>
+<div class="col"><div class="cap"><b>C</b> · 하단 고정 바<span class="d">댓글 입력 위 얇은 고정 바 · 스크롤 무관</span></div><div class="phone" id="C"></div></div>
+<script>
+  const status=`<div class="status"><span>9:41</span><span>5G ▮</span></div>`;
+  const letter=`<div class="letter"><div class="seal">♥</div><div class="lb">오늘의 질문</div><div class="q">우리 첫 편지야. 요즘 네 하루는 어때?</div><div class="by">지훈이 골랐어요</div></div>`;
+  const answers=`<div class="ans mine"><div class="al">지현의 답장</div><div class="at">요즘 좀 정신없었는데 네 생각하면 힘나더라.</div></div>
+    <div class="ans p"><div class="al">지훈의 답장</div><div class="at">나도! 오늘도 네 덕분에 하루가 괜찮았어.</div></div>`;
+  const cmts=(n)=>`<div class="cmts"><div class="clabel">💬 댓글</div>`+
+    Array.from({length:n}).map((_,i)=> i%2? `<div class="bub ot"><div class="who">지훈</div>맞아 그날 진짜 좋았지ㅋㅋ</div>`:`<div class="bub me">완전 공감! 또 가자</div>`).join('')+`</div>`;
+  const inbar=`<div class="inbar"><div class="input">댓글 달기…</div><div class="send">보내기</div></div>`;
+  const hdr=(box)=>`<div class="hdr"><div class="l"><h1>오늘의 질문</h1>✉</div><div class="r">${box?'<div class="boxbtn">🗂 편지함</div>':''}<div class="streak">♥ 24일째</div></div></div>`;
+  const lbLink=`<div class="lbLink">🗂 지난 편지함 ›</div>`;
+  // A: 헤더 편지함 아이콘, 하단 없음
+  document.getElementById('A').innerHTML=status+hdr(true)+`<div class="scroll">${letter}${answers}${cmts(6)}</div>`+inbar;
+  // B: 답장 아래 편지함 카드
+  document.getElementById('B').innerHTML=status+hdr(false)+`<div class="scroll">${letter}${answers}<div class="lbCard">🗂 지난 편지함 보기 ›</div>${cmts(6)}</div>`+inbar;
+  // C: 하단 고정 바
+  document.getElementById('C').innerHTML=status+hdr(false)+`<div class="scroll">${letter}${answers}${cmts(6)}</div><div class="stickyLb">🗂 지난 편지함 ›</div>`+inbar;
+</script>
+</body></html>
