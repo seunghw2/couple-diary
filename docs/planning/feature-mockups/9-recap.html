@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 — 월말·연말 결산</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  body {
+    background: #e9e9ec;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 0;
+  }
+
+  /* ── phone frame ── */
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #1c1c1e;
+    border-radius: 60px;
+    padding: 14px;
+    box-shadow: 0 30px 70px rgba(70,40,30,.35), inset 0 0 3px rgba(255,255,255,.15);
+    position: relative;
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 46px;
+    overflow: hidden;
+    position: relative;
+    background: #FBF3EE;
+  }
+
+  /* dynamic island */
+  .island {
+    position: absolute;
+    top: 12px; left: 50%; transform: translateX(-50%);
+    width: 118px; height: 34px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 60;
+  }
+
+  /* status bar */
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 54px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 30px;
+    padding-top: 14px;
+    font-size: 15px; font-weight: 700;
+    color: #fff;
+    z-index: 50;
+  }
+  .statusbar .right { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+  .sig { display: inline-flex; align-items: flex-end; gap: 2px; height: 11px; }
+  .sig i { width: 3px; background: #fff; border-radius: 1px; display: block; }
+  .sig i:nth-child(1){height:4px} .sig i:nth-child(2){height:6px}
+  .sig i:nth-child(3){height:8px} .sig i:nth-child(4){height:11px}
+  .batt { width: 24px; height: 12px; border: 1.5px solid rgba(255,255,255,.7); border-radius: 3px; position: relative; padding: 1.5px; }
+  .batt::after { content:""; position:absolute; right:-3px; top:3px; width:2px; height:5px; background:rgba(255,255,255,.7); border-radius:0 1px 1px 0; }
+  .batt i { display:block; height:100%; width:78%; background:#fff; border-radius:1px; }
+
+  /* ── wrapped slide (full screen coral) ── */
+  .slide {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(120% 80% at 20% 8%, #FF9E86 0%, rgba(255,158,134,0) 55%),
+      radial-gradient(130% 90% at 90% 100%, #E85C42 0%, rgba(232,92,66,0) 55%),
+      linear-gradient(160deg, #F98267 0%, #F0664B 48%, #E1553B 100%);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 66px 30px 30px;
+    overflow: hidden;
+  }
+  /* soft floating hearts / glow blobs */
+  .blob { position: absolute; border-radius: 50%; filter: blur(2px); pointer-events:none; }
+  .b1 { width: 180px; height: 180px; top: -40px; right: -50px; background: radial-gradient(circle, rgba(255,231,223,.45), rgba(255,231,223,0) 70%); }
+  .b2 { width: 220px; height: 220px; bottom: 120px; left: -80px; background: radial-gradient(circle, rgba(255,255,255,.22), rgba(255,255,255,0) 70%); }
+  .heart { position:absolute; color: rgba(255,255,255,.16); pointer-events:none; }
+  .h1 { top: 150px; right: 34px; font-size: 20px; transform: rotate(12deg); }
+  .h2 { top: 250px; left: 28px; font-size: 13px; transform: rotate(-14deg); color: rgba(255,255,255,.13);}
+  .h3 { bottom: 210px; right: 44px; font-size: 26px; transform: rotate(-8deg); color: rgba(255,255,255,.10);}
+
+  /* progress dots */
+  .dots {
+    display: flex; gap: 7px;
+    margin-bottom: 34px;
+    z-index: 2;
+  }
+  .dots span {
+    height: 4px; border-radius: 3px;
+    background: rgba(255,255,255,.35);
+    flex: 1;
+    overflow: hidden;
+  }
+  .dots span.active { background: rgba(255,255,255,.35); }
+  .dots span.active i {
+    display:block; height:100%; width: 60%;
+    background:#fff; border-radius:3px;
+  }
+  .dots span.done { background: #fff; }
+
+  /* header */
+  .brand {
+    font-size: 13px; font-weight: 800; letter-spacing: .3px;
+    color: rgba(255,255,255,.85);
+    display:flex; align-items:center; gap:5px;
+    z-index:2;
+  }
+  .brand .hh { color: #FFE7DF; }
+  .kicker {
+    margin-top: 22px;
+    font-size: 14px; font-weight: 700; letter-spacing: 2px;
+    color: rgba(255,255,255,.78);
+    text-transform: uppercase;
+    z-index:2;
+  }
+  .title {
+    margin-top: 8px;
+    font-size: 38px; font-weight: 800; line-height: 1.12;
+    letter-spacing: -.5px;
+    z-index:2;
+  }
+  .title b { color:#FFE7DF; }
+  .subtitle {
+    margin-top: 12px;
+    font-size: 14px; font-weight: 600;
+    color: rgba(255,255,255,.8);
+    line-height: 1.5;
+    z-index:2;
+  }
+
+  /* stats */
+  .stats {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    z-index: 2;
+  }
+  .stat {
+    background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.20);
+    border-radius: 20px;
+    padding: 15px 18px;
+    display: flex; align-items: center; gap: 15px;
+    backdrop-filter: blur(6px);
+  }
+  .stat .ic {
+    width: 42px; height: 42px; flex: none;
+    border-radius: 14px;
+    background: rgba(255,255,255,.9);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 6px 14px rgba(150,40,20,.18);
+  }
+  .stat .txt { flex: 1; }
+  .stat .num { font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+  .stat .num small { font-size: 15px; font-weight: 700; margin-left: 2px; opacity:.9; }
+  .stat .lab { margin-top: 4px; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.82); }
+  .stat.hl {
+    background: rgba(255,255,255,.95);
+    border-color: rgba(255,255,255,.95);
+    color: #E1553B;
+  }
+  .stat.hl .ic { background: #FFE7DF; }
+  .stat.hl .lab { color: #C9573F; }
+
+  /* footer buttons */
+  .footer {
+    margin-top: 20px;
+    display: flex; gap: 12px;
+    z-index: 2;
+  }
+  .btn {
+    height: 54px; border-radius: 18px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-size: 16px; font-weight: 800;
+    cursor: pointer;
+  }
+  .btn.share {
+    flex: none; width: 130px;
+    background: rgba(255,255,255,.18);
+    border: 1px solid rgba(255,255,255,.3);
+    color: #fff;
+  }
+  .btn.next {
+    flex: 1;
+    background: #fff;
+    color: #E1553B;
+    box-shadow: 0 10px 24px rgba(120,30,15,.28);
+  }
+
+  .home-ind {
+    position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px; border-radius: 3px;
+    background: rgba(255,255,255,.6);
+    z-index: 50;
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="screen">
+      <div class="island"></div>
+      <div class="statusbar">
+        <div class="left">9:41</div>
+        <div class="right">
+          <span class="sig"><i></i><i></i><i></i><i></i></span>
+          <span style="font-weight:700">5G</span>
+          <span class="batt"><i></i></span>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="blob b1"></div>
+        <div class="blob b2"></div>
+        <div class="heart h1">♥</div>
+        <div class="heart h2">♥</div>
+        <div class="heart h3">♥</div>
+
+        <!-- slide indicator -->
+        <div class="dots">
+          <span class="active"><i></i></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+
+        <div class="brand">love today <span class="hh">♥</span></div>
+
+        <div class="kicker">우리의 결산</div>
+        <div class="title">2026년 7월,<br><b>우리는</b> 이랬어</div>
+        <div class="subtitle">한 달 동안 함께 남긴 기록을<br>모아봤어요. 넘겨서 확인해봐요.</div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="ic">📖</div>
+            <div class="txt">
+              <div class="num">21<small>일</small></div>
+              <div class="lab">함께 기록한 날 · 최장 9일 연속</div>
+            </div>
+          </div>
+
+          <div class="stat">
+            <div class="ic">📍</div>
+            <div class="txt">
+              <div class="num">8<small>곳</small></div>
+              <div class="lab">다녀온 곳 · 성수동이 최애였어요</div>
+            </div>
+          </div>
+
+          <div class="stat hl">
+            <div class="ic">🩷</div>
+            <div class="txt">
+              <div class="num">설렘</div>
+              <div class="lab">이번 달 대표 기분</div>
+            </div>
+          </div>
+
+          <div class="stat">
+            <div class="ic">📷</div>
+            <div class="txt">
+              <div class="num">46<small>장</small></div>
+              <div class="lab">함께 담은 사진</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="btn share">공유 ↑</div>
+          <div class="btn next">다음 ▸</div>
+        </div>
+      </div>
+
+      <div class="home-ind"></div>
+    </div>
+  </div>
+</body>
+</html>

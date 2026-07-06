@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>투데이 · 데이트 가계부</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  body {
+    background: #e9e9ec;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 30px 0;
+  }
+
+  /* ===== phone frame ===== */
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #1c1c1e;
+    border-radius: 56px;
+    padding: 14px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.35);
+    position: relative;
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: #FBF3EE;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== status bar ===== */
+  .statusbar {
+    height: 48px;
+    padding: 0 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 15px;
+    font-weight: 700;
+    color: #3B2D28;
+    flex-shrink: 0;
+  }
+  .statusbar .right { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .signal { display: inline-block; width: 17px; height: 11px;
+    background: linear-gradient(90deg,#3B2D28 0 3px,transparent 3px 4px,#3B2D28 4px 7px,transparent 7px 8px,#3B2D28 8px 11px,transparent 11px 12px,#3B2D28 12px 17px);
+    -webkit-mask: linear-gradient(#000 0 0); }
+  .batt { width: 24px; height: 12px; border: 1.5px solid #3B2D28; border-radius: 3px; position: relative; }
+  .batt::after { content:""; position:absolute; right:-3px; top:3px; width:2px; height:6px; background:#3B2D28; border-radius:0 1px 1px 0; }
+  .batt::before { content:""; position:absolute; left:1.5px; top:1.5px; bottom:1.5px; width:14px; background:#3B2D28; border-radius:1px; }
+
+  /* ===== header ===== */
+  .appbar {
+    padding: 4px 22px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .logo { font-size: 18px; font-weight: 800; color: #F47C63; letter-spacing: -.3px; }
+  .logo span { color: #3B2D28; }
+  .month-pill {
+    background: #FFF1EC;
+    color: #F47C63;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 7px 14px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ===== scroll body ===== */
+  .body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2px 22px 24px;
+  }
+  .body::-webkit-scrollbar { display: none; }
+
+  /* ===== hero card ===== */
+  .hero {
+    background: linear-gradient(160deg, #F47C63 0%, #f2664a 100%);
+    border-radius: 22px;
+    padding: 22px 22px 20px;
+    color: #fff;
+    box-shadow: 0 12px 28px rgba(244,124,99,.34);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    right: -40px; top: -40px;
+    width: 150px; height: 150px;
+    background: rgba(255,255,255,.10);
+    border-radius: 50%;
+  }
+  .hero .label { font-size: 13px; font-weight: 600; opacity: .92; }
+  .hero .amount { font-size: 38px; font-weight: 800; letter-spacing: -1px; margin-top: 4px; }
+  .hero .amount small { font-size: 22px; font-weight: 700; opacity: .95; }
+  .hero .sub { font-size: 12px; opacity: .85; margin-top: 3px; }
+  .hero .sub b { font-weight: 700; opacity: 1; }
+
+  /* settle chip */
+  .settle {
+    margin-top: 16px;
+    background: rgba(255,255,255,.16);
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 16px;
+    padding: 13px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .settle .txt { font-size: 13px; line-height: 1.4; }
+  .settle .txt b { font-weight: 800; }
+  .settle .btn {
+    background: #fff;
+    color: #F47C63;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 9px 15px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  /* ===== category card ===== */
+  .card {
+    background: #fff;
+    border-radius: 22px;
+    padding: 18px 20px;
+    margin-top: 16px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
+  .card-title { font-size: 15px; font-weight: 800; color: #3B2D28; }
+  .card-more { font-size: 12px; color: #9B8B84; font-weight: 600; }
+
+  /* donut */
+  .cat-wrap { display: flex; align-items: center; gap: 18px; }
+  .donut {
+    width: 108px; height: 108px; border-radius: 50%;
+    flex-shrink: 0;
+    background: conic-gradient(
+      #F47C63 0 42%,
+      #FFB199 42% 68%,
+      #FFD2C2 68% 86%,
+      #FFE7DF 86% 100%
+    );
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .donut::after {
+    content: "";
+    width: 66px; height: 66px;
+    background: #fff;
+    border-radius: 50%;
+  }
+  .donut .center {
+    position: absolute;
+    text-align: center;
+    z-index: 1;
+  }
+  .donut .center .n { font-size: 15px; font-weight: 800; color: #3B2D28; }
+  .donut .center .t { font-size: 10px; color: #9B8B84; margin-top: 1px; }
+
+  .legend { flex: 1; display: flex; flex-direction: column; gap: 11px; }
+  .leg-row { display: flex; align-items: center; gap: 9px; }
+  .dot { width: 11px; height: 11px; border-radius: 4px; flex-shrink: 0; }
+  .leg-name { font-size: 13px; color: #3B2D28; font-weight: 600; flex: 1; }
+  .leg-amt { font-size: 12.5px; color: #9B8B84; font-weight: 700; }
+
+  /* ===== list section ===== */
+  .sec-title {
+    font-size: 15px; font-weight: 800; color: #3B2D28;
+    margin: 22px 4px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sec-title .cnt { font-size: 12px; color: #9B8B84; font-weight: 600; }
+
+  .item {
+    background: #fff;
+    border-radius: 20px;
+    padding: 14px 16px;
+    margin-bottom: 11px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.10);
+    display: flex;
+    align-items: center;
+    gap: 13px;
+  }
+  .item-ic {
+    width: 46px; height: 46px; border-radius: 15px;
+    background: #FFF1EC;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 21px; flex-shrink: 0;
+  }
+  .item-main { flex: 1; min-width: 0; }
+  .item-place { font-size: 14.5px; font-weight: 700; color: #3B2D28; display: flex; align-items: center; gap: 6px; }
+  .link-tag {
+    font-size: 10px; font-weight: 700; color: #F47C63;
+    background: #FFE7DF; padding: 2px 7px; border-radius: 10px;
+    display: inline-flex; align-items: center; gap: 3px;
+  }
+  .item-meta { font-size: 12px; color: #9B8B84; margin-top: 4px; display: flex; align-items: center; gap: 7px; }
+  .avatar {
+    width: 18px; height: 18px; border-radius: 50%;
+    font-size: 10px; font-weight: 800; color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .av-h { background: #F47C63; }
+  .av-w { background: #6FB6C9; }
+  .item-right { text-align: right; flex-shrink: 0; }
+  .item-amt { font-size: 15px; font-weight: 800; color: #3B2D28; }
+  .item-who { font-size: 11px; color: #9B8B84; margin-top: 3px; }
+
+  /* fab */
+  .fab {
+    position: absolute;
+    right: 20px; bottom: 92px;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: #F47C63;
+    color: #fff;
+    font-size: 30px; font-weight: 300;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 22px rgba(244,124,99,.45);
+    z-index: 5;
+  }
+
+  /* ===== tab bar ===== */
+  .tabbar {
+    height: 78px;
+    background: #fff;
+    border-top: 1px solid #f2e6de;
+    display: flex;
+    padding: 8px 0 22px;
+    flex-shrink: 0;
+    box-shadow: 0 -4px 20px rgba(180,120,100,.06);
+  }
+  .tab {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-size: 10.5px; font-weight: 700;
+    color: #C9BAB2;
+  }
+  .tab.active { color: #F47C63; }
+  .tab .ic { font-size: 20px; }
+
+  .home-ind {
+    position: absolute;
+    bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 128px; height: 5px; border-radius: 3px;
+    background: #3B2D28; opacity: .28;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="screen">
+
+      <!-- status bar -->
+      <div class="statusbar">
+        <div>9:41</div>
+        <div class="right">
+          <span class="signal"></span>
+          <span>5G</span>
+          <span class="batt"></span>
+        </div>
+      </div>
+
+      <!-- app bar -->
+      <div class="appbar">
+        <div class="logo">love today <span>♥</span></div>
+        <div class="month-pill">7월 ▾</div>
+      </div>
+
+      <!-- scroll body -->
+      <div class="body">
+
+        <!-- hero -->
+        <div class="hero">
+          <div class="label">이번 달 우리 데이트 지출</div>
+          <div class="amount"><small>₩</small> 428,600</div>
+          <div class="sub">데이트 <b>9번</b> · 지난달보다 <b>₩52,000 ↓</b></div>
+
+          <div class="settle">
+            <div class="txt">정산하면 <b>지현님</b>이<br/><b>32,000원</b> 더 냈어요</div>
+            <div class="btn">반반 정산</div>
+          </div>
+        </div>
+
+        <!-- category donut -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">카테고리</div>
+            <div class="card-more">전체 &rsaquo;</div>
+          </div>
+          <div class="cat-wrap">
+            <div class="donut">
+              <div class="center">
+                <div class="n">9회</div>
+                <div class="t">데이트</div>
+              </div>
+            </div>
+            <div class="legend">
+              <div class="leg-row">
+                <span class="dot" style="background:#F47C63"></span>
+                <span class="leg-name">식사</span>
+                <span class="leg-amt">₩180,000</span>
+              </div>
+              <div class="leg-row">
+                <span class="dot" style="background:#FFB199"></span>
+                <span class="leg-name">카페</span>
+                <span class="leg-amt">₩111,000</span>
+              </div>
+              <div class="leg-row">
+                <span class="dot" style="background:#FFD2C2"></span>
+                <span class="leg-name">문화</span>
+                <span class="leg-amt">₩77,000</span>
+              </div>
+              <div class="leg-row">
+                <span class="dot" style="background:#FFE7DF"></span>
+                <span class="leg-name">교통</span>
+                <span class="leg-amt">₩60,600</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- recent list -->
+        <div class="sec-title">
+          최근 데이트
+          <span class="cnt">이번 달 9건</span>
+        </div>
+
+        <div class="item">
+          <div class="item-ic">🍝</div>
+          <div class="item-main">
+            <div class="item-place">
+              연남동 파스타
+              <span class="link-tag">📍 일기 연결</span>
+            </div>
+            <div class="item-meta">
+              <span class="avatar av-h">현</span> 지현님이 냄 · 6월 28일
+            </div>
+          </div>
+          <div class="item-right">
+            <div class="item-amt">₩68,000</div>
+            <div class="item-who">식사</div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="item-ic">☕</div>
+          <div class="item-main">
+            <div class="item-place">
+              성수 안녹 카페
+              <span class="link-tag">📍 지도 연결</span>
+            </div>
+            <div class="item-meta">
+              <span class="avatar av-w">준</span> 준호님이 냄 · 6월 28일
+            </div>
+          </div>
+          <div class="item-right">
+            <div class="item-amt">₩19,000</div>
+            <div class="item-who">카페</div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="item-ic">🎬</div>
+          <div class="item-main">
+            <div class="item-place">
+              메가박스 코엑스
+              <span class="link-tag">📍 일기 연결</span>
+            </div>
+            <div class="item-meta">
+              <span class="avatar av-h">현</span><span class="avatar av-w" style="margin-left:-6px">준</span> 반반 · 6월 22일
+            </div>
+          </div>
+          <div class="item-right">
+            <div class="item-amt">₩34,000</div>
+            <div class="item-who">문화</div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="item-ic">🍢</div>
+          <div class="item-main">
+            <div class="item-place">
+              망원 포차거리
+            </div>
+            <div class="item-meta">
+              <span class="avatar av-w">준</span> 준호님이 냄 · 6월 15일
+            </div>
+          </div>
+          <div class="item-right">
+            <div class="item-amt">₩47,000</div>
+            <div class="item-who">식사</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- fab -->
+      <div class="fab">+</div>
+
+      <!-- tab bar -->
+      <div class="tabbar">
+        <div class="tab">
+          <div class="ic">📅</div>
+          <div>달력</div>
+        </div>
+        <div class="tab">
+          <div class="ic">🗺️</div>
+          <div>지도</div>
+        </div>
+        <div class="tab active">
+          <div class="ic">💰</div>
+          <div>지갑</div>
+        </div>
+        <div class="tab">
+          <div class="ic">⚙️</div>
+          <div>설정</div>
+        </div>
+      </div>
+
+      <div class="home-ind"></div>
+    </div>
+  </div>
+</body>
+</html>

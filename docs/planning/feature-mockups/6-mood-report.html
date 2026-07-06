@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투데이 · 우리 감정 리포트</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background:#e9eaec;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:40px 0;
+  }
+
+  /* ===== Phone frame ===== */
+  .phone {
+    position:relative;
+    width:390px; height:844px;
+    background:#1c1c1e;
+    border-radius:56px;
+    padding:14px;
+    box-shadow:0 40px 90px rgba(0,0,0,.35), 0 0 0 2px #2a2a2c;
+  }
+  .screen {
+    position:relative;
+    width:100%; height:100%;
+    border-radius:44px;
+    overflow:hidden;
+    background:#FBF3EE;
+  }
+
+  .island {
+    position:absolute; top:12px; left:50%; transform:translateX(-50%);
+    width:118px; height:34px; background:#000; border-radius:20px; z-index:60;
+  }
+
+  /* Status bar */
+  .statusbar {
+    position:absolute; top:0; left:0; right:0; height:54px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 30px 0; z-index:40;
+    color:#3B2D28; font-weight:700; font-size:15px;
+  }
+  .sb-right { display:flex; align-items:center; gap:7px; font-size:14px; }
+  .sb-batt { width:24px; height:12px; border:1.5px solid #3B2D28; border-radius:3px; position:relative; padding:1.5px; }
+  .sb-batt::after { content:""; position:absolute; right:-3px; top:3px; width:2px; height:6px; background:#3B2D28; border-radius:0 2px 2px 0; }
+  .sb-batt i { display:block; height:100%; width:78%; background:#3B2D28; border-radius:1px; }
+
+  /* Nav header */
+  .nav {
+    position:absolute; top:54px; left:0; right:0; height:50px; z-index:30;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 22px;
+  }
+  .nav .logo { font-size:16px; font-weight:800; color:#F47C63; letter-spacing:-.3px; }
+  .nav .logo span { color:#3B2D28; }
+  .nav .month {
+    display:flex; align-items:center; gap:6px;
+    font-size:13px; font-weight:700; color:#3B2D28;
+    background:#fff; padding:6px 12px; border-radius:14px;
+    box-shadow:0 4px 12px rgba(180,120,100,.12);
+  }
+  .nav .month .arw { color:#C9B8B0; font-size:11px; }
+
+  /* Scroll body */
+  .body {
+    position:absolute; top:104px; left:0; right:0; bottom:78px;
+    overflow:hidden;
+    padding:6px 18px 20px;
+  }
+
+  .page-title { font-size:24px; font-weight:800; color:#3B2D28; letter-spacing:-.6px; margin:6px 2px 2px; }
+  .page-sub { font-size:12.5px; color:#9B8B84; font-weight:600; margin:0 2px 16px; }
+
+  .card {
+    background:#fff;
+    border-radius:22px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+    margin-bottom:16px;
+  }
+
+  /* --- Weather summary hero --- */
+  .hero {
+    background:linear-gradient(150deg,#FFF1EC 0%, #FFE7DF 100%);
+    padding:18px 20px 20px;
+    position:relative; overflow:hidden;
+  }
+  .hero .sun {
+    position:absolute; top:-24px; right:-18px; width:110px; height:110px; border-radius:50%;
+    background:radial-gradient(circle,#ffd98f 0%, #ffcf9f 45%, rgba(255,207,159,0) 72%);
+  }
+  .hero .kicker { font-size:11px; font-weight:800; color:#F47C63; letter-spacing:.4px; }
+  .hero .headline { font-size:19px; font-weight:800; color:#3B2D28; margin-top:5px; letter-spacing:-.4px; }
+  .hero .headline b { color:#F47C63; }
+  .hero .wx {
+    display:flex; align-items:center; gap:10px; margin-top:14px;
+  }
+  .hero .wx .big-emoji { font-size:34px; }
+  .hero .wx .desc { font-size:12.5px; color:#7A6A63; font-weight:600; line-height:1.4; }
+  .hero .streak {
+    display:inline-flex; align-items:center; gap:5px; margin-top:14px;
+    background:rgba(255,255,255,.72); padding:6px 11px; border-radius:12px;
+    font-size:11.5px; font-weight:700; color:#3B2D28;
+  }
+  .hero .streak b { color:#F47C63; }
+
+  /* --- Section label --- */
+  .sec-label { font-size:13.5px; font-weight:800; color:#3B2D28; margin:2px 4px 10px; letter-spacing:-.2px; }
+  .sec-label .hint { font-weight:600; font-size:11px; color:#9B8B84; margin-left:6px; }
+
+  /* --- Line chart card --- */
+  .chart-card { padding:16px 14px 12px; }
+  .chart-head { display:flex; align-items:center; justify-content:space-between; padding:0 4px 8px; }
+  .chart-head .t { font-size:13.5px; font-weight:800; color:#3B2D28; }
+  .legend { display:flex; gap:12px; }
+  .legend .lg { display:flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:#7A6A63; }
+  .legend .dot { width:9px; height:9px; border-radius:50%; }
+  .dot-a { background:#F47C63; }
+  .dot-b { background:#7BB8E0; }
+  .chart-x { display:flex; justify-content:space-between; padding:6px 8px 0; }
+  .chart-x span { font-size:10px; color:#B7A79F; font-weight:600; }
+
+  /* --- Distribution donut --- */
+  .donut-card { padding:16px 18px; display:flex; align-items:center; gap:18px; }
+  .donut-wrap { position:relative; width:118px; height:118px; flex-shrink:0; }
+  .donut-center {
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+  }
+  .donut-center .num { font-size:22px; font-weight:800; color:#3B2D28; line-height:1; }
+  .donut-center .lbl { font-size:10px; font-weight:700; color:#9B8B84; margin-top:3px; }
+  .dist-list { flex:1; display:flex; flex-direction:column; gap:9px; }
+  .dist-row { display:flex; align-items:center; gap:9px; }
+  .dist-row .sw { width:11px; height:11px; border-radius:4px; flex-shrink:0; }
+  .dist-row .nm { font-size:12px; font-weight:700; color:#3B2D28; flex:1; }
+  .dist-row .nm .em { margin-right:5px; }
+  .dist-row .pct { font-size:12px; font-weight:800; color:#9B8B84; }
+
+  /* --- Highlight (happiest day) --- */
+  .highlight {
+    padding:16px 18px;
+    background:linear-gradient(135deg,#fff 0%, #FFF6F2 100%);
+    display:flex; align-items:center; gap:14px;
+  }
+  .highlight .thumb {
+    width:60px; height:60px; border-radius:16px; flex-shrink:0; position:relative; overflow:hidden;
+    background:
+      radial-gradient(80% 70% at 30% 25%, #ffd9a8 0%, rgba(255,217,168,0) 60%),
+      linear-gradient(150deg,#F47C63 0%, #e85f45 100%);
+  }
+  .highlight .thumb .h-em { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:28px; }
+  .highlight .h-body { flex:1; min-width:0; }
+  .highlight .h-kick { font-size:10.5px; font-weight:800; color:#F47C63; letter-spacing:.3px; }
+  .highlight .h-date { font-size:15px; font-weight:800; color:#3B2D28; margin-top:3px; letter-spacing:-.3px; }
+  .highlight .h-desc { font-size:11.5px; color:#9B8B84; font-weight:600; margin-top:3px; line-height:1.35; }
+  .highlight .h-scores { display:flex; gap:6px; margin-top:8px; }
+  .highlight .chip { font-size:10px; font-weight:700; padding:3px 8px; border-radius:9px; }
+  .chip-a { background:#FFE7DF; color:#F47C63; }
+  .chip-b { background:#E5F0F8; color:#5A93C0; }
+
+  /* --- Insight card --- */
+  .insight {
+    padding:16px 18px;
+    background:linear-gradient(135deg,#F47C63 0%, #e85f45 100%);
+    color:#fff; position:relative; overflow:hidden;
+  }
+  .insight .glow { position:absolute; top:-30px; right:-20px; width:120px; height:120px; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,.22),rgba(255,255,255,0) 70%); }
+  .insight .i-kick { font-size:10.5px; font-weight:800; letter-spacing:.5px; opacity:.9; display:flex; align-items:center; gap:5px; }
+  .insight .i-text { font-size:15px; font-weight:800; line-height:1.45; margin-top:8px; letter-spacing:-.2px; position:relative; }
+  .insight .i-text b { text-decoration:underline; text-decoration-color:rgba(255,255,255,.55); text-underline-offset:3px; }
+  .insight .i-foot { font-size:11px; font-weight:600; opacity:.85; margin-top:10px; }
+
+  /* --- Bottom tab bar --- */
+  .tabbar {
+    position:absolute; left:0; right:0; bottom:0; height:78px;
+    background:rgba(255,255,255,.92);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border-top:1px solid rgba(180,120,100,.1);
+    display:flex; align-items:flex-start; justify-content:space-around;
+    padding-top:12px; z-index:30;
+  }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:4px; width:70px; }
+  .tab .ic { font-size:22px; color:#C9B8B0; line-height:1; }
+  .tab .tl { font-size:10px; font-weight:700; color:#C9B8B0; }
+  .tab.on .ic { color:#F47C63; }
+  .tab.on .tl { color:#F47C63; }
+  .tab .badge-dot { position:relative; }
+  .tab .badge-dot::after {
+    content:""; position:absolute; top:-1px; right:-6px; width:7px; height:7px;
+    border-radius:50%; background:#F47C63; border:1.5px solid #fff;
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="screen">
+      <div class="island"></div>
+
+      <div class="statusbar">
+        <div>9:41</div>
+        <div class="sb-right">
+          <span>▮▮▮</span>
+          <span>令</span>
+          <span class="sb-batt"><i></i></span>
+        </div>
+      </div>
+
+      <!-- Nav -->
+      <div class="nav">
+        <div class="logo">love today <span>♥</span></div>
+        <div class="month">2026년 7월 <span class="arw">▾</span></div>
+      </div>
+
+      <!-- Scrollable content -->
+      <div class="body">
+
+        <div class="page-title">우리 감정 리포트</div>
+        <div class="page-sub">이번 달 함께 기록한 기분 28일치를 모았어요</div>
+
+        <!-- HERO: weather summary -->
+        <div class="card hero">
+          <div class="sun"></div>
+          <div class="kicker">7월의 우리 감정 날씨</div>
+          <div class="headline">대체로 <b>맑음</b>, 가끔 소나기</div>
+          <div class="wx">
+            <div class="big-emoji">🌤️</div>
+            <div class="desc">둘의 평균 기분이 지난달보다<br>한 단계 밝아졌어요</div>
+          </div>
+          <div class="streak">🔥 <b>12일</b> 연속 함께 기록 중</div>
+        </div>
+
+        <!-- LINE CHART -->
+        <div class="sec-label">둘의 감정 흐름 <span class="hint">7월 1일 → 오늘</span></div>
+        <div class="card chart-card">
+          <div class="chart-head">
+            <div class="t">기분 라인</div>
+            <div class="legend">
+              <div class="lg"><span class="dot dot-a"></span>지훈</div>
+              <div class="lg"><span class="dot dot-b"></span>서연</div>
+            </div>
+          </div>
+          <svg width="100%" viewBox="0 0 320 150" preserveAspectRatio="none" style="display:block">
+            <!-- gridlines -->
+            <line x1="0" y1="25"  x2="320" y2="25"  stroke="#F3E8E2" stroke-width="1"/>
+            <line x1="0" y1="62"  x2="320" y2="62"  stroke="#F3E8E2" stroke-width="1"/>
+            <line x1="0" y1="99"  x2="320" y2="99"  stroke="#F3E8E2" stroke-width="1"/>
+            <line x1="0" y1="136" x2="320" y2="136" stroke="#F3E8E2" stroke-width="1"/>
+
+            <!-- area fill under 지훈(coral) -->
+            <path d="M0,70 C25,55 45,50 65,58 C90,68 110,40 135,35 C160,30 180,60 205,52 C230,44 250,28 275,32 C295,35 310,26 320,24 L320,150 L0,150 Z"
+                  fill="#F47C63" opacity="0.06"/>
+
+            <!-- 서연 line (blue) -->
+            <path d="M0,88 C25,80 45,92 65,86 C90,78 110,64 135,68 C160,72 180,50 205,58 C230,66 250,48 275,52 C295,55 310,44 320,46"
+                  fill="none" stroke="#7BB8E0" stroke-width="3" stroke-linecap="round"/>
+            <!-- 지훈 line (coral) -->
+            <path d="M0,70 C25,55 45,50 65,58 C90,68 110,40 135,35 C160,30 180,60 205,52 C230,44 250,28 275,32 C295,35 310,26 320,24"
+                  fill="none" stroke="#F47C63" stroke-width="3" stroke-linecap="round"/>
+
+            <!-- happiest day marker -->
+            <line x1="135" y1="35" x2="135" y2="136" stroke="#F47C63" stroke-width="1" stroke-dasharray="3 3" opacity=".45"/>
+            <circle cx="135" cy="35" r="5.5" fill="#fff" stroke="#F47C63" stroke-width="3"/>
+            <circle cx="135" cy="68" r="5"   fill="#fff" stroke="#7BB8E0" stroke-width="3"/>
+          </svg>
+          <div class="chart-x">
+            <span>1일</span><span>7일</span><span>14일</span><span>21일</span><span>오늘</span>
+          </div>
+        </div>
+
+        <!-- DONUT DISTRIBUTION -->
+        <div class="sec-label">기분 분포 <span class="hint">둘의 기록 합산</span></div>
+        <div class="card donut-card">
+          <div class="donut-wrap">
+            <svg width="118" height="118" viewBox="0 0 42 42">
+              <circle cx="21" cy="21" r="15.9" fill="none" stroke="#F3E8E2" stroke-width="7"/>
+              <!-- segments: happy 38, calm 27, love 20, tired 10, sad 5 -->
+              <circle cx="21" cy="21" r="15.9" fill="none" stroke="#F47C63" stroke-width="7"
+                      stroke-dasharray="38 62" stroke-dashoffset="25"/>
+              <circle cx="21" cy="21" r="15.9" fill="none" stroke="#FFC59B" stroke-width="7"
+                      stroke-dasharray="27 73" stroke-dashoffset="-13"/>
+              <circle cx="21" cy="21" r="15.9" fill="none" stroke="#7BB8E0" stroke-width="7"
+                      stroke-dasharray="20 80" stroke-dashoffset="-40"/>
+              <circle cx="21" cy="21" r="15.9" fill="none" stroke="#C6B7DE" stroke-width="7"
+                      stroke-dasharray="10 90" stroke-dashoffset="-60"/>
+              <circle cx="21" cy="21" r="15.9" fill="none" stroke="#B7C0CC" stroke-width="7"
+                      stroke-dasharray="5 95" stroke-dashoffset="-70"/>
+            </svg>
+            <div class="donut-center">
+              <div class="num">😊</div>
+              <div class="lbl">행복 38%</div>
+            </div>
+          </div>
+          <div class="dist-list">
+            <div class="dist-row"><span class="sw" style="background:#F47C63"></span><span class="nm"><span class="em">😊</span>행복</span><span class="pct">38%</span></div>
+            <div class="dist-row"><span class="sw" style="background:#FFC59B"></span><span class="nm"><span class="em">😌</span>평온</span><span class="pct">27%</span></div>
+            <div class="dist-row"><span class="sw" style="background:#7BB8E0"></span><span class="nm"><span class="em">🥰</span>설렘</span><span class="pct">20%</span></div>
+            <div class="dist-row"><span class="sw" style="background:#C6B7DE"></span><span class="nm"><span class="em">😪</span>지침</span><span class="pct">10%</span></div>
+            <div class="dist-row"><span class="sw" style="background:#B7C0CC"></span><span class="nm"><span class="em">😔</span>우울</span><span class="pct">5%</span></div>
+          </div>
+        </div>
+
+        <!-- HIGHLIGHT: happiest day -->
+        <div class="sec-label">가장 행복했던 날</div>
+        <div class="card highlight">
+          <div class="thumb"><span class="h-em">🎡</span></div>
+          <div class="h-body">
+            <div class="h-kick">둘 다 최고 기분이었던 날</div>
+            <div class="h-date">7월 13일 · 토요일</div>
+            <div class="h-desc">놀이공원 데이트한 날, 함께 남긴 일기에 댓글이 제일 많았어요</div>
+            <div class="h-scores">
+              <span class="chip chip-a">지훈 😊 행복</span>
+              <span class="chip chip-b">서연 🥰 설렘</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- INSIGHT -->
+        <div class="card insight">
+          <div class="glow"></div>
+          <div class="i-kick">💡 이번 달 관계 인사이트</div>
+          <div class="i-text">함께 있던 <b>주말</b>에 둘 다 기분이 좋았어요. 반대로 <b>따로 보낸 평일 저녁</b>엔 서연님 기분이 낮았어요.</div>
+          <div class="i-foot">이번 주말, 서연님께 먼저 연락해보는 건 어때요?</div>
+        </div>
+
+      </div>
+
+      <!-- Tab bar -->
+      <div class="tabbar">
+        <div class="tab"><div class="ic">▦</div><div class="tl">달력</div></div>
+        <div class="tab"><div class="ic">◈</div><div class="tl">지도</div></div>
+        <div class="tab on"><div class="ic badge-dot">❤</div><div class="tl">리포트</div></div>
+        <div class="tab"><div class="ic">⚙</div><div class="tl">설정</div></div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

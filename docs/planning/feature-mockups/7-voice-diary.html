@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>love today — 음성 일기</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, -apple-system, sans-serif; }
+  body {
+    background:#e9e9ec;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 0;
+  }
+
+  /* phone frame */
+  .phone {
+    width:390px; height:844px;
+    background:#1c1c1e;
+    border-radius:56px;
+    padding:14px;
+    box-shadow:0 30px 70px rgba(0,0,0,.35);
+    position:relative;
+  }
+  .screen {
+    width:100%; height:100%;
+    background:#FBF3EE;
+    border-radius:44px;
+    overflow:hidden;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* status bar */
+  .statusbar {
+    height:52px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 30px;
+    font-size:15px;
+    font-weight:700;
+    color:#3B2D28;
+    flex-shrink:0;
+  }
+  .statusbar .right { display:flex; gap:6px; align-items:center; font-size:13px; }
+
+  /* header */
+  .header {
+    padding:6px 22px 14px;
+    flex-shrink:0;
+  }
+  .logo {
+    font-size:19px;
+    font-weight:800;
+    color:#F47C63;
+    letter-spacing:-.3px;
+  }
+  .header-row {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:10px;
+  }
+  .date-title {
+    font-size:23px;
+    font-weight:800;
+    color:#3B2D28;
+    letter-spacing:-.5px;
+  }
+  .date-sub { font-size:13px; color:#9B8B84; margin-top:2px; font-weight:600; }
+  .mood-chip {
+    background:#FFE7DF;
+    color:#F47C63;
+    font-size:13px;
+    font-weight:700;
+    padding:8px 13px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    gap:5px;
+  }
+
+  /* scroll body */
+  .body {
+    flex:1;
+    overflow-y:auto;
+    padding:4px 18px 130px;
+  }
+
+  /* card base */
+  .card {
+    background:#fff;
+    border-radius:22px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+    padding:18px;
+    margin-bottom:16px;
+  }
+
+  .card-head {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .avatar {
+    width:38px; height:38px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:16px;
+    font-weight:800;
+    color:#fff;
+    flex-shrink:0;
+  }
+  .avatar.him { background:linear-gradient(135deg,#F47C63,#f79a86); }
+  .avatar.me  { background:linear-gradient(135deg,#8bb0d9,#a9c6e6); }
+  .who { font-size:14px; font-weight:800; color:#3B2D28; }
+  .who-sub { font-size:11.5px; color:#9B8B84; font-weight:600; margin-top:1px; }
+  .badge-voice {
+    margin-left:auto;
+    background:#FFF1EC;
+    color:#F47C63;
+    font-size:11px;
+    font-weight:800;
+    padding:5px 9px;
+    border-radius:10px;
+  }
+
+  /* voice player */
+  .voice {
+    background:#FFF1EC;
+    border-radius:18px;
+    padding:15px 16px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .voice.me-voice { background:#f4f7fb; }
+  .play-btn {
+    width:48px; height:48px;
+    border-radius:50%;
+    background:#F47C63;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    box-shadow:0 6px 16px rgba(244,124,99,.4);
+  }
+  .me-voice .play-btn { background:#6f97c4; box-shadow:0 6px 16px rgba(111,151,196,.4); }
+  .play-btn .tri {
+    width:0; height:0;
+    border-left:15px solid #fff;
+    border-top:9px solid transparent;
+    border-bottom:9px solid transparent;
+    margin-left:3px;
+  }
+  /* pause icon (bars) for the currently playing card */
+  .play-btn.playing .tri { display:none; }
+  .play-btn .pause { display:none; gap:4px; }
+  .play-btn.playing .pause { display:flex; }
+  .play-btn .pause span { width:4px; height:16px; background:#fff; border-radius:2px; }
+
+  .voice-main { flex:1; min-width:0; }
+
+  /* waveform */
+  .wave {
+    display:flex;
+    align-items:center;
+    gap:2px;
+    height:34px;
+  }
+  .wave span {
+    width:3px;
+    border-radius:2px;
+    background:#F9C6B8;
+  }
+  .me-voice .wave span { background:#c3d5ea; }
+  /* played portion */
+  .wave span.on { background:#F47C63; }
+  .me-voice .wave span.on { background:#6f97c4; }
+
+  .voice-foot {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:9px;
+  }
+  .time { font-size:12px; font-weight:700; color:#9B8B84; }
+  .time b { color:#F47C63; }
+  .me-voice .time b { color:#6f97c4; }
+  .voice-tools { display:flex; gap:7px; }
+  .speed, .save {
+    font-size:11px;
+    font-weight:800;
+    color:#9B8B84;
+    background:#fff;
+    border:1px solid #F1E4DD;
+    padding:4px 8px;
+    border-radius:9px;
+  }
+
+  /* text portion inside diary */
+  .diary-text {
+    font-size:14px;
+    line-height:1.7;
+    color:#3B2D28;
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px dashed #F1E4DD;
+  }
+
+  /* locked hint (my card before recording) */
+  .my-empty .voice {
+    background:#FFF9F6;
+    border:1.5px dashed #FADFD4;
+    justify-content:center;
+    padding:22px;
+  }
+  .my-empty-txt { font-size:13px; color:#9B8B84; font-weight:700; text-align:center; }
+
+  /* archive strip */
+  .archive-label {
+    font-size:12px;
+    font-weight:800;
+    color:#9B8B84;
+    margin:6px 4px 10px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .archive {
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding:2px 2px 4px;
+  }
+  .arch-day {
+    flex-shrink:0;
+    width:64px;
+    background:#fff;
+    border-radius:16px;
+    box-shadow:0 6px 16px rgba(180,120,100,.10);
+    padding:11px 8px;
+    text-align:center;
+  }
+  .arch-day .d { font-size:15px; font-weight:800; color:#3B2D28; }
+  .arch-day .m { font-size:10px; color:#9B8B84; font-weight:700; margin-bottom:7px; }
+  .arch-wave { display:flex; align-items:center; justify-content:center; gap:1.5px; height:20px; }
+  .arch-wave span { width:2px; border-radius:1px; background:#F9C6B8; }
+
+  /* record dock */
+  .dock {
+    position:absolute;
+    left:0; right:0;
+    bottom:70px;
+    padding:0 18px;
+  }
+  .rec-bar {
+    background:#fff;
+    border-radius:24px;
+    box-shadow:0 -2px 30px rgba(180,120,100,.16);
+    padding:12px 16px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .rec-btn {
+    width:60px; height:60px;
+    border-radius:50%;
+    background:#F47C63;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+    flex-shrink:0;
+    box-shadow:0 8px 20px rgba(244,124,99,.45);
+    position:relative;
+  }
+  .rec-btn::after {
+    content:"";
+    position:absolute;
+    inset:-6px;
+    border-radius:50%;
+    border:2px solid #FFD6C9;
+  }
+  .rec-info .t1 { font-size:14px; font-weight:800; color:#3B2D28; }
+  .rec-info .t2 { font-size:11.5px; color:#9B8B84; font-weight:600; margin-top:2px; }
+  .rec-live { margin-left:auto; display:flex; align-items:center; gap:6px; font-size:12px; font-weight:800; color:#F47C63; }
+  .dot { width:8px; height:8px; border-radius:50%; background:#F47C63; }
+
+  /* bottom tab */
+  .tabbar {
+    position:absolute;
+    bottom:0; left:0; right:0;
+    height:70px;
+    background:#fff;
+    border-top:1px solid #F3E7E1;
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    padding-bottom:6px;
+  }
+  .tab {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    font-size:11px;
+    font-weight:700;
+    color:#C9BBB4;
+  }
+  .tab .ic { font-size:20px; }
+  .tab.active { color:#F47C63; }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="screen">
+
+      <!-- status bar -->
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="right">
+          <span>●●●</span>
+          <span>&#128246;</span>
+          <span>&#128267;</span>
+        </span>
+      </div>
+
+      <!-- header -->
+      <div class="header">
+        <div class="logo">love today &#9829;</div>
+        <div class="header-row">
+          <div>
+            <div class="date-title">7월 6일 오늘</div>
+            <div class="date-sub">함께한 지 428일째</div>
+          </div>
+          <div class="mood-chip">&#127775; 나른한</div>
+        </div>
+      </div>
+
+      <!-- scroll body -->
+      <div class="body">
+
+        <!-- partner voice card -->
+        <div class="card">
+          <div class="card-head">
+            <div class="avatar him">지</div>
+            <div>
+              <div class="who">지훈이 오늘의 목소리</div>
+              <div class="who-sub">밤 11시 12분에 남김</div>
+            </div>
+            <div class="badge-voice">&#127908; 음성</div>
+          </div>
+
+          <div class="voice">
+            <div class="play-btn playing">
+              <div class="tri"></div>
+              <div class="pause"><span></span><span></span></div>
+            </div>
+            <div class="voice-main">
+              <div class="wave">
+                <span class="on" style="height:10px"></span>
+                <span class="on" style="height:20px"></span>
+                <span class="on" style="height:14px"></span>
+                <span class="on" style="height:28px"></span>
+                <span class="on" style="height:18px"></span>
+                <span class="on" style="height:32px"></span>
+                <span class="on" style="height:22px"></span>
+                <span class="on" style="height:12px"></span>
+                <span style="height:26px"></span>
+                <span style="height:16px"></span>
+                <span style="height:30px"></span>
+                <span style="height:20px"></span>
+                <span style="height:24px"></span>
+                <span style="height:10px"></span>
+                <span style="height:34px"></span>
+                <span style="height:18px"></span>
+                <span style="height:22px"></span>
+                <span style="height:14px"></span>
+                <span style="height:28px"></span>
+                <span style="height:12px"></span>
+                <span style="height:20px"></span>
+                <span style="height:26px"></span>
+                <span style="height:16px"></span>
+                <span style="height:30px"></span>
+                <span style="height:22px"></span>
+                <span style="height:18px"></span>
+              </div>
+              <div class="voice-foot">
+                <div class="time"><b>0:11</b> / 0:32</div>
+                <div class="voice-tools">
+                  <div class="speed">1.0x</div>
+                  <div class="save">&#9825; 저장</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="diary-text">
+            오늘 회의가 길어서 좀 지쳤는데, 네 생각하면서 걸어왔어. 주말엔 그 카페 꼭 가자. 목소리로 남기니까 더 편하네.
+          </div>
+        </div>
+
+        <!-- my voice card (recorded) -->
+        <div class="card">
+          <div class="card-head">
+            <div class="avatar me">나</div>
+            <div>
+              <div class="who">나의 오늘의 목소리</div>
+              <div class="who-sub">방금 남김 · 상대에게 전송됨</div>
+            </div>
+            <div class="badge-voice" style="background:#eef4fb;color:#6f97c4;">&#127908; 음성</div>
+          </div>
+
+          <div class="voice me-voice">
+            <div class="play-btn">
+              <div class="tri"></div>
+              <div class="pause"><span></span><span></span></div>
+            </div>
+            <div class="voice-main">
+              <div class="wave">
+                <span style="height:14px"></span>
+                <span style="height:24px"></span>
+                <span style="height:16px"></span>
+                <span style="height:30px"></span>
+                <span style="height:20px"></span>
+                <span style="height:12px"></span>
+                <span style="height:26px"></span>
+                <span style="height:18px"></span>
+                <span style="height:32px"></span>
+                <span style="height:22px"></span>
+                <span style="height:14px"></span>
+                <span style="height:28px"></span>
+                <span style="height:16px"></span>
+                <span style="height:20px"></span>
+                <span style="height:24px"></span>
+                <span style="height:10px"></span>
+                <span style="height:30px"></span>
+                <span style="height:18px"></span>
+                <span style="height:22px"></span>
+                <span style="height:14px"></span>
+              </div>
+              <div class="voice-foot">
+                <div class="time">0:00 / <b>0:18</b></div>
+                <div class="voice-tools">
+                  <div class="speed">1.0x</div>
+                  <div class="save">&#9825; 저장</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- archive strip -->
+        <div class="archive-label">&#128337; 지난 목소리 다시 듣기</div>
+        <div class="archive">
+          <div class="arch-day">
+            <div class="d">05</div>
+            <div class="m">7월</div>
+            <div class="arch-wave">
+              <span style="height:8px"></span><span style="height:16px"></span>
+              <span style="height:12px"></span><span style="height:18px"></span>
+              <span style="height:10px"></span><span style="height:14px"></span>
+            </div>
+          </div>
+          <div class="arch-day">
+            <div class="d">03</div>
+            <div class="m">7월</div>
+            <div class="arch-wave">
+              <span style="height:14px"></span><span style="height:8px"></span>
+              <span style="height:18px"></span><span style="height:12px"></span>
+              <span style="height:16px"></span><span style="height:10px"></span>
+            </div>
+          </div>
+          <div class="arch-day">
+            <div class="d">01</div>
+            <div class="m">7월</div>
+            <div class="arch-wave">
+              <span style="height:10px"></span><span style="height:18px"></span>
+              <span style="height:14px"></span><span style="height:8px"></span>
+              <span style="height:16px"></span><span style="height:12px"></span>
+            </div>
+          </div>
+          <div class="arch-day">
+            <div class="d">28</div>
+            <div class="m">6월</div>
+            <div class="arch-wave">
+              <span style="height:12px"></span><span style="height:16px"></span>
+              <span style="height:8px"></span><span style="height:18px"></span>
+              <span style="height:14px"></span><span style="height:10px"></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- record dock -->
+      <div class="dock">
+        <div class="rec-bar">
+          <div class="rec-btn">&#127908;</div>
+          <div class="rec-info">
+            <div class="t1">눌러서 녹음</div>
+            <div class="t2">오늘 어땠어? 30초 안에 한 마디</div>
+          </div>
+          <div class="rec-live">
+            <span class="dot"></span> 최대 0:30
+          </div>
+        </div>
+      </div>
+
+      <!-- tab bar -->
+      <div class="tabbar">
+        <div class="tab active">
+          <div class="ic">&#128197;</div>
+          달력
+        </div>
+        <div class="tab">
+          <div class="ic">&#128506;&#65039;</div>
+          지도
+        </div>
+        <div class="tab">
+          <div class="ic">&#9881;&#65039;</div>
+          설정
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
