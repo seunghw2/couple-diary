@@ -152,9 +152,16 @@ export default function MapScreen() {
                   <View style={[styles.placeIcon, { backgroundColor: c.coralSofter }]}>
                     <Icon name="heart" size={16} color={c.primary} />
                   </View>
-                  <Text style={styles.placeName} numberOfLines={1}>
-                    {name}
-                  </Text>
+                  <View style={{ flex: 1 }}>
+                    {nicknames[name] ? (
+                      <>
+                        <Text style={styles.placeName} numberOfLines={1}>{nicknames[name]}</Text>
+                        <Text style={styles.placeSubName} numberOfLines={1}>{name}</Text>
+                      </>
+                    ) : (
+                      <Text style={styles.placeName} numberOfLines={1}>{name}</Text>
+                    )}
+                  </View>
                   {counts[name] >= 2 && (
                     <View style={[styles.countPill, { backgroundColor: c.coralSofter }]}>
                       <Text style={[styles.countPillText, { color: c.primary }]}>{counts[name]}회</Text>
@@ -202,10 +209,6 @@ export default function MapScreen() {
           <Text style={styles.sheetSub}>
             {`${counts[selected] || 1}개의 추억이 있는 곳이에요.`}
           </Text>
-          {/* 닫기(X) — 카드 안 오버레이(중첩 Pressable, 카드 탭과 분리) */}
-          <Pressable onPress={() => setSelected(null)} hitSlop={12} style={styles.sheetClose}>
-            <Icon name="close" size={20} color={colors.subText} />
-          </Pressable>
         </Pressable>
       )}
     </SafeAreaView>
@@ -286,8 +289,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   pillText: { ...font.body, fontWeight: '700' },
-  // 세로를 살짝 줄여 하단 여백 확보(요청).
-  body: { flex: 1, marginHorizontal: spacing.xl, marginBottom: spacing.xxl, borderRadius: radius.lg, overflow: 'hidden' },
+  // 지도 영역. 선택 카드가 뜨면 아래에 흐름 배치되어 지도가 자동으로 줄어듦(겹침 없음).
+  body: { flex: 1, marginHorizontal: spacing.xl, marginBottom: spacing.md, borderRadius: radius.lg, overflow: 'hidden' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   emptyTitle: { ...font.title },
   emptySub: { ...font.body, color: colors.subText, marginTop: spacing.xs, textAlign: 'center' },
@@ -303,18 +306,18 @@ const styles = StyleSheet.create({
     ...shadow,
   },
   placeIcon: { width: 32, height: 32, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
-  placeName: { ...font.title, flex: 1 },
+  placeName: { ...font.title },
+  placeSubName: { ...font.caption, color: colors.subText, marginTop: 1 },
   countPill: { borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 3 },
   countPillText: { ...font.caption, fontWeight: '800' },
+  // 지도 아래 흐름 배치 카드(지도와 겹치지 않도록 — 지도 body가 flex로 줄어듦).
   sheet: {
-    position: 'absolute',
-    left: spacing.lg,
-    right: spacing.lg,
-    bottom: spacing.lg,
+    marginHorizontal: spacing.xl,
+    marginTop: spacing.sm,
+    marginBottom: spacing.lg,
     backgroundColor: colors.card,
     borderRadius: radius.lg,
     padding: spacing.lg,
-    paddingRight: spacing.xl + 20, // X 자리 확보
     ...shadow,
   },
   // 탭 눌림 효과(요청): 살짝 작아지고 흐려짐.
@@ -323,5 +326,4 @@ const styles = StyleSheet.create({
   sheetTitle: { ...font.h2 },
   sheetPlaceName: { ...font.caption, color: colors.subText, marginTop: 1 },
   sheetSub: { ...font.body, color: colors.subText, marginTop: spacing.sm },
-  sheetClose: { position: 'absolute', top: spacing.md, right: spacing.md, padding: 2 },
 });
