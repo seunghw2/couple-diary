@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스토리보드 ③ · 답장 쓰기</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#EFEAE6;
+    font-family:system-ui, -apple-system, sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    min-height:100vh; padding:32px 0;
+  }
+  .caption { text-align:center; margin-bottom:14px; }
+  .caption .num { color:#F47C63; font-weight:800; font-size:16px; }
+  .caption .txt { color:#3B2D28; font-weight:800; font-size:16px; }
+  .phone {
+    width:390px; height:844px;
+    background:#1c1c1e; border-radius:56px;
+    padding:14px; box-shadow:0 20px 50px rgba(0,0,0,.28);
+  }
+  .screen {
+    width:100%; height:100%;
+    background:#FBF3EE; border-radius:44px;
+    overflow:hidden; position:relative;
+    display:flex; flex-direction:column;
+    font-family:Georgia, 'Times New Roman', serif;
+  }
+  /* status bar */
+  .statusbar {
+    height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px; font-family:system-ui; font-weight:600; font-size:15px; color:#3B2D28;
+    flex-shrink:0;
+  }
+  .statusbar .icons { display:flex; gap:6px; align-items:center; }
+  .dot-sig { width:16px; height:11px; background:#3B2D28; border-radius:2px; }
+  .battery { width:22px; height:11px; border:1.5px solid #3B2D28; border-radius:3px; position:relative; }
+  .battery::after { content:''; position:absolute; right:-3px; top:3px; width:2px; height:5px; background:#3B2D28; border-radius:1px; }
+  .battery i { position:absolute; left:1.5px; top:1.5px; bottom:1.5px; width:13px; background:#3B2D28; border-radius:1px; }
+  /* nav */
+  .nav {
+    display:flex; align-items:center; padding:6px 18px 10px; flex-shrink:0;
+    font-family:system-ui;
+  }
+  .back { font-size:30px; color:#F47C63; font-weight:400; line-height:1; cursor:pointer; }
+  .nav-title { font-family:Georgia, serif; font-weight:800; font-size:17px; color:#3B2D28; margin-left:6px; }
+  .logo-mini { margin-left:auto; font-family:Georgia,serif; font-weight:800; font-size:13px; color:#9B8B84; }
+  .logo-mini b { color:#F47C63; }
+  /* body scroll */
+  .content { flex:1; overflow-y:auto; padding:6px 20px 24px; }
+  /* summary */
+  .summary {
+    background:#FFF1EC; border-radius:18px; padding:16px 18px; margin-bottom:18px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+  }
+  .summary .lead { font-family:system-ui; font-size:12px; color:#9B8B84; font-weight:600; margin-bottom:8px; letter-spacing:.3px; }
+  .summary .q { font-size:18px; line-height:1.5; color:#3B2D28; font-weight:700; }
+  .badge {
+    display:inline-flex; align-items:center; gap:4px; margin-top:12px;
+    background:#FFE7DF; color:#F47C63; font-family:system-ui; font-weight:700;
+    font-size:12px; padding:5px 11px; border-radius:20px;
+  }
+  /* letter paper */
+  .letter {
+    background:#FFFFFF; border-radius:22px; padding:24px 22px 20px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12); position:relative;
+    margin-bottom:16px;
+  }
+  .letter .head {
+    font-family:system-ui; font-size:11px; color:#9B8B84; font-weight:600;
+    margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .letter .head .from { color:#F47C63; font-weight:700; }
+  .lines { }
+  .line {
+    height:34px; border-bottom:1px solid #FFE7DF;
+    display:flex; align-items:flex-end; padding-bottom:6px;
+    font-size:16px; color:#3B2D28; line-height:1;
+  }
+  .line.empty { color:transparent; }
+  .cursor {
+    display:inline-block; width:2px; height:19px; background:#F47C63;
+    margin-left:2px; vertical-align:bottom;
+    animation:blink 1s step-start infinite;
+  }
+  @keyframes blink { 50% { opacity:0; } }
+  /* status pill */
+  .status-row { display:flex; gap:8px; margin-bottom:22px; font-family:system-ui; }
+  .pill {
+    display:inline-flex; align-items:center; gap:6px;
+    background:#FFF1EC; border:1px solid #FFE7DF; color:#9B8B84;
+    font-size:12px; font-weight:600; padding:7px 12px; border-radius:20px;
+  }
+  .pill .who { color:#3B2D28; font-weight:700; }
+  /* seal button */
+  .seal-btn {
+    width:100%; background:#F47C63; border:none; border-radius:18px;
+    padding:17px; font-family:Georgia, serif; font-weight:800; font-size:17px;
+    color:#fff; display:flex; align-items:center; justify-content:center; gap:8px;
+    box-shadow:0 8px 20px rgba(244,124,99,.35); cursor:pointer;
+    position:relative;
+  }
+  .wax {
+    width:26px; height:26px; background:#D8543C; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; color:#FFE7DF;
+    font-size:13px; box-shadow:inset 0 -2px 3px rgba(0,0,0,.2);
+  }
+  .note {
+    font-family:system-ui; text-align:center; font-size:11.5px; color:#9B8B84;
+    margin-top:11px; line-height:1.4;
+  }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <span class="num">스토리보드 ③</span> <span class="txt">· 답장 쓰기</span>
+  </div>
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="icons">
+          <span class="dot-sig"></span>
+          <span style="font-family:system-ui;font-size:12px;">5G</span>
+          <span class="battery"><i></i></span>
+        </span>
+      </div>
+      <div class="nav">
+        <span class="back">‹</span>
+        <span class="nav-title">답장 쓰기</span>
+        <span class="logo-mini">love today <b>♥</b></span>
+      </div>
+      <div class="content">
+        <div class="summary">
+          <div class="lead">오늘의 편지가 정해졌어요</div>
+          <div class="q">요즘 나를 가장 웃게 한 순간은 언제였어?</div>
+          <div class="badge">♥ 지훈이 골랐어요</div>
+        </div>
+
+        <div class="letter">
+          <div class="head">
+            <span>나의 답장</span>
+            <span class="from">from. 수현</span>
+          </div>
+          <div class="lines">
+            <div class="line">지난 주말에 같이 본 영화가 너무 웃겨서,</div>
+            <div class="line">네가 팝콘 흘리면서 웃던 그 모습이<span class="cursor"></span></div>
+            <div class="line empty">·</div>
+            <div class="line empty">·</div>
+            <div class="line empty">·</div>
+          </div>
+        </div>
+
+        <div class="status-row">
+          <span class="pill"><span class="who">지훈</span> · 아직 답장 전</span>
+        </div>
+
+        <button class="seal-btn">
+          <span class="wax">♥</span>
+          답장 봉인하기
+        </button>
+        <div class="note">봉인하면 수정은 잠시 뒤부터 가능해요</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

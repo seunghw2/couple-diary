@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스토리보드 ⑧ · 도착 전 & 지나간 편지</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    background:#EFEAE6;
+    font-family: system-ui, -apple-system, sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding:40px 0 60px;
+  }
+  .caption { text-align:center; margin-bottom:14px; }
+  .caption .num { color:#F47C63; font-weight:800; font-size:16px; }
+  .caption .txt { color:#3B2D28; font-weight:800; font-size:16px; }
+
+  .phone {
+    width:390px; height:844px; background:#1c1c1e;
+    border-radius:56px; padding:14px;
+    box-shadow:0 20px 60px rgba(0,0,0,.28);
+  }
+  .screen {
+    width:100%; height:100%; background:#FBF3EE;
+    border-radius:44px; overflow:hidden; position:relative;
+    display:flex; flex-direction:column;
+  }
+  .statusbar {
+    height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 26px; font-size:15px; font-weight:700; color:#3B2D28; flex:none;
+  }
+  .statusbar .icons { display:flex; gap:6px; align-items:center; font-size:13px; }
+
+  .header {
+    text-align:center; padding:8px 0 14px; flex:none;
+  }
+  .header .logo { font-family:Georgia,serif; font-size:20px; font-weight:800; color:#3B2D28; }
+  .header .logo .h { color:#F47C63; }
+  .header .sub { font-size:12px; color:#9B8B84; margin-top:3px; letter-spacing:2px; }
+
+  .scroll { flex:1; overflow-y:auto; padding:6px 22px 20px; }
+
+  .seclabel { font-size:11px; letter-spacing:3px; color:#9B8B84; font-weight:800; margin:10px 4px 12px; }
+
+  /* arrival (before) card */
+  .arrival {
+    background:#fff; border-radius:22px; padding:30px 22px 26px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+    text-align:center; margin-bottom:8px;
+  }
+  .envelope {
+    width:120px; height:82px; margin:0 auto 20px; position:relative;
+  }
+  .env-body {
+    position:absolute; inset:0; border-radius:8px;
+    background:#FFF1EC; border:2px solid #F47C63;
+  }
+  .env-flap {
+    position:absolute; top:0; left:0; right:0; height:0;
+    border-left:60px solid transparent; border-right:60px solid transparent;
+    border-top:44px solid #FFE7DF;
+  }
+  .env-flap:after {
+    content:""; position:absolute; top:-44px; left:-60px; width:0; height:0;
+    border-left:60px solid transparent; border-right:60px solid transparent;
+    border-top:44px solid transparent;
+    border-bottom:0;
+  }
+  .env-seal {
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:30px; height:30px; border-radius:50%; background:#F47C63; color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:14px;
+    box-shadow:0 4px 10px rgba(244,124,99,.4); z-index:2;
+  }
+  .arrival .title { font-family:Georgia,serif; font-size:19px; font-weight:800; color:#3B2D28; line-height:1.5; }
+  .arrival .when {
+    display:inline-flex; align-items:center; gap:8px; margin-top:16px;
+    background:#FFF1EC; color:#C85B44; font-weight:800; font-size:14px;
+    padding:9px 18px; border-radius:22px;
+  }
+  .arrival .count { font-size:12px; color:#9B8B84; margin-top:14px; letter-spacing:1px; }
+
+  /* passed (closed) card */
+  .passed {
+    background:#F4F0EE; border-radius:22px; padding:26px 22px 24px;
+    box-shadow:0 6px 18px rgba(150,140,135,.14);
+    text-align:center; margin-top:8px;
+    border:1.5px dashed #D9CFC9;
+  }
+  .env-gray .env-body { background:#EDE7E3; border-color:#C3B7B0; }
+  .env-gray .env-flap { border-top-color:#E0D8D3; }
+  .env-gray .env-seal { background:#B7ABA4; box-shadow:none; }
+  .passed .title { font-family:Georgia,serif; font-size:17px; font-weight:800; color:#8A7C75; line-height:1.5; }
+  .passed .desc { font-size:13px; color:#A99C95; margin-top:12px; line-height:1.6; }
+  .passed .broken {
+    display:inline-flex; align-items:center; gap:6px; margin-top:16px;
+    background:#EAE2DD; color:#9B8B84; font-weight:700; font-size:12.5px;
+    padding:8px 16px; border-radius:20px;
+  }
+  .passed .broken .x { opacity:.6; }
+
+  /* tab bar */
+  .tabbar {
+    height:78px; flex:none; background:#fff;
+    border-top:1px solid #F1E4DD;
+    display:flex; align-items:flex-start; padding-top:12px;
+    box-shadow:0 -4px 16px rgba(180,120,100,.06);
+  }
+  .tab { flex:1; text-align:center; }
+  .tab .ic { font-size:20px; line-height:1; color:#C7B8B0; }
+  .tab .lb { font-size:10.5px; margin-top:5px; color:#C7B8B0; font-weight:600; }
+  .tab.active .ic, .tab.active .lb { color:#F47C63; }
+  .tab.active .lb { font-weight:800; }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <span class="num">스토리보드 ⑧</span> <span class="txt">· 도착 전 & 지나간 편지</span>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="icons">▂▄▆ · ᯤ · ▉</span>
+      </div>
+
+      <div class="header">
+        <div class="logo">love today <span class="h">♥</span></div>
+        <div class="sub">오 늘 의 질 문</div>
+      </div>
+
+      <div class="scroll">
+        <div class="seclabel">곧 도착해요</div>
+        <div class="arrival">
+          <div class="envelope">
+            <div class="env-flap"></div>
+            <div class="env-body"></div>
+            <div class="env-seal">♥</div>
+          </div>
+          <div class="title">곧 오늘의 편지가<br>도착해요</div>
+          <div class="when">✉ 오전 8:00 도착 예정</div>
+          <div class="count">잠시 후 두 개의 질문이 찾아와요</div>
+        </div>
+
+        <div class="seclabel">지나간 편지</div>
+        <div class="passed">
+          <div class="envelope env-gray">
+            <div class="env-flap"></div>
+            <div class="env-body"></div>
+            <div class="env-seal">♥</div>
+          </div>
+          <div class="title">어제 편지는<br>지나갔어요</div>
+          <div class="desc">답장을 못 해서 열리지 않았어요.<br>둘 다 답을 남기지 못한 날이에요.</div>
+          <div class="broken"><span class="x">···</span> 연속이 멈췄어요</div>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><div class="ic">▦</div><div class="lb">달력</div></div>
+        <div class="tab"><div class="ic">◉</div><div class="lb">지도</div></div>
+        <div class="tab active"><div class="ic">✉</div><div class="lb">질문</div></div>
+        <div class="tab"><div class="ic">⚙</div><div class="lb">설정</div></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스토리보드 ⑦ · 지난 편지 상세</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    background:#EFEAE6;
+    font-family: system-ui, -apple-system, sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding:40px 0 60px;
+  }
+  .caption { text-align:center; margin-bottom:14px; }
+  .caption .num { color:#F47C63; font-weight:800; font-size:16px; }
+  .caption .txt { color:#3B2D28; font-weight:800; font-size:16px; }
+
+  .phone {
+    width:390px; height:844px; background:#1c1c1e;
+    border-radius:56px; padding:14px;
+    box-shadow:0 20px 60px rgba(0,0,0,.28);
+  }
+  .screen {
+    width:100%; height:100%; background:#FBF3EE;
+    border-radius:44px; overflow:hidden; position:relative;
+    display:flex; flex-direction:column;
+  }
+  .statusbar {
+    height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 26px; font-size:15px; font-weight:700; color:#3B2D28; flex:none;
+  }
+  .statusbar .icons { display:flex; gap:6px; align-items:center; font-size:13px; }
+
+  .topbar {
+    display:flex; align-items:center; gap:8px;
+    padding:6px 18px 10px; flex:none;
+  }
+  .back { font-size:28px; color:#F47C63; font-weight:800; line-height:1; cursor:pointer; }
+  .topbar .logo { font-family:Georgia,serif; font-size:16px; font-weight:800; color:#3B2D28; margin-left:auto; margin-right:auto; opacity:.85; }
+  .topbar .spacer { width:20px; }
+
+  .scroll { flex:1; overflow-y:auto; padding:6px 22px 26px; }
+
+  .datehead { text-align:center; margin:6px 0 20px; }
+  .datehead .d { font-family:Georgia,serif; font-size:26px; font-weight:800; color:#3B2D28; letter-spacing:.5px; }
+  .datehead .w { font-size:13px; color:#9B8B84; margin-top:4px; letter-spacing:2px; }
+  .datehead .rule { width:44px; height:2px; background:#F47C63; margin:12px auto 0; border-radius:2px; opacity:.7; }
+
+  /* question card */
+  .qcard {
+    background:#fff; border-radius:22px; padding:22px 20px 20px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+    position:relative; margin-bottom:22px;
+  }
+  .qlabel { font-size:11px; letter-spacing:3px; color:#F47C63; font-weight:800; margin-bottom:10px; }
+  .qtext { font-family:Georgia,serif; font-size:19px; line-height:1.5; color:#3B2D28; font-weight:700; }
+  .picked {
+    display:inline-flex; align-items:center; gap:6px;
+    background:#FFE7DF; color:#C85B44; font-size:12px; font-weight:800;
+    padding:6px 12px; border-radius:20px; margin-top:14px;
+  }
+  .picked .dot { width:16px; height:16px; border-radius:50%; background:#F47C63; color:#fff; font-size:10px; display:flex; align-items:center; justify-content:center; }
+
+  /* letters */
+  .lettersec { display:flex; flex-direction:column; gap:18px; }
+  .letter {
+    background:#fff; border-radius:22px; padding:20px 20px 18px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+    position:relative;
+    background-image:repeating-linear-gradient(#fff 0, #fff 31px, #F3E4DC 31px, #F3E4DC 32px);
+    background-position:0 54px;
+  }
+  .letter .who { display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+  .avatar { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; }
+  .a-jieun { background:#F47C63; }
+  .a-me { background:#C89B7B; }
+  .who .name { font-size:14px; font-weight:800; color:#3B2D28; }
+  .who .time { font-size:11px; color:#9B8B84; margin-left:auto; }
+  .letter .body { font-size:14.5px; line-height:32px; color:#3B2D28; font-family:Georgia,serif; }
+  .react {
+    margin-top:14px; display:inline-flex; align-items:center; gap:6px;
+    background:#FFF1EC; color:#C85B44; font-size:12px; font-weight:700;
+    padding:6px 12px; border-radius:18px;
+  }
+  .seal {
+    position:absolute; right:16px; bottom:14px;
+    width:34px; height:34px; border-radius:50%;
+    background:#F47C63; color:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:15px; box-shadow:0 4px 10px rgba(244,124,99,.4);
+  }
+
+  /* footer info */
+  .streakinfo {
+    margin-top:22px; text-align:center;
+    background:#FFF1EC; border-radius:20px; padding:16px 18px;
+  }
+  .streakinfo .heart { font-size:15px; }
+  .streakinfo .txt { font-size:13px; color:#9B8B84; margin-top:6px; }
+  .streakinfo .big { color:#F47C63; font-weight:800; }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <span class="num">스토리보드 ⑦</span> <span class="txt">· 지난 편지 상세</span>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="icons">▂▄▆ · ᯤ · ▉</span>
+      </div>
+
+      <div class="topbar">
+        <span class="back">‹</span>
+        <span class="logo">love today ♥</span>
+        <span class="spacer"></span>
+      </div>
+
+      <div class="scroll">
+        <div class="datehead">
+          <div class="d">6월 30일</div>
+          <div class="w">M O N D A Y</div>
+          <div class="rule"></div>
+        </div>
+
+        <div class="qcard">
+          <div class="qlabel">오늘의 질문</div>
+          <div class="qtext">요즘 가장 자주 떠오르는 우리의 순간은 언제야?</div>
+          <div class="picked"><span class="dot">지</span> 지은이 골랐어요</div>
+        </div>
+
+        <div class="lettersec">
+          <div class="letter">
+            <div class="who">
+              <span class="avatar a-jieun">지</span>
+              <span class="name">지은</span>
+              <span class="time">오전 9:12</span>
+            </div>
+            <div class="body">지난 주말에 비 오는데 우산 하나로 같이 걷던 거. 어깨 다 젖었는데도 자꾸 웃음이 났어. 그 골목 냄새까지 기억나.</div>
+            <div class="react">♥ 나의 반응</div>
+            <div class="seal">♥</div>
+          </div>
+
+          <div class="letter">
+            <div class="who">
+              <span class="avatar a-me">나</span>
+              <span class="name">나</span>
+              <span class="time">오후 10:47</span>
+            </div>
+            <div class="body">나는 네가 아침에 눈 반쯤 감고 "조금만 더" 하던 순간. 별거 아닌데 하루 종일 그 얼굴이 떠올라.</div>
+            <div class="react">♥ 지은의 반응</div>
+            <div class="seal">♥</div>
+          </div>
+        </div>
+
+        <div class="streakinfo">
+          <span class="heart">♥</span>
+          <div class="txt">이날은 우리가 <span class="big">연속 12일째</span> 편지를 주고받은 날이었어요</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

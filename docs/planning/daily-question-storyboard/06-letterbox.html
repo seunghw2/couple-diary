@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스토리보드 ⑥ · 지난 편지함</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    background:#EFEAE6;
+    font-family: system-ui, -apple-system, sans-serif;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100vh; padding:32px 0;
+  }
+  .caption { text-align:center; margin-bottom:14px; }
+  .caption .no { color:#F47C63; font-weight:800; font-size:16px; }
+  .caption .txt { color:#3B2D28; font-weight:800; font-size:16px; }
+
+  .phone {
+    width:390px; height:844px; background:#FBF3EE;
+    border:44px solid #1c1c1e; border-radius:66px;
+    position:relative; overflow:hidden;
+    box-shadow:0 20px 50px rgba(0,0,0,.3);
+  }
+  .statusbar {
+    height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 26px; font-size:15px; font-weight:700; color:#3B2D28;
+    position:absolute; top:0; left:0; right:0; z-index:5;
+  }
+  .statusbar .icons { display:flex; gap:6px; align-items:center; }
+  .statusbar .bat { width:22px; height:11px; border:1.5px solid #3B2D28; border-radius:3px; position:relative; }
+  .statusbar .bat::after { content:''; position:absolute; left:1.5px; top:1.5px; bottom:1.5px; width:15px; background:#3B2D28; border-radius:1px; }
+
+  .screen { position:absolute; top:44px; left:0; right:0; bottom:0; display:flex; flex-direction:column; }
+
+  .navbar {
+    display:flex; align-items:center; padding:10px 20px 6px; flex-shrink:0;
+    position:relative;
+  }
+  .back { font-size:28px; font-weight:400; color:#F47C63; line-height:1; width:30px; }
+  .navtitle {
+    position:absolute; left:0; right:0; text-align:center;
+    font-size:16px; font-weight:800; color:#3B2D28; pointer-events:none;
+  }
+
+  .content { flex:1; overflow-y:auto; padding:6px 20px 26px; }
+  .content::-webkit-scrollbar { display:none; }
+
+  /* 요약 카드 */
+  .summary {
+    background:#fff; border-radius:22px; padding:20px 20px 18px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+    text-align:center; margin-bottom:18px;
+  }
+  .summary .heart { font-size:22px; color:#F47C63; }
+  .summary-stats { display:flex; justify-content:center; gap:26px; margin-top:8px; }
+  .stat .num { font-size:24px; font-weight:800; color:#3B2D28; }
+  .stat .lb { font-size:11px; color:#9B8B84; font-weight:600; margin-top:2px; }
+  .stat .num .u { font-size:13px; font-weight:700; color:#9B8B84; }
+  .badge-mini {
+    display:inline-flex; align-items:center; gap:6px; margin-top:14px;
+    background:#FFF1EC; color:#F47C63; font-size:12px; font-weight:800;
+    padding:7px 14px; border-radius:999px;
+    border:1px dashed #F9B6A5;
+  }
+
+  .list-label { font-size:12px; font-weight:800; color:#9B8B84; letter-spacing:1px; margin:2px 4px 10px; }
+
+  /* 리스트 */
+  .item {
+    display:flex; align-items:center; gap:13px;
+    background:#fff; border-radius:18px; padding:14px 16px;
+    box-shadow:0 8px 24px rgba(180,120,100,.10);
+    margin-bottom:11px; position:relative;
+  }
+  .item .date { flex-shrink:0; text-align:center; width:44px; }
+  .item .date .d { font-size:19px; font-weight:800; color:#3B2D28; line-height:1; }
+  .item .date .m { font-size:10px; color:#9B8B84; font-weight:700; margin-top:3px; }
+  .item .body { flex:1; min-width:0; }
+  .item .q {
+    font-family: Georgia, serif; font-size:14px; color:#3B2D28; font-weight:600;
+    line-height:1.35; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .item .meta { font-size:11px; color:#9B8B84; margin-top:4px; }
+  .item .env {
+    flex-shrink:0; width:38px; height:30px; border-radius:6px;
+    background:#FFE7DF; position:relative;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .item .env::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:16px;
+    background:linear-gradient(135deg, transparent 48%, #F9C7B8 48%, #F9C7B8 52%, transparent 52%),
+               linear-gradient(45deg, transparent 48%, #F9C7B8 48%, #F9C7B8 52%, transparent 52%);
+    border-radius:6px 6px 0 0;
+  }
+  .item .env .hh { font-size:12px; color:#F47C63; z-index:1; }
+
+  /* 마감·지나간 편지 */
+  .item.missed { opacity:.5; box-shadow:0 4px 12px rgba(180,120,100,.06); }
+  .item.missed .env { background:#EEE7E2; }
+  .item.missed .env .hh { color:#B9ABA3; }
+  .item.missed .q { color:#9B8B84; font-weight:500; }
+  .item.missed .tag {
+    display:inline-block; margin-top:4px; font-size:10px; font-weight:700;
+    color:#B0A199; background:#F1EAE5; padding:2px 7px; border-radius:6px;
+  }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <span class="no">스토리보드 ⑥</span> <span class="txt">· 지난 편지함</span>
+  </div>
+
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">
+        <span style="font-size:13px;">●●●</span>
+        <span style="font-size:13px;">📶</span>
+        <span class="bat"></span>
+      </span>
+    </div>
+
+    <div class="screen">
+      <div class="navbar">
+        <span class="back">‹</span>
+        <span class="navtitle">지난 편지함</span>
+      </div>
+
+      <div class="content">
+        <div class="summary">
+          <div class="heart">♥</div>
+          <div class="summary-stats">
+            <div class="stat"><div class="num">148<span class="u">통</span></div><div class="lb">함께 쓴 편지</div></div>
+            <div class="stat"><div class="num">24<span class="u">일</span></div><div class="lb">연속 편지</div></div>
+          </div>
+          <div class="badge-mini">✦ 100번째 편지 ♥</div>
+        </div>
+
+        <div class="list-label">지난 편지들</div>
+
+        <div class="item">
+          <div class="date"><div class="d">01</div><div class="m">7월</div></div>
+          <div class="body">
+            <div class="q">요즘 가장 고마웠던 순간은?</div>
+            <div class="meta">둘 다 답함</div>
+          </div>
+          <div class="env"><span class="hh">♥</span></div>
+        </div>
+
+        <div class="item">
+          <div class="date"><div class="d">30</div><div class="m">6월</div></div>
+          <div class="body">
+            <div class="q">서로에게 배우고 싶은 점은?</div>
+            <div class="meta">둘 다 답함</div>
+          </div>
+          <div class="env"><span class="hh">♥</span></div>
+        </div>
+
+        <div class="item missed">
+          <div class="date"><div class="d">29</div><div class="m">6월</div></div>
+          <div class="body">
+            <div class="q">오늘 하루 어땠어?</div>
+            <div class="tag">지나간 편지 · 마감</div>
+          </div>
+          <div class="env"><span class="hh">♡</span></div>
+        </div>
+
+        <div class="item">
+          <div class="date"><div class="d">28</div><div class="m">6월</div></div>
+          <div class="body">
+            <div class="q">우리 첫 만남 기억나는 장면은?</div>
+            <div class="meta">둘 다 답함</div>
+          </div>
+          <div class="env"><span class="hh">♥</span></div>
+        </div>
+
+        <div class="item">
+          <div class="date"><div class="d">27</div><div class="m">6월</div></div>
+          <div class="body">
+            <div class="q">요즘 나에게 가장 위로가 된 말은?</div>
+            <div class="meta">둘 다 답함</div>
+          </div>
+          <div class="env"><span class="hh">♥</span></div>
+        </div>
+
+        <div class="item missed">
+          <div class="date"><div class="d">26</div><div class="m">6월</div></div>
+          <div class="body">
+            <div class="q">이번 주 가장 웃겼던 일은?</div>
+            <div class="tag">지나간 편지 · 마감</div>
+          </div>
+          <div class="env"><span class="hh">♡</span></div>
+        </div>
+
+        <div class="item">
+          <div class="date"><div class="d">25</div><div class="m">6월</div></div>
+          <div class="body">
+            <div class="q">다음 여행은 어디로 가고 싶어?</div>
+            <div class="meta">둘 다 답함</div>
+          </div>
+          <div class="env"><span class="hh">♥</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

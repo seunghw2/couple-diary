@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스토리보드 ① · 선택</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #EFEAE6;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0 60px;
+    min-height: 100vh;
+  }
+  .caption {
+    text-align: center;
+    margin-bottom: 18px;
+  }
+  .caption .num {
+    color: #F47C63;
+    font-weight: 800;
+    font-size: 16px;
+  }
+  .caption .title {
+    color: #3B2D28;
+    font-weight: 800;
+    font-size: 16px;
+  }
+  .caption .sub {
+    color: #9B8B84;
+    font-size: 14px;
+    margin-top: 4px;
+  }
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #1c1c1e;
+    border-radius: 56px;
+    padding: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    position: relative;
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: #FBF3EE;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .statusbar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #3B2D28;
+    flex-shrink: 0;
+  }
+  .statusbar .right { letter-spacing: 2px; }
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 24px 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+  .logo {
+    font-weight: 800;
+    font-size: 20px;
+    color: #F47C63;
+    font-family: Georgia, serif;
+  }
+  .streak {
+    background: #FFE7DF;
+    color: #F47C63;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 20px;
+  }
+  .header-block { margin-bottom: 24px; }
+  .header-block h1 {
+    font-family: Georgia, serif;
+    font-weight: 800;
+    font-size: 24px;
+    color: #3B2D28;
+    line-height: 1.35;
+  }
+  .header-block p {
+    color: #9B8B84;
+    font-size: 15px;
+    margin-top: 8px;
+  }
+  .envelope {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 8px 24px rgba(180,120,100,.12);
+    padding: 22px 22px 20px;
+    margin-bottom: 18px;
+    position: relative;
+    border: 2px solid transparent;
+  }
+  .envelope.selected {
+    border-color: #F47C63;
+    box-shadow: 0 8px 28px rgba(244,124,99,.22);
+  }
+  .env-flap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .seal {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #F47C63;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(244,124,99,.4);
+  }
+  .env-label {
+    font-size: 12px;
+    color: #9B8B84;
+    font-weight: 600;
+    letter-spacing: .5px;
+  }
+  .env-preview {
+    font-family: Georgia, serif;
+    font-size: 18px;
+    color: #3B2D28;
+    line-height: 1.5;
+    background-image: repeating-linear-gradient(#fff, #fff 30px, #F4E3DB 31px);
+    padding-bottom: 4px;
+  }
+  .check {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #F47C63;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .fade-note {
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: #C0AFA8;
+    font-style: italic;
+  }
+  .cta {
+    margin: 8px 0 20px;
+    background: #F47C63;
+    color: #fff;
+    text-align: center;
+    font-weight: 800;
+    font-size: 17px;
+    padding: 18px;
+    border-radius: 18px;
+    box-shadow: 0 8px 20px rgba(244,124,99,.32);
+  }
+  .tabbar {
+    height: 78px;
+    background: #fff;
+    border-top: 1px solid #F1E6E0;
+    display: flex;
+    align-items: flex-start;
+    padding-top: 12px;
+    flex-shrink: 0;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    color: #C4B5AE;
+    font-size: 11px;
+    position: relative;
+  }
+  .tab .ic { font-size: 22px; display: block; margin-bottom: 3px; }
+  .tab.active { color: #F47C63; font-weight: 700; }
+  .badge {
+    position: absolute;
+    top: -2px;
+    right: 50%;
+    margin-right: -18px;
+    width: 8px;
+    height: 8px;
+    background: #F47C63;
+    border-radius: 50%;
+    border: 1.5px solid #fff;
+  }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <div><span class="num">스토리보드 ①</span> <span class="title">· 선택(내가 먼저 봄)</span></div>
+    <div class="sub">오늘 도착한 두 통 중 하나만 고르는 화면</div>
+  </div>
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="right">●●● ▮</span>
+      </div>
+      <div class="content">
+        <div class="topbar">
+          <div class="logo">love today ♥</div>
+          <div class="streak">♥ 24일</div>
+        </div>
+        <div class="header-block">
+          <h1>오늘 두 통의 편지가<br>왔어요</h1>
+          <p>하나만 골라요 · 나머지는 오늘 사라져요</p>
+        </div>
+
+        <div class="envelope selected">
+          <div class="check">✓</div>
+          <div class="env-flap">
+            <div class="seal">♥</div>
+            <div class="env-label">오늘의 질문 · 1</div>
+          </div>
+          <div class="env-preview">요즘 나를 가장 웃게 한 순간은?</div>
+        </div>
+
+        <div class="envelope">
+          <div class="env-flap">
+            <div class="seal">♥</div>
+            <div class="env-label">오늘의 질문 · 2</div>
+          </div>
+          <div class="env-preview">우리가 처음 만난 날, 기억나는 장면은?</div>
+          <div class="fade-note">고르면 오늘은 사라져요</div>
+        </div>
+
+        <div class="cta">오늘의 편지로 정하기</div>
+      </div>
+      <div class="tabbar">
+        <div class="tab"><span class="ic">📅</span>달력</div>
+        <div class="tab"><span class="ic">🗺</span>지도</div>
+        <div class="tab active"><span class="ic">✉</span>질문<span class="badge"></span></div>
+        <div class="tab"><span class="ic">⚙</span>설정</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

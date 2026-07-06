@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스토리보드 ⑤ · 편지 열림</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    background:#EFEAE6;
+    font-family: system-ui, -apple-system, sans-serif;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100vh; padding:32px 0;
+  }
+  .caption { text-align:center; margin-bottom:14px; }
+  .caption .no { color:#F47C63; font-weight:800; font-size:16px; }
+  .caption .txt { color:#3B2D28; font-weight:800; font-size:16px; }
+
+  .phone {
+    width:390px; height:844px; background:#FBF3EE;
+    border:44px solid #1c1c1e; border-radius:66px;
+    position:relative; overflow:hidden;
+    box-shadow:0 20px 50px rgba(0,0,0,.3);
+  }
+  .statusbar {
+    height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 26px; font-size:15px; font-weight:700; color:#3B2D28;
+    position:absolute; top:0; left:0; right:0; z-index:5;
+  }
+  .statusbar .icons { display:flex; gap:6px; align-items:center; }
+  .statusbar .bat { width:22px; height:11px; border:1.5px solid #3B2D28; border-radius:3px; position:relative; }
+  .statusbar .bat::after { content:''; position:absolute; left:1.5px; top:1.5px; bottom:1.5px; width:15px; background:#3B2D28; border-radius:1px; }
+
+  .screen { position:absolute; top:44px; left:0; right:0; bottom:0; display:flex; flex-direction:column; }
+
+  .header {
+    padding:12px 22px 8px; text-align:center; flex-shrink:0;
+  }
+  .logo { font-size:18px; font-weight:800; color:#F47C63; letter-spacing:.3px; }
+  .logo span { color:#3B2D28; }
+
+  .content { flex:1; overflow-y:auto; padding:8px 20px 18px; }
+
+  /* 오늘의 질문 카드 */
+  .q-card {
+    background:#fff; border-radius:22px; padding:20px 20px 18px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+    text-align:center; position:relative; margin-bottom:14px;
+  }
+  .q-label { font-size:11px; font-weight:800; color:#F47C63; letter-spacing:2px; margin-bottom:10px; }
+  .q-text {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size:19px; font-weight:700; color:#3B2D28; line-height:1.5;
+  }
+  .q-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    margin-top:14px; background:#FFF1EC; color:#F47C63;
+    font-size:12px; font-weight:700; padding:6px 13px; border-radius:999px;
+  }
+  .q-badge .dot { width:15px; height:15px; border-radius:50%; background:#F47C63; color:#fff; font-size:9px; display:flex; align-items:center; justify-content:center; font-weight:800; }
+
+  /* 축하 줄 */
+  .celebrate {
+    text-align:center; font-size:12px; color:#9B8B84; font-weight:600;
+    margin:2px 0 16px; letter-spacing:.2px;
+  }
+  .celebrate .hl { color:#F47C63; font-weight:800; }
+
+  /* 편지지 두 장 */
+  .letters { display:flex; flex-direction:column; gap:14px; }
+  .letter {
+    background:#fff; border-radius:22px; padding:18px 18px 14px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+    position:relative;
+    background-image: repeating-linear-gradient(#fff 0 30px, #FFE7DF 30px 31px);
+  }
+  .letter-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .writer { display:flex; align-items:center; gap:8px; }
+  .avatar { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; }
+  .avatar.j { background:#F47C63; }
+  .avatar.me { background:#C9A08E; }
+  .writer .name { font-size:14px; font-weight:800; color:#3B2D28; }
+  .writer .time { font-size:11px; color:#9B8B84; margin-top:1px; }
+  .letter-body {
+    font-family: Georgia, serif; font-size:14px; line-height:31px; color:#3B2D28;
+    padding-top:2px;
+  }
+  .react-pill {
+    display:inline-flex; align-items:center; gap:5px; margin-top:12px;
+    background:#FFF1EC; color:#F47C63; font-size:12px; font-weight:700;
+    padding:5px 11px; border-radius:999px;
+  }
+  .react-pill.muted { background:#F5EFEB; color:#9B8B84; }
+
+  .letterbox-link {
+    margin-top:18px; text-align:center;
+  }
+  .letterbox-link a {
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:13px; font-weight:800; color:#F47C63; text-decoration:none;
+    background:#fff; padding:11px 20px; border-radius:999px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+  }
+
+  /* 탭바 */
+  .tabbar {
+    flex-shrink:0; height:74px; background:#fff;
+    border-top:1px solid #F0E6E0;
+    display:flex; align-items:flex-start; justify-content:space-around;
+    padding-top:11px;
+  }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:3px; width:64px; }
+  .tab .ic { font-size:20px; line-height:1; color:#C9BDB6; }
+  .tab .lb { font-size:10px; font-weight:700; color:#C9BDB6; }
+  .tab.active .ic, .tab.active .lb { color:#F47C63; }
+
+  .content::-webkit-scrollbar { display:none; }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <span class="no">스토리보드 ⑤</span> <span class="txt">· 편지 열림</span>
+  </div>
+
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">
+        <span style="font-size:13px;">●●●</span>
+        <span style="font-size:13px;">📶</span>
+        <span class="bat"></span>
+      </span>
+    </div>
+
+    <div class="screen">
+      <div class="header">
+        <div class="logo">love today <span>♥</span></div>
+      </div>
+
+      <div class="content">
+        <!-- 오늘의 질문 -->
+        <div class="q-card">
+          <div class="q-label">오 늘 의 질 문</div>
+          <div class="q-text">"요즘 가장 고마웠던<br>순간은 언제였어?"</div>
+          <div class="q-badge"><span class="dot">지</span> 지훈이 오늘 질문을 골랐어요</div>
+        </div>
+
+        <div class="celebrate">오늘도 편지 완성 · <span class="hl">♥ 24일째</span></div>
+
+        <!-- 편지지 두 장 -->
+        <div class="letters">
+          <div class="letter">
+            <div class="letter-head">
+              <div class="writer">
+                <div class="avatar j">지</div>
+                <div>
+                  <div class="name">지훈</div>
+                  <div class="time">오늘 오전 8:12</div>
+                </div>
+              </div>
+            </div>
+            <div class="letter-body">
+              아침에 네가 몰래 챙겨준<br>
+              커피 한 잔. 별거 아닌데<br>
+              하루 종일 마음이 따뜻했어.
+            </div>
+            <span class="react-pill">♥ 마음에 들어요</span>
+          </div>
+
+          <div class="letter">
+            <div class="letter-head">
+              <div class="writer">
+                <div class="avatar me">나</div>
+                <div>
+                  <div class="name">나</div>
+                  <div class="time">오늘 오후 9:03</div>
+                </div>
+              </div>
+            </div>
+            <div class="letter-body">
+              네가 피곤한데도 웃으면서<br>
+              내 얘기 끝까지 들어준 거.<br>
+              그 순간이 제일 고마웠어.
+            </div>
+            <span class="react-pill muted">♡ 반응 기다리는 중</span>
+          </div>
+        </div>
+
+        <div class="letterbox-link">
+          <a href="06-letterbox.html">지난 편지함 →</a>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><span class="ic">▦</span><span class="lb">달력</span></div>
+        <div class="tab"><span class="ic">◎</span><span class="lb">지도</span></div>
+        <div class="tab active"><span class="ic">✉</span><span class="lb">질문</span></div>
+        <div class="tab"><span class="ic">⚙</span><span class="lb">설정</span></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
