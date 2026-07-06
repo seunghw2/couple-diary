@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V3 · 편지 뽑기 ② 편지 열림</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    background:#EFEAE6;
+    font-family: system-ui, -apple-system, sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    min-height:100vh; padding:32px 0;
+  }
+  .caption { text-align:center; margin-bottom:14px; }
+  .caption .v { color:#F47C63; font-weight:800; font-size:17px; }
+  .caption .t { color:#3B2D28; font-weight:800; font-size:17px; }
+  .caption .sub { color:#9B8B84; font-size:14px; margin-top:2px; }
+
+  .phone {
+    width:390px; height:844px; background:#FBF3EE;
+    border:11px solid #1c1c1e; border-radius:44px;
+    position:relative; overflow:hidden;
+    box-shadow:0 20px 50px rgba(0,0,0,.2);
+  }
+  .statusbar {
+    height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 26px; font-size:14px; font-weight:700; color:#3B2D28;
+  }
+  .statusbar .dots { letter-spacing:2px; font-size:12px; }
+
+  .header { padding:6px 26px 0; }
+  .logo { color:#F47C63; font-weight:800; font-size:16px; }
+
+  .qcard {
+    margin:16px 22px 0; background:#fff; border-radius:22px;
+    padding:20px; box-shadow:0 8px 24px rgba(180,120,100,.12);
+    border:1px solid #FFE7DF; position:relative;
+  }
+  .qlabel { font-size:11px; font-weight:800; letter-spacing:1px; color:#F47C63; text-transform:uppercase; }
+  .qtext { margin-top:8px; font-size:17px; font-weight:800; color:#3B2D28; line-height:1.5; }
+  .badge {
+    margin-top:14px; display:inline-flex; align-items:center; gap:6px;
+    background:#FFF1EC; color:#D65E47; font-size:12.5px; font-weight:700;
+    padding:7px 12px; border-radius:999px;
+  }
+  .badge .seal-mini {
+    width:16px; height:16px; border-radius:50%;
+    background:radial-gradient(circle at 38% 32%, #F98E77, #F47C63 60%, #D65E47);
+    color:#FFE7DF; font-size:9px; display:flex; align-items:center; justify-content:center;
+  }
+
+  .pair { display:flex; gap:12px; margin:18px 22px 0; }
+  .letter {
+    flex:1; background:#fff; border-radius:20px; padding:16px 15px 14px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12); border:1px solid #FFE7DF;
+    position:relative; min-height:250px; display:flex; flex-direction:column;
+  }
+  .letter.mine { background:#FFF1EC; }
+  .who {
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
+  }
+  .who .name { font-size:13px; font-weight:800; color:#3B2D28; }
+  .who .name .h { color:#F47C63; }
+  .who .time { font-size:11px; color:#9B8B84; }
+  .body { font-size:13.5px; line-height:1.65; color:#3B2D28; flex:1; }
+  .foot {
+    margin-top:10px; display:flex; align-items:center; justify-content:flex-end;
+    gap:4px; font-size:12px; color:#F47C63;
+  }
+
+  .past {
+    position:absolute; bottom:0; left:0; right:0;
+    padding:16px 22px 26px;
+    background:linear-gradient(180deg, rgba(251,243,238,0), #FBF3EE 40%);
+  }
+  .past-card {
+    background:#fff; border-radius:18px; padding:16px 18px;
+    box-shadow:0 8px 24px rgba(180,120,100,.10); border:1px solid #FFE7DF;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .past-card .l1 { font-size:15px; font-weight:800; color:#3B2D28; }
+  .past-card .l2 { font-size:12.5px; color:#9B8B84; margin-top:3px; }
+  .past-card .go { color:#F47C63; font-size:22px; font-weight:800; }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <div><span class="v">V3</span> <span class="t">· 편지 뽑기</span> &nbsp; <span class="t">② 편지 열림</span></div>
+    <div class="sub">둘 다 답하면 서로의 편지지가 나란히 열린다</div>
+  </div>
+
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="dots">●●● ▪ ▮</span>
+    </div>
+
+    <div class="header">
+      <div class="logo">love today ♥</div>
+    </div>
+
+    <div class="qcard">
+      <div class="qlabel">오늘 뽑은 질문</div>
+      <div class="qtext">우리가 처음 만난 날, 넌 나를 어떻게 봤어?</div>
+      <div class="badge"><span class="seal-mini">♥</span> 지훈이 오늘 질문을 뽑았어요</div>
+    </div>
+
+    <div class="pair">
+      <div class="letter mine">
+        <div class="who">
+          <span class="name"><span class="h">나</span></span>
+          <span class="time">오후 9:12</span>
+        </div>
+        <div class="body">그날 넌 조금 긴장한 것 같았어. 그런데 웃을 때 눈이 사라지는 게 예뻐서 계속 보게 됐어.</div>
+        <div class="foot">♥</div>
+      </div>
+
+      <div class="letter">
+        <div class="who">
+          <span class="name">지훈</span>
+          <span class="time">오후 10:03</span>
+        </div>
+        <div class="body">솔직히 첫눈에 '아 큰일났다' 싶었어. 목소리가 너무 편해서 오래 알던 사람 같았거든.</div>
+        <div class="foot">♥</div>
+      </div>
+    </div>
+
+    <div class="past">
+      <div class="past-card">
+        <div>
+          <div class="l1">지난 편지함</div>
+          <div class="l2">함께 봉인한 편지 23통 · 다시 열어보기</div>
+        </div>
+        <div class="go">→</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

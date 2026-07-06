@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V3 · 편지 뽑기 ① 밀어서 고르기</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    background:#EFEAE6;
+    font-family: system-ui, -apple-system, sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    min-height:100vh; padding:32px 0;
+  }
+  .caption { text-align:center; margin-bottom:14px; }
+  .caption .v { color:#F47C63; font-weight:800; font-size:17px; }
+  .caption .t { color:#3B2D28; font-weight:800; font-size:17px; }
+  .caption .sub { color:#9B8B84; font-size:14px; margin-top:2px; }
+
+  .phone {
+    width:390px; height:844px; background:#FBF3EE;
+    border:11px solid #1c1c1e; border-radius:44px;
+    position:relative; overflow:hidden;
+    box-shadow:0 20px 50px rgba(0,0,0,.2);
+  }
+  .statusbar {
+    height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 26px; font-size:14px; font-weight:700; color:#3B2D28;
+  }
+  .statusbar .dots { letter-spacing:2px; font-size:12px; }
+
+  .header { padding:6px 26px 0; }
+  .logo { color:#F47C63; font-weight:800; font-size:16px; letter-spacing:.2px; }
+  .prompt {
+    margin-top:14px; font-size:18px; font-weight:800; color:#3B2D28; line-height:1.4;
+  }
+  .prompt .hi { color:#F47C63; }
+
+  /* letter stack */
+  .stage { position:relative; height:300px; margin:22px 20px 0; }
+
+  .letter {
+    position:absolute; left:50%; top:24px;
+    width:250px; height:210px; background:#fff;
+    border-radius:16px; padding:20px 20px 0;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+    border:1px solid #FFE7DF;
+  }
+  .back {
+    transform: translateX(-50%) rotate(9deg) translate(28px,26px) scale(.96);
+    background:#FFF1EC; opacity:.9;
+  }
+  .back .qlabel { color:#C6A79C; }
+  .back .qtext { color:#B49A90; }
+
+  .front {
+    transform: translateX(-50%) rotate(-4deg) translateY(-14px);
+    z-index:3;
+  }
+  .qlabel { font-size:11px; font-weight:800; letter-spacing:1px; color:#F47C63; text-transform:uppercase; }
+  .qtext { margin-top:8px; font-size:16px; font-weight:700; color:#3B2D28; line-height:1.5; }
+
+  .seal {
+    position:absolute; left:50%; bottom:-22px; transform:translateX(-50%);
+    width:52px; height:52px; border-radius:50%;
+    background:radial-gradient(circle at 38% 32%, #F98E77, #F47C63 55%, #D65E47);
+    box-shadow:0 6px 14px rgba(212,94,71,.4), inset 0 -2px 4px rgba(150,50,30,.4);
+    display:flex; align-items:center; justify-content:center;
+    color:#FFE7DF; font-size:22px; z-index:4;
+    border:2px solid #ffb9a8;
+  }
+
+  .pull-hint {
+    position:absolute; right:4px; top:8px;
+    font-size:12px; color:#9B8B84; text-align:right; line-height:1.5; width:96px;
+  }
+  .pull-hint .arrow { font-size:18px; color:#F47C63; display:block; }
+
+  .reply { margin:34px 22px 0; }
+  .reply-title { font-size:13px; font-weight:800; color:#F47C63; letter-spacing:.3px; }
+  .lines {
+    margin-top:10px; background:#fff; border-radius:16px; padding:16px 18px;
+    box-shadow:0 8px 24px rgba(180,120,100,.10); border:1px solid #FFE7DF;
+  }
+  .line { height:1px; background:#F0DCD3; margin:22px 0; }
+  .line:first-child { margin-top:6px; }
+  .cursor {
+    position:relative; top:-16px; display:inline-block; width:2px; height:18px;
+    background:#F47C63; margin-left:2px; vertical-align:middle;
+    animation:blink 1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity:0; } }
+  .typed { font-size:15px; color:#3B2D28; }
+
+  .footer {
+    position:absolute; bottom:0; left:0; right:0;
+    padding:14px 22px 26px; background:linear-gradient(180deg, rgba(251,243,238,0), #FBF3EE 40%);
+  }
+  .streak {
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    font-size:13px; color:#9B8B84; margin-bottom:12px;
+  }
+  .streak .h { color:#F47C63; }
+  .btn {
+    background:#F47C63; color:#fff; text-align:center;
+    padding:16px; border-radius:16px; font-size:16px; font-weight:800;
+    box-shadow:0 8px 20px rgba(244,124,99,.35);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <div><span class="v">V3</span> <span class="t">· 편지 뽑기</span> &nbsp; <span class="t">① 밀어서 고르기</span></div>
+    <div class="sub">겹친 두 편지 중 하나를 뽑으면 밀랍이 찍힌다</div>
+  </div>
+
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="dots">●●● ▪ ▮</span>
+    </div>
+
+    <div class="header">
+      <div class="logo">love today ♥</div>
+      <div class="prompt">오늘의 편지 <span class="hi">두 통</span> · 하나를 뽑아 답장해요</div>
+    </div>
+
+    <div class="stage">
+      <div class="pull-hint">
+        <span class="arrow">↑</span>
+        밀어서<br>뽑기
+      </div>
+
+      <div class="letter back">
+        <div class="qlabel">Q · 오늘</div>
+        <div class="qtext">요즘 가장 자주 떠오르는 사람은 누구야?</div>
+      </div>
+
+      <div class="letter front">
+        <div class="qlabel">Q · 뽑은 편지</div>
+        <div class="qtext">우리가 처음 만난 날, 넌 나를 어떻게 봤어?</div>
+        <div class="seal">♥</div>
+      </div>
+    </div>
+
+    <div class="reply">
+      <div class="reply-title">답장 쓰는 중…</div>
+      <div class="lines">
+        <div class="typed">그날 넌 조금 긴장한 것 같았고,<span class="cursor"></span></div>
+        <div class="line"></div>
+        <div class="line"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="streak">나머지 한 통은 <span class="h">오늘 사라져요</span> · 함께 쓴 지 <span class="h">♥ 24일</span></div>
+      <div class="btn">답장 봉인하기 <span>♥</span></div>
+    </div>
+  </div>
+</body>
+</html>

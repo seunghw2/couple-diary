@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V1 · 두 통의 편지 ①</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, -apple-system, sans-serif; }
+  body { background:#EFEAE6; display:flex; flex-direction:column; align-items:center; padding:32px 0; min-height:100vh; }
+  .caption { text-align:center; margin-bottom:14px; }
+  .caption .tag { color:#F47C63; font-weight:800; font-size:17px; }
+  .caption .tag b { color:#3B2D28; }
+  .caption .sub { color:#3B2D28; font-size:14px; margin-top:4px; font-weight:600; }
+  .phone { width:390px; height:844px; background:#FBF3EE; border:44px solid #1c1c1e; border-radius:64px; overflow:hidden; position:relative; box-shadow:0 20px 60px rgba(0,0,0,.28); }
+  .screen { width:100%; height:100%; overflow-y:auto; position:relative; }
+  .statusbar { height:44px; display:flex; align-items:center; justify-content:space-between; padding:0 26px; font-size:15px; font-weight:700; color:#3B2D28; }
+  .statusbar .dots { letter-spacing:2px; }
+  .header { text-align:center; padding:6px 0 14px; }
+  .logo { color:#F47C63; font-weight:800; font-size:17px; letter-spacing:.3px; }
+  .datetxt { color:#9B8B84; font-size:12px; margin-top:3px; }
+  .content { padding:8px 20px 30px; }
+  .lead { text-align:center; color:#3B2D28; font-size:15px; font-weight:700; margin:6px 0 18px; }
+  .lead span { color:#F47C63; }
+
+  /* envelope row */
+  .env-row { display:flex; gap:12px; margin-bottom:18px; }
+  .env { flex:1; background:#fff; border-radius:16px; padding:16px 14px; box-shadow:0 8px 24px rgba(180,120,100,.12); position:relative; border:1.5px solid #FFE7DF; }
+  .env .flap { font-size:18px; color:#F47C63; text-align:center; margin-bottom:8px; }
+  .env .qprev { font-size:12.5px; color:#3B2D28; line-height:1.5; font-weight:600; text-align:center; }
+  .env.faded { background:#FBF3EE; box-shadow:none; opacity:.55; border-style:dashed; }
+  .env.faded .flap { color:#c9b8b0; }
+  .env .gone { text-align:center; font-size:11px; color:#B89B92; margin-top:9px; font-style:italic; }
+  .env .picked-badge { position:absolute; top:-9px; left:50%; transform:translateX(-50%); background:#F47C63; color:#fff; font-size:10px; font-weight:800; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+
+  /* opened letter (my answer) */
+  .letter { background:#fff; border-radius:22px; padding:20px 20px 18px; box-shadow:0 8px 24px rgba(180,120,100,.12); margin-bottom:14px; }
+  .letter .qlabel { font-size:11px; color:#F47C63; font-weight:800; letter-spacing:.5px; }
+  .letter .q { font-size:16px; color:#3B2D28; font-weight:800; line-height:1.45; margin:6px 0 14px; font-family:Georgia, 'Times New Roman', serif; }
+  .linepaper { background:linear-gradient(#FFF1EC,#FFF1EC) 0 0/100% 100%; border-radius:12px; padding:14px 14px 16px; position:relative; }
+  .linepaper .line { border-bottom:1px solid #FFE0D4; height:26px; display:flex; align-items:flex-end; }
+  .linepaper .writing { font-family:Georgia, serif; color:#3B2D28; font-size:14px; padding-bottom:4px; }
+  .cursor { display:inline-block; width:1.5px; height:16px; background:#F47C63; margin-left:1px; vertical-align:-3px; animation:blink 1s steps(1) infinite; }
+  @keyframes blink { 50%{opacity:0;} }
+
+  /* partner locked */
+  .partner { background:#FBF3EE; border:1.5px dashed #F3D6CC; border-radius:22px; padding:22px 18px; text-align:center; margin-bottom:22px; }
+  .partner .lockicon { font-size:26px; }
+  .partner .ptext { color:#9B8B84; font-size:13px; margin-top:8px; font-weight:600; }
+
+  .cta { background:#F47C63; color:#fff; border:none; width:100%; padding:16px; border-radius:16px; font-size:16px; font-weight:800; box-shadow:0 8px 20px rgba(244,124,99,.35); }
+  .seal { display:inline-block; margin-left:6px; }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <div class="tag">V1 <b>· 두 통의 편지 &nbsp; ① 두 질문 도착·선택</b></div>
+    <div class="sub">봉투를 열면 그 질문이 선택돼요</div>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="dots">● ● ●</span></div>
+      <div class="header">
+        <div class="logo">love today ♥</div>
+        <div class="datetxt">7월 2일 목요일</div>
+      </div>
+
+      <div class="content">
+        <div class="lead">오늘 <span>두 통</span>의 편지가 도착했어요</div>
+
+        <div class="env-row">
+          <div class="env">
+            <div class="picked-badge">내가 열었어요</div>
+            <div class="flap">✉</div>
+            <div class="qprev">우리가 처음 만난 날, 무슨 생각을 했어?</div>
+          </div>
+          <div class="env faded">
+            <div class="flap">✉</div>
+            <div class="qprev">요즘 가장 사고 싶은 게 뭐야?</div>
+            <div class="gone">오늘은 사라져요</div>
+          </div>
+        </div>
+
+        <div class="letter">
+          <div class="qlabel">오늘의 질문</div>
+          <div class="q">우리가 처음 만난 날,<br>무슨 생각을 했어?</div>
+          <div class="linepaper">
+            <div class="line"><span class="writing">사실 좀 긴장했어. 근데 네가 웃는 걸</span></div>
+            <div class="line"><span class="writing">보고 나서는 마음이 편해졌던 것 같아<span class="cursor"></span></span></div>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+        </div>
+
+        <div class="partner">
+          <div class="lockicon">🔒</div>
+          <div class="ptext">상대가 답하면 편지가 열려요</div>
+        </div>
+
+        <button class="cta">답장 봉인하기<span class="seal">♥</span></button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

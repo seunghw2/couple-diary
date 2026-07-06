@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 · 오늘의 두 질문 ②</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    background:#EFEAE6;
+    font-family: system-ui, -apple-system, "Apple SD Gothic Neo", sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    min-height:100vh; padding:32px 0;
+  }
+  .caption { text-align:center; margin-bottom:18px; }
+  .caption .top { color:#F47C63; font-weight:800; font-size:17px; letter-spacing:.2px; }
+  .caption .top b { color:#3B2D28; }
+  .caption .sub { color:#9B8B84; font-size:14px; margin-top:5px; }
+
+  .phone {
+    width:390px; height:844px; background:#1c1c1e;
+    border-radius:56px; padding:14px; position:relative;
+    box-shadow:0 24px 60px rgba(60,40,35,.35);
+  }
+  .screen {
+    width:100%; height:100%; background:#FBF3EE;
+    border-radius:44px; overflow:hidden; position:relative;
+    display:flex; flex-direction:column;
+  }
+  .statusbar {
+    height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 30px; font-size:15px; font-weight:700; color:#3B2D28; flex-shrink:0;
+  }
+  .statusbar .dots { display:flex; gap:5px; align-items:center; }
+
+  .appbar { padding:6px 24px 8px; text-align:center; flex-shrink:0; }
+  .logo { font-size:15px; font-weight:800; color:#F47C63; letter-spacing:.3px; }
+
+  /* opened question header */
+  .qhead { padding:8px 26px 4px; text-align:center; flex-shrink:0; }
+  .badge {
+    display:inline-flex; align-items:center; gap:6px;
+    background:#FFE7DF; color:#F47C63; font-size:12px; font-weight:800;
+    padding:6px 13px; border-radius:20px; margin-bottom:12px;
+  }
+  .qhead h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size:19px; font-weight:700; color:#3B2D28; line-height:1.45; letter-spacing:-.2px;
+  }
+  .opened-note { font-size:12px; color:#9B8B84; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .opened-note .seal { color:#F47C63; }
+
+  .scroll { flex:1; overflow-y:auto; padding:8px 20px 14px; }
+
+  .letter {
+    background:#ffffff; border-radius:22px;
+    box-shadow:0 8px 24px rgba(180,120,100,.12);
+    padding:0; margin-bottom:15px; overflow:hidden;
+  }
+  .letter .who {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:15px 20px 11px;
+  }
+  .letter .who .name { display:flex; align-items:center; gap:9px; font-weight:800; color:#3B2D28; font-size:14.5px; }
+  .letter .who .av {
+    width:28px; height:28px; border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center; font-size:13px; color:#fff; font-weight:800;
+  }
+  .letter .who .av.me { background:#F47C63; }
+  .letter .who .av.you { background:#C99; }
+  .letter .who .time { font-size:11.5px; color:#9B8B84; display:flex; align-items:center; gap:4px; }
+  .letter .body {
+    font-family: Georgia, serif; font-size:15px; color:#3B2D28; line-height:29px;
+    padding:6px 20px 14px;
+    background:
+      repeating-linear-gradient(transparent, transparent 28px, #FFEBE3 29px);
+  }
+  .letter .foot {
+    display:flex; align-items:center; justify-content:flex-end; gap:6px;
+    padding:9px 20px 14px; font-size:12px; color:#C9A99C;
+  }
+  .letter .foot .heart { color:#F47C63; font-size:14px; }
+  .letter.you { background:#FFF7F4; }
+
+  /* archive link */
+  .archive {
+    margin:2px 20px 6px; padding:16px 18px; border-radius:18px;
+    background:#FFF1EC; cursor:pointer;
+    display:flex; align-items:center; justify-content:space-between;
+    flex-shrink:0;
+  }
+  .archive .txt .t1 { font-size:14px; font-weight:800; color:#3B2D28; }
+  .archive .txt .t2 { font-size:12px; color:#9B8B84; margin-top:3px; }
+  .archive .arr { color:#F47C63; font-size:20px; font-weight:800; }
+
+  .homeind { width:130px; height:5px; background:#3B2D28; opacity:.22; border-radius:3px; margin:6px auto 8px; flex-shrink:0; }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <div class="top">V2 · 오늘의 두 질문 &nbsp;&nbsp;<b>② 편지 열림</b></div>
+    <div class="sub">둘 다 답하면 두 편지지가 나란히 열려요</div>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="dots"><span>●●●</span> <span>&#9207;</span> <span>&#128267;</span></span>
+      </div>
+
+      <div class="appbar">
+        <div class="logo">love today &#9829;</div>
+      </div>
+
+      <div class="qhead">
+        <div class="badge">&#9829; 지은이 오늘 질문을 골랐어요</div>
+        <h1>우리가 처음 만난 날,<br>솔직한 첫인상은 어땠어?</h1>
+        <div class="opened-note"><span class="seal">&#9829;</span> 두 편지가 모두 열렸어요</div>
+      </div>
+
+      <div class="scroll">
+
+        <!-- my letter -->
+        <div class="letter">
+          <div class="who">
+            <span class="name"><span class="av me">나</span> 나의 답장</span>
+            <span class="time">&#128337; 밤 10:24</span>
+          </div>
+          <div class="body">생각보다 말수가 적어서 조금<br>긴장했는데, 웃을 때 눈이<br>반달이 되는 게 오래 기억에<br>남았어. 그날부터 계속.</div>
+          <div class="foot"><span class="heart">&#9829;</span> 밀랍으로 봉인함</div>
+        </div>
+
+        <!-- partner letter -->
+        <div class="letter you">
+          <div class="who">
+            <span class="name"><span class="av you">지</span> 지은이의 답장</span>
+            <span class="time">&#128337; 밤 11:02</span>
+          </div>
+          <div class="body">난 네가 문 열고 들어올 때<br>괜히 딴 데 보는 척했잖아.<br>사실 그때 심장 엄청 뛰었어.<br>첫인상? 그냥 다 좋았어.</div>
+          <div class="foot"><span class="heart">&#9829;</span> 밀랍으로 봉인함</div>
+        </div>
+
+      </div>
+
+      <div class="archive">
+        <div class="txt">
+          <div class="t1">지난 편지함 &#8594;</div>
+          <div class="t2">우리가 함께 봉인한 편지 6통</div>
+        </div>
+        <div class="arr">&#8250;</div>
+      </div>
+      <div class="homeind"></div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V1 · 두 통의 편지 ②</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, -apple-system, sans-serif; }
+  body { background:#EFEAE6; display:flex; flex-direction:column; align-items:center; padding:32px 0; min-height:100vh; }
+  .caption { text-align:center; margin-bottom:14px; }
+  .caption .tag { color:#F47C63; font-weight:800; font-size:17px; }
+  .caption .tag b { color:#3B2D28; }
+  .caption .sub { color:#3B2D28; font-size:14px; margin-top:4px; font-weight:600; }
+  .phone { width:390px; height:844px; background:#FBF3EE; border:44px solid #1c1c1e; border-radius:64px; overflow:hidden; position:relative; box-shadow:0 20px 60px rgba(0,0,0,.28); }
+  .screen { width:100%; height:100%; overflow-y:auto; position:relative; }
+  .statusbar { height:44px; display:flex; align-items:center; justify-content:space-between; padding:0 26px; font-size:15px; font-weight:700; color:#3B2D28; }
+  .statusbar .dots { letter-spacing:2px; }
+  .header { text-align:center; padding:6px 0 12px; }
+  .logo { color:#F47C63; font-weight:800; font-size:17px; letter-spacing:.3px; }
+  .datetxt { color:#9B8B84; font-size:12px; margin-top:3px; }
+  .content { padding:6px 20px 30px; }
+
+  .qcard { background:#fff; border-radius:22px; padding:20px; box-shadow:0 8px 24px rgba(180,120,100,.12); text-align:center; margin-bottom:14px; }
+  .qcard .qlabel { font-size:11px; color:#F47C63; font-weight:800; letter-spacing:.5px; }
+  .qcard .q { font-size:18px; color:#3B2D28; font-weight:800; line-height:1.45; margin:8px 0 12px; font-family:Georgia, 'Times New Roman', serif; }
+  .pickbadge { display:inline-block; background:#FFE7DF; color:#C4553F; font-size:12px; font-weight:700; padding:6px 14px; border-radius:20px; }
+
+  .letters { display:flex; flex-direction:column; gap:12px; margin-bottom:20px; }
+  .letter { background:#fff; border-radius:22px; padding:16px 16px 14px; box-shadow:0 8px 24px rgba(180,120,100,.12); }
+  .letter .who { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .letter .name { font-size:13px; font-weight:800; color:#3B2D28; }
+  .letter .name .av { display:inline-block; width:20px; height:20px; border-radius:50%; text-align:center; line-height:20px; font-size:11px; color:#fff; margin-right:6px; }
+  .letter .time { font-size:11px; color:#9B8B84; }
+  .linepaper { background:#FFF1EC; border-radius:12px; padding:13px 14px; }
+  .linepaper .body { font-family:Georgia, serif; color:#3B2D28; font-size:13.5px; line-height:1.9; background-image:repeating-linear-gradient(#FFF1EC,#FFF1EC 24px,#FFE0D4 25px); }
+  .react { margin-top:10px; display:flex; align-items:center; gap:6px; }
+  .heart-pill { background:#FFE7DF; color:#F47C63; font-size:12px; font-weight:700; padding:4px 11px; border-radius:16px; }
+
+  .avA { background:#F47C63; }
+  .avB { background:#B58BA0; }
+
+  .archive { background:#fff; border-radius:22px; padding:16px 18px; box-shadow:0 8px 24px rgba(180,120,100,.12); }
+  .archive .atitle { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .archive .atitle b { font-size:14px; color:#3B2D28; font-weight:800; }
+  .archive .atitle .arrow { font-size:13px; color:#F47C63; font-weight:700; }
+  .arow { display:flex; align-items:center; gap:10px; padding:9px 0; border-top:1px solid #F5E7E1; }
+  .arow .dot { color:#F47C63; font-size:13px; }
+  .arow .atext { flex:1; font-size:12.5px; color:#3B2D28; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .arow .adate { font-size:11px; color:#9B8B84; }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <div class="tag">V1 <b>· 두 통의 편지 &nbsp; ② 편지 열림</b></div>
+    <div class="sub">둘 다 답해서 두 편지지가 나란히 공개됐어요</div>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="dots">● ● ●</span></div>
+      <div class="header">
+        <div class="logo">love today ♥</div>
+        <div class="datetxt">7월 2일 목요일</div>
+      </div>
+
+      <div class="content">
+        <div class="qcard">
+          <div class="qlabel">오늘의 질문</div>
+          <div class="q">우리가 처음 만난 날,<br>무슨 생각을 했어?</div>
+          <div class="pickbadge">✉ 지훈이 오늘 질문을 골랐어요</div>
+        </div>
+
+        <div class="letters">
+          <div class="letter">
+            <div class="who">
+              <div class="name"><span class="av avB">지</span>지훈의 편지</div>
+              <div class="time">오전 8:12</div>
+            </div>
+            <div class="linepaper">
+              <div class="body">사실 좀 긴장했어. 근데 네가 웃는 걸 보고 나서는 마음이 편해졌던 것 같아. 그날부터 계속 생각났어.</div>
+            </div>
+            <div class="react"><span class="heart-pill">♥ 너무 좋아</span></div>
+          </div>
+
+          <div class="letter">
+            <div class="who">
+              <div class="name"><span class="av avA">나</span>나의 편지</div>
+              <div class="time">오전 9:05</div>
+            </div>
+            <div class="linepaper">
+              <div class="body">난 네가 생각보다 조용해서 의외였어. 근데 그게 더 궁금하게 만들었나 봐. 지금 이렇게 될 줄은 몰랐지.</div>
+            </div>
+            <div class="react"><span class="heart-pill">♥ 지훈</span></div>
+          </div>
+        </div>
+
+        <div class="archive">
+          <div class="atitle"><b>지난 편지함</b><span class="arrow">→</span></div>
+          <div class="arow"><span class="dot">✉</span><span class="atext">서로에게 가장 고마웠던 순간은?</span><span class="adate">7월 1일</span></div>
+          <div class="arow"><span class="dot">✉</span><span class="atext">요즘 가장 듣고 싶은 말이 있다면?</span><span class="adate">6월 30일</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
