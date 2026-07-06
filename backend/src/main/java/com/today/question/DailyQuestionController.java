@@ -5,6 +5,8 @@ import com.today.question.DailyQuestionDtos.ArchiveDetailResponse;
 import com.today.question.DailyQuestionDtos.ArchiveResponse;
 import com.today.question.DailyQuestionDtos.AnswerRequest;
 import com.today.question.DailyQuestionDtos.ChooseRequest;
+import com.today.question.DailyQuestionDtos.CommentRequest;
+import com.today.question.DailyQuestionDtos.CommentView;
 import com.today.question.DailyQuestionDtos.SettingsRequest;
 import com.today.question.DailyQuestionDtos.SettingsResponse;
 import com.today.question.DailyQuestionDtos.TodayResponse;
@@ -50,6 +52,12 @@ public class DailyQuestionController {
     @PostMapping("/today/answer")
     public TodayResponse answer(@Valid @RequestBody AnswerRequest req) {
         return questionService.answer(SecurityUtil.currentUserId(), req.text());
+    }
+
+    /** 오늘의 편지에 댓글 추가(date 생략 시 오늘). 열린 편지에만 가능. */
+    @PostMapping("/comment")
+    public CommentView addComment(@Valid @RequestBody CommentRequest req) {
+        return questionService.addComment(SecurityUtil.currentUserId(), req.date(), req.text());
     }
 
     /** 상대 답에 하트 토글. */

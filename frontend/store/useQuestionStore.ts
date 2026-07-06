@@ -17,6 +17,8 @@ type QuestionState = {
   answer: (text: string) => Promise<void>;
   /** 상대 답장 하트 토글. add=true면 하트 추가, false면 해제. */
   react: (answerId: number) => Promise<void>;
+  /** 오늘 열린 편지에 댓글 달기. 성공 시 today.comments에 낙관적 추가. */
+  comment: (text: string) => Promise<void>;
   /** API 응답으로 today/hasTodo를 한 번에 갱신(choose/answer 결과 반영). */
   setFromResponse: (today: TodayQuestion) => void;
   reset: () => void;
@@ -66,6 +68,14 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
       // 실패 시 원복.
       if (prev) set({ today: prev });
       throw new Error('react-failed');
+    }
+  },
+
+  comment: async (text) => {
+    const added = await dailyQuestionApi.comment(text);
+    const prev = get().today;
+    if (prev) {
+      set({ today: { ...prev, comments: [...(prev.comments ?? []), added] } });
     }
   },
 

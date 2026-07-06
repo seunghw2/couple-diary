@@ -114,7 +114,9 @@ export default function QuestionWriteScreen() {
             </View>
 
             <Text style={styles.hint}>
-              답장을 봉인하면 상대도 답할 때까지 서로의 편지가 잠겨 있어요.
+              {today?.partnerSealed
+                ? '봉인하면 바로 편지가 열려요.'
+                : '답장을 봉인하면 상대도 답할 때까지 서로의 편지가 잠겨 있어요.'}
             </Text>
 
             <Button

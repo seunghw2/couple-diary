@@ -150,6 +150,21 @@ public class NotificationService {
         createIfAbsent(b, NotificationType.QUESTION_OPENED, "편지가 열렸어요", "오늘의 편지가 서로 열렸어요 💗", date);
     }
 
+    /** 오늘의 편지에 댓글 — 상대에게(여러 개 허용, 중복 방지 없음). */
+    @Transactional
+    public void onQuestionComment(User me, User partner, LocalDate date, String preview) {
+        if (me == null || partner == null) return;
+        String p = preview == null ? "" : preview.strip();
+        if (p.length() > 20) p = p.substring(0, 20);
+        notificationRepository.save(Notification.builder()
+                .recipient(partner)
+                .type(NotificationType.QUESTION_COMMENT)
+                .title("오늘의 편지에 댓글")
+                .body(me.getNickname() + "님이 댓글을 남겼어요: " + p)
+                .entryDate(date)
+                .build());
+    }
+
     /** 자정 마감: 어제 편지가 열리지 못하고 지나갔어요 — 양쪽에게. */
     @Transactional
     public void onQuestionMissed(User a, User b, LocalDate date) {

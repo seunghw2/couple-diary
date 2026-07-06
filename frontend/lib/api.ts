@@ -325,6 +325,8 @@ export type TodayQuestion = {
   myAnswer?: QuestionAnswer;
   partnerAnswer?: QuestionAnswer;
   partnerSealed?: boolean;
+  /** OPENED에서만 옴 — 이 편지에 달린 댓글들. */
+  comments?: CommentView[];
   streak: number;
   missedYesterday?: boolean;
 };
@@ -355,6 +357,8 @@ export type ArchiveDetail = {
   myAnswer?: { text?: string; sealed: boolean };
   partnerAnswer?: { text?: string; sealed: boolean };
   partnerNickname?: string;
+  /** opened면 이 편지에 달린 댓글들. */
+  comments?: CommentView[];
 };
 
 /** GET/PUT /api/questions/settings. */
@@ -370,6 +374,9 @@ export const dailyQuestionApi = {
   choose: (questionId: number) =>
     api.post<TodayQuestion>('/api/questions/daily/today/choose', { questionId }),
   answer: (text: string) => api.post<TodayQuestion>('/api/questions/daily/today/answer', { text }),
+  /** 오늘 열린 편지(또는 date 지정)에 댓글 달기. */
+  comment: (text: string, date?: string) =>
+    api.post<CommentView>('/api/questions/daily/comment', { date, text }),
   /** 상대 답장에 하트 토글. 백엔드가 단일 POST로 토글(추가/해제), 204 반환. */
   react: (answerId: number) =>
     api.post<void>(`/api/questions/daily/answers/${answerId}/react`),

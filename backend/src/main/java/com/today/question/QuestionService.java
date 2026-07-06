@@ -60,6 +60,7 @@ public class QuestionService {
     private final QuestionSettingRepository settingRepository;
     private final QuestionPoolRepository poolRepository;
     private final QuestionReportRepository reportRepository;
+    private final QuestionCommentRepository commentRepository;
     private final com.today.notification.NotificationService notificationService;
 
     // ===================== today =====================
@@ -121,7 +122,9 @@ public class QuestionService {
                 .chosenByMe(chosenByMe);
 
         if (!mySealed) {
-            return builder.state("NEEDS_ANSWER").build();
+            return builder.state("NEEDS_ANSWER")
+                    .partnerSealed(partnerSealed)
+                    .build();
         }
 
         // 내 답은 항상 text 노출
@@ -151,6 +154,7 @@ public class QuestionService {
                 .myAnswer(myOpened)
                 .partnerAnswer(partnerView)
                 .partnerSealed(true)
+                .comments(loadComments(chosen.getId()))
                 .build();
     }
 
@@ -397,7 +401,62 @@ public class QuestionService {
                 opened,
                 myView,
                 partnerView,
-                partner == null ? null : partner.getNickname());
+                partner == null ? null : partner.getNickname(),
+                loadComments(dq.getId()));
+    }
+
+    // ===================== comment =====================
+
+    /**
+     * 오늘의 편지에 댓글 추가. date null이면 활성 기간. 열린(bothSealed) 편지에만 허용,
+     * 아니면 400. 저장 후 상대에게 알림. CommentView 반환.
+     */
+    @Transactional
+    public CommentView addComment(Long userId, LocalDate dateOrNull, String rawText) {
+        Couple couple = coupleRepository.findByMember(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.COUPLE_NOT_FOUND));
+        User me = memberOf(couple, userId);
+        User partner = partnerOf(couple, userId);
+
+        LocalDate date = dateOrNull != null ? dateOrNull : activePeriodDate(couple);
+        if (date == null) throw new ApiException(ErrorCode.INVALID_INPUT);
+
+        DailyQuestion dq = dailyQuestionRepository
+                .findByCouple_IdAndDateAndChosenTrue(couple.getId(), date)
+                .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT));
+        // 커플 소속 확인
+        if (!dq.getCouple().getId().equals(couple.getId())) {
+            throw new ApiException(ErrorCode.FORBIDDEN);
+        }
+        // 열린 편지에만 댓글 허용
+        if (!bothSealed(dq)) {
+            throw new ApiException(ErrorCode.INVALID_INPUT);
+        }
+
+        String text = rawText == null ? "" : rawText.trim();
+        if (text.isEmpty() || text.length() > 1000) {
+            throw new ApiException(ErrorCode.INVALID_INPUT);
+        }
+
+        QuestionComment saved = commentRepository.save(QuestionComment.builder()
+                .dailyQuestion(dq)
+                .author(me)
+                .text(text)
+                .build());
+
+        notificationService.onQuestionComment(me, partner, date, text);
+
+        return toCommentView(saved);
+    }
+
+    private List<CommentView> loadComments(Long dailyQuestionId) {
+        return commentRepository.findByDailyQuestion_IdOrderByCreatedAtAsc(dailyQuestionId)
+                .stream().map(this::toCommentView).toList();
+    }
+
+    private CommentView toCommentView(QuestionComment c) {
+        return new CommentView(c.getId(), c.getAuthor().getId(),
+                c.getAuthor().getNickname(), c.getText(), c.getCreatedAt());
     }
 
     private AnswerView toArchiveAnswerView(QuestionAnswer ans, boolean revealText) {
@@ -887,6 +946,7 @@ public class QuestionService {
         private Boolean partnerSealed;
         private int streak;
         private Boolean missedYesterday;
+        private List<CommentView> comments;
 
         TodayResponseBuilder date(String v) { this.date = v; return this; }
         TodayResponseBuilder state(String v) { this.state = v; return this; }
@@ -900,10 +960,12 @@ public class QuestionService {
         TodayResponseBuilder partnerSealed(Boolean v) { this.partnerSealed = v; return this; }
         TodayResponseBuilder streak(int v) { this.streak = v; return this; }
         TodayResponseBuilder missedYesterday(Boolean v) { this.missedYesterday = v; return this; }
+        TodayResponseBuilder comments(List<CommentView> v) { this.comments = v; return this; }
 
         TodayResponse build() {
             return new TodayResponse(date, state, arrivalTime, true, choices, question,
-                    chosenBy, chosenByMe, myAnswer, partnerAnswer, partnerSealed, streak, missedYesterday);
+                    chosenBy, chosenByMe, myAnswer, partnerAnswer, partnerSealed, streak,
+                    missedYesterday, comments);
         }
     }
 }

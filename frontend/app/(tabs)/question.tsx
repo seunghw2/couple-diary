@@ -1,16 +1,19 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { dailyQuestionApi, QuestionAnswer } from '../../lib/api';
+import { CommentView, dailyQuestionApi, QuestionAnswer } from '../../lib/api';
 import { confirmAsync, showAlert, showToast } from '../../lib/dialog';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useQuestionStore } from '../../store/useQuestionStore';
@@ -28,8 +31,13 @@ export default function QuestionScreen() {
   const loadToday = useQuestionStore((s) => s.loadToday);
   const choose = useQuestionStore((s) => s.choose);
   const react = useQuestionStore((s) => s.react);
+  const comment = useQuestionStore((s) => s.comment);
 
+  const scrollRef = useRef<ScrollView>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [posting, setPosting] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
   const [chosenSlot, setChosenSlot] = useState<number | null>(null);
   const [choosing, setChoosing] = useState(false);
   const [reacting, setReacting] = useState(false);
@@ -74,6 +82,22 @@ export default function QuestionScreen() {
       showAlert('하트를 전하지 못했어요', '잠시 후 다시 시도해 주세요.');
     } finally {
       setReacting(false);
+    }
+  }
+
+  async function onComment() {
+    const text = commentText.trim();
+    if (!text || posting) return;
+    setPosting(true);
+    setCommentError(null);
+    try {
+      await comment(text);
+      setCommentText('');
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
+    } catch {
+      setCommentError('댓글 등록에 실패했어요. 다시 시도해 주세요.');
+    } finally {
+      setPosting(false);
     }
   }
 
@@ -125,9 +149,16 @@ export default function QuestionScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <Header streak={today.streak} showStreak={showStreak} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+        style={{ flex: 1 }}
+      >
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />}
       >
         {/* 미연결 */}
@@ -213,6 +244,11 @@ export default function QuestionScreen() {
               <ChosenLine chosenByMe={today.chosenByMe} nickname={today.chosenBy?.nickname} />
             </LetterCard>
             <StatusPill icon="create-outline" text="아직 답장을 쓰지 않았어요" tone="coral" />
+            {today.partnerSealed ? (
+              <Text style={styles.partnerSealedHint}>
+                상대는 이미 답했어요 · 답장을 봉인하면 바로 열려요
+              </Text>
+            ) : null}
             <Button
               label="답장 쓰러 가기"
               icon="mail-open-outline"
@@ -259,6 +295,21 @@ export default function QuestionScreen() {
               reacting={reacting}
             />
 
+            {/* 댓글 */}
+            <View style={styles.commentSection}>
+              <View style={styles.sectionLabelRow}>
+                <Icon name="chatbubble-ellipses-outline" size={18} color={c.primary} />
+                <Text style={[styles.sectionLabel, { color: c.primary }]}>댓글</Text>
+              </View>
+              {(today.comments ?? []).map((cm) => (
+                <CommentRow key={cm.id} comment={cm} mine={cm.authorId === me?.id} />
+              ))}
+              {(today.comments ?? []).length === 0 ? (
+                <Text style={styles.noComment}>첫 댓글을 남겨보세요</Text>
+              ) : null}
+              {commentError ? <Text style={styles.commentError}>{commentError}</Text> : null}
+            </View>
+
             <Pressable style={styles.archiveLink} onPress={() => router.push('/question/archive')} hitSlop={8}>
               <Icon name="albums-outline" size={16} color={c.primary} />
               <Text style={[styles.archiveLinkText, { color: c.primary }]}>지난 편지함</Text>
@@ -267,7 +318,43 @@ export default function QuestionScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* 댓글 입력 (OPENED에서만) */}
+      {today.state === 'OPENED' ? (
+        <View style={styles.commentBar}>
+          <TextInput
+            value={commentText}
+            onChangeText={setCommentText}
+            onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150)}
+            placeholder="댓글 달기…"
+            placeholderTextColor={colors.placeholder}
+            style={styles.commentInput}
+          />
+          <Button label="보내기" variant="soft" onPress={onComment} loading={posting} style={styles.commentBtn} />
+        </View>
+      ) : null}
+      </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+/** 댓글 한 줄(내/상대 구분 말풍선). */
+function CommentRow({ comment, mine }: { comment: CommentView; mine: boolean }) {
+  const c = useColors();
+  return (
+    <View style={[styles.commentRow, mine && { alignItems: 'flex-end' }]}>
+      <View
+        style={[
+          styles.commentBubble,
+          mine
+            ? { backgroundColor: c.coralSofter }
+            : { backgroundColor: c.coralSoft },
+        ]}
+      >
+        <Text style={styles.commentAuthor}>{comment.authorNickname ?? (mine ? '나' : '상대')}</Text>
+        <Text style={styles.commentContent}>{comment.text}</Text>
+      </View>
+    </View>
   );
 }
 
@@ -559,4 +646,37 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   archiveLinkText: { ...font.label, fontWeight: '700' },
+
+  partnerSealedHint: { ...font.caption, color: colors.subText, textAlign: 'center', marginTop: spacing.md },
+
+  // 댓글
+  commentSection: { marginTop: spacing.xl },
+  sectionLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.md },
+  sectionLabel: { ...font.title },
+  noComment: { ...font.caption, color: colors.subText },
+  commentError: { ...font.caption, color: colors.danger, marginTop: spacing.sm },
+  commentRow: { marginBottom: spacing.sm, alignItems: 'flex-start' },
+  commentBubble: { maxWidth: '80%', borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  commentAuthor: { ...font.caption, color: colors.subText, marginBottom: 2 },
+  commentContent: { ...font.body },
+  commentBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.card,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    ...shadow,
+  },
+  commentInput: {
+    flex: 1,
+    backgroundColor: colors.bg,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.lg,
+    height: 44,
+    color: colors.text,
+  },
+  commentBtn: { height: 44, paddingHorizontal: spacing.lg },
 });

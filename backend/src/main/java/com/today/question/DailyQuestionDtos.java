@@ -32,12 +32,13 @@ public class DailyQuestionDtos {
             AnswerView partnerAnswer,
             Boolean partnerSealed,
             int streak,
-            Boolean missedYesterday
+            Boolean missedYesterday,
+            List<CommentView> comments
     ) {
         /** 커플 미연결 응답. */
         public static TodayResponse notCoupled() {
             return new TodayResponse(null, null, null, false, null, null,
-                    null, null, null, null, null, 0, null);
+                    null, null, null, null, null, 0, null, null);
         }
     }
 
@@ -57,11 +58,27 @@ public class DailyQuestionDtos {
             Boolean reactedByMe
     ) {}
 
+    // ===================== 댓글 =====================
+
+    public record CommentView(
+            Long id,
+            Long authorId,
+            String authorNickname,
+            String text,
+            java.time.LocalDateTime createdAt
+    ) {}
+
     // ===================== 요청 =====================
 
     public record ChooseRequest(@NotNull Long questionId) {}
 
     public record AnswerRequest(@NotBlank @Size(max = 2000) String text) {}
+
+    /** date nullable = 오늘(활성 기간). */
+    public record CommentRequest(
+            java.time.LocalDate date,
+            @NotBlank @Size(max = 1000) String text
+    ) {}
 
     // ===================== 아카이브 =====================
 
@@ -87,7 +104,8 @@ public class DailyQuestionDtos {
             boolean opened,
             AnswerView myAnswer,
             AnswerView partnerAnswer,
-            String partnerNickname
+            String partnerNickname,
+            List<CommentView> comments
     ) {}
 
     // ===================== 설정 =====================
