@@ -13,8 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,8 +28,13 @@ public class WorldcupService {
     private final WorldcupResultRepository resultRepository;
 
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+    /** 표시 순서와 이름. */
+    private static final int[] STAGE_ORDER = {1, 2, 4, 8, 16, 32};
+    private static final Map<Integer, String> STAGE_NAME = Map.of(
+            1, "우승", 2, "결승", 4, "4강", 8, "8강", 16, "16강", 32, "32강");
+    /** 8강 이상 = 상위권(취향 일치율 기준). */
+    private static final Set<Integer> TOP8_STAGES = Set.of(1, 2, 4, 8);
 
-    /** 홈 목록. 내/상대 완주 여부 포함. */
     @Transactional(readOnly = true)
     public List<CupSummary> list(Long userId) {
         Couple couple = coupleService.requireCouple(userId);
@@ -45,16 +52,14 @@ public class WorldcupService {
                 .toList();
     }
 
-    /** 진행용 상세(아이템 포함). */
     @Transactional(readOnly = true)
     public CupDetail detail(Long userId, String key) {
-        coupleService.requireCouple(userId); // 커플 연결 필요(결과 저장/비교 위해)
+        coupleService.requireCouple(userId);
         Cup cup = requireCup(key);
         List<ItemView> items = cup.items().stream().map(ItemView::of).toList();
         return new CupDetail(cup.key(), cup.title(), cup.emoji(), cup.size(), items);
     }
 
-    /** 완주 결과 저장. winnerId·top4를 카탈로그로 검증. */
     @Transactional
     public void saveResult(Long userId, String key, ResultRequest req) {
         Couple couple = coupleService.requireCouple(userId);
@@ -64,23 +69,18 @@ public class WorldcupService {
         if (WorldcupCatalog.item(key, req.winnerId()) == null) {
             throw new ApiException(ErrorCode.INVALID_INPUT, "우승 후보가 올바르지 않아요.");
         }
-        // 4강 id들 검증·중복 제거(순서 유지).
-        Set<Integer> top4 = new LinkedHashSet<>();
-        for (Integer id : req.top4()) {
-            if (id != null && WorldcupCatalog.item(key, id) != null) top4.add(id);
-        }
-        if (top4.isEmpty()) throw new ApiException(ErrorCode.INVALID_INPUT, "4강 정보가 올바르지 않아요.");
+        String stages = formatStages(key, req.stages());
+        if (stages.isEmpty()) throw new ApiException(ErrorCode.INVALID_INPUT, "진행 정보가 올바르지 않아요.");
 
         resultRepository.save(WorldcupResult.builder()
                 .author(me)
                 .couple(couple)
                 .worldcupKey(cup.key())
                 .winnerId(req.winnerId())
-                .top4(top4.stream().map(String::valueOf).collect(Collectors.joining(",")))
+                .stages(stages)
                 .build());
     }
 
-    /** 내 기록 + (둘 다 완주 시) 커플 비교. */
     @Transactional(readOnly = true)
     public RecordsResponse records(Long userId, String key) {
         Couple couple = coupleService.requireCouple(userId);
@@ -95,39 +95,85 @@ public class WorldcupService {
                 .toList();
 
         CompareView compare = null;
-        WorldcupResult mine = resultRepository
-                .findTopByCouple_IdAndAuthor_IdAndWorldcupKeyOrderByCreatedAtDesc(couple.getId(), userId, key)
-                .orElse(null);
-        WorldcupResult theirs = partner == null ? null : resultRepository
-                .findTopByCouple_IdAndAuthor_IdAndWorldcupKeyOrderByCreatedAtDesc(couple.getId(), partner.getId(), key)
-                .orElse(null);
+        WorldcupResult mine = latest(couple.getId(), userId, key);
+        WorldcupResult theirs = partner == null ? null : latest(couple.getId(), partner.getId(), key);
         if (mine != null && theirs != null) {
+            Map<Integer, List<Integer>> myMap = parseStages(mine.getStages());
+            Map<Integer, List<Integer>> pMap = parseStages(theirs.getStages());
+            Set<Integer> myTop8 = top8(myMap), pTop8 = top8(pMap);
+            Set<Integer> shared = new LinkedHashSet<>(myTop8);
+            shared.retainAll(pTop8);
             compare = new CompareView(
-                    ItemView.of(WorldcupCatalog.item(key, mine.getWinnerId())),
-                    ItemView.of(WorldcupCatalog.item(key, theirs.getWinnerId())),
+                    journey(key, mine.getWinnerId(), myMap),
+                    journey(key, theirs.getWinnerId(), pMap),
                     partner.getNickname(),
                     mine.getWinnerId() == theirs.getWinnerId(),
-                    matchRate(mine.getTop4(), theirs.getTop4()));
+                    (int) Math.round(shared.size() * 100.0 / 8),
+                    shared.stream().map(id -> ItemView.of(WorldcupCatalog.item(key, id))).toList());
         }
 
         return new RecordsResponse(cup.key(), cup.title(), myRecords, compare);
     }
 
-    // ── 취향 일치율: 두 4강 집합의 겹침 / 합집합 대비가 아니라, 더 작은 4강 크기 대비 겹침(%) ──
-    private int matchRate(String a, String b) {
-        Set<Integer> sa = parseIds(a), sb = parseIds(b);
-        if (sa.isEmpty() || sb.isEmpty()) return 0;
-        Set<Integer> inter = new LinkedHashSet<>(sa);
-        inter.retainAll(sb);
-        int base = Math.min(sa.size(), sb.size());
-        return (int) Math.round(inter.size() * 100.0 / base);
+    // ─────────────── helpers ───────────────
+
+    private WorldcupResult latest(Long coupleId, Long authorId, String key) {
+        return resultRepository
+                .findTopByCouple_IdAndAuthor_IdAndWorldcupKeyOrderByCreatedAtDesc(coupleId, authorId, key)
+                .orElse(null);
     }
 
-    private Set<Integer> parseIds(String csv) {
+    /** 한 사람의 여정을 stage 순서대로 그룹핑. */
+    private Journey journey(String key, int winnerId, Map<Integer, List<Integer>> map) {
+        List<StageGroup> groups = new ArrayList<>();
+        for (int stage : STAGE_ORDER) {
+            List<Integer> ids = map.get(stage);
+            if (ids == null || ids.isEmpty()) continue;
+            List<ItemView> items = ids.stream()
+                    .map(id -> ItemView.of(WorldcupCatalog.item(key, id)))
+                    .filter(java.util.Objects::nonNull).toList();
+            if (!items.isEmpty()) groups.add(new StageGroup(stage, STAGE_NAME.get(stage), items));
+        }
+        return new Journey(ItemView.of(WorldcupCatalog.item(key, winnerId)), groups);
+    }
+
+    private Set<Integer> top8(Map<Integer, List<Integer>> map) {
         Set<Integer> out = new LinkedHashSet<>();
+        for (int s : TOP8_STAGES) out.addAll(map.getOrDefault(s, List.of()));
+        return out;
+    }
+
+    /** 요청 map을 검증·정리해 "stage:idCsv;..." 문자열로. 카탈로그에 없는 id는 버림. */
+    private String formatStages(String key, Map<Integer, List<Integer>> map) {
+        List<String> groups = new ArrayList<>();
+        for (int stage : STAGE_ORDER) {
+            List<Integer> ids = map.get(stage);
+            if (ids == null) continue;
+            Set<Integer> valid = new LinkedHashSet<>();
+            for (Integer id : ids) {
+                if (id != null && WorldcupCatalog.item(key, id) != null) valid.add(id);
+            }
+            if (!valid.isEmpty()) {
+                groups.add(stage + ":" + valid.stream().map(String::valueOf).collect(Collectors.joining(",")));
+            }
+        }
+        return String.join(";", groups);
+    }
+
+    private Map<Integer, List<Integer>> parseStages(String csv) {
+        Map<Integer, List<Integer>> out = new LinkedHashMap<>();
         if (csv == null || csv.isBlank()) return out;
-        for (String s : csv.split(",")) {
-            try { out.add(Integer.parseInt(s.trim())); } catch (NumberFormatException ignored) {}
+        for (String group : csv.split(";")) {
+            String[] kv = group.split(":");
+            if (kv.length != 2) continue;
+            try {
+                int stage = Integer.parseInt(kv[0].trim());
+                List<Integer> ids = new ArrayList<>();
+                for (String s : kv[1].split(",")) {
+                    if (!s.isBlank()) ids.add(Integer.parseInt(s.trim()));
+                }
+                out.put(stage, ids);
+            } catch (NumberFormatException ignored) {}
         }
         return out;
     }

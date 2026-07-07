@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -17,13 +17,12 @@ export default function WorldcupPlay() {
   const [round, setRound] = useState<WorldcupItem[]>([]); // 이번 라운드 참가자
   const [winners, setWinners] = useState<WorldcupItem[]>([]); // 이번 라운드 승자 누적
   const [matchIdx, setMatchIdx] = useState(0); // 현재 대결 시작 인덱스(2씩)
-  const [top4, setTop4] = useState<number[] | null>(null); // 4강 진출자 id
+  // 아이템 id → 탈락 라운드 사이즈(우승은 1). 전체 여정 기록.
+  const stageMap = useRef<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // 라운드 시작(4강이면 top4 캡처).
   const startRound = useCallback((list: WorldcupItem[]) => {
-    if (list.length === 4) setTop4(list.map((i) => i.id));
     setRound(list);
     setWinners([]);
     setMatchIdx(0);
@@ -44,10 +43,16 @@ export default function WorldcupPlay() {
     })();
   }, [key]);
 
-  async function finish(winner: WorldcupItem, semis: number[]) {
+  async function finish(winner: WorldcupItem) {
+    stageMap.current[winner.id] = 1; // 우승
+    // stageMap → {stage: [ids]} 페이로드로 변환.
+    const stages: Record<number, number[]> = {};
+    for (const [idStr, stage] of Object.entries(stageMap.current)) {
+      (stages[stage] ??= []).push(Number(idStr));
+    }
     setSaving(true);
     try {
-      await worldcupApi.saveResult(key, winner.id, semis.length ? semis : [winner.id]);
+      await worldcupApi.saveResult(key, winner.id, stages);
     } catch {
       // 저장 실패해도 결과 화면은 보여준다(다음 방문 시 재시도 가능).
     }
@@ -59,6 +64,12 @@ export default function WorldcupPlay() {
 
   function pick(winner: WorldcupItem) {
     if (saving) return;
+    // 진 쪽은 이번 라운드 사이즈에서 탈락(예: 32강 라운드에서 지면 stage=32).
+    const first = round[matchIdx];
+    const second = round[matchIdx + 1];
+    const loser = winner.id === first.id ? second : first;
+    if (loser) stageMap.current[loser.id] = round.length;
+
     const nextWinners = [...winners, winner];
     const nextIdx = matchIdx + 2;
     if (nextIdx < round.length) {
@@ -68,7 +79,7 @@ export default function WorldcupPlay() {
     }
     // 라운드 종료
     if (nextWinners.length === 1) {
-      finish(nextWinners[0], top4 ?? []);
+      finish(nextWinners[0]);
     } else {
       startRound(nextWinners);
     }

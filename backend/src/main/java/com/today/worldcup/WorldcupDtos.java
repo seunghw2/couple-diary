@@ -1,9 +1,9 @@
 package com.today.worldcup;
 
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
+import java.util.Map;
 
 public class WorldcupDtos {
 
@@ -33,10 +33,13 @@ public class WorldcupDtos {
             List<ItemView> items
     ) {}
 
-    /** 결과 저장 요청. winnerId + 4강 진출 id들. */
+    /**
+     * 결과 저장 요청. winnerId + 라운드별 탈락 아이템 전체.
+     * stages: 라운드사이즈(문자열) → 그 라운드에서 탈락한 아이템 id들. 예 {"1":[5],"2":[12],"4":[3,9],...}
+     */
     public record ResultRequest(
             @NotNull Integer winnerId,
-            @NotEmpty List<Integer> top4
+            @NotNull Map<Integer, List<Integer>> stages
     ) {}
 
     /** 내 기록 한 건. */
@@ -46,13 +49,20 @@ public class WorldcupDtos {
             String playedAt
     ) {}
 
+    /** 한 라운드(우승/결승/4강/…)에 놓인 아이템들. stage=1 우승 … 32 첫판 탈락. */
+    public record StageGroup(int stage, String stageName, List<ItemView> items) {}
+
+    /** 한 사람의 전체 여정. */
+    public record Journey(ItemView winner, List<StageGroup> stages) {}
+
     /** 커플 비교 블록(둘 다 완주했을 때만). */
     public record CompareView(
-            ItemView myWinner,
-            ItemView partnerWinner,
+            Journey me,
+            Journey partner,
             String partnerNickname,
             boolean sameWinner,
-            int matchRate   // 4강 겹침 기반 취향 일치율(%)
+            int matchRate,             // 8강 이상 겹침 기반 취향 일치율(%)
+            List<ItemView> sharedTop8  // 둘 다 8강 이상에 올린 아이템
     ) {}
 
     /** 기록 화면 응답: 내 기록 + (가능하면) 커플 비교. */

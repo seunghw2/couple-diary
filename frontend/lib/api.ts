@@ -538,12 +538,19 @@ export type WorldcupDetail = {
 
 export type WorldcupRecord = { id: number; winner: WorldcupItem; playedAt: string };
 
+/** 한 라운드(우승/결승/4강/…)에 놓인 아이템들. stage=1 우승 … 32 첫판 탈락. */
+export type WorldcupStageGroup = { stage: number; stageName: string; items: WorldcupItem[] };
+
+/** 한 사람의 전체 여정. */
+export type WorldcupJourney = { winner: WorldcupItem; stages: WorldcupStageGroup[] };
+
 export type WorldcupCompare = {
-  myWinner: WorldcupItem;
-  partnerWinner: WorldcupItem;
+  me: WorldcupJourney;
+  partner: WorldcupJourney;
   partnerNickname: string;
   sameWinner: boolean;
-  matchRate: number; // 4강 겹침 기반 취향 일치율(%)
+  matchRate: number; // 8강 이상 겹침 기반 취향 일치율(%)
+  sharedTop8: WorldcupItem[];
 };
 
 export type WorldcupRecords = {
@@ -553,10 +560,13 @@ export type WorldcupRecords = {
   compare?: WorldcupCompare;
 };
 
+/** stages: 라운드사이즈 → 그 라운드에서 탈락한 아이템 id들. {1:[우승],2:[결승],4:[..],...} */
+export type WorldcupStages = Record<number, number[]>;
+
 export const worldcupApi = {
   list: () => api.get<WorldcupSummary[]>('/api/worldcups'),
   detail: (key: string) => api.get<WorldcupDetail>(`/api/worldcups/${key}`),
-  saveResult: (key: string, winnerId: number, top4: number[]) =>
-    api.post<void>(`/api/worldcups/${key}/result`, { winnerId, top4 }),
+  saveResult: (key: string, winnerId: number, stages: WorldcupStages) =>
+    api.post<void>(`/api/worldcups/${key}/result`, { winnerId, stages }),
   records: (key: string) => api.get<WorldcupRecords>(`/api/worldcups/${key}/records`),
 };

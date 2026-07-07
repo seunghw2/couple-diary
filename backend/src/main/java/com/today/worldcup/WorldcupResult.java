@@ -13,8 +13,10 @@ import java.time.LocalDateTime;
 
 /**
  * 월드컵 1회 완주 결과. 유저별로 남고, 커플 비교를 위해 couple도 함께 보관한다.
- * winnerId/top4는 정적 카탈로그(WorldcupCatalog)의 아이템 id를 가리킨다.
- * top4는 4강 진출 아이템 id들을 쉼표로 이어 저장(취향 일치율 계산용).
+ * winnerId/stages는 정적 카탈로그(WorldcupCatalog)의 아이템 id를 가리킨다.
+ * stages는 라운드별 탈락 아이템을 통째로 저장한 전체 여정(우승~32강).
+ * 형식: "stage:idCsv" 그룹을 ';'로 연결. 예 "1:5;2:12;4:3,9;8:1,4,7,20;16:...;32:...".
+ * (stage = 그 라운드에서 탈락한 사이즈. 1=우승, 2=결승, 4=4강, 8=8강, 16, 32)
  */
 @Entity
 @Getter
@@ -45,20 +47,20 @@ public class WorldcupResult {
     @Column(name = "winner_id", nullable = false)
     private int winnerId;
 
-    /** 4강 진출 아이템 id들(쉼표 구분). 취향 일치율(겹침) 계산용. */
-    @Column(name = "top4", nullable = false)
-    private String top4;
+    /** 라운드별 탈락 아이템 전체(우승~32강). "stage:idCsv;..." 형식. */
+    @Column(name = "stages", nullable = false, length = 1000)
+    private String stages;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Builder
-    public WorldcupResult(User author, Couple couple, String worldcupKey, int winnerId, String top4) {
+    public WorldcupResult(User author, Couple couple, String worldcupKey, int winnerId, String stages) {
         this.author = author;
         this.couple = couple;
         this.worldcupKey = worldcupKey;
         this.winnerId = winnerId;
-        this.top4 = top4;
+        this.stages = stages;
     }
 
     @PrePersist

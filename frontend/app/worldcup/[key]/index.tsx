@@ -2,7 +2,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { WorldcupDetail, WorldcupRecords, worldcupApi } from '../../../lib/api';
+import {
+  WorldcupCompare,
+  WorldcupDetail,
+  WorldcupItem,
+  WorldcupRecords,
+  worldcupApi,
+} from '../../../lib/api';
 import { Button, Icon } from '../../../components/ui';
 import { colors, font, radius, shadow, spacing, useColors } from '../../../theme/theme';
 
@@ -103,30 +109,7 @@ export default function WorldcupDetailScreen() {
             ) : (
               <>
                 {cmp ? (
-                  <View style={[styles.compareCard, shadow]}>
-                    <Text style={styles.compareTitle}>🏆 우리의 우승작</Text>
-                    <View style={styles.cmpRow}>
-                      <View style={styles.cmpCol}>
-                        <Text style={[styles.cmpWho, { color: c.primary }]}>나의 최애</Text>
-                        <Text style={styles.cmpEmoji}>{cmp.myWinner.emoji}</Text>
-                        <Text style={styles.cmpName}>{cmp.myWinner.label}</Text>
-                      </View>
-                      <View style={styles.cmpCol}>
-                        <Text style={[styles.cmpWho, { color: colors.partner }]}>
-                          {cmp.partnerNickname}의 최애
-                        </Text>
-                        <Text style={styles.cmpEmoji}>{cmp.partnerWinner.emoji}</Text>
-                        <Text style={styles.cmpName}>{cmp.partnerWinner.label}</Text>
-                      </View>
-                    </View>
-                    <View style={styles.rateBox}>
-                      <Text style={styles.rateText}>
-                        {cmp.sameWinner
-                          ? '우승작이 똑같아요! 찰떡궁합 💞'
-                          : `취향 일치율 ${cmp.matchRate}%`}
-                      </Text>
-                    </View>
-                  </View>
+                  <JourneyCompare cmp={cmp} />
                 ) : records ? (
                   <Text style={styles.hint}>
                     {records.myRecords.length === 0
@@ -157,6 +140,69 @@ export default function WorldcupDetailScreen() {
   );
 }
 
+/** 라운드 아코디언 비교 — 우승·결승·4강·8강은 펼쳐 보이고, 16·32강은 접었다 펼침. */
+function JourneyCompare({ cmp }: { cmp: WorldcupCompare }) {
+  const c = useColors();
+  const [showLow, setShowLow] = useState(false);
+  const shared = new Set(cmp.sharedTop8.map((i) => i.id));
+  const items = (who: 'me' | 'partner', stage: number) =>
+    (who === 'me' ? cmp.me : cmp.partner).stages.find((g) => g.stage === stage)?.items ?? [];
+
+  const LABEL: Record<number, string> = {
+    1: '🏆 우승', 2: '🥈 결승', 4: '🔥 4강', 8: '8강', 16: '16강', 32: '32강',
+  };
+
+  const renderTier = (stage: number) => (
+    <View key={stage} style={styles.tier}>
+      <Text style={styles.tierLabel}>{LABEL[stage]}</Text>
+      <View style={styles.twoCol}>
+        <View style={styles.side}>
+          {items('me', stage).map((it) => <Chip key={it.id} item={it} dup={shared.has(it.id)} />)}
+        </View>
+        <View style={styles.midline} />
+        <View style={styles.side}>
+          {items('partner', stage).map((it) => <Chip key={it.id} item={it} dup={shared.has(it.id)} />)}
+        </View>
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={[styles.journeyCard, shadow]}>
+      <Text style={styles.jRate}>
+        {cmp.sameWinner ? '우승작까지 똑같아요! 💞' : `취향 일치율 ${cmp.matchRate}%`}
+      </Text>
+      <Text style={styles.jRateSub}>테두리 표시 = 둘 다 8강 이상 올린 취향</Text>
+      <View style={styles.whoHead}>
+        <Text style={[styles.whoName, { color: c.primary }]}>나</Text>
+        <Text style={[styles.whoName, { color: colors.partner, textAlign: 'right' }]}>
+          {cmp.partnerNickname}
+        </Text>
+      </View>
+      {[1, 2, 4, 8].map(renderTier)}
+      {showLow ? (
+        [16, 32].map(renderTier)
+      ) : (
+        <Pressable style={styles.fold} onPress={() => setShowLow(true)}>
+          <Text style={styles.foldText}>16강 · 32강 전체 보기</Text>
+          <Icon name="chevron-down" size={18} color={colors.subText} />
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
+/** 그림 + 이름 칩. 둘 다 8강 이상이면 테두리 강조. */
+function Chip({ item, dup }: { item: WorldcupItem; dup: boolean }) {
+  const c = useColors();
+  return (
+    <View style={[styles.chip, dup && { borderColor: c.coralSoft, backgroundColor: '#FFF4EE' }]}>
+      <Text style={styles.chipEmoji}>{item.emoji}</Text>
+      <Text style={styles.chipName}>{item.label}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   topBar: {
@@ -179,21 +225,40 @@ const styles = StyleSheet.create({
   winEmoji: { fontSize: 66, marginVertical: spacing.sm },
   winName: { fontSize: 26, fontWeight: '800', color: colors.white },
 
-  compareCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg },
-  compareTitle: { ...font.h2, fontSize: 17, textAlign: 'center', marginBottom: spacing.lg },
-  cmpRow: { flexDirection: 'row', gap: spacing.md },
-  cmpCol: {
-    flex: 1,
+  journeyCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg },
+  jRate: { ...font.h2, fontSize: 17, textAlign: 'center', color: '#E3902C' },
+  jRateSub: { ...font.caption, color: colors.subText, textAlign: 'center', marginTop: 2, marginBottom: spacing.lg },
+  whoHead: { flexDirection: 'row', marginBottom: spacing.sm },
+  whoName: { ...font.caption, fontWeight: '800', flex: 1 },
+  tier: { marginBottom: spacing.md },
+  tierLabel: { ...font.caption, fontWeight: '800', color: colors.subText, marginBottom: spacing.sm },
+  twoCol: { flexDirection: 'row' },
+  side: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignContent: 'flex-start' },
+  midline: { width: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginHorizontal: spacing.sm },
+  chip: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 5,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 13,
+    paddingVertical: 5,
+    paddingHorizontal: 9,
+  },
+  chipEmoji: { fontSize: 15 },
+  chipName: { ...font.caption, fontWeight: '700', color: colors.text },
+  fold: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: colors.bg,
     borderRadius: radius.md,
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.xs,
   },
-  cmpWho: { ...font.caption, fontWeight: '800', marginBottom: spacing.sm },
-  cmpEmoji: { fontSize: 42 },
-  cmpName: { ...font.h2, fontSize: 16, marginTop: spacing.xs },
-  rateBox: { backgroundColor: '#FFF6EE', borderRadius: radius.md, padding: spacing.md, marginTop: spacing.lg },
-  rateText: { ...font.body, fontWeight: '800', color: '#E3902C', textAlign: 'center' },
+  foldText: { ...font.body, fontWeight: '700', color: colors.subText },
 
   hint: { ...font.body, color: colors.subText, textAlign: 'center', paddingVertical: spacing.lg },
   sectionLabel: { ...font.label, fontWeight: '800', marginBottom: spacing.sm },
