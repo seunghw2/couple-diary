@@ -20,9 +20,11 @@ spring:
       max-request-size: 12MB
 
 server:
-  port: 8083
+  # PaaS(Fly/Railway 등)는 PORT를 주입한다. 로컬은 미설정이라 8083 유지.
+  port: ${PORT:8083}
   servlet:
     context-path: /
+  forward-headers-strategy: framework   # 프록시 뒤에서 https/host 인식
 
 app:
   jwt:
@@ -60,3 +62,25 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+
+---
+# 운영(PaaS) 프로파일. SPRING_PROFILES_ACTIVE=prod 로 활성화하고 DB_* 를 환경변수로 주입한다.
+# DB_URL 예: jdbc:mysql://<host>:<port>/<db>?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=true&allowPublicKeyRetrieval=true
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+logging:
+  level:
+    com.today: INFO
+    org.springframework.security: WARN

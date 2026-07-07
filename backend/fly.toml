@@ -1,0 +1,38 @@
+# Fly.io 배포 설정. `fly launch --no-deploy`로 앱을 만든 뒤 이 값으로 맞추고,
+# 시크릿(DB_URL 등)은 `fly secrets set`으로 주입한 다음 `fly deploy`.
+# app 이름은 실제 생성한 이름으로 교체하세요.
+app = "today-backend"
+primary_region = "nrt"   # 도쿄(한국에서 가장 가까움)
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  SPRING_PROFILES_ACTIVE = "prod"
+  UPLOAD_DIR = "/data/uploads"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1   # 항상 1대 유지(콜드스타트 방지)
+
+  [http_service.checks]
+    [http_service.checks.health]
+      method = "get"
+      path = "/api/health"
+      interval = "30s"
+      timeout = "5s"
+      grace_period = "40s"
+
+# 업로드 사진 영속 볼륨(휘발성 방지). `fly volumes create today_data --size 1 --region nrt` 후 사용.
+[mounts]
+  source = "today_data"
+  destination = "/data"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512

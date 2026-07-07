@@ -27,6 +27,10 @@ public class AuthController {
     @Value("${app.kakao.rest-key}")
     private String kakaoRestKey;
 
+    /** 카카오 콘솔에 등록된 서버 콜백 절대 URL. 호스팅 이전 시 이 값(env)만 바꾸면 된다. */
+    @Value("${app.kakao.callback-url:https://today-api.hammerslog.trade/api/auth/kakao/callback}")
+    private String kakaoCallbackUrl;
+
     @PostMapping("/dev-login")
     public AuthResponse devLogin(@Valid @RequestBody DevLoginRequest req) {
         return userService.devLogin(req);
@@ -60,7 +64,7 @@ public class AuthController {
     @GetMapping("/kakao/callback")
     public ResponseEntity<?> kakaoCallback(@RequestParam("code") String code,
                                            @RequestParam(value = "state", required = false) String state) {
-        String redirectUri = ServerCallbackUri.SELF; // 카카오 콘솔에 등록된 값과 동일해야 교환 성공
+        String redirectUri = kakaoCallbackUrl; // 카카오 콘솔에 등록된 값과 동일해야 교환 성공
         if (state == null || state.isBlank()) {
             // returnUri가 없으면 앱으로 되돌릴 수 없으므로 JSON으로 결과 반환(디버그/폴백).
             AuthResponse res = userService.kakaoLogin(new KakaoLoginRequest(code, redirectUri));
@@ -84,11 +88,5 @@ public class AuthController {
 
     private static String encode(String v) {
         return URLEncoder.encode(v, StandardCharsets.UTF_8);
-    }
-
-    /** 서버 콜백이 자기 자신을 redirect_uri로 쓸 때의 절대 URL(운영). */
-    static final class ServerCallbackUri {
-        static final String SELF = "https://today-api.hammerslog.trade/api/auth/kakao/callback";
-        private ServerCallbackUri() {}
     }
 }
