@@ -326,6 +326,20 @@ export default function QuestionScreen() {
         </View>
       ) : null}
       </KeyboardAvoidingView>
+
+      {/* 지난 편지함 — 하단 고정 바. OPENED가 아닌 모든 커플 상태에서 항상 노출(스크롤 무관).
+          OPENED는 본문 인라인 링크 + 댓글 입력바가 있어 이중 바를 피하려 제외. */}
+      {today.coupled && today.state !== 'OPENED' ? (
+        <Pressable
+          style={styles.letterboxBar}
+          onPress={() => router.push('/question/archive')}
+          accessibilityRole="button"
+        >
+          <Icon name="albums-outline" size={17} color={c.primary} />
+          <Text style={[styles.letterboxBarText, { color: c.primary }]}>지난 편지함 보기</Text>
+          <Icon name="chevron-forward" size={15} color={c.primary} />
+        </Pressable>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -606,6 +620,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF3EC',
   },
   letterboxLinkText: { ...font.label, fontWeight: '800' },
+
+  // 지난 편지함 하단 고정 바(OPENED 외 상태·항상 노출)
+  letterboxBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    backgroundColor: '#F6ECE2',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  letterboxBarText: { ...font.label, fontWeight: '800' },
 
   // 잠금 카드
   lockCard: {
