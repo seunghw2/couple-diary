@@ -245,7 +245,7 @@ export default function QuestionScreen() {
             <StatusPill icon="create-outline" text="아직 답장을 쓰지 않았어요" tone="coral" />
             {today.partnerSealed ? (
               <Text style={styles.partnerSealedHint}>
-                상대는 이미 답했어요 · 답장을 봉인하면 바로 열려요
+                상대는 이미 답했어요 · 답장을 보내면 바로 열려요
               </Text>
             ) : null}
             <Button
@@ -441,8 +441,8 @@ function SealedAnswer({
         <View style={styles.headRight}>
           {onEdit ? <EditTag onPress={onEdit} color={c.primary} /> : null}
           <View style={styles.sealTag}>
-            <Icon name="lock-closed" size={11} color={colors.subText} />
-            <Text style={styles.sealTagText}>봉인됨</Text>
+            <Icon name="checkmark-circle" size={12} color={colors.subText} />
+            <Text style={styles.sealTagText}>보냄</Text>
           </View>
         </View>
       </View>
@@ -451,7 +451,7 @@ function SealedAnswer({
           {text}
         </Text>
       ) : (
-        <Text style={styles.sealedText}>답장을 봉인해 두었어요.</Text>
+        <Text style={styles.sealedText}>답장을 보내 두었어요.</Text>
       )}
     </View>
   );

@@ -68,7 +68,7 @@ export default function QuestionWriteScreen() {
       await answer(trimmed);
       router.back();
     } catch {
-      showAlert('답장을 봉인하지 못했어요', '잠시 후 다시 시도해 주세요.');
+      showAlert('답장을 보내지 못했어요', '잠시 후 다시 시도해 주세요.');
       setSaving(false);
     }
   }
@@ -125,13 +125,13 @@ export default function QuestionWriteScreen() {
               {isEdit
                 ? '수정한 내용으로 답장이 바뀌어요.'
                 : today?.partnerSealed
-                ? '봉인하면 바로 편지가 열려요.'
-                : '답장을 봉인하면 상대도 답할 때까지 서로의 편지가 잠겨 있어요.'}
+                ? '답장을 보내면 바로 편지가 열려요.'
+                : '답장을 보내면 상대가 답할 때까지 서로의 편지가 잠겨 있어요.'}
             </Text>
 
             <Button
-              label={isEdit ? '답장 수정하기' : '답장 봉인하기'}
-              icon={isEdit ? 'create-outline' : 'lock-closed-outline'}
+              label={isEdit ? '답장 수정하기' : '답장 보내기'}
+              icon={isEdit ? 'create-outline' : 'paper-plane-outline'}
               onPress={onSubmit}
               loading={saving}
               disabled={!canSubmit}

@@ -203,7 +203,7 @@ function AnswerCard({
       {/* 내용이 있으면 항상 보여준다(아카이브 공개 대상). 없을 때만 봉인 문구.
           내 답장은 서버가 항상 내려주고, 상대 답장은 그때 둘 다 답해 열린 편지만 내려온다. */}
       {!text ? (
-        <Text style={styles.sealedText}>봉인된 채 남겨진 편지예요.</Text>
+        <Text style={styles.sealedText}>아직 열리지 않은 편지예요.</Text>
       ) : (
         <Text style={styles.answerText}>{text}</Text>
       )}
