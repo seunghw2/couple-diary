@@ -54,6 +54,12 @@ export default function SettingsScreen() {
         <Text style={styles.groupLabel}>더 보기</Text>
         <View style={styles.groupCard}>
           <SettingsRow
+            icon="trophy-outline"
+            tint={c.primary}
+            label="월드컵 게임"
+            onPress={() => router.push('/worldcup')}
+          />
+          <SettingsRow
             icon="mail-outline"
             tint={c.primary}
             label="오늘의 질문"

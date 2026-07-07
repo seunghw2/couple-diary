@@ -29,6 +29,7 @@ import com.today.question.QuestionReactionRepository;
 import com.today.question.QuestionReportRepository;
 import com.today.question.QuestionSettingRepository;
 import com.today.user.UserDtos.*;
+import com.today.worldcup.WorldcupResultRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +61,7 @@ public class UserService {
     private final QuestionReportRepository questionReportRepository;
     private final QuestionSettingRepository questionSettingRepository;
     private final NotificationRepository notificationRepository;
+    private final WorldcupResultRepository worldcupResultRepository;
 
     private static final String[] AVATAR_COLORS =
             {"#FF6B6B", "#4ECDC4", "#FFD93D", "#6C5CE7", "#FF8CC8", "#38B000"};
@@ -274,6 +276,8 @@ public class UserService {
             // 커플 범위 기타 데이터.
             calendarMarkRepository.deleteByCouple_Id(coupleId);
             placeNicknameRepository.deleteByCouple_Id(coupleId);
+            // 월드컵 결과(양쪽 멤버 것 모두) — couple FK라 커플 삭제 전에 정리.
+            worldcupResultRepository.deleteByCouple_Id(coupleId);
 
             // 마지막으로 커플 삭제 → 상대는 '미연결' 상태가 된다.
             coupleRepository.delete(couple);

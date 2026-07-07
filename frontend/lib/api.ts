@@ -514,3 +514,49 @@ export const entryApi = {
   addComment: (date: string, text: string) =>
     api.post<CommentView>(`/api/entries/${date}/comments`, { text }),
 };
+
+// ─────────────────────────── 월드컵 미니게임 ───────────────────────────
+
+export type WorldcupItem = { id: number; label: string; emoji: string };
+
+export type WorldcupSummary = {
+  key: string;
+  title: string;
+  emoji: string;
+  size: number; // 강수(참가 수)
+  myPlayed: boolean;
+  partnerPlayed: boolean;
+};
+
+export type WorldcupDetail = {
+  key: string;
+  title: string;
+  emoji: string;
+  size: number;
+  items: WorldcupItem[];
+};
+
+export type WorldcupRecord = { id: number; winner: WorldcupItem; playedAt: string };
+
+export type WorldcupCompare = {
+  myWinner: WorldcupItem;
+  partnerWinner: WorldcupItem;
+  partnerNickname: string;
+  sameWinner: boolean;
+  matchRate: number; // 4강 겹침 기반 취향 일치율(%)
+};
+
+export type WorldcupRecords = {
+  key: string;
+  title: string;
+  myRecords: WorldcupRecord[];
+  compare?: WorldcupCompare;
+};
+
+export const worldcupApi = {
+  list: () => api.get<WorldcupSummary[]>('/api/worldcups'),
+  detail: (key: string) => api.get<WorldcupDetail>(`/api/worldcups/${key}`),
+  saveResult: (key: string, winnerId: number, top4: number[]) =>
+    api.post<void>(`/api/worldcups/${key}/result`, { winnerId, top4 }),
+  records: (key: string) => api.get<WorldcupRecords>(`/api/worldcups/${key}/records`),
+};
