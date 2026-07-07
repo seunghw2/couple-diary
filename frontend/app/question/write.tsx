@@ -115,7 +115,6 @@ export default function QuestionWriteScreen() {
                 multiline
                 textAlignVertical="top"
                 maxLength={MAX_LEN}
-                autoFocus
               />
               <Text style={styles.counter}>
                 {text.length} / {MAX_LEN}
