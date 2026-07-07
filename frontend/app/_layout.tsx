@@ -133,6 +133,7 @@ export default function RootLayout() {
           <Stack.Screen name="question/settings" options={{ presentation: 'card' }} />
           <Stack.Screen name="legal/privacy" options={{ presentation: 'card' }} />
           <Stack.Screen name="legal/terms" options={{ presentation: 'card' }} />
+          <Stack.Screen name="app-color" options={{ presentation: 'card' }} />
           <Stack.Screen name="worldcup/index" options={{ presentation: 'card' }} />
           <Stack.Screen name="worldcup/[key]/index" options={{ presentation: 'card' }} />
           <Stack.Screen name="worldcup/[key]/play" options={{ presentation: 'card' }} />

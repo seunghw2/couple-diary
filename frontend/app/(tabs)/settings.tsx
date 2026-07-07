@@ -3,26 +3,14 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
-import { useThemeStore } from '../../store/useThemeStore';
-import { Card, Icon } from '../../components/ui';
+import { Icon } from '../../components/ui';
 import { colors, font, radius, spacing, useColors } from '../../theme/theme';
-
-/** 앱 강조색 팔레트(뮤트 웜 18색). 탭하면 즉시 적용. */
-const APP_COLORS = [
-  '#FF8E72', '#FF9E80', '#FFB59E', '#F49BA0',
-  '#E98A8A', '#E0A98F', '#D6A16A', '#CBB994',
-  '#E3B23C', '#B0857A', '#A8B58F', '#8FB4A0',
-  '#7FB0A8', '#9AB6C9', '#A99BC4', '#C29BB8',
-  '#D98CA6', '#C98A8A',
-] as const;
 
 export default function SettingsScreen() {
   const router = useRouter();
   const c = useColors();
   const user = useAuthStore((s) => s.user);
   const partner = useAuthStore((s) => s.partner);
-  const appPrimary = useThemeStore((s) => s.appPrimary);
-  const setAppPrimary = useThemeStore((s) => s.setAppPrimary);
 
   const initial = (user?.nickname ?? '?').trim().charAt(0) || '?';
 
@@ -50,27 +38,46 @@ export default function SettingsScreen() {
           </View>
         </Pressable>
 
-        {/* 링크 그룹 */}
-        <Text style={styles.groupLabel}>더 보기</Text>
+        {/* 바로가기 — 열어서 보거나 즐기는 것 */}
+        <Text style={styles.groupLabel}>바로가기</Text>
         <View style={styles.groupCard}>
-          <SettingsRow
-            icon="trophy-outline"
-            tint={c.primary}
-            label="월드컵 게임"
-            onPress={() => router.push('/worldcup')}
-          />
-          <SettingsRow
-            icon="mail-outline"
-            tint={c.primary}
-            label="오늘의 질문"
-            onPress={() => router.push('/question/settings')}
-          />
           <SettingsRow
             icon="gift-outline"
             tint={c.primary}
             label="기념일 보기"
             onPress={() => router.push('/anniversaries')}
           />
+          <SettingsRow
+            icon="trophy-outline"
+            tint={c.primary}
+            label="월드컵 게임"
+            onPress={() => router.push('/worldcup')}
+            last
+          />
+        </View>
+
+        {/* 설정 — 값을 바꾸는 것 */}
+        <Text style={styles.groupLabel}>설정</Text>
+        <View style={styles.groupCard}>
+          <SettingsRow
+            icon="mail-outline"
+            tint={c.primary}
+            label="오늘의 질문 설정"
+            onPress={() => router.push('/question/settings')}
+          />
+          <SettingsRow
+            icon="color-palette-outline"
+            tint={c.primary}
+            label="앱 컬러 변경"
+            value={<View style={[styles.colorDot, { backgroundColor: c.primary }]} />}
+            onPress={() => router.push('/app-color')}
+            last
+          />
+        </View>
+
+        {/* 약관 · 정보 */}
+        <Text style={styles.groupLabel}>약관 · 정보</Text>
+        <View style={styles.groupCard}>
           <SettingsRow
             icon="lock-closed-outline"
             tint={c.primary}
@@ -85,30 +92,6 @@ export default function SettingsScreen() {
             last
           />
         </View>
-
-        {/* 앱 컬러(맨 아래) — 탭 즉시 적용. 내/상대 구분 없이 앱 전체 강조색. */}
-        <Text style={styles.groupLabel}>앱 컬러</Text>
-        <Card>
-          <Text style={styles.hint}>색을 누르면 앱 전체 강조색으로 바로 적용돼요.</Text>
-          <View style={styles.swatchWrap}>
-            {APP_COLORS.map((sw) => {
-              const selected = appPrimary === sw;
-              return (
-                <Pressable
-                  key={sw}
-                  onPress={() => setAppPrimary(sw)}
-                  style={[
-                    styles.swatch,
-                    { backgroundColor: sw },
-                    selected && [styles.swatchSelected, { borderColor: colors.text }],
-                  ]}
-                >
-                  {selected ? <Icon name="checkmark" size={18} color={colors.white} /> : null}
-                </Pressable>
-              );
-            })}
-          </View>
-        </Card>
       </ScrollView>
     </SafeAreaView>
   );
@@ -146,7 +129,6 @@ function SettingsRow({
     </Pressable>
   );
 }
-
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
@@ -187,17 +169,11 @@ const styles = StyleSheet.create({
   rowLabel: { ...font.body, flex: 1, color: colors.text },
   rowRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   rowValue: { ...font.body, color: colors.subText },
-
-  hint: { ...font.caption, marginBottom: spacing.md },
-  swatchWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  swatch: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+  colorDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: colors.white,
   },
-  swatchSelected: { borderWidth: 3 },
 });
