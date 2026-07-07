@@ -1,6 +1,7 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -50,6 +51,18 @@ export default function QuestionScreen() {
       setReportedIds([]);
     }, [loadToday])
   );
+
+  // 댓글 입력창 탭 → 맨 아래(댓글 영역)로. onFocus는 즉시 시도, keyboardDidShow는
+  // 키보드가 완전히 올라와 레이아웃이 확정된 뒤 확실히 한 번 더 내려준다.
+  const scrollToBottom = useCallback(() => {
+    requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
+  }, []);
+
+  useEffect(() => {
+    if (today?.state !== 'OPENED') return;
+    const sub = Keyboard.addListener('keyboardDidShow', scrollToBottom);
+    return () => sub.remove();
+  }, [today?.state, scrollToBottom]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -317,7 +330,7 @@ export default function QuestionScreen() {
           <TextInput
             value={commentText}
             onChangeText={setCommentText}
-            onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150)}
+            onFocus={scrollToBottom}
             placeholder="댓글 달기…"
             placeholderTextColor={colors.placeholder}
             style={styles.commentInput}
