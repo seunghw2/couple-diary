@@ -23,6 +23,21 @@ public class WorldcupController {
         return worldcupService.list(SecurityUtil.currentUserId());
     }
 
+    /** 설정 월드컵 배지용 — 아직 안 본 상대 완주 수. ({key}보다 먼저 매칭되도록 리터럴 경로) */
+    @GetMapping("/unseen")
+    public UnseenResponse unseen() {
+        return new UnseenResponse(worldcupService.unseenCount(SecurityUtil.currentUserId()));
+    }
+
+    /** 월드컵 목록 열람 → 배지 초기화. */
+    @PostMapping("/seen")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void seen() {
+        worldcupService.markSeen(SecurityUtil.currentUserId());
+    }
+
+    public record UnseenResponse(long count) {}
+
     /** 진행용 상세(후보 아이템 포함). */
     @GetMapping("/{key}")
     public CupDetail detail(@PathVariable String key) {

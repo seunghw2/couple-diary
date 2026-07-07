@@ -22,7 +22,13 @@ export default function WorldcupHome() {
     }
   }, []);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(
+    useCallback(() => {
+      load();
+      // 목록을 열면 '상대 새 완료' 배지 초기화(설정 배지 사라짐).
+      worldcupApi.markSeen().catch(() => {});
+    }, [load])
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

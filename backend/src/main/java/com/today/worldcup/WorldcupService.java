@@ -4,6 +4,7 @@ import com.today.common.ApiException;
 import com.today.common.ErrorCode;
 import com.today.couple.Couple;
 import com.today.couple.CoupleService;
+import com.today.notification.NotificationService;
 import com.today.user.User;
 import com.today.worldcup.WorldcupCatalog.Cup;
 import com.today.worldcup.WorldcupDtos.*;
@@ -26,6 +27,7 @@ public class WorldcupService {
 
     private final CoupleService coupleService;
     private final WorldcupResultRepository resultRepository;
+    private final NotificationService notificationService;
 
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("yyyy.MM.dd");
     /** 표시 순서와 이름. */
@@ -79,6 +81,23 @@ public class WorldcupService {
                 .winnerId(req.winnerId())
                 .stages(stages)
                 .build());
+
+        // 완주 알림 → 상대에게(완료할 때마다). 상대 설정의 월드컵 배지에 반영된다.
+        User partner = partnerOf(couple, userId);
+        String winnerLabel = WorldcupCatalog.item(key, req.winnerId()).label();
+        notificationService.onWorldcupCompleted(me, partner, cup.title(), winnerLabel);
+    }
+
+    /** 설정 월드컵 배지 = 아직 안 본 상대 완주 수. */
+    @Transactional(readOnly = true)
+    public long unseenCount(Long userId) {
+        return notificationService.countUnreadWorldcup(userId);
+    }
+
+    /** 월드컵 목록 열람 시 배지 초기화. */
+    @Transactional
+    public void markSeen(Long userId) {
+        notificationService.markWorldcupSeen(userId);
     }
 
     @Transactional(readOnly = true)

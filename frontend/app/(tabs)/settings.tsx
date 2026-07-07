@@ -1,8 +1,9 @@
-import { ComponentProps, ReactNode } from 'react';
+import { ComponentProps, ReactNode, useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
+import { worldcupApi } from '../../lib/api';
 import { Icon } from '../../components/ui';
 import { colors, font, radius, spacing, useColors } from '../../theme/theme';
 
@@ -11,6 +12,15 @@ export default function SettingsScreen() {
   const c = useColors();
   const user = useAuthStore((s) => s.user);
   const partner = useAuthStore((s) => s.partner);
+  // 월드컵 배지: 상대가 새로 완료한 수(월드컵 목록 열면 서버에서 초기화됨).
+  const [wcUnseen, setWcUnseen] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!partner) return;
+      worldcupApi.unseen().then((r) => setWcUnseen(r.count)).catch(() => {});
+    }, [partner])
+  );
 
   const initial = (user?.nickname ?? '?').trim().charAt(0) || '?';
 
@@ -51,6 +61,13 @@ export default function SettingsScreen() {
             icon="trophy-outline"
             tint={c.primary}
             label="월드컵 게임"
+            value={
+              wcUnseen > 0 ? (
+                <View style={[styles.badge, { backgroundColor: c.primary }]}>
+                  <Text style={styles.badgeText}>{wcUnseen}</Text>
+                </View>
+              ) : undefined
+            }
             onPress={() => router.push('/worldcup')}
             last
           />
@@ -176,4 +193,13 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.white,
   },
+  badge: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: { color: colors.white, fontSize: 12, fontWeight: '800' },
 });

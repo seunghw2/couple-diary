@@ -12,5 +12,6 @@ public enum NotificationType {
     QUESTION_ANSWERED,// 상대가 답장했어요(내 차례)
     QUESTION_OPENED,  // 둘 다 답해 편지가 열렸어요
     QUESTION_MISSED,  // 어제 편지가 지나갔어요(자정 마감)
-    QUESTION_COMMENT  // 오늘의 편지에 댓글
+    QUESTION_COMMENT, // 오늘의 편지에 댓글
+    WORLDCUP_COMPLETED // 상대가 월드컵을 완주했어요
 }

@@ -202,6 +202,36 @@ public class NotificationService {
         for (Notification n : unread) n.setReadFlag(true);
     }
 
+    // ===================== 월드컵 알림·배지 =====================
+
+    /** 상대가 월드컵을 완주했을 때 — 완주자의 상대에게. 완료할 때마다 하나씩(중복 방지 없음). */
+    @Transactional
+    public void onWorldcupCompleted(User me, User partner, String cupTitle, String winnerLabel) {
+        if (me == null || partner == null) return;
+        notificationRepository.save(Notification.builder()
+                .recipient(partner)
+                .type(NotificationType.WORLDCUP_COMPLETED)
+                .title(me.getNickname() + "님이 월드컵을 완주했어요")
+                .body("🏆 " + cupTitle + " · 우승 " + winnerLabel)
+                .entryDate(null)
+                .build());
+    }
+
+    /** 설정의 월드컵 행 배지 = 아직 안 본 상대 완주 수(미읽음 WORLDCUP_COMPLETED). */
+    @Transactional(readOnly = true)
+    public long countUnreadWorldcup(Long userId) {
+        return notificationRepository.countByRecipient_IdAndTypeAndReadFlagFalse(
+                userId, NotificationType.WORLDCUP_COMPLETED);
+    }
+
+    /** 월드컵 목록을 열면 배지 초기화(해당 알림 읽음 처리). */
+    @Transactional
+    public void markWorldcupSeen(Long userId) {
+        List<Notification> unread = notificationRepository
+                .findByRecipient_IdAndTypeAndReadFlagFalse(userId, NotificationType.WORLDCUP_COMPLETED);
+        for (Notification n : unread) n.setReadFlag(true);
+    }
+
     @Transactional
     public void poke(Long userId) {
         // 커플 미연결이면 400

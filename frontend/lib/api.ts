@@ -475,7 +475,8 @@ export type NotificationType =
   | 'COMMENT'
   | 'POKE'
   | 'ANNIVERSARY'
-  | 'COUPLE_CONNECTED';
+  | 'COUPLE_CONNECTED'
+  | 'WORLDCUP_COMPLETED';
 
 export type Notification = {
   id: number;
@@ -569,4 +570,8 @@ export const worldcupApi = {
   saveResult: (key: string, winnerId: number, stages: WorldcupStages) =>
     api.post<void>(`/api/worldcups/${key}/result`, { winnerId, stages }),
   records: (key: string) => api.get<WorldcupRecords>(`/api/worldcups/${key}/records`),
+  /** 설정 배지용 — 아직 안 본 상대 완주 수. */
+  unseen: () => api.get<{ count: number }>('/api/worldcups/unseen'),
+  /** 월드컵 목록 열람 → 배지 초기화. */
+  markSeen: () => api.post<void>('/api/worldcups/seen'),
 };

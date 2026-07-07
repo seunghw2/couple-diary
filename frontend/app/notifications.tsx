@@ -25,6 +25,7 @@ const NOTIF_ICON: Record<NotificationType, React.ComponentProps<typeof Ionicons>
   POKE: 'hand-left-outline',
   ANNIVERSARY: 'gift-outline',
   COUPLE_CONNECTED: 'heart',
+  WORLDCUP_COMPLETED: 'trophy-outline',
 };
 
 export default function NotificationsScreen() {
@@ -47,7 +48,8 @@ export default function NotificationsScreen() {
 
   async function onTap(n: Notification) {
     if (!n.read) void markRead(n.id);
-    if (n.entryDate) router.push({ pathname: '/entry/[date]', params: { date: n.entryDate } });
+    if (n.type === 'WORLDCUP_COMPLETED') router.push('/worldcup');
+    else if (n.entryDate) router.push({ pathname: '/entry/[date]', params: { date: n.entryDate } });
   }
 
   return (
