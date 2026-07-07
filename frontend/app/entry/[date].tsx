@@ -1,9 +1,10 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
   Dimensions,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   PanResponder,
@@ -142,7 +143,7 @@ export default function EntryDetailScreen() {
         return updated;
       });
       setCommentText('');
-      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
+      scrollToBottom();
       invalidateAfterMutation(dateStr); // 알림 등 갱신
     } catch {
       setCommentError('댓글 등록에 실패했어요. 다시 시도해 주세요.');
@@ -238,6 +239,18 @@ export default function EntryDetailScreen() {
   const partnerEntry = detail?.partnerEntry;
   const partnerOpen = partnerEntry && !isLocked(partnerEntry) ? partnerEntry : null;
   const isFuture = dateStr > todayISO();
+
+  // 댓글 입력창 탭 → 맨 아래로. onFocus는 즉시, keyboardDidShow는 키보드가
+  // 완전히 올라온 뒤 한 번 더(편지 화면과 동일한 처리).
+  const scrollToBottom = useCallback(() => {
+    requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
+  }, []);
+
+  useEffect(() => {
+    if (status !== 'OPEN') return;
+    const sub = Keyboard.addListener('keyboardDidShow', scrollToBottom);
+    return () => sub.remove();
+  }, [status, scrollToBottom]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -367,7 +380,7 @@ export default function EntryDetailScreen() {
             <TextInput
               value={commentText}
               onChangeText={setCommentText}
-              onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150)}
+              onFocus={scrollToBottom}
               placeholder="댓글 달기..."
               placeholderTextColor={colors.placeholder}
               style={styles.commentInput}
