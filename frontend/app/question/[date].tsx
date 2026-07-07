@@ -119,13 +119,11 @@ export default function QuestionDetailScreen() {
               <AnswerCard
                 label="내 답장"
                 text={detail.myAnswer?.text}
-                sealed={detail.myAnswer?.sealed}
                 tint={c.primary}
               />
               <AnswerCard
                 label={detail.partnerNickname ? `${detail.partnerNickname}의 답장` : '상대의 답장'}
                 text={detail.partnerAnswer?.text}
-                sealed={detail.partnerAnswer?.sealed}
                 tint={colors.partner}
               />
 
@@ -193,18 +191,18 @@ function CommentRow({ comment, mine }: { comment: CommentView; mine: boolean }) 
 function AnswerCard({
   label,
   text,
-  sealed,
   tint,
 }: {
   label: string;
   text?: string;
-  sealed?: boolean;
   tint: string;
 }) {
   return (
     <View style={[styles.answerCard, shadow]}>
       <Text style={[styles.answerLabel, { color: tint }]}>{label}</Text>
-      {sealed || !text ? (
+      {/* 내용이 있으면 항상 보여준다(아카이브 공개 대상). 없을 때만 봉인 문구.
+          내 답장은 서버가 항상 내려주고, 상대 답장은 그때 둘 다 답해 열린 편지만 내려온다. */}
+      {!text ? (
         <Text style={styles.sealedText}>봉인된 채 남겨진 편지예요.</Text>
       ) : (
         <Text style={styles.answerText}>{text}</Text>
