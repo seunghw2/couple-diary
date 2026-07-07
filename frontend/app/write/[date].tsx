@@ -69,7 +69,7 @@ export default function WriteScreen() {
   const [step, setStep] = useState<Step>('mode');
   const [mode, setMode] = useState<FormMode>('TEMPLATE');
   const [loadingDetail, setLoadingDetail] = useState(true);
-  const [editExpired, setEditExpired] = useState(false); // 내 일기 수정 가능 시간(3시간) 경과
+  const [editExpired, setEditExpired] = useState(false); // 내 일기 수정 가능 시간(24시간) 경과
 
   // 자유(질문) 관련 — 서버 질문 로드 실패 시 자유 모드 비활성화(폴백 없음)
   const [questions, setQuestions] = useState<QuestionResponse[]>([]);
@@ -429,8 +429,8 @@ export default function WriteScreen() {
         <View style={{ paddingHorizontal: spacing.xl }}>
           <Card style={{ marginTop: spacing.xxl, alignItems: 'center' }}>
             <Icon name="time-outline" size={40} color={colors.coralSoft} style={{ marginBottom: spacing.md }} />
-            <Text style={styles.expiredTitle}>수정 가능 시간(3시간)이 지났어요</Text>
-            <Text style={styles.expiredSub}>이미 쓴 일기는 3시간 안에만 고칠 수 있어요.</Text>
+            <Text style={styles.expiredTitle}>수정 가능 시간(24시간)이 지났어요</Text>
+            <Text style={styles.expiredSub}>이미 쓴 일기는 24시간 안에만 고칠 수 있어요.</Text>
             <Button label="돌아가기" onPress={() => router.back()} style={{ marginTop: spacing.lg, alignSelf: 'stretch' }} />
           </Card>
         </View>

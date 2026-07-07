@@ -155,7 +155,7 @@ export default function EntryDetailScreen() {
     const mine = detail?.myEntry;
     if (!mine) return;
     if (!mine.editable) {
-      showAlert('수정 가능 시간(3시간)이 지났어요', '이미 쓴 일기는 3시간 안에만 고칠 수 있어요.');
+      showAlert('수정 가능 시간(24시간)이 지났어요', '이미 쓴 일기는 24시간 안에만 고칠 수 있어요.');
       return;
     }
     router.push({ pathname: '/write/[date]', params: { date: dateStr } });

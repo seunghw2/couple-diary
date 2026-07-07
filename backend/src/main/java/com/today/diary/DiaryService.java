@@ -44,7 +44,7 @@ public class DiaryService {
     private final DiaryDayFactory dayFactory;
     private final NotificationService notificationService;
 
-    private static final long EDIT_WINDOW_HOURS = 3;
+    private static final long EDIT_WINDOW_HOURS = 24;
     private static final int MAX_PICK_QUESTIONS = 5;
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 

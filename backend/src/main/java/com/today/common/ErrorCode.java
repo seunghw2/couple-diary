@@ -29,6 +29,7 @@ public enum ErrorCode {
     PARTNER_ALREADY_COUPLED(HttpStatus.CONFLICT, "P005", "상대방이 이미 다른 커플로 연결되어 있습니다."),
 
     QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "Q001", "존재하지 않는 질문입니다."),
+    ANSWER_NOT_EDITABLE(HttpStatus.FORBIDDEN, "Q002", "답장은 24시간 이내에만 수정할 수 있어요."),
 
     DAY_LOCKED(HttpStatus.FORBIDDEN, "D001", "아직 공개되지 않은 일기입니다."),
     ENTRY_NOT_EDITABLE(HttpStatus.FORBIDDEN, "D002", "수정 가능 시간이 지났습니다."),

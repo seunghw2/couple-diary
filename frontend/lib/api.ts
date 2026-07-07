@@ -328,6 +328,8 @@ export type TodayQuestion = {
   chosenBy?: { id: number; nickname: string };
   chosenByMe?: boolean;
   myAnswer?: QuestionAnswer;
+  /** 내 답장이 아직 수정 가능한가(봉인 후 24시간 이내). WAITING_PARTNER·OPENED에서만 옴. */
+  myAnswerEditable?: boolean;
   partnerAnswer?: QuestionAnswer;
   partnerSealed?: boolean;
   /** OPENED에서만 옴 — 이 편지에 달린 댓글들. */

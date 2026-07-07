@@ -265,7 +265,7 @@ export default function QuestionScreen() {
               label="내 답장"
               text={today.myAnswer?.text}
               who="mine"
-              onEdit={() => router.push('/question/write')}
+              onEdit={today.myAnswerEditable === false ? undefined : () => router.push('/question/write')}
             />
             <View style={[styles.lockCard, shadow]}>
               <Icon name="lock-closed-outline" size={22} color={c.coralSoft} />
@@ -287,7 +287,7 @@ export default function QuestionScreen() {
               label={me?.nickname ? `${me.nickname}의 답장` : '내 답장'}
               text={today.myAnswer?.text}
               who="mine"
-              onEdit={() => router.push('/question/write')}
+              onEdit={today.myAnswerEditable === false ? undefined : () => router.push('/question/write')}
             />
             <OpenedAnswer
               label={partner?.nickname ? `${partner.nickname}의 답장` : '상대의 답장'}

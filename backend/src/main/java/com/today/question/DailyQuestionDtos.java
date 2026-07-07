@@ -29,6 +29,8 @@ public class DailyQuestionDtos {
             Person chosenBy,
             Boolean chosenByMe,
             AnswerView myAnswer,
+            /** 내 답장이 아직 수정 가능한가(봉인 후 24시간 이내). WAITING_PARTNER·OPENED에서만 의미. */
+            Boolean myAnswerEditable,
             AnswerView partnerAnswer,
             Boolean partnerSealed,
             int streak,
@@ -38,7 +40,7 @@ public class DailyQuestionDtos {
         /** 커플 미연결 응답. */
         public static TodayResponse notCoupled() {
             return new TodayResponse(null, null, null, false, null, null,
-                    null, null, null, null, null, 0, null, null);
+                    null, null, null, null, null, null, 0, null, null);
         }
     }
 

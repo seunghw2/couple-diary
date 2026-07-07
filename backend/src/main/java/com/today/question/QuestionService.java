@@ -48,6 +48,8 @@ public class QuestionService {
     private static final int CONTEXT_WINDOW_DAYS = 3;
     /** 서로 다른 커플 신고가 이 수 이상이면 자동 비활성. */
     private static final int REPORT_DEACTIVATE_THRESHOLD = 3;
+    /** 답장 봉인 후 수정 가능 시간(시간). 이후엔 수정 불가. */
+    private static final long ANSWER_EDIT_WINDOW_HOURS = 24;
 
     /** 전역 목표 톤 비율(1:3:1) — best-effort 보정용. */
     private static final Map<String, Double> GLOBAL_TONE = Map.of(
@@ -133,6 +135,7 @@ public class QuestionService {
         if (!partnerSealed) {
             return builder.state("WAITING_PARTNER")
                     .myAnswer(myView)
+                    .myAnswerEditable(answerEditable(myAns))
                     .partnerSealed(false)
                     .build();
         }
@@ -152,6 +155,7 @@ public class QuestionService {
 
         return builder.state("OPENED")
                 .myAnswer(myOpened)
+                .myAnswerEditable(answerEditable(myAns))
                 .partnerAnswer(partnerView)
                 .partnerSealed(true)
                 .comments(loadComments(chosen.getId()))
@@ -217,6 +221,10 @@ public class QuestionService {
         boolean alreadySealed = existing != null && existing.getSealedAt() != null;
 
         if (existing != null) {
+            // 이미 봉인된 답장은 봉인 후 24시간 이내에만 수정 가능.
+            if (existing.getSealedAt() != null && !answerEditable(existing)) {
+                throw new ApiException(ErrorCode.ANSWER_NOT_EDITABLE);
+            }
             existing.setText(text);
             if (existing.getSealedAt() == null) existing.setSealedAt(LocalDateTime.now());
         } else {
@@ -242,6 +250,12 @@ public class QuestionService {
         }
 
         return today(userId);
+    }
+
+    /** 봉인된 답장이 아직 수정 가능한가(봉인 후 24시간 이내). 미봉인이면 true(=작성 가능). */
+    private boolean answerEditable(QuestionAnswer ans) {
+        if (ans == null || ans.getSealedAt() == null) return true;
+        return LocalDateTime.now().isBefore(ans.getSealedAt().plusHours(ANSWER_EDIT_WINDOW_HOURS));
     }
 
     // ===================== react =====================
@@ -943,6 +957,7 @@ public class QuestionService {
         private Person chosenBy;
         private Boolean chosenByMe;
         private AnswerView myAnswer;
+        private Boolean myAnswerEditable;
         private AnswerView partnerAnswer;
         private Boolean partnerSealed;
         private int streak;
@@ -957,6 +972,7 @@ public class QuestionService {
         TodayResponseBuilder chosenBy(Person v) { this.chosenBy = v; return this; }
         TodayResponseBuilder chosenByMe(Boolean v) { this.chosenByMe = v; return this; }
         TodayResponseBuilder myAnswer(AnswerView v) { this.myAnswer = v; return this; }
+        TodayResponseBuilder myAnswerEditable(Boolean v) { this.myAnswerEditable = v; return this; }
         TodayResponseBuilder partnerAnswer(AnswerView v) { this.partnerAnswer = v; return this; }
         TodayResponseBuilder partnerSealed(Boolean v) { this.partnerSealed = v; return this; }
         TodayResponseBuilder streak(int v) { this.streak = v; return this; }
@@ -965,7 +981,7 @@ public class QuestionService {
 
         TodayResponse build() {
             return new TodayResponse(date, state, arrivalTime, true, choices, question,
-                    chosenBy, chosenByMe, myAnswer, partnerAnswer, partnerSealed, streak,
+                    chosenBy, chosenByMe, myAnswer, myAnswerEditable, partnerAnswer, partnerSealed, streak,
                     missedYesterday, comments);
         }
     }
