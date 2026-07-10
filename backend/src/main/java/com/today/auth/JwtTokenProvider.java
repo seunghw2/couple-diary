@@ -5,8 +5,11 @@ import com.today.common.ErrorCode;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -15,7 +18,13 @@ import java.util.Date;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtTokenProvider {
+
+    /** application.yml의 기본(개발용) 시크릿 접두. 프로덕션에서 이 값이면 안 된다. */
+    private static final String DEV_SECRET_PREFIX = "change-me";
+
+    private final Environment environment;
 
     @Value("${app.jwt.secret}")
     private String secret;
@@ -27,6 +36,13 @@ public class JwtTokenProvider {
 
     @PostConstruct
     void init() {
+        // 프로덕션에서 기본/빈 시크릿이면 토큰 위조가 가능하므로 부팅을 막는다(fail-fast).
+        boolean isProd = environment.acceptsProfiles(Profiles.of("prod"));
+        boolean weak = secret == null || secret.isBlank() || secret.startsWith(DEV_SECRET_PREFIX);
+        if (isProd && weak) {
+            throw new IllegalStateException(
+                    "운영 환경에서는 JWT_SECRET 환경변수(32바이트 이상 랜덤)를 반드시 설정해야 합니다.");
+        }
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 

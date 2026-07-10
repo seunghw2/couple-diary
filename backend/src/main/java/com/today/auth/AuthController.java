@@ -2,7 +2,6 @@ package com.today.auth;
 
 import com.today.user.UserDtos.AppleLoginRequest;
 import com.today.user.UserDtos.AuthResponse;
-import com.today.user.UserDtos.DevLoginRequest;
 import com.today.user.UserDtos.KakaoLoginRequest;
 import com.today.user.UserService;
 import jakarta.validation.Valid;
@@ -31,10 +30,8 @@ public class AuthController {
     @Value("${app.kakao.callback-url:https://today-api.hammerslog.trade/api/auth/kakao/callback}")
     private String kakaoCallbackUrl;
 
-    @PostMapping("/dev-login")
-    public AuthResponse devLogin(@Valid @RequestBody DevLoginRequest req) {
-        return userService.devLogin(req);
-    }
+    // 주의: dev-login(닉네임 무인증 로그인)은 보안상 프로덕션에서 노출되면 안 되므로
+    // 별도 DevAuthController(@Profile("!prod"))로 분리했다. prod 프로파일에선 등록되지 않는다.
 
     /**
      * 카카오 로그인(권장 경로). 프론트가 WebBrowser 인가 플로우로 받은 code + redirectUri를 넘기면
@@ -65,6 +62,10 @@ public class AuthController {
     public ResponseEntity<?> kakaoCallback(@RequestParam("code") String code,
                                            @RequestParam(value = "state", required = false) String state) {
         String redirectUri = kakaoCallbackUrl; // 카카오 콘솔에 등록된 값과 동일해야 교환 성공
+        // 오픈리다이렉트 방어: state(returnUri)가 허용 스킴/도메인이 아니면 토큰을 실어 보내지 않는다.
+        if (state != null && !state.isBlank() && !isAllowedReturnUri(state)) {
+            return ResponseEntity.badRequest().build();
+        }
         if (state == null || state.isBlank()) {
             // returnUri가 없으면 앱으로 되돌릴 수 없으므로 JSON으로 결과 반환(디버그/폴백).
             AuthResponse res = userService.kakaoLogin(new KakaoLoginRequest(code, redirectUri));
@@ -88,5 +89,27 @@ public class AuthController {
 
     private static String encode(String v) {
         return URLEncoder.encode(v, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * returnUri(state)가 우리 앱으로 되돌아가는 안전한 대상인지 검증.
+     * 허용: 앱 스킴(exp/exps/today), https + hammerslog.trade 도메인(자기/서브도메인).
+     * 그 외(예: https://evil.com)면 거부해 액세스 토큰 유출을 막는다.
+     */
+    private static boolean isAllowedReturnUri(String state) {
+        try {
+            URI uri = URI.create(state.trim());
+            String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
+            if (scheme.equals("exp") || scheme.equals("exps") || scheme.equals("today")) {
+                return true; // Expo Go / 앱 커스텀 스킴
+            }
+            if (scheme.equals("https")) {
+                String host = uri.getHost() == null ? "" : uri.getHost().toLowerCase();
+                return host.equals("hammerslog.trade") || host.endsWith(".hammerslog.trade");
+            }
+            return false;
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 }

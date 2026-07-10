@@ -43,7 +43,9 @@ public class CoupleService {
             throw new ApiException(ErrorCode.ALREADY_COUPLED);
         }
 
-        User owner = userRepository.findByInviteCode(req.inviteCode())
+        // 초대코드는 대문자 저장이므로, 붙여넣기/키보드로 소문자·공백이 섞여도 연결되게 정규화.
+        String code = req.inviteCode() == null ? "" : req.inviteCode().trim().toUpperCase();
+        User owner = userRepository.findByInviteCode(code)
                 .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INVITE_CODE));
 
         if (owner.getId().equals(userId)) {

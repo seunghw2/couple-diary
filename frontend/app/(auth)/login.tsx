@@ -101,7 +101,7 @@ export default function LoginScreen() {
         <View style={styles.container}>
           <View style={styles.hero}>
             <View style={styles.logoRow}>
-              <Text style={styles.logo}>love today</Text>
+              <Text style={styles.logo}>투데이</Text>
               <Icon name="heart" size={30} color={colors.primary} />
             </View>
             <Text style={styles.tagline}>둘이 함께 쓰는 오늘의 일기</Text>
@@ -148,29 +148,34 @@ export default function LoginScreen() {
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
-            <View style={styles.divider}>
-              <View style={styles.line} />
-              <Text style={styles.dividerText}>또는</Text>
-              <View style={styles.line} />
-            </View>
+            {/* 개발용 닉네임 로그인 — 개발 빌드에서만 노출(프로덕션엔 숨김). */}
+            {__DEV__ ? (
+              <>
+                <View style={styles.divider}>
+                  <View style={styles.line} />
+                  <Text style={styles.dividerText}>또는</Text>
+                  <View style={styles.line} />
+                </View>
 
-            <Text style={styles.fieldLabel}>닉네임으로 시작 (개발용)</Text>
-            <TextInput
-              value={nickname}
-              onChangeText={setNickname}
-              placeholder="달콩"
-              placeholderTextColor={colors.placeholder}
-              style={styles.input}
-            />
+                <Text style={styles.fieldLabel}>닉네임으로 시작 (개발용)</Text>
+                <TextInput
+                  value={nickname}
+                  onChangeText={setNickname}
+                  placeholder="달콩"
+                  placeholderTextColor={colors.placeholder}
+                  style={styles.input}
+                />
 
-            <Button
-              label="시작하기"
-              variant="soft"
-              onPress={onLogin}
-              disabled={!canSubmit || busy}
-              loading={loading}
-              style={{ marginTop: spacing.lg }}
-            />
+                <Button
+                  label="시작하기"
+                  variant="soft"
+                  onPress={onLogin}
+                  disabled={!canSubmit || busy}
+                  loading={loading}
+                  style={{ marginTop: spacing.lg }}
+                />
+              </>
+            ) : null}
           </View>
         </View>
       </KeyboardAvoidingView>
