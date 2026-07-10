@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ArchiveDetail, CommentView, dailyQuestionApi } from '../../lib/api';
 import { formatKoLong, weekdayKo } from '../../lib/date';
+import { subj } from '../../lib/josa';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Button, Icon } from '../../components/ui';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
@@ -70,7 +71,7 @@ export default function QuestionDetailScreen() {
     }
   }
 
-  const chosenLine = detail?.chosenBy?.nickname ? `${detail.chosenBy.nickname}가 고른 편지예요` : '';
+  const chosenLine = detail?.chosenBy?.nickname ? `${subj(detail.chosenBy.nickname)} 고른 편지예요` : '';
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

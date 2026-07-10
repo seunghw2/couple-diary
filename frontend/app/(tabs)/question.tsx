@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { CommentView, dailyQuestionApi } from '../../lib/api';
 import { confirmAsync, showAlert, showToast } from '../../lib/dialog';
+import { subj } from '../../lib/josa';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useQuestionStore } from '../../store/useQuestionStore';
 import { Button, Card, Icon } from '../../components/ui';
@@ -270,7 +271,7 @@ export default function QuestionScreen() {
             <View style={[styles.lockCard, shadow]}>
               <Icon name="lock-closed-outline" size={22} color={c.coralSoft} />
               <Text style={styles.lockText}>
-                {partner?.nickname ?? '상대'}가 답하면 두 편지가 함께 열려요.
+                {subj(partner?.nickname ?? '상대')} 답하면 두 편지가 함께 열려요.
               </Text>
             </View>
             <StatusPill icon="hourglass-outline" text="상대의 답장을 기다리는 중" tone="partner" />
@@ -415,7 +416,7 @@ function LetterCard({ question, children }: { question?: string; children?: Reac
 
 /** 누가 골랐는지 한 줄. */
 function ChosenLine({ chosenByMe, nickname }: { chosenByMe?: boolean; nickname?: string }) {
-  const text = chosenByMe ? '내가 고른 편지예요' : nickname ? `${nickname}가 고른 편지예요` : '';
+  const text = chosenByMe ? '내가 고른 편지예요' : nickname ? `${subj(nickname)} 고른 편지예요` : '';
   if (!text) return null;
   return <Text style={styles.chosenLine}>{text}</Text>;
 }

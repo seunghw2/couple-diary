@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { showAlert } from '../../lib/dialog';
+import { subj } from '../../lib/josa';
 import { useQuestionStore } from '../../store/useQuestionStore';
 import { Button, Icon } from '../../components/ui';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
@@ -55,7 +56,7 @@ export default function QuestionWriteScreen() {
   const chosenLine = useMemo(() => {
     if (!today) return '';
     if (today.chosenByMe) return '내가 고른 편지예요';
-    return today.chosenBy?.nickname ? `${today.chosenBy.nickname}가 고른 편지예요` : '';
+    return today.chosenBy?.nickname ? `${subj(today.chosenBy.nickname)} 고른 편지예요` : '';
   }, [today]);
 
   const trimmed = text.trim();
