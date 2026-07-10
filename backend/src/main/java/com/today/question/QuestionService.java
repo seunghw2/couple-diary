@@ -615,6 +615,15 @@ public class QuestionService {
         List<PickedQuestion> picks = new ArrayList<>();
         Set<Long> usedIds = new HashSet<>();
 
+        // 이전에 이 커플에게 나온 적 있는 질문(양 슬롯 모두)은 다시 안 나오게 하드 제외.
+        // 단, 안 쓴 질문이 2개 미만으로 남으면(풀 소진) 제외를 풀어 배정이 막히지 않게 한다.
+        Set<Long> everShown = new HashSet<>();
+        for (DailyQuestion dq : dailyQuestionRepository.findByCouple_Id(couple.getId())) {
+            if (dq.getQuestion() != null) everShown.add(dq.getQuestion().getId());
+        }
+        long freshCount = nonTemplate.stream().filter(q -> !everShown.contains(q.getId())).count();
+        if (freshCount >= 2) usedIds.addAll(everShown);
+
         // slot1: 컨텍스트 트리거 우선
         ContextSignal signal = computeContext(couple, today);
         if (signal != null) {
