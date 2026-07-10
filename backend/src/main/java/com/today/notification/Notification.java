@@ -41,6 +41,10 @@ public class Notification {
     @Column(name = "entry_date")
     private LocalDate entryDate;
 
+    // 딥링크 참조 키(예: 월드컵 key). 특정 대상으로 바로 이동할 때 사용. 없으면 null.
+    @Column(name = "ref_key", length = 100)
+    private String refKey;
+
     @Column(name = "read_flag", nullable = false)
     private boolean readFlag = false;
 
@@ -48,12 +52,14 @@ public class Notification {
     private LocalDateTime createdAt;
 
     @Builder
-    public Notification(User recipient, NotificationType type, String title, String body, LocalDate entryDate) {
+    public Notification(User recipient, NotificationType type, String title, String body,
+                        LocalDate entryDate, String refKey) {
         this.recipient = recipient;
         this.type = type;
         this.title = title;
         this.body = body;
         this.entryDate = entryDate;
+        this.refKey = refKey;
     }
 
     @PrePersist

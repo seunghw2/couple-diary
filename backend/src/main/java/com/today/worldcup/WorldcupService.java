@@ -82,10 +82,14 @@ public class WorldcupService {
                 .stages(stages)
                 .build());
 
-        // 완주 알림 → 상대에게(완료할 때마다). 상대 설정의 월드컵 배지에 반영된다.
+        // 완주 알림 → 상대에게(완료할 때마다). 상대도 이미 완주했으면 '비교 가능' 알림으로.
         User partner = partnerOf(couple, userId);
         String winnerLabel = WorldcupCatalog.item(key, req.winnerId()).label();
-        notificationService.onWorldcupCompleted(me, partner, cup.title(), winnerLabel);
+        boolean partnerDone = partner != null && resultRepository
+                .findTopByCouple_IdAndAuthor_IdAndWorldcupKeyOrderByCreatedAtDesc(
+                        couple.getId(), partner.getId(), key)
+                .isPresent();
+        notificationService.onWorldcupCompleted(me, partner, cup.title(), winnerLabel, key, partnerDone);
     }
 
     /** 설정 월드컵 배지 = 아직 안 본 상대 완주 수. */

@@ -476,7 +476,8 @@ export type NotificationType =
   | 'POKE'
   | 'ANNIVERSARY'
   | 'COUPLE_CONNECTED'
-  | 'WORLDCUP_COMPLETED';
+  | 'WORLDCUP_COMPLETED'
+  | 'WORLDCUP_COMPARABLE';
 
 export type Notification = {
   id: number;
@@ -484,6 +485,7 @@ export type Notification = {
   title: string;
   body: string;
   entryDate?: string; // YYYY-MM-DD
+  refKey?: string; // 딥링크 참조(예: 월드컵 key)
   read: boolean;
   createdAt: string;
 };

@@ -35,10 +35,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     Optional<Notification> findByIdAndRecipient_Id(Long id, Long recipientId);
 
-    // 월드컵 배지: 특정 타입 미읽음 개수 / 목록(읽음 처리용).
-    long countByRecipient_IdAndTypeAndReadFlagFalse(Long recipientId, NotificationType type);
+    // 월드컵 배지: 여러 타입(완주/비교가능) 미읽음 개수 / 목록(읽음 처리용).
+    long countByRecipient_IdAndTypeInAndReadFlagFalse(Long recipientId, java.util.Collection<NotificationType> types);
 
-    List<Notification> findByRecipient_IdAndTypeAndReadFlagFalse(Long recipientId, NotificationType type);
+    List<Notification> findByRecipient_IdAndTypeInAndReadFlagFalse(Long recipientId, java.util.Collection<NotificationType> types);
 
     // 계정 삭제: 이 유저가 받은 모든 알림 제거.
     void deleteByRecipient_Id(Long recipientId);

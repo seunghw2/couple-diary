@@ -204,31 +204,45 @@ public class NotificationService {
 
     // ===================== 월드컵 알림·배지 =====================
 
-    /** 상대가 월드컵을 완주했을 때 — 완주자의 상대에게. 완료할 때마다 하나씩(중복 방지 없음). */
+    private static final List<NotificationType> WORLDCUP_TYPES =
+            List.of(NotificationType.WORLDCUP_COMPLETED, NotificationType.WORLDCUP_COMPARABLE);
+
+    /**
+     * 상대가 월드컵을 완주했을 때 — 완주자의 상대에게. 완료할 때마다 하나씩.
+     * comparable=true(상대가 이미 이 월드컵을 완주해 둘 다 끝남)면 '비교 가능' 알림으로.
+     * refKey에 월드컵 key를 담아 알림 탭 시 해당 결과로 바로 이동한다.
+     */
     @Transactional
-    public void onWorldcupCompleted(User me, User partner, String cupTitle, String winnerLabel) {
+    public void onWorldcupCompleted(User me, User partner, String cupTitle, String winnerLabel,
+                                    String worldcupKey, boolean comparable) {
         if (me == null || partner == null) return;
+        String title, body;
+        NotificationType type;
+        if (comparable) {
+            type = NotificationType.WORLDCUP_COMPARABLE;
+            title = "결과를 비교할 수 있어요";
+            body = "이제 " + me.getNickname() + "님과 " + cupTitle + " 결과를 비교해봐요 🏆";
+        } else {
+            type = NotificationType.WORLDCUP_COMPLETED;
+            title = me.getNickname() + "님이 월드컵을 완주했어요";
+            body = "🏆 " + cupTitle + " · 우승 " + winnerLabel;
+        }
         notificationRepository.save(Notification.builder()
-                .recipient(partner)
-                .type(NotificationType.WORLDCUP_COMPLETED)
-                .title(me.getNickname() + "님이 월드컵을 완주했어요")
-                .body("🏆 " + cupTitle + " · 우승 " + winnerLabel)
-                .entryDate(null)
-                .build());
+                .recipient(partner).type(type).title(title).body(body)
+                .entryDate(null).refKey(worldcupKey).build());
     }
 
-    /** 설정의 월드컵 행 배지 = 아직 안 본 상대 완주 수(미읽음 WORLDCUP_COMPLETED). */
+    /** 설정의 월드컵 행 배지 = 아직 안 본 상대 완주/비교가능 수. */
     @Transactional(readOnly = true)
     public long countUnreadWorldcup(Long userId) {
-        return notificationRepository.countByRecipient_IdAndTypeAndReadFlagFalse(
-                userId, NotificationType.WORLDCUP_COMPLETED);
+        return notificationRepository.countByRecipient_IdAndTypeInAndReadFlagFalse(userId, WORLDCUP_TYPES);
     }
 
     /** 월드컵 목록을 열면 배지 초기화(해당 알림 읽음 처리). */
     @Transactional
     public void markWorldcupSeen(Long userId) {
         List<Notification> unread = notificationRepository
-                .findByRecipient_IdAndTypeAndReadFlagFalse(userId, NotificationType.WORLDCUP_COMPLETED);
+                .findByRecipient_IdAndTypeInAndReadFlagFalse(userId, WORLDCUP_TYPES);
         for (Notification n : unread) n.setReadFlag(true);
     }
 

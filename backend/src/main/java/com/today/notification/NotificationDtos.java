@@ -12,13 +12,14 @@ public class NotificationDtos {
             String title,
             String body,
             LocalDate entryDate,
+            String refKey,
             boolean read,
             LocalDateTime createdAt
     ) {
         public static NotificationView of(Notification n) {
             return new NotificationView(
                     n.getId(), n.getType(), n.getTitle(), n.getBody(),
-                    n.getEntryDate(), n.isReadFlag(), n.getCreatedAt());
+                    n.getEntryDate(), n.getRefKey(), n.isReadFlag(), n.getCreatedAt());
         }
     }
 

@@ -21,13 +21,16 @@ export default function WorldcupDetailScreen() {
     justWon?: string;
     winnerLabel?: string;
     winnerEmoji?: string;
+    compare?: string;
   }>();
   const key = params.key;
   const justWon = params.justWon === '1';
+  // 알림 딥링크(compare=1)로 들어오면 결과 비교를 바로 펼친다.
+  const autoOpen = justWon || params.compare === '1';
 
   const [detail, setDetail] = useState<WorldcupDetail | null>(null);
   const [records, setRecords] = useState<WorldcupRecords | null>(null);
-  const [showRecords, setShowRecords] = useState(justWon);
+  const [showRecords, setShowRecords] = useState(autoOpen);
   const [loadingRecords, setLoadingRecords] = useState(false);
 
   useEffect(() => {
@@ -45,10 +48,10 @@ export default function WorldcupDetailScreen() {
     }
   }, [key]);
 
-  // 완주 직후엔 기록/비교를 바로 로드.
+  // 완주 직후·비교 딥링크면 기록/비교를 바로 로드.
   useEffect(() => {
-    if (justWon) loadRecords();
-  }, [justWon, loadRecords]);
+    if (autoOpen) loadRecords();
+  }, [autoOpen, loadRecords]);
 
   function onShowRecords() {
     setShowRecords(true);

@@ -26,6 +26,7 @@ const NOTIF_ICON: Record<NotificationType, React.ComponentProps<typeof Ionicons>
   ANNIVERSARY: 'gift-outline',
   COUPLE_CONNECTED: 'heart',
   WORLDCUP_COMPLETED: 'trophy-outline',
+  WORLDCUP_COMPARABLE: 'trophy',
 };
 
 export default function NotificationsScreen() {
@@ -48,8 +49,13 @@ export default function NotificationsScreen() {
 
   async function onTap(n: Notification) {
     if (!n.read) void markRead(n.id);
-    if (n.type === 'WORLDCUP_COMPLETED') router.push('/worldcup');
-    else if (n.entryDate) router.push({ pathname: '/entry/[date]', params: { date: n.entryDate } });
+    if (n.type === 'WORLDCUP_COMPLETED' || n.type === 'WORLDCUP_COMPARABLE') {
+      // 해당 월드컵 결과 비교로 바로.
+      if (n.refKey) router.push({ pathname: '/worldcup/[key]', params: { key: n.refKey, compare: '1' } });
+      else router.push('/worldcup');
+    } else if (n.entryDate) {
+      router.push({ pathname: '/entry/[date]', params: { date: n.entryDate } });
+    }
   }
 
   return (
