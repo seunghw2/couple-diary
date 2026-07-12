@@ -27,7 +27,7 @@ public class AuthController {
     private String kakaoRestKey;
 
     /** 카카오 콘솔에 등록된 서버 콜백 절대 URL. 호스팅 이전 시 이 값(env)만 바꾸면 된다. */
-    @Value("${app.kakao.callback-url:https://today-api.hammerslog.trade/api/auth/kakao/callback}")
+    @Value("${app.kakao.callback-url:https://lovetoday.terrylovesapp.uk/api/auth/kakao/callback}")
     private String kakaoCallbackUrl;
 
     // 주의: dev-login(닉네임 무인증 로그인)은 보안상 프로덕션에서 노출되면 안 되므로
@@ -93,7 +93,7 @@ public class AuthController {
 
     /**
      * returnUri(state)가 우리 앱으로 되돌아가는 안전한 대상인지 검증.
-     * 허용: 앱 스킴(exp/exps/today), https + hammerslog.trade 도메인(자기/서브도메인).
+     * 허용: 앱 스킴(exp/exps/today), https + terrylovesapp.uk/hammerslog.trade 도메인(자기/서브도메인).
      * 그 외(예: https://evil.com)면 거부해 액세스 토큰 유출을 막는다.
      */
     private static boolean isAllowedReturnUri(String state) {
@@ -105,7 +105,8 @@ public class AuthController {
             }
             if (scheme.equals("https")) {
                 String host = uri.getHost() == null ? "" : uri.getHost().toLowerCase();
-                return host.equals("hammerslog.trade") || host.endsWith(".hammerslog.trade");
+                return host.equals("terrylovesapp.uk") || host.endsWith(".terrylovesapp.uk")
+                        || host.equals("hammerslog.trade") || host.endsWith(".hammerslog.trade");
             }
             return false;
         } catch (RuntimeException e) {

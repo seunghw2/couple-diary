@@ -10,7 +10,7 @@
     "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "trade.hammerslog.today",
+      "bundleIdentifier": "uk.terrylovesapp.lovetoday",
       "buildNumber": "1",
       "usesAppleSignIn": true,
       "infoPlist": {
@@ -59,10 +59,10 @@
       "typedRoutes": true
     },
     "extra": {
-      "apiUrl": "https://today-api.hammerslog.trade",
+      "apiUrl": "https://lovetoday.terrylovesapp.uk",
       "kakaoJsKey": "bddb8a32af4507ecf1ea402ea4c0ca7b",
       "kakaoRestKey": "be9e8e34057ddefce22d6f52732c3c7a",
-      "kakaoRedirectUri": "https://today-api.hammerslog.trade/api/auth/kakao/callback"
+      "kakaoRedirectUri": "https://lovetoday.terrylovesapp.uk/api/auth/kakao/callback"
     }
   }
 }

@@ -46,7 +46,7 @@ public class AppleClient {
     // kid → 공개키 캐시. Apple 키는 자주 바뀌지 않으므로 재사용하되, 미스 시 재조회한다.
     private final Map<String, RSAPublicKey> keyCache = new ConcurrentHashMap<>();
 
-    public AppleClient(@Value("${app.apple.client-id:trade.hammerslog.today}") String clientId) {
+    public AppleClient(@Value("${app.apple.client-id:uk.terrylovesapp.lovetoday}") String clientId) {
         this.clientId = clientId;
         this.jwksClient = RestClient.builder()
                 .baseUrl("https://appleid.apple.com")

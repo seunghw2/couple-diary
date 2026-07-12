@@ -23,7 +23,7 @@
 | `KAKAO_CALLBACK_URL` | `https://<새 도메인>/api/auth/kakao/callback` (호스팅 이전 시 필수) |
 | `ADMIN_TOKEN` | 질문 배치 생성 엔드포인트 보호용 임의 토큰 |
 | `UPLOAD_DIR` | `/data/uploads` (아래 볼륨과 함께) |
-| `APP_APPLE_CLIENT_ID` | (선택) 기본값 `trade.hammerslog.today`. 번들ID 다르면 지정 |
+| `APP_APPLE_CLIENT_ID` | (선택) 기본값 `uk.terrylovesapp.lovetoday`. 번들ID 다르면 지정 |
 
 > **업로드 사진은 반드시 영속 볼륨에.** 컨테이너 파일시스템은 재배포 때 지워진다. `/data`에 볼륨을 붙이고 `UPLOAD_DIR=/data/uploads`로 둔다. 안 그러면 배포할 때마다 사진이 사라진다.
 

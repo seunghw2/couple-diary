@@ -73,7 +73,7 @@ function resolveKakaoRedirectUri(): string {
   if (envUri) return envUri;
   const extraUri = (Constants.expoConfig?.extra as { kakaoRedirectUri?: string } | undefined)
     ?.kakaoRedirectUri;
-  return extraUri ?? 'https://today-api.hammerslog.trade/api/auth/kakao/callback';
+  return extraUri ?? 'https://lovetoday.terrylovesapp.uk/api/auth/kakao/callback';
 }
 
 export const KAKAO_REDIRECT_URI = resolveKakaoRedirectUri();

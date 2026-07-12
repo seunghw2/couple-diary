@@ -20,7 +20,7 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.example.com"
+        "EXPO_PUBLIC_API_URL": "https://lovetoday.terrylovesapp.uk"
       }
     }
   },
@@ -29,7 +29,7 @@
       "ios": {
         "appleId": "YOUR_APPLE_ID_EMAIL",
         "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID",
-        "appleTeamId": "YOUR_APPLE_TEAM_ID"
+        "appleTeamId": "MH3TMU6C8V"
       }
     }
   }

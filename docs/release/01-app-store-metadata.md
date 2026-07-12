@@ -11,7 +11,7 @@
 |---|---|
 | 앱 이름 (App Name, 최대 30자) | **투데이** |
 | 영문 앱 이름 (미국 스토어용) | **love today** |
-| 번들 ID | `trade.hammerslog.today` |
+| 번들 ID | `uk.terrylovesapp.lovetoday` |
 | SKU | `today-couple-diary-001` (임의 고유값, 변경 가능) |
 | 기본 언어 (Primary Language) | 한국어 (Korean) |
 | 카테고리 (아래 §5 참고) | 1차: **라이프스타일(Lifestyle)** / 2차: **소셜 네트워킹(Social Networking)** |
@@ -167,9 +167,9 @@ couple,diary,journal,love,relationship,letter,anniversary,dday,memory,map,shared
 
 | 항목 | 값 |
 |---|---|
-| 지원 URL (Support URL, 필수) | `⟨SUPPORT_URL⟩` 예: `https://today.hammerslog.trade/support` |
-| 마케팅 URL (Marketing URL, 선택) | `⟨MARKETING_URL⟩` 예: `https://today.hammerslog.trade` |
-| 개인정보 처리방침 URL (Privacy Policy URL, 필수) | `⟨PRIVACY_POLICY_URL⟩` 예: `https://today.hammerslog.trade/privacy` |
+| 지원 URL (Support URL, 필수) | `https://terrylovesapp.uk/lovetoday/support` |
+| 마케팅 URL (Marketing URL, 선택) | `https://terrylovesapp.uk/lovetoday` |
+| 개인정보 처리방침 URL (Privacy Policy URL, 필수) | `https://terrylovesapp.uk/lovetoday/privacy` |
 
 > 개인정보 처리방침 URL은 App Store Connect에서 필수 입력이다. `03-privacy-policy.md` 내용을 웹에 올리고 그 주소를 넣는다. GitHub Pages/Notion 공개 페이지도 허용된다.
 
