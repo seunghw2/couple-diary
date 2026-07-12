@@ -146,7 +146,7 @@ export default function HomeScreen() {
         {/* 헤더 */}
         <View style={styles.header}>
           <View style={styles.logoRow}>
-            <Text style={[styles.logo, { color: c.primary }]}>투데이</Text>
+            <Text style={[styles.logo, { color: c.primary }]}>love today</Text>
             <Icon name="heart" size={22} color={c.primary} />
           </View>
           <View style={styles.headerRight}>

@@ -99,15 +99,23 @@ export default function LoginScreen() {
         style={{ flex: 1 }}
       >
         <View style={styles.container}>
+          {/* 배경 장식 — 은은한 하트 */}
+          <Text style={[styles.bgHeart, styles.bgHeart1]}>♥</Text>
+          <Text style={[styles.bgHeart, styles.bgHeart2]}>♥</Text>
+
           <View style={styles.hero}>
+            <View style={[styles.emblem, shadow]}>
+              <Text style={styles.emblemEmoji}>💌</Text>
+            </View>
             <View style={styles.logoRow}>
-              <Text style={styles.logo}>투데이</Text>
-              <Icon name="heart" size={30} color={colors.primary} />
+              <Text style={styles.logo}>love today</Text>
+              <Icon name="heart" size={26} color={colors.primary} />
             </View>
             <Text style={styles.tagline}>둘이 함께 쓰는 오늘의 일기</Text>
           </View>
 
           <View style={[styles.form, shadow]}>
+            <Text style={styles.formIntro}>로그인하고 오늘을 기록해요</Text>
             {showApple ? (
               <View style={styles.appleWrap}>
                 <AppleAuthentication.AppleAuthenticationButton
@@ -187,14 +195,28 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   container: { flex: 1, paddingHorizontal: spacing.xl, justifyContent: 'center' },
   hero: { alignItems: 'center', marginBottom: spacing.xxl },
+  emblem: {
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    backgroundColor: '#FFE7DC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
+  },
+  emblemEmoji: { fontSize: 46 },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  logo: { fontSize: 40, fontWeight: '800', color: colors.primary },
+  logo: { fontSize: 36, fontWeight: '800', color: colors.primary, letterSpacing: 0.3 },
   tagline: { ...font.body, color: colors.subText, marginTop: spacing.sm },
+  bgHeart: { position: 'absolute', color: 'rgba(255,142,114,0.07)', fontWeight: '900' },
+  bgHeart1: { top: 40, right: -20, fontSize: 160, transform: [{ rotate: '15deg' }] },
+  bgHeart2: { bottom: 30, left: -30, fontSize: 130, transform: [{ rotate: '-12deg' }] },
   form: {
     backgroundColor: colors.card,
     borderRadius: radius.lg,
     padding: spacing.xl,
   },
+  formIntro: { ...font.label, color: colors.subText, textAlign: 'center', marginBottom: spacing.lg },
   appleWrap: { marginBottom: spacing.md },
   appleBtn: { height: 52, width: '100%' },
   appleOverlay: {
