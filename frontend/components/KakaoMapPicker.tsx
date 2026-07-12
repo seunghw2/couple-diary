@@ -27,7 +27,7 @@ type Props = {
 };
 
 /** Kakao 콘솔 "JavaScript SDK 도메인"에 등록한 값 — WebView Referer로 사용. */
-const MAP_REFERER = 'https://today-web.hammerslog.trade';
+const MAP_REFERER = 'https://lovetoday.terrylovesapp.uk';
 /** 위치 권한 거부 시 폴백 중심(서울시청). */
 const FALLBACK = { lat: 37.5665, lng: 126.978 };
 

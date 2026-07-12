@@ -17,7 +17,7 @@ type Props = {
 };
 
 /** Kakao 콘솔 "JavaScript SDK 도메인"에 등록한 값 — WebView Referer로 사용. */
-const MAP_REFERER = 'https://today-web.hammerslog.trade';
+const MAP_REFERER = 'https://lovetoday.terrylovesapp.uk';
 
 /** WebView → RN 메시지 계약. */
 type WebMessage =
