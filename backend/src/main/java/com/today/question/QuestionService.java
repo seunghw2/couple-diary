@@ -617,9 +617,15 @@ public class QuestionService {
 
         // 이전에 이 커플에게 나온 적 있는 질문(양 슬롯 모두)은 다시 안 나오게 하드 제외.
         // 단, 안 쓴 질문이 2개 미만으로 남으면(풀 소진) 제외를 풀어 배정이 막히지 않게 한다.
+        // recentTemplateShown: 최근 N일 내 보여준 질문(선택 여부 무관) — slot1 컨텍스트 템플릿이
+        // 안 고른 채 매일 재등장하던 버그를 막기 위해 템플릿 선택에서 제외한다.
         Set<Long> everShown = new HashSet<>();
+        Set<Long> recentTemplateShown = new HashSet<>();
+        LocalDate templSince = today.minusDays(RECENT_AVOID_DAYS);
         for (DailyQuestion dq : dailyQuestionRepository.findByCouple_Id(couple.getId())) {
-            if (dq.getQuestion() != null) everShown.add(dq.getQuestion().getId());
+            if (dq.getQuestion() == null) continue;
+            everShown.add(dq.getQuestion().getId());
+            if (!dq.getDate().isBefore(templSince)) recentTemplateShown.add(dq.getQuestion().getId());
         }
         long freshCount = nonTemplate.stream().filter(q -> !everShown.contains(q.getId())).count();
         if (freshCount >= 2) usedIds.addAll(everShown);
@@ -627,7 +633,7 @@ public class QuestionService {
         // slot1: 컨텍스트 트리거 우선
         ContextSignal signal = computeContext(couple, today);
         if (signal != null) {
-            PickedQuestion ctx = pickTemplate(signal, couple, today);
+            PickedQuestion ctx = pickTemplate(signal, couple, today, recentTemplateShown);
             if (ctx != null) {
                 picks.add(ctx);
                 usedIds.add(ctx.pool.getId());
@@ -788,14 +794,12 @@ public class QuestionService {
         if (totalOpened == 7 || totalOpened == 30 || totalOpened == 100) {
             return new ContextSignal("streak", totalOpened, null, null);
         }
-        // 첫 편지 / 오랜만 복귀
-        if (totalOpened == 0) {
-            boolean everOpened = dailyQuestionRepository
-                    .findByCouple_IdAndChosenTrueAndDateLessThanOrderByDateDesc(couple.getId(), today.plusDays(1))
-                    .stream().anyMatch(this::bothSealed);
-            if (!everOpened) {
-                return new ContextSignal("firstletter", null, null, null);
-            }
+        // 첫 편지 — 이 커플의 '최초' 배정에서만(이전 배정 이력이 없을 때).
+        // (기존엔 '아직 편지 완성 전'이면 매일 firstletter가 떠서 "우리 첫 편지야" 질문이 반복됐음)
+        boolean firstEverAssignment = dailyQuestionRepository
+                .findTopByCouple_IdOrderByDateDescSlotDesc(couple.getId()).isEmpty();
+        if (firstEverAssignment) {
+            return new ContextSignal("firstletter", null, null, null);
         }
 
         // 4) season(계절/명절) — 대략적 월 기반
@@ -846,9 +850,12 @@ public class QuestionService {
     }
 
     /** 트리거에 맞는 템플릿 질문 하나를 골라 placeholder 치환. 없으면 null. */
-    private PickedQuestion pickTemplate(ContextSignal signal, Couple couple, LocalDate today) {
+    private PickedQuestion pickTemplate(ContextSignal signal, Couple couple, LocalDate today, Set<Long> avoid) {
         List<QuestionPool> templates = poolRepository
                 .findByActiveTrueAndIsTemplateTrueAndContextTrigger(signal.trigger());
+        // 최근에 이미 보여준 템플릿은 제외(안 고른 컨텍스트 질문이 매일 반복되던 버그 방지).
+        // 다 소진되면 null → slot1은 일반 질문으로 자연스럽게 대체된다.
+        templates = templates.stream().filter(t -> !avoid.contains(t.getId())).toList();
         if (templates.isEmpty()) return null;
         // 기념일은 '주년(N주년)'과 '일수(N일)' 템플릿이 섞여 있어, 신호 단위에 맞는 것만 사용.
         // (예: 1주년 신호에 "{N}일이라니…" 템플릿이 걸려 "1일이라니"가 나오는 것 방지)
