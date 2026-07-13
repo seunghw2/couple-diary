@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<style>
+  html,body { margin:0; padding:0; background:transparent; }
+  svg { display:block; width:100vw; height:100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const HEART="M50,86 C12,55 2,32 22,16 C37,5 50,19 50,21 C50,19 63,5 78,16 C98,32 88,55 50,86 Z";
+function heartC(s,sw,stroke){ const x=180-50*s, y=180-46*s; return `<g transform="translate(${x},${y}) scale(${s})"><path d="${HEART}" fill="none" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/></g>`; }
+function pen(cx,cy,rot,s,mono){ const body=mono?'#211d1b':'#FF8E72', band=mono?'#211d1b':'#F0654A', wood=mono?'#211d1b':'#FFE0B2', lead='#211d1b';
+  return `<g filter="url(#soft)" transform="translate(${cx},${cy}) rotate(${rot}) scale(${s})">
+  <rect x="-15" y="-72" width="30" height="98" rx="8" fill="${body}"/>
+  <rect x="-15" y="-72" width="30" height="22" fill="${band}"/>
+  <path d="M-15,26 L15,26 L0,56 Z" fill="${wood}"/>
+  <path d="M-7,41 L7,41 L0,56 Z" fill="${lead}"/></g>`; }
+
+// 3번 구성
+function motif(mono){ const stroke = mono ? '#211d1b' : 'url(#pinkheart)';
+  return heartC(2.15,15,stroke) + pen(272,248,40,1.02,mono); }
+
+const params = new URLSearchParams(location.search);
+const mode = params.get('mode') || 'icon';
+
+const defs = `<defs>
+  <linearGradient id="pinkheart" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8E72"/><stop offset="1" stop-color="#FF5A7A"/></linearGradient>
+  <filter id="soft" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#B0402A" flood-opacity="0.20"/></filter>
+</defs>`;
+
+let inner = '';
+if (mode === 'icon' || mode === 'favicon') {
+  inner = `<rect width="360" height="360" fill="#FDF4EF"/>${motif(false)}`;
+} else if (mode === 'splash') {
+  inner = motif(false); // 투명 배경
+} else if (mode === 'bg') {
+  inner = `<rect width="360" height="360" fill="#FFF6EF"/>`;
+} else if (mode === 'adaptive') {
+  // 안드로이드 전경: 안전영역(약 66%)에 맞춰 축소, 투명
+  inner = `<g transform="translate(180,180) scale(0.66) translate(-180,-180)">${motif(false)}</g>`;
+} else if (mode === 'mono') {
+  inner = `<g transform="translate(180,180) scale(0.66) translate(-180,-180)">${motif(true)}</g>`;
+}
+
+document.getElementById('root').innerHTML =
+  `<svg viewBox="0 0 360 360" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${defs}${inner}</svg>`;
+</script>
+</body>
+</html>
