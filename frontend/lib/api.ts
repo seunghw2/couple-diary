@@ -665,12 +665,16 @@ export type SajuCouple = {
   categories: SajuCoupleCategory[];
   totalComment: string;
   badges: string[];
-  relComment: string;
+  relComment: string; // 대표 한줄
   strongestKey: string;
-  meName: string;
+  weakestKey: string;
+  keywords: string[]; // 관계 키워드 2~3개
+  summaryLines: string[]; // 딱 3줄 해석
+  meNickname: string;
+  meTypeName: string; // 일간 유형명 (예: 큰 바다형)
   meEmoji: string;
   partnerNickname: string;
-  partnerName: string;
+  partnerTypeName: string;
   partnerEmoji: string;
   tips: string[];
   hasHour: boolean;

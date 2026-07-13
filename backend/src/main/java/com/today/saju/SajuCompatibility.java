@@ -99,14 +99,16 @@ public final class SajuCompatibility {
     }
 
     private static int clamp(int v) { return Math.max(0, Math.min(100, v)); }
-    private static int grade(int s) { return s >= 67 ? 2 : (s >= 34 ? 1 : 0); }
+    // 점수↔설명 온도 매칭: 상 70+, 중 45+, 하 그 외. (낮은 점수가 '중'에 머물지 않도록 컷 상향)
+    private static int grade(int s) { return s >= 70 ? 2 : (s >= 45 ? 1 : 0); }
 
     // ── 결과 DTO ──
     public record CategoryScore(String key, String name, int score, int grade, String comment) {}
     public record Result(int percent, List<CategoryScore> categories, String totalComment,
-                         List<String> badges, String relComment, String strongestKey, boolean hasHour) {}
+                         List<String> badges, String relComment, String strongestKey, String weakestKey,
+                         List<String> keywords, List<String> summaryLines, List<String> tips, boolean hasHour) {}
 
-    public static Result compute(Saju a, Saju b, LocalDate birthA, LocalDate birthB) {
+    public static Result compute(Saju a, Saju b, LocalDate birthA, LocalDate birthB, String nameA, String nameB) {
         int dEA = SajuCalculator.STEM_ELEMENT[a.dayStem()], dEB = SajuCalculator.STEM_ELEMENT[b.dayStem()];
         int[] dA = a.elementCount(), dB = b.elementCount();
         int[] combined = new int[5];
@@ -143,24 +145,47 @@ public final class SajuCompatibility {
 
         long seed = seed(birthA, birthB);
 
+        // 이름 안전값(공백/널 → 중립 표현). 뒤에 "님"을 붙이므로 이미 "님"으로 끝나면 중복 제거.
+        String nA = honBase(nameA, "한 분");
+        String nB = honBase(nameB, "다른 분");
+
+        // 관계 feature → 행동 시그니처(구체성). 카테고리마다 가장 강한 feature 하나만 얹는다.
+        String sigChemi = ganChung
+                ? "생각이 부딪힐 땐 둘 다 물러서지 않아 스파크가 튀지만, 그만큼 서로에게 솔직한 사이예요."
+                : yinYangComplementDay
+                    ? (speedFast(a) ? nA : nB) + "님은 마음이 정해지면 바로 움직이고, " + (speedFast(a) ? nB : nA) + "님은 한 박자 살핀 뒤 확신이 서요. 서두름과 신중함이 서로를 채워줘요."
+                    : ganHap ? "서로를 끌어당기는 힘이 유난히 강해, 눈이 먼저 서로를 알아본 사이예요." : null;
+        String sigTalk = chMon
+                ? "생활 리듬이 살짝 어긋나는 편이라, 함께 있는 시간대를 정해두면 훨씬 편해져요."
+                : distSim < 0.35
+                    ? "말은 잘 통한다 느끼지만 서운함은 오히려 늦게 꺼내는 조합이에요. '나는 지금'으로 바로 표현하면 안 쌓여요."
+                    : distSim >= 0.6 ? "'나도 방금 그 생각!'이 자주 나올 만큼 결이 비슷해요. 가끔 서로 다른 시각을 일부러 꺼내보면 더 넓어져요." : null;
+        String sigAff = combined[1] < 2
+                ? "마음은 깊은데 '좋아해'를 말보다 행동으로 보여주는 편이라, 하루 한 번 말로 표현하면 더 안심돼요."
+                : combined[1] >= 4
+                    ? "좋고 싫음이 표정과 말에 바로 드러나 감정을 숨기기 어려운 사이예요. 표현이 풍부한 만큼 한 템포만 쉬면 완벽해요."
+                    : (yukDay || samDay) ? "둘만 있을 때 유독 편안해지는 조합이라, 밖에서보다 단둘이 있을 때 진짜 모습이 나와요." : null;
+        String sigStab = chDay
+                ? (calmSide(a) ? nA : nB) + "님은 다툰 뒤 혼자 정리할 시간이 필요하고, " + (calmSide(a) ? nB : nA) + "님은 바로 풀고 싶어 하는 편이에요. 이 타이밍만 맞추면 회복이 빨라져요."
+                : sangbo >= 0.5 ? "역할이 겹치지 않아, 한 분이 놓치는 걸 다른 분이 자연스럽게 챙기는 팀플레이형이에요." : null;
+        String sigGrowth = control
+                ? (aBrake(rel) ? nB : nA) + "님이 달아오를 때 " + (aBrake(rel) ? nA : nB) + "님이 자연스럽게 브레이크가 되어줘요. 잔소리 같아도 균형을 잡아주는 거예요."
+                : balance < 0.3 ? "비슷한 기운이 한쪽으로 모여 있어, 잘 맞을 땐 최고지만 지칠 땐 함께 지치기 쉬워요. 번갈아 기분을 끌어올려 주면 좋아요." : null;
+
         List<CategoryScore> cats = new ArrayList<>();
-        cats.add(cat("CHEMI", "첫끌림", chemi, CHEMI_T, seed));
-        cats.add(cat("TALK", "대화", talk, TALK_T, seed));
-        cats.add(cat("AFFECTION", "애정", affection, AFFECTION_T, seed));
-        cats.add(cat("STABILITY", "안정감", stability, STABILITY_T, seed));
-        cats.add(cat("GROWTH", "성장", growth, GROWTH_T, seed));
+        cats.add(cat("CHEMI", "첫끌림", chemi, CHEMI_T, seed, sigChemi));
+        cats.add(cat("TALK", "대화", talk, TALK_T, seed, sigTalk));
+        cats.add(cat("AFFECTION", "애정", affection, AFFECTION_T, seed, sigAff));
+        cats.add(cat("STABILITY", "안정감", stability, STABILITY_T, seed, sigStab));
+        cats.add(cat("GROWTH", "성장", growth, GROWTH_T, seed, sigGrowth));
 
-        String strongest = "GROWTH"; int best = -1;
-        for (CategoryScore c : cats) if (c.score() > best) { best = c.score(); strongest = c.key(); }
-
-        String[] totalBucket = percent >= 95 ? TOTAL_95 : percent >= 85 ? TOTAL_85 : percent >= 75 ? TOTAL_75 : percent >= 65 ? TOTAL_65 : TOTAL_60;
-        String totalComment = pick(totalBucket, seed, 91);
-
-        String relComment;
-        if (sangbo >= 0.5) relComment = pick(REL_SANGBO, seed, 41);
-        else if (sameDay) relComment = pick(REL_SAME, seed, 41);
-        else if (shengDay) relComment = pick(REL_SHENG, seed, 41);
-        else relComment = pick(REL_KE, seed, 41);
+        // 최고·최저 카테고리(스토리·한눈에 보기용).
+        String strongest = cats.get(0).key(); int best = -1;
+        String weakest = cats.get(0).key(); int worst = 101;
+        for (CategoryScore c : cats) {
+            if (c.score() > best) { best = c.score(); strongest = c.key(); }
+            if (c.score() < worst) { worst = c.score(); weakest = c.key(); }
+        }
 
         List<String> badges = new ArrayList<>();
         boolean samAny = samYear || samMon || samDay, yukAny = yukYear || yukMon || yukDay;
@@ -173,13 +198,157 @@ public final class SajuCompatibility {
         if (ganHap && !destiny) badges.add(BADGE_GANHAP);
         if (badges.size() > 2) badges = new ArrayList<>(badges.subList(0, 2));
 
-        return new Result(percent, cats, totalComment, badges, relComment, strongest, a.hasHour() && b.hasHour());
+        // 총평: 최고 칭찬 + 최저 '차이'(성장 프레임)를 한 문장으로 엮는다. 격차 작으면 균형형.
+        String totalComment = (best - worst < 12 || strongest.equals(weakest))
+                ? clean(pick(TOTAL_75, seed, 91))
+                : bestClause(strongest) + " " + worstClause(weakest);
+
+        // 대표 한줄(히어로): 가장 희귀·강한 signal 하나.
+        String relComment;
+        if (destiny) relComment = "말로 설명하기 어려운 끌림이 흐르는, 흔치 않은 인연이에요.";
+        else if (chDay) relComment = "다툰 뒤 푸는 속도만 맞추면 회복이 빠른 커플이에요.";
+        else if (sangbo >= 0.6) relComment = "한 명이 비면 한 명이 채우는, 손발 맞는 조합이에요.";
+        else if (combined[1] < 2) relComment = "다 챙기면서 '좋아해'만 아끼는, 표현이 숙제인 사이예요.";
+        else if (sangbo >= 0.5) relComment = clean(pick(REL_SANGBO, seed, 41));
+        else if (sameDay) relComment = clean(pick(REL_SAME, seed, 41));
+        else if (shengDay) relComment = clean(pick(REL_SHENG, seed, 41));
+        else relComment = clean(pick(REL_KE, seed, 41));
+
+        // 딱 3줄 해석.
+        List<String> summary = List.of(strongLine(strongest), weakLine(weakest), bridgeLine(percent));
+
+        // 관계 키워드 2~3개.
+        List<String> keywords = new ArrayList<>();
+        keywords.add(kw(strongest));
+        String relKw = sangbo >= 0.5 ? "보완" : sameDay ? "편안함" : shengDay ? "응원" : "밀당";
+        if (!keywords.contains(relKw)) keywords.add(relKw);
+        for (CategoryScore c : cats) {
+            if (keywords.size() >= 3) break;
+            String k = kw(c.key());
+            if (!c.key().equals(strongest) && !keywords.contains(k)) { keywords.add(k); break; }
+        }
+
+        // 관계 꿀팁: 최저·차저 카테고리 처방 + 최고 카테고리 유지팁.
+        String secondWeak = strongest; int second = 101;
+        for (CategoryScore c : cats) {
+            if (c.key().equals(weakest)) continue;
+            if (c.score() < second) { second = c.score(); secondWeak = c.key(); }
+        }
+        List<String> tips = new ArrayList<>();
+        tips.add(weakTip(weakest));
+        if (!secondWeak.equals(strongest)) tips.add(weakTip(secondWeak));
+        tips.add(strongTip(strongest));
+
+        return new Result(percent, cats, totalComment, badges, relComment, strongest, weakest,
+                keywords, summary, tips, a.hasHour() && b.hasHour());
     }
 
-    private static CategoryScore cat(String key, String name, int score, String[][] templates, long seed) {
+    private static CategoryScore cat(String key, String name, int score, String[][] templates, long seed, String sig) {
         int g = grade(score);
-        String comment = pick(templates[g], seed, key.hashCode());
+        String base = clean(pick(templates[g], seed, key.hashCode()));
+        String comment = (sig == null || sig.isBlank()) ? base : base + " " + sig;
         return new CategoryScore(key, name, score, g, comment);
+    }
+
+    // 방향 결정(결정론): 일간 양(짝수)=바로 움직이는 쪽, 일지 음(홀수)=혼자 정리하는 쪽, KE_FWD=a가 브레이크.
+    /** 닉네임 뒤에 "님"을 붙이므로, 이미 "님"으로 끝나면 떼어 중복을 막는다. */
+    private static String honBase(String name, String fallback) {
+        if (name == null || name.isBlank()) return fallback;
+        String n = name.strip();
+        return n.endsWith("님") ? n.substring(0, n.length() - 1) : n;
+    }
+    private static boolean speedFast(Saju a) { return a.dayStem() % 2 == 0; }
+    private static boolean calmSide(Saju a) { return a.dayBranch() % 2 == 1; }
+    private static boolean aBrake(ElemRel rel) { return rel == ElemRel.KE_FWD; }
+
+    // 본문 문구에서 이모지 제거(재미는 색·배지·아이콘이 담당). 배지·오늘운세는 대상 아님.
+    static String clean(String s) {
+        if (s == null) return null;
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        while (i < s.length()) {
+            int cp = s.codePointAt(i);
+            int cc = Character.charCount(cp);
+            boolean emoji = cp >= 0x1F000
+                    || (cp >= 0x2600 && cp <= 0x27BF)   // 기타기호·딩뱃(☯✨⚡⛰⚙♥ 등)
+                    || (cp >= 0x2B00 && cp <= 0x2BFF)   // ⭐ 등
+                    || cp == 0x2693 || cp == 0x2696 || cp == 0x231A || cp == 0xFE0F || cp == 0x200D;
+            if (!emoji) sb.appendCodePoint(cp);
+            i += cc;
+        }
+        return sb.toString().replaceAll("\\s+([.,!?…])", "$1").replaceAll("\\s{2,}", " ").trim();
+    }
+
+    // 총평 조각(최고 칭찬 / 최저 차이). 연결어미로 끝나 worstClause와 이어진다.
+    private static String bestClause(String key) {
+        return switch (key) {
+            case "CHEMI" -> "첫눈부터 서로를 알아본 사이라";
+            case "TALK" -> "말이 놀랄 만큼 잘 통하는데";
+            case "AFFECTION" -> "애정 표현이 자연스럽게 흘러넘치는데";
+            case "STABILITY" -> "곁에 있으면 마음이 놓이는 사이인데";
+            default -> "함께일수록 각자 더 나아지는데";
+        };
+    }
+    private static String worstClause(String key) {
+        return switch (key) {
+            case "CHEMI" -> "불꽃보다 온기로 천천히 데워지는 편이라, 지금부터가 진짜 시작이에요.";
+            case "TALK" -> "쓰는 말의 온도는 조금 달라서, 자주 물어봐 줄수록 가까워져요.";
+            case "AFFECTION" -> "애정을 표현하는 방식은 서로 달라서(한 분은 말로, 한 분은 행동으로), 한 번 더 표현해 주면 오래가요.";
+            case "STABILITY" -> "생활 리듬은 아직 맞춰가는 중이라, 시간이 편이 되어줄 사이예요.";
+            default -> "아직 채워갈 여백이 있어, 앞으로 함께 쓸 이야기가 많아요.";
+        };
+    }
+    // 3줄 해석 조각.
+    private static String strongLine(String key) {
+        return switch (key) {
+            case "CHEMI" -> "첫눈에 서로를 알아본 끌림이 있어요.";
+            case "TALK" -> "말하지 않아도 통하는 순간이 많아요.";
+            case "AFFECTION" -> "표현이 자연스럽고 애정이 넉넉해요.";
+            case "STABILITY" -> "곁에 있으면 마음이 놓이는 사이예요.";
+            default -> "함께할수록 각자 더 단단해져요.";
+        };
+    }
+    private static String weakLine(String key) {
+        return switch (key) {
+            case "CHEMI" -> "다만 불꽃보다 온기로 천천히 데워지는 편이에요.";
+            case "TALK" -> "다만 말의 온도는 서로 조금 달라요.";
+            case "AFFECTION" -> "다만 사랑을 표현하는 방식은 서로 달라요.";
+            case "STABILITY" -> "다만 생활 리듬은 아직 맞춰가는 중이에요.";
+            default -> "다만 지금은 서로를 알아가는 시작점이에요.";
+        };
+    }
+    private static String bridgeLine(int percent) {
+        if (percent >= 85) return "이미 잘 맞는 두 분, 지금처럼이면 충분해요.";
+        if (percent >= 70) return "한 걸음씩 맞춰가면 오래갈 조합이에요.";
+        return "서로의 다름을 채워갈수록 단단해질 사이예요.";
+    }
+    private static String kw(String key) {
+        return switch (key) {
+            case "CHEMI" -> "설렘";
+            case "TALK" -> "대화";
+            case "AFFECTION" -> "애정";
+            case "STABILITY" -> "편안함";
+            default -> "성장";
+        };
+    }
+    // 약점 카테고리 행동 처방(왜+뭘).
+    private static String weakTip(String key) {
+        return switch (key) {
+            case "CHEMI" -> "가끔 계획 없는 즉흥 데이트를 넣어보세요. 익숙함에 설렘 한 스푼이 필요한 조합이에요.";
+            case "TALK" -> "서운할 땐 '너는 왜'보다 '나는 지금 ~해'로 시작해 보세요. 말의 온도가 다른 두 분에겐 이 한 끗이 커요.";
+            case "AFFECTION" -> "하루 한 번 마음을 말로 확인해 보세요. 행동으론 잘 챙기는 두 분이라, 표현만 더하면 놓칠 일이 없어요.";
+            case "STABILITY" -> "다툰 뒤 '몇 시간 뒤 다시 얘기하자'를 미리 약속해 두세요. 푸는 속도가 다른 조합엔 타이밍 룰이 명약이에요.";
+            default -> "서로 다른 점 하나를 '고칠 것'이 아니라 '배울 것'으로 적어보세요. 다름이 자원이 되는 조합이에요.";
+        };
+    }
+    private static String strongTip(String key) {
+        return switch (key) {
+            case "CHEMI" -> "첫끌림이 강한 게 이 커플의 무기예요. 설렜던 순간을 종종 함께 떠올려 보세요.";
+            case "TALK" -> "말이 잘 통하는 게 최대 무기예요. 힘든 얘기일수록 미루지 말고 그 강점을 쓰세요.";
+            case "AFFECTION" -> "표현이 자연스러운 게 큰 복이에요. 지금처럼 마음을 아끼지 마세요.";
+            case "STABILITY" -> "곁에서 주는 안정감이 이 커플의 뿌리예요. 그 편안함을 서로 자주 말해주세요.";
+            default -> "함께 성장하는 힘이 강점이에요. 새로운 도전을 두려워 말고 같이 해보세요.";
+        };
     }
 
     private static long seed(LocalDate a, LocalDate b) {

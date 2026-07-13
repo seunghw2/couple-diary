@@ -23,6 +23,11 @@ export const colors = {
   white: '#FFFFFF',
   star: '#FFB443',
   danger: '#E5654B',
+
+  // 궁합 점수 구간색(강한 빨강 지양). 골드 80+/브라운 60~79/로즈 0~59.
+  gold: '#E8B96A',
+  brown: '#B39685',
+  rose: '#D98C9A',
 } as const;
 
 export const radius = {

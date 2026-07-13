@@ -8,6 +8,7 @@ import { HOUR_OPTIONS } from '../../lib/sajuHours';
 import { Icon, Button } from '../../components/ui';
 import { OhaengBar } from '../../components/OhaengBar';
 import { SajuLoading } from '../../components/SajuLoading';
+import { Collapsible } from '../../components/Collapsible';
 import { showToast } from '../../lib/dialog';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
@@ -169,49 +170,48 @@ export default function SajuMe() {
             </View>
           ) : null}
 
-          {/* 사주 기둥 */}
+          {/* 사주 자세히 — 원국 + 생시 (기본 접힘) */}
           <View style={[styles.card, shadow]}>
-            <Text style={styles.cardHead}>사주 원국</Text>
-            <View style={styles.pillarRow}>
-              {me!.pillars.map((p, i) => (
-                <View key={i} style={styles.pillar}>
-                  <Text style={styles.pillarText}>{p}</Text>
-                </View>
-              ))}
-            </View>
-            {me!.zodiac ? <Text style={styles.zodiac}>띠 · {me!.zodiac}</Text> : null}
-          </View>
+            <Collapsible title="사주 자세히 보기">
+              <Text style={styles.innerHead}>사주 원국</Text>
+              <View style={styles.pillarRow}>
+                {me!.pillars.map((p, i) => (
+                  <View key={i} style={styles.pillar}>
+                    <Text style={styles.pillarText}>{p}</Text>
+                  </View>
+                ))}
+              </View>
+              {me!.zodiac ? <Text style={styles.zodiac}>띠 · {me!.zodiac}</Text> : null}
 
-          {/* 생시 선택 */}
-          <View style={[styles.card, shadow]}>
-            <Text style={styles.cardHead}>태어난 시(생시)</Text>
-            <Text style={styles.hint}>생시를 넣으면 시주까지 더 정확해요.</Text>
-            <View style={styles.hourGrid}>
-              {HOUR_OPTIONS.map((o) => {
-                const active = selectedHour === o.hour;
-                return (
-                  <Pressable
-                    key={o.hour}
-                    disabled={savingHour}
-                    onPress={() => pickHour(o.hour)}
-                    style={[styles.hourCell, active && { backgroundColor: c.primary, borderColor: c.primary }]}
-                  >
-                    <Text style={[styles.hourLabel, active && styles.hourLabelActive]}>{o.label}시</Text>
-                    <Text style={[styles.hourRange, active && styles.hourLabelActive]}>{o.range}</Text>
-                  </Pressable>
-                );
-              })}
-              <Pressable
-                disabled={savingHour}
-                onPress={() => pickHour(null)}
-                style={[
-                  styles.hourCell,
-                  selectedHour === undefined && { backgroundColor: c.primary, borderColor: c.primary },
-                ]}
-              >
-                <Text style={[styles.hourLabel, selectedHour === undefined && styles.hourLabelActive]}>모름</Text>
-              </Pressable>
-            </View>
+              <Text style={[styles.innerHead, { marginTop: spacing.lg }]}>태어난 시(생시)</Text>
+              <Text style={styles.hint}>생시를 넣으면 시주까지 더 정확해요.</Text>
+              <View style={styles.hourGrid}>
+                {HOUR_OPTIONS.map((o) => {
+                  const active = selectedHour === o.hour;
+                  return (
+                    <Pressable
+                      key={o.hour}
+                      disabled={savingHour}
+                      onPress={() => pickHour(o.hour)}
+                      style={[styles.hourCell, active && { backgroundColor: c.primary, borderColor: c.primary }]}
+                    >
+                      <Text style={[styles.hourLabel, active && styles.hourLabelActive]}>{o.label}시</Text>
+                      <Text style={[styles.hourRange, active && styles.hourLabelActive]}>{o.range}</Text>
+                    </Pressable>
+                  );
+                })}
+                <Pressable
+                  disabled={savingHour}
+                  onPress={() => pickHour(null)}
+                  style={[
+                    styles.hourCell,
+                    selectedHour === undefined && { backgroundColor: c.primary, borderColor: c.primary },
+                  ]}
+                >
+                  <Text style={[styles.hourLabel, selectedHour === undefined && styles.hourLabelActive]}>모름</Text>
+                </Pressable>
+              </View>
+            </Collapsible>
           </View>
 
           {/* 오늘의 기운 */}
@@ -275,6 +275,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   cardHead: { ...font.title, marginBottom: spacing.sm },
+  innerHead: { ...font.label, color: colors.text, marginBottom: spacing.sm },
   body: { ...font.body, color: colors.text, lineHeight: 22 },
   pullQuote: { ...font.h2, fontSize: 17, fontWeight: '800', color: colors.text, lineHeight: 24, marginBottom: spacing.md },
   para: { ...font.body, color: colors.text, lineHeight: 25 },

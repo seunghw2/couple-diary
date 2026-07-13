@@ -126,7 +126,8 @@ public class SajuService {
 
         Saju sa = SajuCalculator.compute(me.getBirthday(), me.getBirthTime());
         Saju sb = SajuCalculator.compute(partner.getBirthday(), partner.getBirthTime());
-        SajuCompatibility.Result r = SajuCompatibility.compute(sa, sb, me.getBirthday(), partner.getBirthday());
+        SajuCompatibility.Result r = SajuCompatibility.compute(
+                sa, sb, me.getBirthday(), partner.getBirthday(), me.getNickname(), partner.getNickname());
 
         List<CatView> cats = new ArrayList<>();
         for (var c : r.categories()) cats.add(new CatView(c.key(), c.name(), c.score(), c.grade(), c.comment()));
@@ -135,29 +136,20 @@ public class SajuService {
         SajuTemplates.DayMaster pDm = SajuTemplates.dayMaster(sb.dayStem());
 
         return new CoupleResult(true, null, false, r.percent(), cats, r.totalComment(), r.badges(),
-                r.relComment(), r.strongestKey(),
-                meDm.name(), meDm.emoji(),
+                r.relComment(), r.strongestKey(), r.weakestKey(),
+                r.keywords(), r.summaryLines(),
+                me.getNickname(), meDm.name(), meDm.emoji(),
                 partner.getNickname(), pDm.name(), pDm.emoji(),
-                pickTips(me.getBirthday(), partner.getBirthday()),
+                r.tips(),
                 r.hasHour(), DISCLAIMER);
     }
 
-    /** 관계 꿀팁 3개를 두 생일 시드로 결정론적 선택(같은 커플=항상 같은 팁). */
-    private List<String> pickTips(LocalDate a, LocalDate b) {
-        String[] pool = SajuCompatibility.TIPS;
-        if (pool.length == 0) return List.of();
-        long ya = a.getYear() * 10000L + a.getMonthValue() * 100L + a.getDayOfMonth();
-        long yb = b.getYear() * 10000L + b.getMonthValue() * 100L + b.getDayOfMonth();
-        long seed = Math.min(ya, yb) * 100000000L + Math.max(ya, yb);
-        List<String> tips = new ArrayList<>();
-        int n = Math.min(3, pool.length);
-        for (int i = 0; i < n; i++) tips.add(pool[(int) Math.floorMod(seed + i * 37L, pool.length)]);
-        return tips;
-    }
-
     private CoupleResult blocked(String reason, boolean canRequestBirthday) {
-        return new CoupleResult(false, reason, canRequestBirthday, 0, List.of(), null, List.of(), null, null,
-                null, null, null, null, null, List.of(), false, DISCLAIMER);
+        return new CoupleResult(false, reason, canRequestBirthday, 0, List.of(), null, List.of(), null, null, null,
+                List.of(), List.of(),
+                null, null, null,
+                null, null, null,
+                List.of(), false, DISCLAIMER);
     }
 
     // ───────── 상대에게 생일 입력 요청 ─────────

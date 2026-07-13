@@ -36,9 +36,10 @@ public class SajuDtos {
             String totalComment,
             List<String> badges,
             String relComment,
-            String strongestKey,
-            String meName, String meEmoji,
-            String partnerNickname, String partnerName, String partnerEmoji,
+            String strongestKey, String weakestKey,
+            List<String> keywords, List<String> summaryLines,
+            String meNickname, String meTypeName, String meEmoji,
+            String partnerNickname, String partnerTypeName, String partnerEmoji,
             List<String> tips,
             boolean hasHour,
             String disclaimer

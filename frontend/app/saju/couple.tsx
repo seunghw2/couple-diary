@@ -1,23 +1,45 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SajuCouple, sajuApi } from '../../lib/api';
 import { Icon, Button } from '../../components/ui';
 import { SajuLoading } from '../../components/SajuLoading';
+import { Collapsible, animateLayout } from '../../components/Collapsible';
 import { showToast } from '../../lib/dialog';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
 const SEEN_KEY = 'saju_seen_couple';
 
-/** grade(궁합 등급, 높을수록 좋음) → 막대 색조. 브랜드 코럴 계열 + 중립. */
-function gradeColor(c: { primary: string; coralSoft: string }, grade: number): string {
-  if (grade >= 4) return c.primary;
-  if (grade >= 3) return c.coralSoft;
-  if (grade >= 2) return '#E8B96A';
-  return '#B39685';
+/** 점수 구간색: 80+ 골드 · 60~79 브라운 · 0~59 로즈(강한 빨강 지양). */
+function scoreColor(score: number): string {
+  if (score >= 80) return colors.gold;
+  if (score >= 60) return colors.brown;
+  return colors.rose;
 }
+function scoreLabel(score: number): string {
+  if (score >= 80) return '찰떡';
+  if (score >= 60) return '안정적';
+  return '맞춰가기';
+}
+
+/** 카테고리별 대표 아이콘 1개(문단마다 이모지 난립 방지, 통일). */
+const CAT_ICON: Record<string, string> = {
+  CHEMI: '✨',
+  TALK: '💬',
+  AFFECTION: '♥',
+  STABILITY: '🏠',
+  GROWTH: '🌱',
+};
+
+/** 문장 단위로 나눠 프리뷰 2문장 + 더보기. */
+function sentences(text: string): string[] {
+  return (text ?? '').split(/(?<=[.!?…])\s+/).filter(Boolean);
+}
+
+const SCORE_INFO =
+  '종합 점수는 오행의 상생·상극, 일간의 합·충 등 12가지 관계를 종합해 계산해요. 아래 항목 점수는 첫끌림·대화·애정·안정감·성장을 따로 본 값이라, 항목을 더해 나눈 값과는 다를 수 있어요. 그래서 종합과 항목 평균이 일치하지 않는 게 정상이랍니다. 😊';
 
 export default function SajuCouplePage() {
   const router = useRouter();
@@ -27,6 +49,8 @@ export default function SajuCouplePage() {
   const [requesting, setRequesting] = useState(false);
   const [firstVisit, setFirstVisit] = useState<boolean | null>(null);
   const [introTimeUp, setIntroTimeUp] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -68,11 +92,20 @@ export default function SajuCouplePage() {
     if (!data) return;
     try {
       await Share.share({
-        message: `우리 사주 궁합 ${data.percent}% 💞\n${data.meName} × ${data.partnerName}\n${data.totalComment}`,
+        message:
+          `우리 사주 궁합 ${data.percent}% · ${scoreLabel(data.percent)}\n` +
+          `${data.meNickname} × ${data.partnerNickname}\n` +
+          `${data.meTypeName} × ${data.partnerTypeName}\n` +
+          `"${data.relComment}"`,
       });
     } catch {
       // 공유 취소는 무시.
     }
+  }
+
+  function toggle(key: string) {
+    animateLayout();
+    setExpanded((m) => ({ ...m, [key]: !m[key] }));
   }
 
   if (firstVisit === null) return <View style={styles.safe} />;
@@ -83,6 +116,9 @@ export default function SajuCouplePage() {
       </SafeAreaView>
     );
   }
+
+  const strong = data?.categories.find((x) => x.key === data.strongestKey);
+  const weak = data?.categories.find((x) => x.key === data.weakestKey);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -114,82 +150,174 @@ export default function SajuCouplePage() {
           ) : null}
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          {/* 점수 히어로 */}
-          <View style={[styles.hero, shadow]}>
-            <View style={styles.pairRow}>
-              <View style={styles.person}>
-                <Text style={styles.personEmoji}>{data!.meEmoji}</Text>
-                <Text style={styles.personName}>{data!.meName}</Text>
-              </View>
-              <Text style={[styles.heart, { color: c.primary }]}>♥</Text>
-              <View style={styles.person}>
-                <Text style={styles.personEmoji}>{data!.partnerEmoji}</Text>
-                <Text style={styles.personName}>{data!.partnerName}</Text>
-              </View>
-            </View>
-            <Text style={[styles.percent, { color: c.primary }]}>{data!.percent}%</Text>
-            {data!.relComment ? <Text style={styles.relComment}>{data!.relComment}</Text> : null}
-          </View>
-
-          {/* 카테고리 막대 */}
-          <View style={[styles.card, shadow]}>
-            <Text style={styles.cardHead}>항목별 궁합</Text>
-            <View style={{ gap: spacing.md }}>
-              {data!.categories.map((cat) => (
-                <View key={cat.key}>
-                  <View style={styles.catHead}>
-                    <Text style={styles.catName}>{cat.name}</Text>
-                    <Text style={styles.catScore}>{cat.score}</Text>
-                  </View>
-                  <View style={styles.track}>
-                    <View
-                      style={[
-                        styles.fill,
-                        { width: `${Math.max(4, Math.min(100, cat.score))}%`, backgroundColor: gradeColor(c, cat.grade) },
-                      ]}
-                    />
-                  </View>
-                  {cat.comment ? <Text style={styles.catComment}>{cat.comment}</Text> : null}
+        <>
+          <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+            {/* ① 대표 결과 히어로 */}
+            <View style={[styles.hero, shadow]}>
+              <View style={styles.pairRow}>
+                <View style={styles.person}>
+                  <Text style={styles.personEmoji}>{data!.meEmoji}</Text>
+                  <Text style={styles.personName}>{data!.meNickname}</Text>
+                  <Text style={styles.personType}>{data!.meTypeName}</Text>
                 </View>
-              ))}
-            </View>
-          </View>
-
-          {/* 총평 */}
-          {data!.totalComment ? (
-            <View style={[styles.card, shadow]}>
-              <Text style={styles.cardHead}>총평</Text>
-              <Text style={styles.body}>{data!.totalComment}</Text>
-            </View>
-          ) : null}
-
-          {/* 관계 꿀팁 */}
-          {data!.tips && data!.tips.length > 0 ? (
-            <View style={[styles.card, shadow]}>
-              <Text style={styles.cardHead}>관계 꿀팁 💡</Text>
-              {data!.tips.map((t, i) => (
-                <Text key={i} style={styles.tip}>· {t}</Text>
-              ))}
-            </View>
-          ) : null}
-
-          {/* 배지 */}
-          {data!.badges.length > 0 ? (
-            <View style={styles.chipRow}>
-              {data!.badges.map((b) => (
-                <View key={b} style={[styles.chip, { backgroundColor: c.coralSofter }]}>
-                  <Text style={styles.chipText}>{b}</Text>
+                <Text style={[styles.heart, { color: c.primary }]}>♥</Text>
+                <View style={styles.person}>
+                  <Text style={styles.personEmoji}>{data!.partnerEmoji}</Text>
+                  <Text style={styles.personName}>{data!.partnerNickname}</Text>
+                  <Text style={styles.personType}>{data!.partnerTypeName}</Text>
                 </View>
-              ))}
+              </View>
+
+              <View style={styles.percentRow}>
+                <Text style={[styles.percent, { color: scoreColor(data!.percent) }]}>{data!.percent}%</Text>
+                <Pressable onPress={() => setInfoOpen(true)} hitSlop={10} style={styles.infoBtn}>
+                  <Icon name="information-circle-outline" size={20} color={colors.subText} />
+                </Pressable>
+              </View>
+              <View style={[styles.labelPill, { backgroundColor: scoreColor(data!.percent) }]}>
+                <Text style={styles.labelPillText}>{scoreLabel(data!.percent)}궁합</Text>
+              </View>
+              {data!.relComment ? <Text style={styles.relComment}>{data!.relComment}</Text> : null}
             </View>
-          ) : null}
 
-          <Button label="궁합 공유하기" icon="share-outline" variant="soft" onPress={onShare} style={{ marginTop: spacing.sm }} />
+            {/* ② 우리 관계 한눈에 보기 */}
+            <View style={[styles.card, shadow]}>
+              <Text style={styles.cardHead}>우리 관계 한눈에</Text>
+              {strong ? (
+                <View style={styles.glanceRow}>
+                  <Text style={styles.glanceLabel}>가장 잘 맞는 곳</Text>
+                  <Text style={styles.glanceValue}>
+                    {strong.name} <Text style={{ color: scoreColor(strong.score) }}>{strong.score}</Text>
+                  </Text>
+                </View>
+              ) : null}
+              {weak ? (
+                <View style={styles.glanceRow}>
+                  <Text style={styles.glanceLabel}>가장 다른 곳</Text>
+                  <Text style={styles.glanceValue}>
+                    {weak.name} <Text style={{ color: scoreColor(weak.score) }}>{weak.score}</Text>
+                  </Text>
+                </View>
+              ) : null}
+              {data!.keywords?.length > 0 ? (
+                <View style={[styles.glanceRow, { borderBottomWidth: 0 }]}>
+                  <Text style={styles.glanceLabel}>관계 키워드</Text>
+                  <View style={styles.kwRow}>
+                    {data!.keywords.map((k) => (
+                      <View key={k} style={[styles.kwChip, { backgroundColor: c.coralSofter }]}>
+                        <Text style={styles.kwText}>{k}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
+            </View>
 
-          {data!.disclaimer ? <Text style={styles.disclaimer}>{data!.disclaimer}</Text> : null}
-        </ScrollView>
+            {/* ③ 딱 3줄 해석 */}
+            {data!.summaryLines?.length > 0 ? (
+              <View style={[styles.card, shadow]}>
+                {data!.summaryLines.map((line, i) => (
+                  <View key={i} style={styles.summaryRow}>
+                    <Text style={[styles.summaryDot, { color: c.primary }]}>·</Text>
+                    <Text style={styles.summaryLine}>{line}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+
+            {/* ④ 항목별 궁합 (2줄 프리뷰 + 자세히 보기) */}
+            <View style={[styles.card, shadow]}>
+              <Text style={styles.cardHead}>항목별 궁합</Text>
+              <View style={{ gap: spacing.lg }}>
+                {data!.categories.map((cat) => {
+                  const parts = sentences(cat.comment);
+                  const open = !!expanded[cat.key];
+                  const preview = open ? cat.comment : parts.slice(0, 2).join(' ');
+                  const hasMore = parts.length > 2;
+                  return (
+                    <View key={cat.key}>
+                      <View style={styles.catHead}>
+                        <Text style={styles.catName}>
+                          {CAT_ICON[cat.key] ?? '·'} {cat.name}
+                        </Text>
+                        <View style={styles.catRight}>
+                          <View style={[styles.catPill, { backgroundColor: scoreColor(cat.score) }]}>
+                            <Text style={styles.catPillText}>{scoreLabel(cat.score)}</Text>
+                          </View>
+                          <Text style={styles.catScore}>{cat.score}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.track}>
+                        <View
+                          style={[
+                            styles.fill,
+                            { width: `${Math.max(4, Math.min(100, cat.score))}%`, backgroundColor: scoreColor(cat.score) },
+                          ]}
+                        />
+                      </View>
+                      {preview ? <Text style={styles.catComment}>{preview}</Text> : null}
+                      {hasMore ? (
+                        <Pressable onPress={() => toggle(cat.key)} hitSlop={8} style={styles.moreBtn}>
+                          <Text style={[styles.moreText, { color: c.primary }]}>{open ? '접기' : '자세히 보기'}</Text>
+                          <Icon name={open ? 'chevron-up' : 'chevron-down'} size={15} color={c.primary} />
+                        </Pressable>
+                      ) : null}
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* ⑤ 관계 꿀팁 */}
+            {data!.tips?.length > 0 ? (
+              <View style={[styles.card, shadow]}>
+                <Text style={styles.cardHead}>관계 꿀팁</Text>
+                {data!.tips.map((t, i) => (
+                  <View key={i} style={styles.summaryRow}>
+                    <Text style={[styles.summaryDot, { color: c.primary }]}>·</Text>
+                    <Text style={styles.tip}>{t}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+
+            {/* ⑥ 사주 근거 보기 (기본 접힘) */}
+            {data!.badges.length > 0 ? (
+              <View style={[styles.card, shadow]}>
+                <Collapsible title="우리 궁합의 사주 근거 보기">
+                  {data!.badges.map((b) => (
+                    <View key={b} style={styles.summaryRow}>
+                      <Text style={[styles.summaryDot, { color: c.primary }]}>·</Text>
+                      <Text style={styles.badgeLine}>{b}</Text>
+                    </View>
+                  ))}
+                  {!data!.hasHour ? (
+                    <Text style={styles.badgeHint}>생시를 넣으면 시주까지 반영돼 더 정확해져요.</Text>
+                  ) : null}
+                </Collapsible>
+              </View>
+            ) : null}
+
+            {data!.disclaimer ? <Text style={styles.disclaimer}>{data!.disclaimer}</Text> : null}
+          </ScrollView>
+
+          {/* ⑦ 공유 (하단 고정) */}
+          <View style={styles.footer}>
+            <Button label="우리 궁합 카드 공유하기" icon="share-outline" onPress={onShare} />
+          </View>
+        </>
       )}
+
+      {/* 종합 점수 설명 모달 */}
+      <Modal visible={infoOpen} transparent animationType="fade" onRequestClose={() => setInfoOpen(false)}>
+        <Pressable style={styles.modalBg} onPress={() => setInfoOpen(false)}>
+          <View style={[styles.modalCard, shadow]}>
+            <Text style={styles.modalTitle}>종합 점수는 어떻게 나오나요?</Text>
+            <Text style={styles.modalBody}>{SCORE_INFO}</Text>
+            <Button label="알겠어요" variant="soft" onPress={() => setInfoOpen(false)} style={{ marginTop: spacing.md }} />
+          </View>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -204,7 +332,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   topTitle: { ...font.h2, fontWeight: '800' },
-  scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing.xxl * 2 },
+  scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing.xl },
 
   centerBox: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, gap: spacing.sm },
   bigEmoji: { fontSize: 52 },
@@ -218,13 +346,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.md,
   },
-  pairRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  person: { alignItems: 'center', width: 84 },
+  pairRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg },
+  person: { alignItems: 'center', width: 92 },
   personEmoji: { fontSize: 40 },
-  personName: { ...font.label, color: colors.text, marginTop: 4 },
-  heart: { fontSize: 24 },
-  percent: { fontSize: 52, fontWeight: '800', marginTop: spacing.md },
-  relComment: { ...font.body, textAlign: 'center', marginTop: spacing.xs, lineHeight: 21 },
+  personName: { ...font.title, color: colors.text, marginTop: 4 },
+  personType: { ...font.caption, color: colors.subText, marginTop: 1 },
+  heart: { fontSize: 22, marginTop: 12 },
+  percentRow: { flexDirection: 'row', alignItems: 'flex-start', marginTop: spacing.md },
+  percent: { fontSize: 52, fontWeight: '800' },
+  infoBtn: { marginTop: 8, marginLeft: 2 },
+  labelPill: { borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 5, marginTop: spacing.xs },
+  labelPillText: { ...font.label, color: colors.white, fontWeight: '800' },
+  relComment: { ...font.body, textAlign: 'center', marginTop: spacing.md, lineHeight: 22 },
 
   card: {
     backgroundColor: colors.card,
@@ -233,20 +366,56 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   cardHead: { ...font.title, marginBottom: spacing.md },
-  tip: { ...font.body, color: colors.text, lineHeight: 25, marginTop: 5 },
-  body: { ...font.body, color: colors.text, lineHeight: 25 },
 
-  catHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 },
-  catName: { ...font.label, color: colors.text },
-  catScore: { ...font.label, color: colors.subText },
+  glanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  glanceLabel: { ...font.label, color: colors.subText },
+  glanceValue: { ...font.body, fontWeight: '700', color: colors.text },
+  kwRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, justifyContent: 'flex-end', flexShrink: 1 },
+  kwChip: { borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
+  kwText: { ...font.label, color: colors.text },
+
+  summaryRow: { flexDirection: 'row', marginTop: 6 },
+  summaryDot: { ...font.body, fontWeight: '800', marginRight: 6, lineHeight: 24 },
+  summaryLine: { ...font.body, color: colors.text, lineHeight: 24, flex: 1 },
+  tip: { ...font.body, color: colors.text, lineHeight: 24, flex: 1 },
+
+  catHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  catName: { ...font.label, color: colors.text, fontSize: 14 },
+  catRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  catPill: { borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 2 },
+  catPillText: { ...font.caption, color: colors.white, fontWeight: '700', fontSize: 11 },
+  catScore: { ...font.label, color: colors.subText, minWidth: 24, textAlign: 'right' },
   track: { height: 12, borderRadius: radius.pill, backgroundColor: colors.border, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: radius.pill },
-  catComment: { ...font.caption, color: colors.subText, marginTop: 6, lineHeight: 20 },
+  catComment: { ...font.caption, color: colors.subText, marginTop: 8, lineHeight: 21, fontSize: 13 },
+  moreBtn: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: 6 },
+  moreText: { ...font.label, fontWeight: '700' },
 
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.md },
-  chip: { borderRadius: radius.pill, paddingHorizontal: 11, paddingVertical: 6 },
-  chipText: { ...font.label, color: colors.text },
+  badgeLine: { ...font.body, color: colors.text, lineHeight: 22, flex: 1, fontSize: 14 },
+  badgeHint: { ...font.caption, color: colors.subText, marginTop: spacing.md },
 
-  disclaimer: { ...font.caption, color: colors.subText, textAlign: 'center', marginTop: spacing.md },
+  disclaimer: { ...font.caption, color: colors.subText, textAlign: 'center', marginTop: spacing.sm, marginBottom: spacing.md },
+
+  footer: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
+    backgroundColor: colors.bg,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+
   empty: { ...font.body, color: colors.subText, textAlign: 'center', marginTop: spacing.xxl },
+
+  modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', paddingHorizontal: spacing.xl },
+  modalCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.xl },
+  modalTitle: { ...font.title, marginBottom: spacing.sm },
+  modalBody: { ...font.body, color: colors.text, lineHeight: 23 },
 });
