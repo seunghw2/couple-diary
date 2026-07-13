@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<style> html,body{margin:0;padding:0;background:transparent;} svg{display:block;width:100vw;height:100vh;} </style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const HEART="M50,86 C12,55 2,32 22,16 C37,5 50,19 50,21 C50,19 63,5 78,16 C98,32 88,55 50,86 Z";
+const BOOK="M180,150 C150,128 108,126 82,140 v128 c26,-14 68,-12 98,10 c30,-22 72,-24 98,-10 v-128 c-26,-14 -68,-12 -98,10 Z";
+function heart(x,y,s,fill){ return `<g transform="translate(${x},${y}) scale(${s})"><path d="${HEART}" fill="${fill}" stroke-linejoin="round"/></g>`; }
+
+const params=new URLSearchParams(location.search);
+const mode=params.get('mode')||'icon';
+const K=parseFloat(params.get('k')||'1.24');
+
+// 책+하트 모티프. mono=true면 단색 실루엣(책 외곽선+하트).
+function motif(k,mono){
+  const bookFill = mono ? 'none' : '#FFFFFF';
+  const bookStroke = mono ? 'stroke="#211d1b" stroke-width="11" stroke-linejoin="round"' : '';
+  const spine = mono ? '#211d1b' : '#FFE0D5';
+  const hFill = mono ? '#211d1b' : 'url(#pinkheart)';
+  const flt = mono ? '' : 'filter="url(#soft)"';
+  return `<g transform="translate(180,180) scale(${k}) translate(-180,-180)">
+    <g transform="translate(0,-24)" ${flt}>
+      <path d="${BOOK}" fill="${bookFill}" ${bookStroke}/>
+      <path d="M180,152 v122" stroke="${spine}" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    ${heart(140,143,0.8,hFill)}
+  </g>`;
+}
+
+const defs=`<defs>
+  <linearGradient id="coral" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFA184"/><stop offset="1" stop-color="#F0654A"/></linearGradient>
+  <linearGradient id="pinkheart" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8E72"/><stop offset="1" stop-color="#FF5A7A"/></linearGradient>
+  <filter id="soft" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#8f2f18" flood-opacity="0.18"/></filter>
+</defs>`;
+
+let inner='';
+if(mode==='icon'||mode==='favicon') inner=`<rect width="360" height="360" fill="url(#coral)"/>${motif(K,false)}`;
+else if(mode==='splash') inner=motif(K,false);                       // 투명(코랄 스플래시 위)
+else if(mode==='bg') inner=`<rect width="360" height="360" fill="url(#coral)"/>`;
+else if(mode==='adaptive') inner=`<g transform="translate(180,180) scale(0.72) translate(-180,-180)">${motif(K,false)}</g>`;
+else if(mode==='mono') inner=`<g transform="translate(180,180) scale(0.72) translate(-180,-180)">${motif(K,true)}</g>`;
+
+document.getElementById('root').innerHTML=`<svg viewBox="0 0 360 360" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${defs}${inner}</svg>`;
+</script>
+</body>
+</html>

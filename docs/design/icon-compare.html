@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#fff;font-family:-apple-system,"Apple SD Gothic Neo",system-ui,sans-serif;padding:44px;}
+  h1{font-size:28px;color:#2a2320;margin-bottom:6px;}
+  .sub{font-size:15px;color:#8a807a;margin-bottom:28px;}
+  .row{display:flex;gap:44px;align-items:flex-end;}
+  .cell{display:flex;flex-direction:column;align-items:center;}
+  .icon{width:300px;height:300px;border-radius:70px;box-shadow:0 14px 32px rgba(180,90,60,0.20);overflow:hidden;}
+  .cap{margin-top:14px;font-size:18px;font-weight:700;color:#2a2320;}
+  .desc{margin-top:3px;font-size:13px;color:#9a908a;}
+</style></head>
+<body>
+<h1>love today · A1 책 크기 비교</h1>
+<div class="sub">책 폭이 아이콘에서 차지하는 비율 (다른 앱 심볼은 보통 62~68%)</div>
+<div class="row" id="row"></div>
+<script>
+const HEART="M50,86 C12,55 2,32 22,16 C37,5 50,19 50,21 C50,19 63,5 78,16 C98,32 88,55 50,86 Z";
+const BOOK="M180,150 C150,128 108,126 82,140 v128 c26,-14 68,-12 98,10 c30,-22 72,-24 98,-10 v-128 c-26,-14 -68,-12 -98,10 Z";
+function heart(x,y,s,f){return `<g transform="translate(${x},${y}) scale(${s})"><path d="${HEART}" fill="${f}"/></g>`;}
+function icon(k){return `<svg viewBox="0 0 360 360" width="300" height="300" xmlns="http://www.w3.org/2000/svg"><defs>
+  <linearGradient id="coral" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFA184"/><stop offset="1" stop-color="#F0654A"/></linearGradient>
+  <linearGradient id="pinkheart" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8E72"/><stop offset="1" stop-color="#FF5A7A"/></linearGradient>
+  <filter id="soft" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#8f2f18" flood-opacity="0.18"/></filter></defs>
+  <rect width="360" height="360" fill="url(#coral)"/>
+  <g transform="translate(180,180) scale(${k}) translate(-180,-180)">
+    <g transform="translate(0,-24)" filter="url(#soft)"><path d="${BOOK}" fill="#FFFFFF"/><path d="M180,150 v138" stroke="#FFE0D5" stroke-width="6" stroke-linecap="round"/></g>
+    ${heart(140,143,0.8,"url(#pinkheart)")}
+  </g></svg>`;}
+const opts=[
+  {k:1.0, cap:"현재(작음)", desc:"책 폭 ≈ 54%"},
+  {k:1.24, cap:"권장", desc:"책 폭 ≈ 66%"},
+  {k:1.4, cap:"큼", desc:"책 폭 ≈ 74%"},
+];
+const row=document.getElementById('row');
+opts.forEach(o=>{const c=document.createElement('div');c.className='cell';
+  c.innerHTML=`<div class="icon">${icon(o.k)}</div><div class="cap">${o.cap}</div><div class="desc">${o.desc}</div>`;row.appendChild(c);});
+</script>
+</body></html>
