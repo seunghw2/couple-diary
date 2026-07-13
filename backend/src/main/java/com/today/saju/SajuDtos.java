@@ -41,12 +41,13 @@ public class SajuDtos {
             String disclaimer
     ) {}
 
-    /** 허브 상태(카드 라벨용). */
+    /** 허브 상태 + 커플 정보 카드용(나·연인 이름·생일·생시). */
     public record HubStatus(
             boolean hasMyBirthday,
             boolean hasPartner,
             boolean hasPartnerBirthday,
-            Integer myBirthTime
+            String myName, String myBirthday, Integer myBirthTime,
+            String partnerName, String partnerBirthday, Integer partnerBirthTime
     ) {}
 
     public record BirthTimeRequest(Integer hour) {}

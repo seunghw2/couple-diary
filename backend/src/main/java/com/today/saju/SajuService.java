@@ -104,8 +104,13 @@ public class SajuService {
     public HubStatus hub(Long userId) {
         User me = require(userId);
         User partner = partnerOrNull(userId);
-        return new HubStatus(me.getBirthday() != null, partner != null,
-                partner != null && partner.getBirthday() != null, me.getBirthTime());
+        boolean partnerHasBd = partner != null && partner.getBirthday() != null;
+        return new HubStatus(
+                me.getBirthday() != null, partner != null, partnerHasBd,
+                me.getNickname(), me.getBirthday() != null ? me.getBirthday().toString() : null, me.getBirthTime(),
+                partner != null ? partner.getNickname() : null,
+                partnerHasBd ? partner.getBirthday().toString() : null,
+                partner != null ? partner.getBirthTime() : null);
     }
 
     // ───────── 커플 궁합 ─────────

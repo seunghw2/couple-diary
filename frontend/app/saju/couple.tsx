@@ -1,11 +1,15 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SajuCouple, sajuApi } from '../../lib/api';
 import { Icon, Button } from '../../components/ui';
+import { SajuLoading } from '../../components/SajuLoading';
 import { showToast } from '../../lib/dialog';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
+
+const SEEN_KEY = 'saju_seen_couple';
 
 /** grade(궁합 등급, 높을수록 좋음) → 막대 색조. 브랜드 코럴 계열 + 중립. */
 function gradeColor(c: { primary: string; coralSoft: string }, grade: number): string {
@@ -21,6 +25,7 @@ export default function SajuCouplePage() {
   const [data, setData] = useState<SajuCouple | null>(null);
   const [error, setError] = useState(false);
   const [requesting, setRequesting] = useState(false);
+  const [intro, setIntro] = useState<boolean | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -36,6 +41,14 @@ export default function SajuCouplePage() {
       load();
     }, [load])
   );
+
+  useEffect(() => {
+    AsyncStorage.getItem(SEEN_KEY).then((v) => setIntro(!v));
+  }, []);
+  const finishIntro = useCallback(async () => {
+    await AsyncStorage.setItem(SEEN_KEY, '1');
+    setIntro(false);
+  }, []);
 
   async function requestBirthday() {
     if (requesting) return;
@@ -59,6 +72,15 @@ export default function SajuCouplePage() {
     } catch {
       // 공유 취소는 무시.
     }
+  }
+
+  if (intro === null) return <View style={styles.safe} />;
+  if (intro) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <SajuLoading label="우리 궁합을 푸는 중" onDone={finishIntro} />
+      </SafeAreaView>
+    );
   }
 
   return (

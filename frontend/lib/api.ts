@@ -599,7 +599,12 @@ export type SajuHub = {
   hasMyBirthday: boolean;
   hasPartner: boolean;
   hasPartnerBirthday: boolean;
+  myName?: string;
+  myBirthday?: string; // YYYY-MM-DD
   myBirthTime?: number; // 생시(지지 시작시각). 모름이면 생략.
+  partnerName?: string;
+  partnerBirthday?: string; // YYYY-MM-DD
+  partnerBirthTime?: number;
 };
 
 /** 오늘의 기운. */

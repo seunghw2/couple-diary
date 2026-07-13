@@ -1,18 +1,29 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { SajuDaily, SajuHub, sajuApi } from '../../lib/api';
+import { authApi, SajuDaily, SajuHub, sajuApi } from '../../lib/api';
+import { HOUR_OPTIONS, hourLabel } from '../../lib/sajuHours';
+import { useAuthStore } from '../../store/useAuthStore';
+import { DatePickerSheet } from '../../components/DatePickerSheet';
 import { Icon } from '../../components/ui';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
-/** 사주 궁합 허브 — 내 사주 / 우리 궁합 두 카드 + 오늘의 기운 배너. 설정 탭에서 진입. */
+function fmtDate(d?: string) {
+  return d ? d.replace(/-/g, '.') : '미입력';
+}
+
+/** 사주 궁합 허브 — 커플 정보 카드 + 내 사주 / 우리 궁합 + 오늘의 기운. */
 export default function SajuHome() {
   const router = useRouter();
   const c = useColors();
+  const setUser = useAuthStore((s) => s.setUser);
   const [hub, setHub] = useState<SajuHub | null>(null);
   const [daily, setDaily] = useState<SajuDaily | null>(null);
   const [error, setError] = useState(false);
+  const [showDate, setShowDate] = useState(false);
+  const [showHour, setShowHour] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -28,16 +39,34 @@ export default function SajuHome() {
   useFocusEffect(
     useCallback(() => {
       load();
-      // 허브를 열면 '새 사주 소식' 배지 초기화(설정 배지 사라짐).
       sajuApi.markSeen().catch(() => {});
     }, [load])
   );
 
-  const meSub = !hub
-    ? ''
-    : !hub.hasMyBirthday
-      ? '생일을 먼저 등록해요'
-      : '일간·오행으로 보는 나';
+  async function saveBirthday(date: string) {
+    setShowDate(false);
+    setSaving(true);
+    try {
+      const u = await authApi.updateMe({ birthday: date });
+      setUser(u);
+      await load();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function saveHour(hour: number | null) {
+    setShowHour(false);
+    setSaving(true);
+    try {
+      await sajuApi.setBirthTime(hour);
+      await load();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const meSub = !hub ? '' : !hub.hasMyBirthday ? '생일을 먼저 등록해요' : '일간·오행으로 보는 나';
   const coupleSub = !hub
     ? ''
     : !hub.hasPartner
@@ -65,6 +94,42 @@ export default function SajuHome() {
           <Text style={styles.empty}>불러오지 못했어요.</Text>
         ) : (
           <>
+            {/* 커플 정보 카드 */}
+            <View style={[styles.info, shadow]}>
+              {/* 나 (편집 가능) */}
+              <View style={styles.infoHead}>
+                <Text style={[styles.who, { color: c.primary }]}>나</Text>
+                <Text style={styles.name}>{hub?.myName ?? '나'}</Text>
+                {saving ? <ActivityIndicator size="small" color={c.primary} /> : null}
+              </View>
+              <Pressable onPress={() => setShowDate(true)} style={({ pressed }) => [styles.line, pressed && styles.pressed]}>
+                <Text style={styles.lineLabel}>생년월일</Text>
+                <Text style={styles.lineValue}>{fmtDate(hub?.myBirthday)}</Text>
+                <Icon name="pencil" size={15} color={c.primary} />
+              </Pressable>
+              <Pressable onPress={() => setShowHour(true)} style={({ pressed }) => [styles.line, pressed && styles.pressed]}>
+                <Text style={styles.lineLabel}>태어난 시각</Text>
+                <Text style={styles.lineValue}>{hourLabel(hub?.myBirthTime)}</Text>
+                <Icon name="pencil" size={15} color={c.primary} />
+              </Pressable>
+
+              <View style={styles.divider} />
+
+              {/* 연인 (표시만) */}
+              <View style={styles.infoHead}>
+                <Text style={[styles.who, { color: colors.subText }]}>연인</Text>
+                <Text style={styles.name}>{hub?.partnerName ?? '미연결'}</Text>
+              </View>
+              <View style={styles.line}>
+                <Text style={styles.lineLabel}>생년월일</Text>
+                <Text style={[styles.lineValue, styles.readonly]}>{fmtDate(hub?.partnerBirthday)}</Text>
+              </View>
+              <View style={styles.line}>
+                <Text style={styles.lineLabel}>태어난 시각</Text>
+                <Text style={[styles.lineValue, styles.readonly]}>{hourLabel(hub?.partnerBirthTime)}</Text>
+              </View>
+            </View>
+
             <Pressable
               onPress={() => router.push('/saju/me')}
               style={({ pressed }) => [styles.card, shadow, pressed && { opacity: 0.85 }]}
@@ -103,6 +168,47 @@ export default function SajuHome() {
           </>
         )}
       </ScrollView>
+
+      {/* 생일 편집 */}
+      <DatePickerSheet
+        visible={showDate}
+        value={hub?.myBirthday}
+        title="생년월일"
+        maxDate={new Date().toISOString().slice(0, 10)}
+        onConfirm={saveBirthday}
+        onClose={() => setShowDate(false)}
+      />
+
+      {/* 생시 편집 */}
+      <Modal visible={showHour} transparent animationType="slide" onRequestClose={() => setShowHour(false)}>
+        <Pressable style={styles.backdrop} onPress={() => setShowHour(false)}>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            <Text style={styles.sheetTitle}>태어난 시각</Text>
+            <Text style={styles.sheetSub}>알면 시주까지 반영돼 더 정확해요.</Text>
+            <View style={styles.hourGrid}>
+              {HOUR_OPTIONS.map((o) => {
+                const active = hub?.myBirthTime === o.hour;
+                return (
+                  <Pressable
+                    key={o.hour}
+                    onPress={() => saveHour(o.hour)}
+                    style={[styles.hourCell, active && { backgroundColor: c.primary, borderColor: c.primary }]}
+                  >
+                    <Text style={[styles.hourLabel, active && { color: colors.white }]}>{o.label}시</Text>
+                    <Text style={[styles.hourRange, active && { color: colors.white }]}>{o.range}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Pressable
+              onPress={() => saveHour(null)}
+              style={[styles.unknown, hub?.myBirthTime == null && { borderColor: c.primary }]}
+            >
+              <Text style={[styles.unknownText, hub?.myBirthTime == null && { color: c.primary }]}>모름</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -119,6 +225,18 @@ const styles = StyleSheet.create({
   topTitle: { ...font.h2, fontWeight: '800' },
   scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing.xxl * 2 },
   sub: { ...font.caption, color: colors.subText, marginBottom: spacing.lg },
+
+  info: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.lg },
+  infoHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
+  who: { ...font.label, fontWeight: '800', width: 34 },
+  name: { ...font.title, fontWeight: '700', flex: 1 },
+  line: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 7 },
+  lineLabel: { ...font.caption, color: colors.subText, width: 74 },
+  lineValue: { ...font.body, color: colors.text, flex: 1 },
+  readonly: { color: colors.subText },
+  pressed: { opacity: 0.55 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: spacing.md },
+
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -131,11 +249,7 @@ const styles = StyleSheet.create({
   emoji: { fontSize: 30 },
   cardTitle: { ...font.h2, fontSize: 17 },
   cardSub: { ...font.caption, color: colors.subText, marginTop: 3 },
-  banner: {
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    marginTop: spacing.sm,
-  },
+  banner: { borderRadius: radius.lg, padding: spacing.lg, marginTop: spacing.sm },
   bannerHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   bannerTitle: { ...font.title, flex: 1 },
   colorDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: colors.white },
@@ -143,4 +257,37 @@ const styles = StyleSheet.create({
   bannerFortune: { ...font.body, color: colors.text, marginTop: spacing.sm, lineHeight: 21 },
   bannerKeyword: { ...font.caption, color: colors.subText, marginTop: spacing.sm },
   empty: { ...font.body, color: colors.subText, textAlign: 'center', marginTop: spacing.xxl },
+
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  sheet: {
+    backgroundColor: colors.bg,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    padding: spacing.xl,
+    paddingBottom: spacing.xxl,
+  },
+  sheetTitle: { ...font.h2 },
+  sheetSub: { ...font.caption, color: colors.subText, marginTop: 4, marginBottom: spacing.lg },
+  hourGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  hourCell: {
+    width: '30.5%',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    backgroundColor: colors.card,
+  },
+  hourLabel: { ...font.body, fontWeight: '700' },
+  hourRange: { ...font.caption, color: colors.subText, marginTop: 1 },
+  unknown: {
+    marginTop: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    backgroundColor: colors.card,
+  },
+  unknownText: { ...font.body, fontWeight: '700', color: colors.text },
 });

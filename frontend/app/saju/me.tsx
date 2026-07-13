@@ -1,33 +1,23 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SajuPersonal, sajuApi } from '../../lib/api';
+import { HOUR_OPTIONS } from '../../lib/sajuHours';
 import { Icon, Button } from '../../components/ui';
 import { OhaengBar } from '../../components/OhaengBar';
+import { SajuLoading } from '../../components/SajuLoading';
 import { showToast } from '../../lib/dialog';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
-/** 생시(12지시) 옵션. hour = 각 지지 시작시각. 모름 = null. */
-const HOUR_OPTIONS: { hour: number; label: string; range: string }[] = [
-  { hour: 23, label: '자', range: '23~01' },
-  { hour: 1, label: '축', range: '01~03' },
-  { hour: 3, label: '인', range: '03~05' },
-  { hour: 5, label: '묘', range: '05~07' },
-  { hour: 7, label: '진', range: '07~09' },
-  { hour: 9, label: '사', range: '09~11' },
-  { hour: 11, label: '오', range: '11~13' },
-  { hour: 13, label: '미', range: '13~15' },
-  { hour: 15, label: '신', range: '15~17' },
-  { hour: 17, label: '유', range: '17~19' },
-  { hour: 19, label: '술', range: '19~21' },
-  { hour: 21, label: '해', range: '21~23' },
-];
+const SEEN_KEY = 'saju_seen_me';
 
 export default function SajuMe() {
   const router = useRouter();
   const c = useColors();
   const [me, setMe] = useState<SajuPersonal | null>(null);
+  const [intro, setIntro] = useState<boolean | null>(null); // null=확인중, true=첫진입 로딩
   const [error, setError] = useState(false);
   const [savingHour, setSavingHour] = useState(false);
   // 현재 저장된 생시(지지 시작시각). undefined=모름/미설정. hub에서 seed.
@@ -50,6 +40,15 @@ export default function SajuMe() {
     }, [load])
   );
 
+  // 최초 진입 시에만 신비로운 로딩 연출(3초).
+  useEffect(() => {
+    AsyncStorage.getItem(SEEN_KEY).then((v) => setIntro(!v));
+  }, []);
+  const finishIntro = useCallback(async () => {
+    await AsyncStorage.setItem(SEEN_KEY, '1');
+    setIntro(false);
+  }, []);
+
   async function pickHour(hour: number | null) {
     if (savingHour) return;
     setSavingHour(true);
@@ -62,6 +61,15 @@ export default function SajuMe() {
     } finally {
       setSavingHour(false);
     }
+  }
+
+  if (intro === null) return <View style={styles.safe} />;
+  if (intro) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <SajuLoading label="내 사주를 푸는 중" onDone={finishIntro} />
+      </SafeAreaView>
+    );
   }
 
   return (
