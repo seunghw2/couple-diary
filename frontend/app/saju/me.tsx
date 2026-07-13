@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { SajuMe, sajuApi } from '../../lib/api';
+import { SajuPersonal, sajuApi } from '../../lib/api';
 import { Icon, Button } from '../../components/ui';
 import { OhaengBar } from '../../components/OhaengBar';
 import { showToast } from '../../lib/dialog';
@@ -27,7 +27,7 @@ const HOUR_OPTIONS: { hour: number; label: string; range: string }[] = [
 export default function SajuMe() {
   const router = useRouter();
   const c = useColors();
-  const [me, setMe] = useState<SajuMe | null>(null);
+  const [me, setMe] = useState<SajuPersonal | null>(null);
   const [error, setError] = useState(false);
   const [savingHour, setSavingHour] = useState(false);
   // 현재 저장된 생시(지지 시작시각). undefined=모름/미설정. hub에서 seed.

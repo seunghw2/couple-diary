@@ -622,7 +622,7 @@ export type SajuOhaeng = {
 };
 
 /** GET /api/saju/me — 내 사주. hasBirthday=false면 나머지 비어있을 수 있음. */
-export type SajuMe = {
+export type SajuPersonal = {
   hasBirthday: boolean;
   dayMasterName: string;
   dayMasterEmoji: string;
@@ -670,7 +670,7 @@ export type SajuCouple = {
 
 export const sajuApi = {
   hub: () => api.get<SajuHub>('/api/saju/hub'),
-  me: () => api.get<SajuMe>('/api/saju/me'),
+  me: () => api.get<SajuPersonal>('/api/saju/me'),
   daily: () => api.get<SajuDaily>('/api/saju/daily'),
   /** 생시 설정. null=모름. 204. */
   setBirthTime: (hour: number | null) => api.put<void>('/api/saju/birth-time', { hour }),
