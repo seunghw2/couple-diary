@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,"Apple SD Gothic Neo",system-ui,sans-serif;}
+  body{background:#fff;padding:44px;}
+  h1{font-size:29px;color:#2a2320;}
+  .sub{font-size:16px;color:#8a807a;margin:4px 0 30px;}
+  .row{display:flex;gap:34px;align-items:flex-start;}
+  .col{display:flex;flex-direction:column;align-items:center;width:330px;}
+  .cap{margin-top:14px;font-size:17px;font-weight:800;color:#2a2320;}
+  .capd{font-size:13px;color:#9a908a;text-align:center;margin-top:3px;max-width:300px;}
+  .phone{width:330px;height:700px;border-radius:44px;background:#FDF4EF;overflow:hidden;position:relative;border:7px solid #2a2320;box-shadow:0 16px 40px rgba(180,90,60,.18);}
+  .sb{height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:11px;font-weight:700;color:#2a2320;}
+  .scr{padding:4px 16px;overflow:hidden;height:660px;}
+  .tt{font-size:17px;font-weight:800;color:#FF7A5C;text-align:center;margin-bottom:8px;}
+  .card{background:#fff;border-radius:20px;padding:15px;margin-bottom:11px;box-shadow:0 5px 14px rgba(180,90,60,.07);}
+  /* A */
+  .heroA{text-align:center;padding:16px 15px 14px;}
+  .circA{width:74px;height:74px;border-radius:50%;background:#FFE7DC;display:inline-flex;align-items:center;justify-content:center;font-size:38px;}
+  .nameA{font-size:22px;font-weight:900;color:#2a2320;margin-top:8px;}
+  .subA{font-size:12.5px;color:#9a908a;margin-top:2px;}
+  .pt{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid #F3E9E4;}
+  .pt:last-child{border-bottom:0;}
+  .ptE{font-size:22px;width:26px;text-align:center;}
+  .ptT{font-size:14px;color:#2a2320;font-weight:600;flex:1;line-height:1.35;}
+  .sectlab{font-size:12px;font-weight:800;color:#B9A79E;margin:2px 2px 8px;letter-spacing:.3px;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{background:#FFE7DC;color:#C4553A;border-radius:14px;padding:5px 11px;font-size:12.5px;font-weight:700;}
+  .chipG{background:#EAF4EC;color:#3E8E5A;}
+  .mini{display:flex;align-items:center;gap:7px;margin-top:6px;}
+  .miniE{width:18px;font-size:14px;text-align:center;}
+  .mtrack{flex:1;height:8px;background:#F1E7E1;border-radius:4px;overflow:hidden;}
+  .mfill{height:100%;border-radius:4px;}
+  /* B game */
+  .heroB{border-radius:22px;padding:20px 16px 16px;text-align:center;color:#fff;background:linear-gradient(150deg,#5FA8D9,#3E6F9E);position:relative;margin-bottom:11px;}
+  .badgeB{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.25);border-radius:12px;padding:3px 9px;font-size:11px;font-weight:800;}
+  .bigE{font-size:58px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2));}
+  .nameB{font-size:23px;font-weight:900;margin-top:4px;}
+  .tagB{display:inline-block;margin-top:7px;background:rgba(255,255,255,.22);border-radius:14px;padding:4px 12px;font-size:12px;font-weight:700;}
+  .starB{color:#FFD54A;font-size:15px;margin-top:8px;letter-spacing:1px;}
+  .statR{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12.5px;font-weight:700;color:#5a514b;}
+  .statN{width:16px;text-align:center;font-size:15px;}
+  .dots{flex:1;display:flex;gap:4px;}
+  .dot{width:15px;height:15px;border-radius:50%;background:#EEE3DD;}
+  .bubble{background:#F4F8FB;border-radius:14px;padding:12px;font-size:13px;color:#3a3a3a;line-height:1.45;position:relative;}
+  /* C color sections */
+  .csec{border-radius:18px;padding:13px 15px;margin-bottom:10px;}
+  .cHead{font-size:14px;font-weight:800;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+  .cBody{font-size:13px;line-height:1.5;}
+  .quote{font-size:16px;font-weight:800;color:#2a2320;text-align:center;line-height:1.4;padding:6px 10px;}
+</style></head>
+<body>
+<h1>내 사주 화면 리디자인 3안</h1>
+<div class="sub">공통 목표: 읽기 쉽게(짧게·시각적으로) + 재미있게. 예시=壬水 큰 바다형</div>
+<div class="row">
+
+  <!-- A 하이라이트 카드형 -->
+  <div class="col">
+    <div class="phone"><div class="sb"><span>9:41</span><span>🔋</span></div>
+      <div class="scr">
+        <div class="tt">내 사주</div>
+        <div class="card heroA">
+          <div class="circA">🌊</div>
+          <div class="nameA">壬水 · 큰 바다형</div>
+          <div class="subA">넓은 바다처럼 깊고 넉넉한 사람</div>
+        </div>
+        <div class="card">
+          <div class="sectlab">한눈에 보는 나</div>
+          <div class="pt"><span class="ptE">💡</span><span class="ptT">멀리 내다보는 지혜와 안목</span></div>
+          <div class="pt"><span class="ptE">🫂</span><span class="ptT">사람도 상황도 넉넉히 품는 포용력</span></div>
+          <div class="pt"><span class="ptE">🌊</span><span class="ptT">어디서든 유연하게 흐르는 융통성</span></div>
+        </div>
+        <div class="card">
+          <div class="sectlab">오행 밸런스</div>
+          <div class="mini"><span class="miniE">🌳</span><div class="mtrack"><div class="mfill" style="width:75%;background:#5FBF7A"></div></div></div>
+          <div class="mini"><span class="miniE">🔥</span><div class="mtrack"><div class="mfill" style="width:12%;background:#FF6F5C"></div></div></div>
+          <div class="mini"><span class="miniE">⛰️</span><div class="mtrack"><div class="mfill" style="width:50%;background:#D9A45B"></div></div></div>
+          <div class="mini"><span class="miniE">⚙️</span><div class="mtrack"><div class="mfill" style="width:12%;background:#9AA7B0"></div></div></div>
+          <div class="mini"><span class="miniE">💧</span><div class="mtrack"><div class="mfill" style="width:30%;background:#5B9BD9"></div></div></div>
+        </div>
+        <div class="card">
+          <div class="sectlab">✨ 강점</div>
+          <div class="chips"><span class="chip">넓은 안목</span><span class="chip">포용력</span><span class="chip">융통성</span></div>
+          <div class="sectlab" style="margin-top:11px;">🌱 채워가면 좋아요</div>
+          <div class="chips"><span class="chip chipG">지금에 집중</span><span class="chip chipG">한곳에 깊이</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="cap">A · 하이라이트 카드형</div>
+    <div class="capd">긴 글을 아이콘+한줄 포인트로. 스캔하기 제일 쉬움</div>
+  </div>
+
+  <!-- B 캐릭터 게임형 -->
+  <div class="col">
+    <div class="phone"><div class="sb"><span>9:41</span><span>🔋</span></div>
+      <div class="scr">
+        <div class="tt">내 사주</div>
+        <div class="heroB"><span class="badgeB">水 WATER</span>
+          <div class="bigE">🌊</div>
+          <div class="nameB">큰 바다형</div>
+          <div class="tagB">壬水 · 지혜로운 대양</div>
+          <div class="starB">★★★★☆</div>
+        </div>
+        <div class="card">
+          <div class="sectlab">오행 스탯</div>
+          <div class="statR"><span class="statN">🌳</span><div class="dots"><span class="dot" style="background:#5FBF7A"></span><span class="dot" style="background:#5FBF7A"></span><span class="dot" style="background:#5FBF7A"></span><span class="dot"></span><span class="dot"></span></div><b>3</b></div>
+          <div class="statR"><span class="statN">🔥</span><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><b>0</b></div>
+          <div class="statR"><span class="statN">⛰️</span><div class="dots"><span class="dot" style="background:#D9A45B"></span><span class="dot" style="background:#D9A45B"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><b>2</b></div>
+          <div class="statR"><span class="statN">⚙️</span><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><b>0</b></div>
+          <div class="statR"><span class="statN">💧</span><div class="dots"><span class="dot" style="background:#5B9BD9"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><b>1</b></div>
+        </div>
+        <div class="card">
+          <div class="chips" style="margin-bottom:9px;"><span class="chip">#지혜</span><span class="chip">#포용력</span><span class="chip">#융통성</span></div>
+          <div class="bubble">“멀리 보고 넉넉히 품는 사람. 어디서든 유연하게 흐르는 바다 같은 매력이 있어요 🌊”</div>
+        </div>
+        <div class="card" style="display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#FFE58A,#FFD24A);">
+          <span style="font-size:22px;">🔥</span><span style="font-size:12.5px;font-weight:800;color:#7A5A00;">불(火) 기운이 적어요 · 열정 한 스푼 채우면 완벽!</span>
+        </div>
+      </div>
+    </div>
+    <div class="cap">B · 캐릭터 게임형</div>
+    <div class="capd">큰 캐릭터·능력치·태그·말풍선. 재미 제일 강함</div>
+  </div>
+
+  <!-- C 컬러 섹션형 -->
+  <div class="col">
+    <div class="phone"><div class="sb"><span>9:41</span><span>🔋</span></div>
+      <div class="scr">
+        <div class="tt">내 사주</div>
+        <div class="card heroA" style="padding-bottom:10px;">
+          <div class="circA">🌊</div>
+          <div class="nameA">壬水 · 큰 바다형</div>
+        </div>
+        <div class="card"><div class="quote">“멀리 보고 넉넉히 품는<br/>바다 같은 사람”</div></div>
+        <div class="csec" style="background:#EAF2F8;">
+          <div class="cHead" style="color:#3E6F9E;">🌊 나의 기운</div>
+          <div class="cBody" style="color:#3f5a73;">지혜롭고 스케일이 커요. 유연한 융통성으로 어디서든 잘 흐르고, 사람을 넉넉히 품어요.</div>
+        </div>
+        <div class="csec" style="background:#EAF4EC;">
+          <div class="cHead" style="color:#3E8E5A;">✨ 강점</div>
+          <div class="chips"><span class="chip chipG">넓은 안목</span><span class="chip chipG">포용력</span><span class="chip chipG">융통성</span></div>
+        </div>
+        <div class="csec" style="background:#FDF1E5;">
+          <div class="cHead" style="color:#C4813A;">🌱 채워가면</div>
+          <div class="cBody" style="color:#8a6a3e;">지금 이 자리의 마음도 또렷이 붙잡고, 한곳에 깊이 머무는 힘을 더하면 좋아요.</div>
+        </div>
+        <div class="csec" style="background:#FBE9EC;">
+          <div class="cHead" style="color:#C24A63;">🔮 오늘의 기운</div>
+          <div class="cBody" style="color:#93475a;">키워드 · 따뜻함 / 행운색 · 빨강</div>
+        </div>
+      </div>
+    </div>
+    <div class="cap">C · 컬러 섹션형</div>
+    <div class="capd">섹션마다 색 구분 + 짧은 글. 읽기·재미 균형</div>
+  </div>
+
+</div>
+</body></html>
