@@ -232,15 +232,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   cardHead: { ...font.title, marginBottom: spacing.md },
-  tip: { ...font.body, color: colors.text, lineHeight: 22, marginTop: 2 },
-  body: { ...font.body, color: colors.text, lineHeight: 22 },
+  tip: { ...font.body, color: colors.text, lineHeight: 25, marginTop: 5 },
+  body: { ...font.body, color: colors.text, lineHeight: 25 },
 
   catHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 },
   catName: { ...font.label, color: colors.text },
   catScore: { ...font.label, color: colors.subText },
   track: { height: 12, borderRadius: radius.pill, backgroundColor: colors.border, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: radius.pill },
-  catComment: { ...font.caption, color: colors.subText, marginTop: 5 },
+  catComment: { ...font.caption, color: colors.subText, marginTop: 6, lineHeight: 20 },
 
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.md },
   chip: { borderRadius: radius.pill, paddingHorizontal: 11, paddingVertical: 6 },

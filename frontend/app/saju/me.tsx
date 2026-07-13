@@ -13,6 +13,23 @@ import { colors, font, radius, shadow, spacing, useColors } from '../../theme/th
 
 const SEEN_KEY = 'saju_seen_me';
 
+/** 문단 안의 키워드를 볼드로 강조(정돈형 가독성). */
+function emphasize(text: string, keywords: string[]) {
+  const kws = keywords.filter(Boolean);
+  if (kws.length === 0) return text;
+  const escaped = kws.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const re = new RegExp(`(${escaped.join('|')})`, 'g');
+  return text.split(re).map((part, i) =>
+    kws.includes(part) ? (
+      <Text key={i} style={{ fontWeight: '800', color: colors.text }}>
+        {part}
+      </Text>
+    ) : (
+      part
+    )
+  );
+}
+
 export default function SajuMe() {
   const router = useRouter();
   const c = useColors();
@@ -120,10 +137,15 @@ export default function SajuMe() {
             <OhaengBar items={me!.ohaeng} />
           </View>
 
-          {/* 성격 */}
+          {/* 성격 — 정돈형: 인용구 + 짧은 문단 + 키워드 볼드 */}
           <View style={[styles.card, shadow]}>
             <Text style={styles.cardHead}>이런 사람이에요</Text>
-            <Text style={styles.body}>{me!.desc}</Text>
+            {me!.oneLine ? <Text style={styles.pullQuote}>“{me!.oneLine}”</Text> : null}
+            {me!.desc.split(/\n\n+/).map((para, i) => (
+              <Text key={i} style={[styles.para, i > 0 && { marginTop: spacing.md }]}>
+                {emphasize(para.trim(), me!.keywords)}
+              </Text>
+            ))}
           </View>
 
           {/* 강점 & 보완점 */}
@@ -252,6 +274,8 @@ const styles = StyleSheet.create({
   },
   cardHead: { ...font.title, marginBottom: spacing.sm },
   body: { ...font.body, color: colors.text, lineHeight: 22 },
+  pullQuote: { ...font.h2, fontSize: 17, fontWeight: '800', color: colors.text, lineHeight: 24, marginBottom: spacing.md },
+  para: { ...font.body, color: colors.text, lineHeight: 25 },
   growth: { ...font.body, color: colors.subText, marginTop: spacing.sm, lineHeight: 21 },
   subHead: { ...font.label, color: colors.subText, marginBottom: 4 },
   li: { ...font.body, color: colors.text, lineHeight: 22, marginTop: 2 },
