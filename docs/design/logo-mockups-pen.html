@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#fff; font-family:-apple-system,"Apple SD Gothic Neo",system-ui,sans-serif; padding:44px; }
+  h1 { font-size:30px; color:#2a2320; margin-bottom:4px; }
+  .sub { font-size:16px; color:#8a807a; margin-bottom:30px; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:36px 30px; width:1140px; }
+  .cell { display:flex; flex-direction:column; align-items:center; }
+  .icon { width:300px; height:300px; border-radius:70px; box-shadow:0 14px 32px rgba(180,90,60,0.20); overflow:hidden; }
+  .cap { margin-top:15px; font-size:18px; font-weight:700; color:#2a2320; }
+  .desc { margin-top:4px; font-size:14px; color:#9a908a; text-align:center; max-width:280px; line-height:1.4; }
+  .num { display:inline-block; width:24px;height:24px;line-height:24px;text-align:center;background:#FF7A5C;color:#fff;border-radius:50%;font-size:13px;font-weight:800;margin-right:7px;vertical-align:middle;}
+  .base { background:#8a807a; }
+</style>
+</head>
+<body>
+<h1>love today · 펜 + 하트 5종</h1>
+<div class="sub">C1·C2 유지 + 다른 느낌 3개 (우아 / 색칠 / 커플 두 연필)</div>
+<div class="grid" id="grid"></div>
+
+<script>
+const HEART="M50,86 C12,55 2,32 22,16 C37,5 50,19 50,21 C50,19 63,5 78,16 C98,32 88,55 50,86 Z";
+function heart(x,y,s,fill,stroke,sw){ return `<g transform="translate(${x},${y}) scale(${s})"><path d="${HEART}" fill="${fill||'none'}" ${stroke?`stroke="${stroke}" stroke-width="${sw||6}"`:''} stroke-linejoin="round" stroke-linecap="round"/></g>`; }
+// 연필: 기본 tip은 아래(+y). rot=0 세로, tip 아래.
+function pen(cx,cy,rot,s,body,band,wood,lead){ return `<g filter="url(#soft)" transform="translate(${cx},${cy}) rotate(${rot}) scale(${s})">
+  <rect x="-15" y="-72" width="30" height="98" rx="8" fill="${body}"/>
+  <rect x="-15" y="-72" width="30" height="22" fill="${band}"/>
+  <path d="M-15,26 L15,26 L0,56 Z" fill="${wood}"/>
+  <path d="M-7,41 L7,41 L0,56 Z" fill="${lead}"/></g>`; }
+
+const icons=[
+  { base:true, cap:"라인 하트 + 연필", desc:"C1 — 크림 배경, 정갈하고 산뜻", raw:`
+    <rect width="360" height="360" fill="#FDF4EF"/>
+    ${heart(96,96,1.7,"none","url(#pinkheart)",14)}
+    ${pen(250,236,40,1,"#FF8E72","#F0654A","#FFE0B2","#3a2f2a")}`},
+  { base:true, cap:"화이트 스케치", desc:"C2 — 코랄 배경, 또렷하고 강한 인상", raw:`
+    <rect width="360" height="360" fill="url(#coral)"/>
+    ${heart(96,96,1.7,"none","#FFFFFF",14)}
+    ${pen(250,236,40,1,"#FFFFFF","#FFD9CB","#FFE0B2","#3a2f2a")}`},
+  { cap:"만년필 잉크 하트", desc:"우아·로맨틱 — 잉크로 흘려 쓴 하트", raw:`
+    <rect width="360" height="360" fill="#FBEFE9"/>
+    ${heart(104,60,1.55,"none","url(#pinkheart)",14)}
+    <path d="M180,196 C196,232 214,244 236,244" fill="none" stroke="#FF7A5C" stroke-width="11" stroke-linecap="round"/>
+    <g filter="url(#soft)" transform="translate(262,250) rotate(42)">
+      <rect x="-15" y="-96" width="30" height="118" rx="7" fill="#34414E"/>
+      <rect x="-15" y="-96" width="30" height="20" fill="#D9B24C"/>
+      <path d="M-15,22 L15,22 L0,64 Z" fill="#E7C766"/>
+      <path d="M0,34 v26" stroke="#34414E" stroke-width="3"/>
+      <circle cx="0" cy="30" r="4" fill="#34414E"/></g>`},
+  { cap:"색칠하는 하트", desc:"진행형·귀여움 — 매일 조금씩 채워가는", raw:`
+    <rect width="360" height="360" fill="#FDF4EF"/>
+    <g clip-path="url(#fillclip)">${heart(100,80,1.8,"url(#pinkheart)")}</g>
+    ${heart(100,80,1.8,"none","#FF7A5C",13)}
+    ${pen(250,182,90,0.92,"#FF8E72","#F0654A","#FFE0B2","#3a2f2a")}`},
+  { cap:"두 색연필 하트", desc:"커플 — 코랄·핑크 두 연필이 받치는 하트", raw:`
+    <rect width="360" height="360" fill="#FBEFE9"/>
+    ${heart(118,52,1.5,"none","#FF6F7F",13)}
+    ${pen(150,262,208,0.8,"#FF8E72","#F0654A","#FFE0B2","#3a2f2a")}
+    ${pen(210,262,152,0.8,"#FF6F91","#E0507A","#FFE0B2","#3a2f2a")}`},
+];
+
+const grid=document.getElementById('grid');
+icons.forEach((it,i)=>{ const c=document.createElement('div'); c.className='cell';
+  const s=`<svg viewBox="0 0 360 360" width="300" height="300" xmlns="http://www.w3.org/2000/svg"><defs>
+    <linearGradient id="coral" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFA184"/><stop offset="1" stop-color="#F0654A"/></linearGradient>
+    <linearGradient id="pinkheart" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8E72"/><stop offset="1" stop-color="#FF5A7A"/></linearGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#B0402A" flood-opacity="0.22"/></filter>
+    <clipPath id="fillclip"><rect x="0" y="182" width="360" height="220"/></clipPath></defs>${it.raw}</svg>`;
+  c.innerHTML=`<div class="icon">${s}</div><div class="cap"><span class="num ${it.base?'base':''}">${i+1}</span>${it.cap}</div><div class="desc">${it.desc}</div>`;
+  grid.appendChild(c); });
+</script>
+</body>
+</html>
