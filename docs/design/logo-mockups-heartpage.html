@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#fff; font-family:-apple-system,"Apple SD Gothic Neo",system-ui,sans-serif; padding:44px; }
+  h1 { font-size:30px; color:#2a2320; margin-bottom:4px; }
+  .sub { font-size:16px; color:#8a807a; margin-bottom:30px; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:34px 30px; width:1160px; }
+  .cell { display:flex; flex-direction:column; align-items:center; }
+  .icon { width:300px; height:300px; border-radius:70px; box-shadow:0 14px 32px rgba(180,90,60,0.20); overflow:hidden; }
+  .cap { margin-top:14px; font-size:17px; font-weight:700; color:#2a2320; }
+  .desc { margin-top:3px; font-size:13px; color:#9a908a; text-align:center; max-width:270px; line-height:1.4; }
+  .num { display:inline-block; width:23px;height:23px;line-height:23px;text-align:center;background:#FF7A5C;color:#fff;border-radius:50%;font-size:12px;font-weight:800;margin-right:6px;vertical-align:middle;}
+  .base { background:#8a807a; }
+</style>
+</head>
+<body>
+<h1>love today · '하트 페이지' 변형 9종</h1>
+<div class="sub">펼친 책 지면 위 하트 · 하트/배경/책 표현 변주</div>
+<div class="grid" id="grid"></div>
+
+<script>
+const HEART="M50,86 C12,55 2,32 22,16 C37,5 50,19 50,21 C50,19 63,5 78,16 C98,32 88,55 50,86 Z";
+const BOOK="M180,150 C150,128 108,126 82,140 v128 c26,-14 68,-12 98,10 c30,-22 72,-24 98,-10 v-128 c-26,-14 -68,-12 -98,10 Z";
+function heart(x,y,s,fill,stroke,sw){ return `<g transform="translate(${x},${y}) scale(${s})"><path d="${HEART}" fill="${fill||'none'}" ${stroke?`stroke="${stroke}" stroke-width="${sw||6}"`:''} stroke-linejoin="round" stroke-linecap="round"/></g>`; }
+function spark(x,y,s,c){ return `<path transform="translate(${x},${y}) scale(${s})" d="M0,-9 Q1.4,-1.4 9,0 Q1.4,1.4 0,9 Q-1.4,1.4 -9,0 Q-1.4,-1.4 0,-9 Z" fill="${c}"/>`; }
+// 흰 펼친 책(+옵션 지면선)
+function bookWhite(lines){ return `<g filter="url(#soft)"><path d="${BOOK}" fill="#FFFFFF"/>
+  <path d="M180,150 v138" stroke="#FFE0D5" stroke-width="6"/>
+  ${lines?`<path d="M100,262 h60 M202,262 h60" stroke="#FFCBB9" stroke-width="6" stroke-linecap="round"/>`:''}</g>`; }
+
+const icons=[
+  { base:true, cap:"기존(2번)", desc:"크림 · 흰 책 · 그라데이션 하트", raw:`
+    <rect width="360" height="360" fill="#FDF4EF"/>${bookWhite(0)}${heart(139,152,0.82,"url(#pinkheart)")}`},
+  { cap:"코랄 배경", desc:"코랄 · 흰 책 · 흰 하트", raw:`
+    <rect width="360" height="360" fill="url(#coral)"/><g filter="url(#soft)"><path d="${BOOK}" fill="#FFFFFF"/><path d="M180,150 v138" stroke="#FFE0D5" stroke-width="6"/></g>${heart(139,152,0.82,"#FF6F7F")}`},
+  { cap:"아웃라인 하트", desc:"크림 · 선 하트 · 가볍게", raw:`
+    <rect width="360" height="360" fill="#FDF4EF"/>${bookWhite(0)}${heart(139,152,0.82,"none","url(#pinkheart)",12)}`},
+  { cap:"큰 하트", desc:"지면 꽉 채운 하트 · 임팩트", raw:`
+    <rect width="360" height="360" fill="#FDF4EF"/>${bookWhite(0)}${heart(126,140,1.02,"url(#pinkheart)")}`},
+  { cap:"반짝임", desc:"코랄 · 하트 + 반짝이 · 설렘", raw:`
+    <rect width="360" height="360" fill="url(#coral)"/><g filter="url(#soft)"><path d="${BOOK}" fill="#FFFFFF"/><path d="M180,150 v138" stroke="#FFE0D5" stroke-width="6"/></g>${heart(139,152,0.82,"#FF6F7F")}${spark(112,150,1.0,"#FFFFFF")}${spark(252,168,0.7,"#FFFFFF")}${spark(238,120,0.5,"#FFFFFF")}`},
+  { cap:"라인 책", desc:"크림 · 선으로 그린 책 · 하트", raw:`
+    <rect width="360" height="360" fill="#FDF4EF"/><g filter="url(#soft)"><path d="${BOOK}" fill="none" stroke="#FF9E86" stroke-width="9" stroke-linejoin="round"/><path d="M180,150 v128" stroke="#FF9E86" stroke-width="9" stroke-linecap="round"/></g>${heart(140,150,0.8,"url(#pinkheart)")}`},
+  { cap:"투톤 하트", desc:"소프트핑크 · 반반 하트 · 커플", raw:`
+    <rect width="360" height="360" fill="#FBE7E0"/>${bookWhite(0)}<g>${heart(139,152,0.82,"#FF5A7A")}<g clip-path="url(#lh)">${heart(139,152,0.82,"#FF8E72")}</g></g>`},
+  { cap:"하트 둥지", desc:"책이 하트를 품음 · 지면선", raw:`
+    <rect width="360" height="360" fill="#FDF4EF"/>${bookWhite(1)}${heart(151,140,0.58,"url(#pinkheart)")}`},
+  { cap:"떠있는 하트", desc:"코랄 · 지면 위로 살짝 뜬 하트", raw:`
+    <rect width="360" height="360" fill="url(#coral2)"/><g filter="url(#soft)"><path d="${BOOK}" fill="#FFFFFF"/><path d="M180,150 v138" stroke="#FFE0D5" stroke-width="6"/></g><g filter="url(#pop)">${heart(133,128,0.9,"#FFFFFF")}</g>`},
+];
+
+const grid=document.getElementById('grid');
+icons.forEach((it,i)=>{ const c=document.createElement('div'); c.className='cell';
+  const s=`<svg viewBox="0 0 360 360" width="300" height="300" xmlns="http://www.w3.org/2000/svg"><defs>
+    <linearGradient id="coral" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFA184"/><stop offset="1" stop-color="#F0654A"/></linearGradient>
+    <linearGradient id="coral2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF9E86"/><stop offset="1" stop-color="#FF6F91"/></linearGradient>
+    <linearGradient id="pinkheart" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8E72"/><stop offset="1" stop-color="#FF5A7A"/></linearGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#B0402A" flood-opacity="0.20"/></filter>
+    <filter id="pop" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="10" stdDeviation="9" flood-color="#8f2f18" flood-opacity="0.30"/></filter>
+    <clipPath id="lh"><rect x="0" y="0" width="180" height="360"/></clipPath></defs>${it.raw}</svg>`;
+  c.innerHTML=`<div class="icon">${s}</div><div class="cap"><span class="num ${it.base?'base':''}">${i+1}</span>${it.cap}</div><div class="desc">${it.desc}</div>`;
+  grid.appendChild(c); });
+</script>
+</body>
+</html>
