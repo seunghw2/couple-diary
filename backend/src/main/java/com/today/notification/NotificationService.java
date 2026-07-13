@@ -6,6 +6,7 @@ import com.today.couple.Couple;
 import com.today.couple.CoupleRepository;
 import com.today.notification.NotificationDtos.NotificationListResponse;
 import com.today.notification.NotificationDtos.NotificationView;
+import com.today.push.PushSender;
 import com.today.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -19,7 +20,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -27,12 +30,27 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final CoupleRepository coupleRepository;
+    private final PushSender pushSender;
 
     private static final int LIST_LIMIT = 50;
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private static final DateTimeFormatter MD = DateTimeFormatter.ofPattern("M월 d일");
     private static final long POKE_COOLDOWN_HOURS = 1;
     private static final int ANNIVERSARY_HORIZON_DAYS = 7;
+
+    /**
+     * 알림 저장 + 원격 푸시 발송(앱이 꺼져 있어도 도착). 모든 알림 생성은 이 메서드를 거친다.
+     * 푸시는 @Async라 여기서는 비동기로 위임만 하고 트랜잭션을 붙잡지 않는다.
+     */
+    private Notification persist(Notification n) {
+        Notification saved = notificationRepository.save(n);
+        Map<String, Object> data = new HashMap<>();
+        data.put("type", n.getType().name());
+        if (n.getRefKey() != null) data.put("refKey", n.getRefKey());
+        if (n.getEntryDate() != null) data.put("entryDate", n.getEntryDate().toString());
+        pushSender.sendToUser(n.getRecipient().getId(), n.getTitle(), n.getBody(), data);
+        return saved;
+    }
 
     // ===================== 트리거 헬퍼 (기존 서비스 트랜잭션 내에서 호출) =====================
 
@@ -54,7 +72,7 @@ public class NotificationService {
                     partner.getId(), NotificationType.PARTNER_WROTE, date)) {
                 return;
             }
-            notificationRepository.save(Notification.builder()
+            persist(Notification.builder()
                     .recipient(partner)
                     .type(NotificationType.PARTNER_WROTE)
                     .title("오늘 일기가 도착했어요")
@@ -69,7 +87,7 @@ public class NotificationService {
                 recipient.getId(), NotificationType.ENTRY_OPENED, date)) {
             return;
         }
-        notificationRepository.save(Notification.builder()
+        persist(Notification.builder()
                 .recipient(recipient)
                 .type(NotificationType.ENTRY_OPENED)
                 .title(title)
@@ -84,7 +102,7 @@ public class NotificationService {
         if (recipient == null) return;
         String preview = commentText == null ? "" : commentText.strip();
         if (preview.length() > 20) preview = preview.substring(0, 20);
-        notificationRepository.save(Notification.builder()
+        persist(Notification.builder()
                 .recipient(recipient)
                 .type(NotificationType.COMMENT)
                 .title("새 댓글")
@@ -97,7 +115,7 @@ public class NotificationService {
     @Transactional
     public void onCoupleConnected(User owner, User partner) {
         if (owner == null || partner == null) return;
-        notificationRepository.save(Notification.builder()
+        persist(Notification.builder()
                 .recipient(owner)
                 .type(NotificationType.COUPLE_CONNECTED)
                 .title("커플 연결 완료")
@@ -114,7 +132,7 @@ public class NotificationService {
         if (notificationRepository.existsByRecipient_IdAndTypeAndEntryDate(recipient.getId(), type, date)) {
             return;
         }
-        notificationRepository.save(Notification.builder()
+        persist(Notification.builder()
                 .recipient(recipient).type(type).title(title).body(body).entryDate(date).build());
     }
 
@@ -156,7 +174,7 @@ public class NotificationService {
         if (me == null || partner == null) return;
         String p = preview == null ? "" : preview.strip();
         if (p.length() > 20) p = p.substring(0, 20);
-        notificationRepository.save(Notification.builder()
+        persist(Notification.builder()
                 .recipient(partner)
                 .type(NotificationType.QUESTION_COMMENT)
                 .title("오늘의 편지에 댓글")
@@ -227,7 +245,7 @@ public class NotificationService {
             title = me.getNickname() + "님이 월드컵을 완주했어요";
             body = "🏆 " + cupTitle + " · 우승 " + winnerLabel;
         }
-        notificationRepository.save(Notification.builder()
+        persist(Notification.builder()
                 .recipient(partner).type(type).title(title).body(body)
                 .entryDate(null).refKey(worldcupKey).build());
     }
@@ -261,7 +279,7 @@ public class NotificationService {
                 partner.getId(), NotificationType.POKE, since)) {
             return; // 200 + 무시
         }
-        notificationRepository.save(Notification.builder()
+        persist(Notification.builder()
                 .recipient(partner)
                 .type(NotificationType.POKE)
                 .title("콕!")
@@ -341,7 +359,7 @@ public class NotificationService {
                 recipient.getId(), NotificationType.ANNIVERSARY, annivDate, body)) {
             return;
         }
-        notificationRepository.save(Notification.builder()
+        persist(Notification.builder()
                 .recipient(recipient)
                 .type(NotificationType.ANNIVERSARY)
                 .title(title)

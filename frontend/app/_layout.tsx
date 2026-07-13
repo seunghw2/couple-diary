@@ -1,9 +1,11 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Notifications from 'expo-notifications';
 import { Component, ReactNode, useEffect, useRef } from 'react';
-import { ActivityIndicator, AppState, AppStateStatus, Keyboard, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, AppStateStatus, Keyboard, Platform, Pressable, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { setOnUnauthorized } from '../lib/api';
+import { pushApi, setOnUnauthorized } from '../lib/api';
+import { getExpoPushToken } from '../lib/push';
 import { AppAlert } from '../components/AppAlert';
 import { AppToast } from '../components/AppToast';
 import { useAuthStore } from '../store/useAuthStore';
@@ -37,6 +39,52 @@ export default function RootLayout() {
       useNotifStore.getState().reset();
     }
   }, [status]);
+
+  // 로그인되면 원격 푸시 토큰 발급·등록(앱 꺼져 있어도 알림 도착). 세션당 1회.
+  const pushRegistered = useRef(false);
+  useEffect(() => {
+    if (status === 'guest') pushRegistered.current = false;
+    if (status !== 'authenticated' || pushRegistered.current) return;
+    pushRegistered.current = true;
+    void (async () => {
+      const token = await getExpoPushToken();
+      if (!token) return;
+      try {
+        await pushApi.register(token, Platform.OS);
+      } catch {
+        // 등록 실패해도 인앱 알림은 정상 — 다음 세션에 재시도.
+        pushRegistered.current = false;
+      }
+    })();
+  }, [status]);
+
+  // 푸시 탭 → 해당 화면으로 딥링크(인앱 알림 목록의 onTap과 동일 규칙).
+  useEffect(() => {
+    function routeFromData(data: unknown) {
+      const d = (data ?? {}) as { type?: string; refKey?: string; entryDate?: string };
+      if (d.type === 'WORLDCUP_COMPLETED' || d.type === 'WORLDCUP_COMPARABLE') {
+        if (d.refKey) router.push({ pathname: '/worldcup/[key]', params: { key: d.refKey, compare: '1' } });
+        else router.push('/worldcup');
+      } else if (d.entryDate) {
+        router.push({ pathname: '/entry/[date]', params: { date: d.entryDate } });
+      } else {
+        router.push('/notifications');
+      }
+    }
+    // 앱 실행 중 알림 수신 → 목록 최신화.
+    const recv = Notifications.addNotificationReceivedListener(() => {
+      if (useAuthStore.getState().status === 'authenticated') void useNotifStore.getState().fetch();
+    });
+    // 알림 탭(백그라운드/포그라운드) → 딥링크.
+    const resp = Notifications.addNotificationResponseReceivedListener((r) => {
+      if (useAuthStore.getState().status === 'authenticated') void useNotifStore.getState().fetch();
+      routeFromData(r.notification.request.content.data);
+    });
+    return () => {
+      recv.remove();
+      resp.remove();
+    };
+  }, []);
 
   // 커플 연결되면 커플 정보/알림 조회(연결 직후·복귀 포함). 미연결이면 비움.
   // 상대가 원격으로 연결한 경우 polling이 coupled를 true로 바꾸므로 여기서 커플 데이터도 로드.

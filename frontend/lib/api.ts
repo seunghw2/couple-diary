@@ -73,7 +73,8 @@ export const api = {
   post: <T>(path: string, body?: unknown, auth = true) => request<T>(path, { method: 'POST', body, auth }),
   patch: <T>(path: string, body?: unknown, auth = true) => request<T>(path, { method: 'PATCH', body, auth }),
   put: <T>(path: string, body?: unknown, auth = true) => request<T>(path, { method: 'PUT', body, auth }),
-  del: <T = void>(path: string, auth = true) => request<T>(path, { method: 'DELETE', auth }),
+  del: <T = void>(path: string, auth = true, body?: unknown) =>
+    request<T>(path, { method: 'DELETE', body, auth }),
 };
 
 // ─────────────────────────── 사진 업로드 (multipart) ───────────────────────────
@@ -501,6 +502,16 @@ export const notificationApi = {
   readAll: () => api.post<void>('/api/notifications/read-all'),
   /** 콕 찌르기. 미연결 400, 1시간 dedup. */
   poke: () => api.post<void>('/api/poke'),
+};
+
+// ─────────────────────────── 원격 푸시 토큰 ───────────────────────────
+
+export const pushApi = {
+  /** Expo 푸시 토큰 등록(로그인 후). platform = ios|android. */
+  register: (token: string, platform: string) =>
+    api.post<void>('/api/push-tokens', { token, platform }),
+  /** 로그아웃 시 이 기기 토큰 해제(best-effort). */
+  unregister: (token: string) => api.del<void>('/api/push-tokens', true, { token }),
 };
 
 export const entryApi = {

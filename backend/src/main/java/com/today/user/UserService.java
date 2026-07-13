@@ -62,6 +62,7 @@ public class UserService {
     private final QuestionSettingRepository questionSettingRepository;
     private final NotificationRepository notificationRepository;
     private final WorldcupResultRepository worldcupResultRepository;
+    private final com.today.push.PushTokenRepository pushTokenRepository;
 
     private static final String[] AVATAR_COLORS =
             {"#FF6B6B", "#4ECDC4", "#FFD93D", "#6C5CE7", "#FF8CC8", "#38B000"};
@@ -285,6 +286,9 @@ public class UserService {
 
         // 내 알림 삭제.
         notificationRepository.deleteByRecipient_Id(userId);
+
+        // 내 푸시 토큰 삭제.
+        pushTokenRepository.deleteByUser_Id(userId);
 
         // 마지막으로 User 삭제.
         userRepository.delete(user);
