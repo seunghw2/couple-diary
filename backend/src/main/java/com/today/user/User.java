@@ -47,6 +47,10 @@ public class User {
     @Column
     private LocalDate birthday;
 
+    /** 태어난 시각(0~23시). 사주 시주 계산용, 선택 입력. null이면 시주 제외. */
+    @Column(name = "birth_time")
+    private Integer birthTime;
+
     @Column(name = "invite_code", nullable = false)
     private String inviteCode;
 

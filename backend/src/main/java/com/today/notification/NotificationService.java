@@ -264,6 +264,39 @@ public class NotificationService {
         for (Notification n : unread) n.setReadFlag(true);
     }
 
+    // ===================== 사주 궁합 알림·배지 =====================
+
+    private static final List<NotificationType> SAJU_TYPES =
+            List.of(NotificationType.SAJU_BIRTHDAY_REQUEST, NotificationType.SAJU_COMPATIBILITY_READY);
+
+    /** 상대에게 "생일 넣어줘, 궁합 보고 싶어" 요청 알림. refKey=couple로 궁합 화면 딥링크. */
+    @Transactional
+    public void onSajuBirthdayRequest(User me, User partner) {
+        if (me == null || partner == null) return;
+        persist(Notification.builder()
+                .recipient(partner)
+                .type(NotificationType.SAJU_BIRTHDAY_REQUEST)
+                .title("우리 궁합 보고 싶대요")
+                .body(me.getNickname() + "님이 사주 궁합을 보고 싶어해요 — 생일을 넣어줄래요? 🔮")
+                .entryDate(null)
+                .refKey("couple")
+                .build());
+    }
+
+    /** 설정 사주 행 배지 = 아직 안 본 사주 알림 수. */
+    @Transactional(readOnly = true)
+    public long countUnreadSaju(Long userId) {
+        return notificationRepository.countByRecipient_IdAndTypeInAndReadFlagFalse(userId, SAJU_TYPES);
+    }
+
+    /** 사주 화면 열람 시 배지 초기화. */
+    @Transactional
+    public void markSajuSeen(Long userId) {
+        List<Notification> unread = notificationRepository
+                .findByRecipient_IdAndTypeInAndReadFlagFalse(userId, SAJU_TYPES);
+        for (Notification n : unread) n.setReadFlag(true);
+    }
+
     @Transactional
     public void poke(Long userId) {
         // 커플 미연결이면 400
