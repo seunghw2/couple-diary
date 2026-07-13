@@ -478,7 +478,9 @@ export type NotificationType =
   | 'ANNIVERSARY'
   | 'COUPLE_CONNECTED'
   | 'WORLDCUP_COMPLETED'
-  | 'WORLDCUP_COMPARABLE';
+  | 'WORLDCUP_COMPARABLE'
+  | 'SAJU_BIRTHDAY_REQUEST'
+  | 'SAJU_COMPATIBILITY_READY';
 
 export type Notification = {
   id: number;
@@ -587,4 +589,96 @@ export const worldcupApi = {
   unseen: () => api.get<{ count: number }>('/api/worldcups/unseen'),
   /** 월드컵 목록 열람 → 배지 초기화. */
   markSeen: () => api.post<void>('/api/worldcups/seen'),
+};
+
+// ─────────────────────────── 사주 궁합 미니게임 ───────────────────────────
+// JSON은 jackson non_null → null 필드는 생략, 전부 optional로 취급.
+
+/** GET /api/saju/hub — 허브 진입 시 상태 게이팅용. */
+export type SajuHub = {
+  hasMyBirthday: boolean;
+  hasPartner: boolean;
+  hasPartnerBirthday: boolean;
+  myBirthTime?: number; // 생시(지지 시작시각). 모름이면 생략.
+};
+
+/** 오늘의 기운. */
+export type SajuDaily = {
+  fortune: string;
+  colorName: string;
+  colorHex: string;
+  keyword: string;
+  coupleTip: string;
+};
+
+/** 오행 한 줄. level: 0 부족 · 1 적당 · 2 강함. */
+export type SajuOhaeng = {
+  elem: number;
+  name: string;
+  emoji: string;
+  count: number;
+  level: number;
+  comment: string;
+};
+
+/** GET /api/saju/me — 내 사주. hasBirthday=false면 나머지 비어있을 수 있음. */
+export type SajuMe = {
+  hasBirthday: boolean;
+  dayMasterName: string;
+  dayMasterEmoji: string;
+  dayMasterKo: string;
+  dayMasterHanja: string;
+  oneLine: string;
+  desc: string;
+  keywords: string[];
+  growth: string;
+  zodiac: string;
+  pillars: string[]; // 년월일[시]
+  ohaeng: SajuOhaeng[];
+  daily: SajuDaily;
+  hasHour: boolean;
+  disclaimer: string;
+};
+
+/** 궁합 카테고리 한 줄. grade별로 색조를 달리한다. */
+export type SajuCoupleCategory = {
+  key: string;
+  name: string;
+  score: number; // 0~100
+  grade: number;
+  comment: string;
+};
+
+/** GET /api/saju/couple — 궁합. canCompute=false면 blockReason만 유효. */
+export type SajuCouple = {
+  canCompute: boolean;
+  blockReason?: string;
+  percent: number;
+  categories: SajuCoupleCategory[];
+  totalComment: string;
+  badges: string[];
+  relComment: string;
+  strongestKey: string;
+  meName: string;
+  meEmoji: string;
+  partnerNickname: string;
+  partnerName: string;
+  partnerEmoji: string;
+  hasHour: boolean;
+  disclaimer: string;
+};
+
+export const sajuApi = {
+  hub: () => api.get<SajuHub>('/api/saju/hub'),
+  me: () => api.get<SajuMe>('/api/saju/me'),
+  daily: () => api.get<SajuDaily>('/api/saju/daily'),
+  /** 생시 설정. null=모름. 204. */
+  setBirthTime: (hour: number | null) => api.put<void>('/api/saju/birth-time', { hour }),
+  couple: () => api.get<SajuCouple>('/api/saju/couple'),
+  /** 상대에게 생일 등록 요청 알림. 204. */
+  requestBirthday: () => api.post<void>('/api/saju/request-birthday'),
+  /** 설정 배지용 — 아직 안 본 사주 소식 수. */
+  unseen: () => api.get<{ count: number }>('/api/saju/unseen'),
+  /** 사주 허브 열람 → 배지 초기화. 204. */
+  markSeen: () => api.post<void>('/api/saju/seen'),
 };

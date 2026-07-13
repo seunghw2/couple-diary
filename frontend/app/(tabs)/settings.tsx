@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
-import { worldcupApi } from '../../lib/api';
+import { sajuApi, worldcupApi } from '../../lib/api';
 import { Icon } from '../../components/ui';
 import { colors, font, radius, spacing, useColors } from '../../theme/theme';
 
@@ -14,11 +14,14 @@ export default function SettingsScreen() {
   const partner = useAuthStore((s) => s.partner);
   // 월드컵 배지: 상대가 새로 완료한 수(월드컵 목록 열면 서버에서 초기화됨).
   const [wcUnseen, setWcUnseen] = useState(0);
+  // 사주 배지: 아직 안 본 사주 소식 수(사주 허브 열면 초기화됨).
+  const [sajuUnseen, setSajuUnseen] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
       if (!partner) return;
       worldcupApi.unseen().then((r) => setWcUnseen(r.count)).catch(() => {});
+      sajuApi.unseen().then((r) => setSajuUnseen(r.count)).catch(() => {});
     }, [partner])
   );
 
@@ -69,6 +72,19 @@ export default function SettingsScreen() {
               ) : undefined
             }
             onPress={() => router.push('/worldcup')}
+          />
+          <SettingsRow
+            icon="sparkles-outline"
+            tint={c.primary}
+            label="우리 사주 궁합"
+            value={
+              sajuUnseen > 0 ? (
+                <View style={[styles.badge, { backgroundColor: c.primary }]}>
+                  <Text style={styles.badgeText}>{sajuUnseen}</Text>
+                </View>
+              ) : undefined
+            }
+            onPress={() => router.push('/saju')}
             last
           />
         </View>

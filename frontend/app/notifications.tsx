@@ -27,6 +27,8 @@ const NOTIF_ICON: Record<NotificationType, React.ComponentProps<typeof Ionicons>
   COUPLE_CONNECTED: 'heart',
   WORLDCUP_COMPLETED: 'trophy-outline',
   WORLDCUP_COMPARABLE: 'trophy',
+  SAJU_BIRTHDAY_REQUEST: 'sparkles-outline',
+  SAJU_COMPATIBILITY_READY: 'sparkles-outline',
 };
 
 export default function NotificationsScreen() {
@@ -53,6 +55,8 @@ export default function NotificationsScreen() {
       // 해당 월드컵 결과 비교로 바로.
       if (n.refKey) router.push({ pathname: '/worldcup/[key]', params: { key: n.refKey, compare: '1' } });
       else router.push('/worldcup');
+    } else if (n.type === 'SAJU_BIRTHDAY_REQUEST' || n.type === 'SAJU_COMPATIBILITY_READY') {
+      router.push('/saju/couple');
     } else if (n.entryDate) {
       router.push({ pathname: '/entry/[date]', params: { date: n.entryDate } });
     }

@@ -65,6 +65,8 @@ export default function RootLayout() {
       if (d.type === 'WORLDCUP_COMPLETED' || d.type === 'WORLDCUP_COMPARABLE') {
         if (d.refKey) router.push({ pathname: '/worldcup/[key]', params: { key: d.refKey, compare: '1' } });
         else router.push('/worldcup');
+      } else if (d.type === 'SAJU_BIRTHDAY_REQUEST' || d.type === 'SAJU_COMPATIBILITY_READY') {
+        router.push('/saju/couple');
       } else if (d.entryDate) {
         router.push({ pathname: '/entry/[date]', params: { date: d.entryDate } });
       } else {
@@ -185,6 +187,9 @@ export default function RootLayout() {
           <Stack.Screen name="worldcup/index" options={{ presentation: 'card' }} />
           <Stack.Screen name="worldcup/[key]/index" options={{ presentation: 'card' }} />
           <Stack.Screen name="worldcup/[key]/play" options={{ presentation: 'card' }} />
+          <Stack.Screen name="saju/index" options={{ presentation: 'card' }} />
+          <Stack.Screen name="saju/me" options={{ presentation: 'card' }} />
+          <Stack.Screen name="saju/couple" options={{ presentation: 'card' }} />
         </Stack>
         <AppAlert />
         <AppToast />
