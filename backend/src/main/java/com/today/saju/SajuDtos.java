@@ -14,6 +14,7 @@ public class SajuDtos {
             boolean hasBirthday,
             String dayMasterName, String dayMasterEmoji, String dayMasterKo, String dayMasterHanja,
             String oneLine, String desc, List<String> keywords, String growth,
+            List<String> strengths, List<String> growthPoints,
             String zodiac,
             List<String> pillars,        // [년주, 월주, 일주, (시주)]
             List<OhaengView> ohaeng,
@@ -37,6 +38,7 @@ public class SajuDtos {
             String strongestKey,
             String meName, String meEmoji,
             String partnerNickname, String partnerName, String partnerEmoji,
+            List<String> tips,
             boolean hasHour,
             String disclaimer
     ) {}

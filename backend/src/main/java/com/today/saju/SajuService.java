@@ -49,7 +49,7 @@ public class SajuService {
     private PersonalResult personalOf(User u) {
         if (u.getBirthday() == null) {
             return new PersonalResult(false, null, null, null, null, null, null, List.of(), null,
-                    null, List.of(), List.of(), null, false, DISCLAIMER);
+                    List.of(), List.of(), null, List.of(), List.of(), null, false, DISCLAIMER);
         }
         Saju s = SajuCalculator.compute(u.getBirthday(), u.getBirthTime());
         SajuTemplates.DayMaster dm = SajuTemplates.dayMaster(s.dayStem());
@@ -77,6 +77,7 @@ public class SajuService {
         return new PersonalResult(true,
                 dm.name(), dm.emoji(), dayKo, dayHanja,
                 dm.oneLine(), dm.desc(), List.of(dm.keywords()), dm.growth(),
+                List.of(SajuTemplates.strengths(s.dayStem())), List.of(SajuTemplates.growthPoints(s.dayStem())),
                 SajuCalculator.BRANCH_ANIMAL[s.zodiac()],
                 pillars, ohaeng, daily, s.hasHour(), DISCLAIMER);
     }
@@ -137,12 +138,26 @@ public class SajuService {
                 r.relComment(), r.strongestKey(),
                 meDm.name(), meDm.emoji(),
                 partner.getNickname(), pDm.name(), pDm.emoji(),
+                pickTips(me.getBirthday(), partner.getBirthday()),
                 r.hasHour(), DISCLAIMER);
+    }
+
+    /** 관계 꿀팁 3개를 두 생일 시드로 결정론적 선택(같은 커플=항상 같은 팁). */
+    private List<String> pickTips(LocalDate a, LocalDate b) {
+        String[] pool = SajuCompatibility.TIPS;
+        if (pool.length == 0) return List.of();
+        long ya = a.getYear() * 10000L + a.getMonthValue() * 100L + a.getDayOfMonth();
+        long yb = b.getYear() * 10000L + b.getMonthValue() * 100L + b.getDayOfMonth();
+        long seed = Math.min(ya, yb) * 100000000L + Math.max(ya, yb);
+        List<String> tips = new ArrayList<>();
+        int n = Math.min(3, pool.length);
+        for (int i = 0; i < n; i++) tips.add(pool[(int) Math.floorMod(seed + i * 37L, pool.length)]);
+        return tips;
     }
 
     private CoupleResult blocked(String reason) {
         return new CoupleResult(false, reason, 0, List.of(), null, List.of(), null, null,
-                null, null, null, null, null, false, DISCLAIMER);
+                null, null, null, null, null, List.of(), false, DISCLAIMER);
     }
 
     // ───────── 상대에게 생일 입력 요청 ─────────

@@ -163,6 +163,16 @@ export default function SajuCouplePage() {
             </View>
           ) : null}
 
+          {/* 관계 꿀팁 */}
+          {data!.tips && data!.tips.length > 0 ? (
+            <View style={[styles.card, shadow]}>
+              <Text style={styles.cardHead}>관계 꿀팁 💡</Text>
+              {data!.tips.map((t, i) => (
+                <Text key={i} style={styles.tip}>· {t}</Text>
+              ))}
+            </View>
+          ) : null}
+
           {/* 배지 */}
           {data!.badges.length > 0 ? (
             <View style={styles.chipRow}>
@@ -222,6 +232,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   cardHead: { ...font.title, marginBottom: spacing.md },
+  tip: { ...font.body, color: colors.text, lineHeight: 22, marginTop: 2 },
   body: { ...font.body, color: colors.text, lineHeight: 22 },
 
   catHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 },

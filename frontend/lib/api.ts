@@ -637,6 +637,8 @@ export type SajuPersonal = {
   desc: string;
   keywords: string[];
   growth: string;
+  strengths: string[];
+  growthPoints: string[];
   zodiac: string;
   pillars: string[]; // 년월일[시]
   ohaeng: SajuOhaeng[];
@@ -669,6 +671,7 @@ export type SajuCouple = {
   partnerNickname: string;
   partnerName: string;
   partnerEmoji: string;
+  tips: string[];
   hasHour: boolean;
   disclaimer: string;
 };

@@ -124,8 +124,26 @@ export default function SajuMe() {
           <View style={[styles.card, shadow]}>
             <Text style={styles.cardHead}>이런 사람이에요</Text>
             <Text style={styles.body}>{me!.desc}</Text>
-            {me!.growth ? <Text style={styles.growth}>🌱 {me!.growth}</Text> : null}
           </View>
+
+          {/* 강점 & 보완점 */}
+          {me!.strengths.length > 0 ? (
+            <View style={[styles.card, shadow]}>
+              <Text style={styles.cardHead}>강점 & 보완점</Text>
+              <Text style={styles.subHead}>이런 점이 빛나요 ✨</Text>
+              {me!.strengths.map((s, i) => (
+                <Text key={`s${i}`} style={styles.li}>· {s}</Text>
+              ))}
+              {me!.growthPoints.length > 0 ? (
+                <>
+                  <Text style={[styles.subHead, { marginTop: spacing.md }]}>이런 점을 채워가면 좋아요 🌱</Text>
+                  {me!.growthPoints.map((g, i) => (
+                    <Text key={`g${i}`} style={styles.liGrow}>{g}</Text>
+                  ))}
+                </>
+              ) : null}
+            </View>
+          ) : null}
 
           {/* 사주 기둥 */}
           <View style={[styles.card, shadow]}>
@@ -235,6 +253,9 @@ const styles = StyleSheet.create({
   cardHead: { ...font.title, marginBottom: spacing.sm },
   body: { ...font.body, color: colors.text, lineHeight: 22 },
   growth: { ...font.body, color: colors.subText, marginTop: spacing.sm, lineHeight: 21 },
+  subHead: { ...font.label, color: colors.subText, marginBottom: 4 },
+  li: { ...font.body, color: colors.text, lineHeight: 22, marginTop: 2 },
+  liGrow: { ...font.body, color: colors.subText, lineHeight: 22, marginTop: 2 },
   hint: { ...font.caption, color: colors.subText, marginTop: spacing.xs },
   tip: { ...font.body, color: colors.text, marginTop: spacing.sm },
 
