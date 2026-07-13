@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#fff; font-family:-apple-system,"Apple SD Gothic Neo",system-ui,sans-serif; padding:44px; }
+  h1 { font-size:30px; color:#2a2320; margin-bottom:4px; }
+  .sub { font-size:16px; color:#8a807a; margin-bottom:30px; }
+  .guide { position:absolute; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:34px 30px; width:1140px; }
+  .cell { display:flex; flex-direction:column; align-items:center; }
+  .icon { width:320px; height:320px; border-radius:74px; box-shadow:0 14px 32px rgba(180,90,60,0.20); overflow:hidden; }
+  .cap { margin-top:16px; font-size:19px; font-weight:700; color:#2a2320; }
+  .desc { margin-top:4px; font-size:14px; color:#9a908a; text-align:center; max-width:300px; line-height:1.4; }
+  .num { display:inline-block; width:24px;height:24px;line-height:24px;text-align:center;background:#FF7A5C;color:#fff;border-radius:50%;font-size:13px;font-weight:800;margin-right:7px;vertical-align:middle;}
+</style>
+</head>
+<body>
+<h1>love today · 하트 정중앙 배치 3종</h1>
+<div class="sub">하트를 아이콘 정가운데로 · 연필은 우하단 액센트 (점선=중심선, 실제엔 없음)</div>
+<div class="grid" id="grid"></div>
+
+<script>
+const HEART="M50,86 C12,55 2,32 22,16 C37,5 50,19 50,21 C50,19 63,5 78,16 C98,32 88,55 50,86 Z";
+// 하트를 캔버스 정중앙(180,180)에 배치. 하트 로컬 중심 ≈ (50,46).
+function heartC(s,sw){ const x=180-50*s, y=180-46*s; return `<g transform="translate(${x},${y}) scale(${s})"><path d="${HEART}" fill="none" stroke="url(#pinkheart)" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/></g>`; }
+function pen(cx,cy,rot,s){ return `<g filter="url(#soft)" transform="translate(${cx},${cy}) rotate(${rot}) scale(${s})">
+  <rect x="-15" y="-72" width="30" height="98" rx="8" fill="#FF8E72"/>
+  <rect x="-15" y="-72" width="30" height="22" fill="#F0654A"/>
+  <path d="M-15,26 L15,26 L0,56 Z" fill="#FFE0B2"/>
+  <path d="M-7,41 L7,41 L0,56 Z" fill="#3a2f2a"/></g>`; }
+
+const icons=[
+  { cap:"중앙 · 보통", desc:"하트 정중앙 · 연필 살짝", heart:1.7, hsw:14, pen:[250,232,40,0.9], guide:true },
+  { cap:"중앙 · 크게", desc:"권장 · 또렷하고 균형", heart:1.95, hsw:14, pen:[262,240,40,0.98] },
+  { cap:"중앙 · 가장 크게", desc:"꽉 찬 임팩트", heart:2.2, hsw:15, pen:[276,250,40,1.05] },
+];
+
+const grid=document.getElementById('grid');
+icons.forEach((it,i)=>{ const c=document.createElement('div'); c.className='cell';
+  const guide = it.guide ? `<line x1="180" y1="20" x2="180" y2="340" stroke="#C9BEB7" stroke-width="2" stroke-dasharray="6 8"/><line x1="20" y1="180" x2="340" y2="180" stroke="#C9BEB7" stroke-width="2" stroke-dasharray="6 8"/>` : '';
+  const s=`<svg viewBox="0 0 360 360" width="320" height="320" xmlns="http://www.w3.org/2000/svg"><defs>
+    <linearGradient id="pinkheart" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8E72"/><stop offset="1" stop-color="#FF5A7A"/></linearGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#B0402A" flood-opacity="0.22"/></filter></defs>
+    <rect width="360" height="360" fill="#FDF4EF"/>
+    ${guide}
+    ${heartC(it.heart,it.hsw)}
+    ${pen(it.pen[0],it.pen[1],it.pen[2],it.pen[3])}</svg>`;
+  c.innerHTML=`<div class="icon">${s}</div><div class="cap"><span class="num">${i+1}</span>${it.cap}</div><div class="desc">${it.desc}</div>`;
+  grid.appendChild(c); });
+</script>
+</body>
+</html>
