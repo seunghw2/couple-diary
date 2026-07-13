@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,"Apple SD Gothic Neo",system-ui,sans-serif;}
+  body{background:#fff;padding:44px;}
+  h1{font-size:30px;color:#2a2320;}
+  .sub{font-size:16px;color:#8a807a;margin:4px 0 30px;}
+  .row{display:flex;gap:30px;align-items:flex-start;}
+  .col{display:flex;flex-direction:column;align-items:center;}
+  .cap{margin-top:14px;font-size:15px;font-weight:700;color:#2a2320;}
+  .phone{width:300px;height:620px;border-radius:44px;overflow:hidden;position:relative;border:7px solid #16122a;box-shadow:0 16px 40px rgba(40,20,80,.28);
+    background:radial-gradient(120% 90% at 50% 0%,#3a2c5e 0%,#211a3c 45%,#161228 100%);}
+  .stars{position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(1.4px 1.4px at 40px 60px,#fff,transparent),radial-gradient(1.4px 1.4px at 210px 90px,#fff,transparent),radial-gradient(1px 1px at 120px 40px,#e9d9a0,transparent),radial-gradient(1.4px 1.4px at 260px 180px,#fff,transparent),radial-gradient(1px 1px at 60px 220px,#cbb6ff,transparent),radial-gradient(1.4px 1.4px at 240px 320px,#fff,transparent),radial-gradient(1px 1px at 30px 400px,#e9d9a0,transparent),radial-gradient(1.3px 1.3px at 200px 470px,#fff,transparent),radial-gradient(1px 1px at 150px 540px,#cbb6ff,transparent);opacity:.85;}
+  .sb{height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:12px;font-weight:700;color:#e7ddc4;position:relative;}
+  .screen{padding:6px 18px 18px;position:relative;}
+  .htitle{font-size:22px;font-weight:800;color:#E8C96B;letter-spacing:.3px;}
+  .hsub{font-size:12.5px;color:#b8abd8;margin-top:3px;}
+  .dcard{background:rgba(255,255,255,.05);border:1px solid rgba(232,201,107,.35);border-radius:22px;padding:18px;margin-top:14px;display:flex;align-items:center;gap:14px;}
+  .demoji{width:52px;height:52px;border-radius:16px;background:rgba(232,201,107,.14);display:flex;align-items:center;justify-content:center;font-size:28px;}
+  .dt{font-size:17px;font-weight:800;color:#f3ecd6;}
+  .ds{font-size:12.5px;color:#a99fc7;margin-top:2px;}
+  .drow{margin-top:14px;border:1px dashed rgba(232,201,107,.5);border-radius:18px;padding:13px 16px;color:#E8C96B;font-weight:700;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;}
+  .back{font-size:22px;color:#b8abd8;font-weight:700;}
+  .hanja{font-size:96px;color:#E8C96B;text-align:center;margin-top:16px;text-shadow:0 0 26px rgba(232,201,107,.55);line-height:1;font-weight:600;}
+  .hname{text-align:center;font-size:22px;font-weight:800;color:#f3ecd6;margin-top:8px;}
+  .hdesc{text-align:center;font-size:12.5px;color:#a99fc7;margin-top:4px;}
+  .sech{font-size:12px;font-weight:700;color:#E8C96B;margin:18px 4px 2px;letter-spacing:.4px;}
+  .donutwrap{display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.05);border:1px solid rgba(232,201,107,.25);border-radius:22px;padding:16px;margin-top:6px;}
+  .donut{width:100px;height:100px;border-radius:50%;flex-shrink:0;
+    background:conic-gradient(#5FBF7A 0 34%,#FF6F5C 34% 44%,#D9A45B 44% 62%,#9AA7B0 62% 90%,#5B9BD9 90% 100%);
+    display:flex;align-items:center;justify-content:center;}
+  .donutin{width:62px;height:62px;border-radius:50%;background:#211a3c;display:flex;align-items:center;justify-content:center;font-size:24px;}
+  .leg{font-size:12px;color:#cfc6e6;line-height:1.9;}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:middle;}
+  .poem{background:rgba(255,255,255,.05);border-left:2px solid #E8C96B;border-radius:12px;padding:13px 15px;margin-top:6px;font-size:13px;color:#e6ddf5;line-height:1.6;font-style:italic;}
+  .pctc{text-align:center;margin-top:18px;}
+  .pctnum{font-size:56px;font-weight:900;color:#E8C96B;letter-spacing:-1px;text-shadow:0 0 24px rgba(232,201,107,.5);line-height:1;}
+  .pctlabel{font-size:14px;color:#f3ecd6;font-weight:700;margin-top:4px;}
+  .constel{display:flex;align-items:center;justify-content:center;gap:0;margin-top:16px;}
+  .cnode{width:56px;height:56px;border-radius:50%;background:rgba(232,201,107,.14);border:1px solid rgba(232,201,107,.5);display:flex;align-items:center;justify-content:center;font-size:26px;}
+  .cline{flex:0 0 60px;height:2px;background:repeating-linear-gradient(90deg,#E8C96B 0 5px,transparent 5px 10px);position:relative;}
+  .clabel{text-align:center;font-size:11px;color:#a99fc7;margin-top:6px;}
+  .catrow{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:12px;color:#cfc6e6;font-weight:600;}
+  .catname{width:50px;}
+  .otrack{flex:1;height:9px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;}
+  .ofill{height:100%;background:linear-gradient(90deg,#E8C96B,#f0dfa0);border-radius:5px;}
+  .sharebtn{margin-top:16px;background:linear-gradient(90deg,#E8C96B,#d8b455);color:#2a2010;border-radius:16px;text-align:center;padding:13px;font-size:15px;font-weight:900;}
+</style></head>
+<body>
+<h1>Version C · 신비 감성형</h1>
+<div class="sub">밤하늘·골드 · 사주 특유의 신비롭고 고급스러운 분위기(타로카드 느낌)</div>
+<div class="row">
+
+  <!-- C1 허브 -->
+  <div class="col">
+    <div class="phone"><div class="stars"></div><div class="sb"><span>9:41</span><span>🔋</span></div>
+      <div class="screen">
+        <div class="htitle">우리 사주 궁합</div>
+        <div class="hsub">오늘 밤, 별이 전하는 이야기 ✨</div>
+        <div class="dcard"><div class="demoji">🌙</div><div><div class="dt">내 사주 보기</div><div class="ds">타고난 기운과 성향</div></div></div>
+        <div class="dcard"><div class="demoji">💫</div><div><div class="dt">우리 궁합 보기</div><div class="ds">두 사람의 인연 풀이</div></div></div>
+        <div class="drow"><span>🔮 오늘의 운세</span><span>›</span></div>
+        <div class="poem" style="margin-top:16px;">"생년월일에 새겨진 두 사람의 기운을, 오늘 조용히 들여다봐요."</div>
+      </div>
+    </div>
+    <div class="cap">① 허브 (진입)</div>
+  </div>
+
+  <!-- C2 개인 -->
+  <div class="col">
+    <div class="phone"><div class="stars"></div><div class="sb"><span>9:41</span><span>🔋</span></div>
+      <div class="screen">
+        <div style="display:flex;align-items:center;gap:10px;"><span class="back">‹</span><div class="htitle" style="font-size:19px;">내 사주</div></div>
+        <div class="hanja">甲</div>
+        <div class="hname">갑목 · 큰 나무의 기운</div>
+        <div class="hdesc">봄의 시작, 곧게 뻗는 생명력</div>
+        <div class="sech">오행의 조화</div>
+        <div class="donutwrap">
+          <div class="donut"><div class="donutin">🌳</div></div>
+          <div class="leg">
+            <div><span class="dot" style="background:#5FBF7A"></span>목 · 강함</div>
+            <div><span class="dot" style="background:#9AA7B0"></span>금 · 보통</div>
+            <div><span class="dot" style="background:#D9A45B"></span>토 · 보통</div>
+            <div><span class="dot" style="background:#5B9BD9"></span>수 · 약함</div>
+            <div><span class="dot" style="background:#FF6F5C"></span>화 · 약함</div>
+          </div>
+        </div>
+        <div class="sech">별이 전하는 성향</div>
+        <div class="poem">깊게 뿌리내리고 높이 자라는 사람. 흔들리는 날에도 결국 제 길을 찾아가는 단단함이 있어요.</div>
+      </div>
+    </div>
+    <div class="cap">② 개인 사주 결과</div>
+  </div>
+
+  <!-- C3 궁합 -->
+  <div class="col">
+    <div class="phone"><div class="stars"></div><div class="sb"><span>9:41</span><span>🔋</span></div>
+      <div class="screen">
+        <div style="display:flex;align-items:center;gap:10px;"><span class="back">‹</span><div class="htitle" style="font-size:19px;">우리 궁합</div></div>
+        <div class="pctc"><div class="pctnum">87%</div><div class="pctlabel">깊이 이어진 인연 💫</div></div>
+        <div class="constel">
+          <div><div class="cnode">甲</div><div class="clabel">나 · 갑목</div></div>
+          <div class="cline"></div>
+          <div><div class="cnode">癸</div><div class="clabel">상대 · 계수</div></div>
+        </div>
+        <div class="sech" style="margin-top:20px;">인연의 결</div>
+        <div class="donutwrap" style="display:block;">
+          <div class="catrow"><span class="catname">첫끌림</span><div class="otrack"><div class="ofill" style="width:90%"></div></div></div>
+          <div class="catrow"><span class="catname">대화</span><div class="otrack"><div class="ofill" style="width:75%"></div></div></div>
+          <div class="catrow"><span class="catname">애정</span><div class="otrack"><div class="ofill" style="width:88%"></div></div></div>
+          <div class="catrow"><span class="catname">안정감</span><div class="otrack"><div class="ofill" style="width:72%"></div></div></div>
+        </div>
+        <div class="poem" style="margin-top:14px;">물이 나무를 키우듯, 서로를 자라게 하는 인연이에요. 곁에 오래 두고 싶은 사람.</div>
+        <div class="sharebtn">인연 카드 공유하기</div>
+      </div>
+    </div>
+    <div class="cap">③ 커플 궁합 결과</div>
+  </div>
+
+</div>
+</body></html>

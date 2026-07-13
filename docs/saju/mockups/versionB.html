@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,"Apple SD Gothic Neo",system-ui,sans-serif;}
+  body{background:#fff;padding:44px;}
+  h1{font-size:30px;color:#2a2320;}
+  .sub{font-size:16px;color:#8a807a;margin:4px 0 30px;}
+  .row{display:flex;gap:30px;align-items:flex-start;}
+  .col{display:flex;flex-direction:column;align-items:center;}
+  .cap{margin-top:14px;font-size:15px;font-weight:700;color:#2a2320;}
+  .phone{width:300px;height:620px;border-radius:44px;background:#FFF3F0;overflow:hidden;position:relative;border:7px solid #2a2320;box-shadow:0 16px 40px rgba(180,90,60,.18);}
+  .sb{height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:12px;font-weight:700;color:#2a2320;}
+  .screen{padding:6px 16px 16px;}
+  .htitle{font-size:22px;font-weight:900;color:#2a2320;}
+  .hsub{font-size:13px;color:#B07A6A;margin-top:2px;font-weight:600;}
+  .gcard{border-radius:26px;padding:20px;margin-top:14px;position:relative;overflow:hidden;color:#fff;}
+  .gcard .big{font-size:44px;}
+  .gcard .t{font-size:19px;font-weight:900;margin-top:6px;}
+  .gcard .s{font-size:12.5px;opacity:.92;margin-top:2px;font-weight:600;}
+  .pill{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.28);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:800;}
+  .banner{margin-top:14px;border-radius:22px;padding:15px 16px;background:linear-gradient(90deg,#8E7BFF,#C77BFF);color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:space-between;}
+  .back{font-size:22px;color:#8a807a;font-weight:800;}
+  .hero{border-radius:28px;padding:24px 18px;text-align:center;color:#fff;margin-top:12px;position:relative;overflow:hidden;}
+  .heroemoji{font-size:66px;filter:drop-shadow(0 6px 8px rgba(0,0,0,.18));}
+  .heroname{font-size:26px;font-weight:900;margin-top:8px;}
+  .herotag{display:inline-block;margin-top:8px;background:rgba(255,255,255,.25);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:800;}
+  .stars{color:#FFD54A;font-size:16px;letter-spacing:1px;margin-top:10px;}
+  .statcard{background:#fff;border-radius:22px;padding:16px;margin-top:12px;box-shadow:0 6px 16px rgba(180,90,60,.08);}
+  .stat{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:12px;font-weight:700;color:#5a514b;}
+  .stat .n{width:20px;text-align:center;font-size:15px;}
+  .seg{flex:1;display:flex;gap:3px;}
+  .cell{flex:1;height:11px;border-radius:3px;background:#EFE4DE;}
+  .lv{width:30px;text-align:right;color:#9a8f88;font-weight:800;}
+  .sech{font-size:12px;font-weight:800;color:#B07A6A;margin:16px 4px 2px;}
+  .gauge{width:150px;height:150px;border-radius:50%;margin:8px auto 0;display:flex;align-items:center;justify-content:center;background:conic-gradient(#FF5A6E 0 87%,#F1E1DC 87% 100%);}
+  .gaugein{width:118px;height:118px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .gnum{font-size:40px;font-weight:900;color:#FF5A6E;line-height:1;}
+  .glabel{font-size:11px;color:#9a8f88;font-weight:700;margin-top:2px;}
+  .battle{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;}
+  .fighter{text-align:center;}
+  .fcircle{width:58px;height:58px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;}
+  .flabel{font-size:11px;color:#6a615b;font-weight:800;margin-top:5px;}
+  .vsbadge{font-size:15px;font-weight:900;color:#C77BFF;background:#F3EBFF;border-radius:14px;padding:6px 8px;}
+  .catrow{display:flex;align-items:center;justify-content:space-between;margin-top:9px;font-size:12.5px;font-weight:700;color:#5a514b;}
+  .rare{margin-top:14px;border-radius:20px;padding:12px;text-align:center;font-weight:900;font-size:14px;color:#7A5A00;background:linear-gradient(90deg,#FFE58A,#FFD24A);}
+  .sharebtn{margin-top:12px;background:linear-gradient(90deg,#FF7A5C,#FF5A7A);color:#fff;border-radius:18px;text-align:center;padding:14px;font-size:15px;font-weight:900;}
+</style></head>
+<body>
+<h1>Version B · 게임/캐릭터형</h1>
+<div class="sub">월드컵 게임 감성 · 큰 캐릭터·스탯바·별점·배지로 재미 극대화</div>
+<div class="row">
+
+  <!-- B1 허브 -->
+  <div class="col">
+    <div class="phone"><div class="sb"><span>9:41</span><span>🔋</span></div>
+      <div class="screen">
+        <div class="htitle">우리 사주 궁합</div>
+        <div class="hsub">오늘의 운세 & 궁합 대결 🎮</div>
+        <div class="gcard" style="background:linear-gradient(135deg,#5FBF7A,#3E9E8C);"><span class="pill">MY</span><div class="big">🌳</div><div class="t">내 사주 보기</div><div class="s">내 캐릭터 · 오행 스탯</div></div>
+        <div class="gcard" style="background:linear-gradient(135deg,#FF7A5C,#FF5A7A);"><span class="pill">DUO</span><div class="big">💞</div><div class="t">우리 궁합 대결</div><div class="s">둘의 케미 점수 확인</div></div>
+        <div class="banner"><span>⭐ 레어 궁합인지 확인!</span><span>›</span></div>
+        <div class="banner" style="background:linear-gradient(90deg,#FF9E86,#FF6F91);margin-top:12px;"><span>🔮 오늘의 운세 열기</span><span>›</span></div>
+      </div>
+    </div>
+    <div class="cap">① 허브 (진입)</div>
+  </div>
+
+  <!-- B2 개인 캐릭터 -->
+  <div class="col">
+    <div class="phone"><div class="sb"><span>9:41</span><span>🔋</span></div>
+      <div class="screen">
+        <div style="display:flex;align-items:center;gap:10px;"><span class="back">‹</span><div class="htitle" style="font-size:19px;">내 캐릭터</div></div>
+        <div class="hero" style="background:linear-gradient(160deg,#5FBF7A,#2E8B7A);">
+          <div class="heroemoji">🌳</div>
+          <div class="heroname">갑목 甲木</div>
+          <div class="herotag">하늘로 뻗는 큰 나무형</div>
+          <div class="stars">★★★★☆</div>
+        </div>
+        <div class="sech">오행 스탯</div>
+        <div class="statcard">
+          <div class="stat"><span class="n">🌳</span><div class="seg"><span class="cell" style="background:#5FBF7A"></span><span class="cell" style="background:#5FBF7A"></span><span class="cell" style="background:#5FBF7A"></span><span class="cell" style="background:#5FBF7A"></span><span class="cell"></span></div><span class="lv">4/5</span></div>
+          <div class="stat"><span class="n">🔥</span><div class="seg"><span class="cell" style="background:#FF6F5C"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span></div><span class="lv">1/5</span></div>
+          <div class="stat"><span class="n">⛰️</span><div class="seg"><span class="cell" style="background:#D9A45B"></span><span class="cell" style="background:#D9A45B"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span></div><span class="lv">2/5</span></div>
+          <div class="stat"><span class="n">⚙️</span><div class="seg"><span class="cell" style="background:#9AA7B0"></span><span class="cell" style="background:#9AA7B0"></span><span class="cell" style="background:#9AA7B0"></span><span class="cell"></span><span class="cell"></span></div><span class="lv">3/5</span></div>
+          <div class="stat"><span class="n">💧</span><div class="seg"><span class="cell" style="background:#5B9BD9"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span></div><span class="lv">1/5</span></div>
+        </div>
+        <div class="rare" style="background:linear-gradient(90deg,#FFE58A,#FFD24A);">🔥 불(火) 기운이 부족해요! 열정 충전 필요</div>
+      </div>
+    </div>
+    <div class="cap">② 개인 사주(캐릭터)</div>
+  </div>
+
+  <!-- B3 궁합 대결 -->
+  <div class="col">
+    <div class="phone"><div class="sb"><span>9:41</span><span>🔋</span></div>
+      <div class="screen">
+        <div style="display:flex;align-items:center;gap:10px;"><span class="back">‹</span><div class="htitle" style="font-size:19px;">궁합 대결 결과</div></div>
+        <div class="gauge"><div class="gaugein"><div class="gnum">87</div><div class="glabel">궁합 점수</div></div></div>
+        <div class="battle">
+          <div class="fighter"><div class="fcircle" style="background:linear-gradient(135deg,#5FBF7A,#2E8B7A);">🌳</div><div class="flabel">나 · 갑목</div></div>
+          <span class="vsbadge">♥</span>
+          <div class="fighter"><div class="fcircle" style="background:linear-gradient(135deg,#5B9BD9,#3E6F9E);">💧</div><div class="flabel">상대 · 계수</div></div>
+        </div>
+        <div class="statcard" style="margin-top:14px;">
+          <div class="catrow"><span>⚡ 첫끌림</span><span style="color:#FFB300;">★★★★★</span></div>
+          <div class="catrow"><span>💬 대화</span><span style="color:#FFB300;">★★★★☆</span></div>
+          <div class="catrow"><span>❤️ 애정</span><span style="color:#FFB300;">★★★★★</span></div>
+          <div class="catrow"><span>🏡 안정감</span><span style="color:#FFB300;">★★★★☆</span></div>
+        </div>
+        <div class="rare">⭐ 운명적 커플 인증! 물이 나무를 키우는 조합</div>
+        <div class="sharebtn">결과 카드 공유 📸</div>
+      </div>
+    </div>
+    <div class="cap">③ 커플 궁합(대결)</div>
+  </div>
+
+</div>
+</body></html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,"Apple SD Gothic Neo",system-ui,sans-serif;}
+  body{background:#fff;padding:44px;}
+  h1{font-size:30px;color:#2a2320;}
+  .sub{font-size:16px;color:#8a807a;margin:4px 0 30px;}
+  .row{display:flex;gap:30px;align-items:flex-start;}
+  .col{display:flex;flex-direction:column;align-items:center;}
+  .cap{margin-top:14px;font-size:15px;font-weight:700;color:#2a2320;}
+  .phone{width:300px;height:620px;border-radius:44px;background:#FDF4EF;box-shadow:0 16px 40px rgba(180,90,60,.18);overflow:hidden;position:relative;border:7px solid #2a2320;}
+  .sb{height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:12px;font-weight:700;color:#2a2320;}
+  .screen{padding:6px 18px 18px;}
+  .htitle{font-size:22px;font-weight:800;color:#2a2320;}
+  .hsub{font-size:13px;color:#9a8f88;margin-top:2px;}
+  .card{background:#fff;border-radius:22px;padding:18px;margin-top:14px;box-shadow:0 6px 16px rgba(180,90,60,.08);}
+  .bigcard{display:flex;align-items:center;gap:14px;}
+  .emoji{width:56px;height:56px;border-radius:18px;background:#FFE7DC;display:flex;align-items:center;justify-content:center;font-size:30px;}
+  .ct{font-size:17px;font-weight:800;color:#2a2320;}
+  .cs{font-size:13px;color:#9a8f88;margin-top:2px;}
+  .daily{margin-top:14px;background:linear-gradient(90deg,#FF9E86,#FF6F91);border-radius:18px;padding:14px 16px;color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;}
+  .back{font-size:22px;color:#8a807a;}
+  .charwrap{align-items:center;text-align:center;padding:22px 18px;}
+  .charc{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#FFE7DC,#FFD3C4);display:flex;align-items:center;justify-content:center;font-size:52px;margin:0 auto;}
+  .charname{font-size:22px;font-weight:800;color:#2a2320;margin-top:12px;}
+  .chardesc{font-size:13px;color:#9a8f88;margin-top:4px;}
+  .obar{display:flex;align-items:center;gap:8px;margin-top:10px;}
+  .oemoji{width:22px;font-size:16px;text-align:center;}
+  .otrack{flex:1;height:12px;background:#F1E7E1;border-radius:6px;overflow:hidden;}
+  .ofill{height:100%;border-radius:6px;}
+  .pct{font-size:52px;font-weight:900;color:#FF5A6E;text-align:center;letter-spacing:-1px;}
+  .pctsub{text-align:center;font-size:14px;font-weight:700;color:#2a2320;margin-top:-2px;}
+  .vs{display:flex;align-items:center;justify-content:center;gap:20px;margin-top:14px;}
+  .vsp{text-align:center;}
+  .vscircle{width:56px;height:56px;border-radius:50%;background:#FFE7DC;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto;}
+  .vslabel{font-size:12px;color:#9a8f88;margin-top:4px;}
+  .vsheart{font-size:20px;color:#FF6F91;}
+  .catrow{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:12px;}
+  .catname{width:52px;color:#6a615b;font-weight:600;}
+  .sharebtn{margin-top:16px;background:#FF7A5C;color:#fff;border-radius:16px;text-align:center;padding:13px;font-size:15px;font-weight:800;}
+  .sech{font-size:12px;font-weight:700;color:#b9aaa2;margin:16px 0 2px;letter-spacing:.3px;}
+</style></head>
+<body>
+<h1>Version A · 브랜드 미니멀</h1>
+<div class="sub">기존 love today 톤(코랄·크림) 그대로 · 깔끔하고 읽기 쉬운 카드형</div>
+<div class="row">
+
+  <!-- A1 허브 -->
+  <div class="col">
+    <div class="phone"><div class="sb"><span>9:41</span><span>🔋</span></div>
+      <div class="screen">
+        <div class="htitle">우리 사주 궁합</div>
+        <div class="hsub">재미로 보는 사주 🔮</div>
+        <div class="card bigcard"><div class="emoji">🌳</div><div><div class="ct">내 사주 보기</div><div class="cs">내 오행·성격 알아보기</div></div></div>
+        <div class="card bigcard"><div class="emoji">💞</div><div><div class="ct">우리 궁합 보기</div><div class="cs">둘의 케미 확인하기</div></div></div>
+        <div class="daily"><span>🧡</span><span>오늘의 기운 · 행운색 코랄</span></div>
+        <div class="sech">이번 주 우리</div>
+        <div class="card" style="font-size:13px;color:#6a615b;">함께한 지 <b style="color:#FF5A6E;">312일</b> · 사주 궁합 87%</div>
+      </div>
+    </div>
+    <div class="cap">① 허브 (진입)</div>
+  </div>
+
+  <!-- A2 개인 사주 -->
+  <div class="col">
+    <div class="phone"><div class="sb"><span>9:41</span><span>🔋</span></div>
+      <div class="screen">
+        <div style="display:flex;align-items:center;gap:10px;"><span class="back">‹</span><div class="htitle" style="font-size:19px;">내 사주</div></div>
+        <div class="card charwrap">
+          <div class="charc">🌳</div>
+          <div class="charname">갑목 (甲木)</div>
+          <div class="chardesc">하늘로 뻗는 큰 나무형</div>
+        </div>
+        <div class="sech">오행 분포</div>
+        <div class="card">
+          <div class="obar"><span class="oemoji">🌳</span><div class="otrack"><div class="ofill" style="width:70%;background:#5FBF7A;"></div></div></div>
+          <div class="obar"><span class="oemoji">🔥</span><div class="otrack"><div class="ofill" style="width:25%;background:#FF6F5C;"></div></div></div>
+          <div class="obar"><span class="oemoji">⛰️</span><div class="otrack"><div class="ofill" style="width:40%;background:#D9A45B;"></div></div></div>
+          <div class="obar"><span class="oemoji">⚙️</span><div class="otrack"><div class="ofill" style="width:60%;background:#9AA7B0;"></div></div></div>
+          <div class="obar"><span class="oemoji">💧</span><div class="otrack"><div class="ofill" style="width:15%;background:#5B9BD9;"></div></div></div>
+        </div>
+        <div class="sech">한줄 성격</div>
+        <div class="card" style="font-size:13px;color:#6a615b;line-height:1.5;">곧고 진취적인 리더예요. 한번 마음먹으면 쭉 밀고 가는 든든한 스타일! 🌿</div>
+        <div class="daily"><span>✨</span><span>오늘의 키워드 · 도전</span></div>
+      </div>
+    </div>
+    <div class="cap">② 개인 사주 결과</div>
+  </div>
+
+  <!-- A3 궁합 -->
+  <div class="col">
+    <div class="phone"><div class="sb"><span>9:41</span><span>🔋</span></div>
+      <div class="screen">
+        <div style="display:flex;align-items:center;gap:10px;"><span class="back">‹</span><div class="htitle" style="font-size:19px;">우리 궁합</div></div>
+        <div class="card" style="padding-top:20px;padding-bottom:18px;">
+          <div class="pct">87%</div>
+          <div class="pctsub">아주 잘 맞는 커플 💞</div>
+          <div class="vs">
+            <div class="vsp"><div class="vscircle">🌳</div><div class="vslabel">나 · 갑목</div></div>
+            <span class="vsheart">♥</span>
+            <div class="vsp"><div class="vscircle">💧</div><div class="vslabel">상대 · 계수</div></div>
+          </div>
+        </div>
+        <div class="sech">카테고리별 케미</div>
+        <div class="card">
+          <div class="catrow"><span class="catname">첫끌림</span><div class="otrack"><div class="ofill" style="width:90%;background:#FF6F91;"></div></div></div>
+          <div class="catrow"><span class="catname">대화</span><div class="otrack"><div class="ofill" style="width:75%;background:#FF6F91;"></div></div></div>
+          <div class="catrow"><span class="catname">애정</span><div class="otrack"><div class="ofill" style="width:88%;background:#FF6F91;"></div></div></div>
+          <div class="catrow"><span class="catname">안정감</span><div class="otrack"><div class="ofill" style="width:70%;background:#FF6F91;"></div></div></div>
+        </div>
+        <div class="card" style="font-size:13px;color:#6a615b;line-height:1.5;">서로의 부족한 오행을 채워주는 물과 나무! 함께라 더 자라나는 커플이에요 🌿</div>
+        <div class="sharebtn">결과 공유하기</div>
+      </div>
+    </div>
+    <div class="cap">③ 커플 궁합 결과</div>
+  </div>
+
+</div>
+</body></html>
