@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#fff; font-family:-apple-system,"Apple SD Gothic Neo",system-ui,sans-serif; padding:44px; }
+  h1 { font-size:30px; color:#2a2320; margin-bottom:4px; }
+  .sub { font-size:16px; color:#8a807a; margin-bottom:26px; }
+  h2 { font-size:21px; color:#F0654A; margin:28px 0 16px; padding-left:6px; border-left:5px solid #FF7A5C; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:26px 30px; width:1120px; }
+  .cell { display:flex; flex-direction:column; align-items:center; }
+  .icon { width:300px; height:300px; border-radius:70px; box-shadow:0 12px 28px rgba(180,90,60,0.20); overflow:hidden; }
+  .cap { margin-top:13px; font-size:16px; font-weight:700; color:#2a2320; }
+  .num { display:inline-block; width:22px;height:22px;line-height:22px;text-align:center;background:#FF7A5C;color:#fff;border-radius:50%;font-size:12px;font-weight:800;margin-right:6px;vertical-align:middle;}
+</style>
+</head>
+<body>
+<h1>love today · 책 정중앙 + 하트 · 3 방향 × 3</h1>
+<div class="sub">코랄 배경 · 흰 펼친 책을 정가운데로 · 하트 표현 변주</div>
+<h2>A. 채운 하트 (색 변주)</h2><div class="grid" id="gA"></div>
+<h2>B. 큰 하트 (스타일 변주)</h2><div class="grid" id="gB"></div>
+<h2>C. 하트 + 디테일</h2><div class="grid" id="gC"></div>
+
+<script>
+const HEART="M50,86 C12,55 2,32 22,16 C37,5 50,19 50,21 C50,19 63,5 78,16 C98,32 88,55 50,86 Z";
+const BOOK="M180,150 C150,128 108,126 82,140 v128 c26,-14 68,-12 98,10 c30,-22 72,-24 98,-10 v-128 c-26,-14 -68,-12 -98,10 Z";
+function heart(x,y,s,fill,stroke,sw){ return `<g transform="translate(${x},${y}) scale(${s})"><path d="${HEART}" fill="${fill||'none'}" ${stroke?`stroke="${stroke}" stroke-width="${sw||6}"`:''} stroke-linejoin="round" stroke-linecap="round"/></g>`; }
+function spark(x,y,s,c){ return `<path transform="translate(${x},${y}) scale(${s})" d="M0,-9 Q1.4,-1.4 9,0 Q1.4,1.4 0,9 Q-1.4,1.4 -9,0 Q-1.4,-1.4 0,-9 Z" fill="${c}"/>`; }
+// 책을 아이콘 정중앙으로(-24 이동)
+function bookC(extra){ return `<g transform="translate(0,-24)" filter="url(#soft)"><path d="${BOOK}" fill="#FFFFFF"/><path d="M180,150 v138" stroke="#FFE0D5" stroke-width="6"/>${extra||''}</g>`; }
+function wrap(inner){ return `<svg viewBox="0 0 360 360" width="300" height="300" xmlns="http://www.w3.org/2000/svg"><defs>
+  <linearGradient id="coral" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFA184"/><stop offset="1" stop-color="#F0654A"/></linearGradient>
+  <linearGradient id="pinkheart" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8E72"/><stop offset="1" stop-color="#FF5A7A"/></linearGradient>
+  <filter id="soft" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#B0402A" flood-opacity="0.20"/></filter>
+  <clipPath id="lh"><rect x="0" y="0" width="180" height="360"/></clipPath></defs>
+  <rect width="360" height="360" fill="url(#coral)"/>${inner}</svg>`; }
+
+// A: 채운 하트(중간 크기) · 색만 변주 (흰 책 위라 유채색 하트)
+const A=[
+  {cap:"그라데이션", raw: bookC()+heart(140,143,0.8,"url(#pinkheart)")},
+  {cap:"레드", raw: bookC()+heart(140,143,0.8,"#FF3D68")},
+  {cap:"핑크", raw: bookC()+heart(140,143,0.8,"#FF6F91")},
+];
+// B: 큰 하트 · 스타일 변주
+const B=[
+  {cap:"그라데이션(큰)", raw: bookC()+heart(130,134,1.0,"url(#pinkheart)")},
+  {cap:"아웃라인", raw: bookC()+heart(130,134,1.0,"none","#FF3D68",13)},
+  {cap:"투톤", raw: bookC()+`<g>${heart(130,134,1.0,"#FF5A7A")}<g clip-path="url(#lh)">${heart(130,134,1.0,"#FF8E72")}</g></g>`},
+];
+// C: 하트 + 디테일 (하트는 유채색, 반짝이는 코랄 배경 쪽)
+const C=[
+  {cap:"지면 밑줄", raw: bookC(`<path d="M104,250 h56 M202,250 h56 M104,270 h56 M202,270 h56" stroke="#FFCBB9" stroke-width="6" stroke-linecap="round"/>`)+heart(143,138,0.72,"url(#pinkheart)")},
+  {cap:"하트 책갈피", raw: bookC()+`<g transform="translate(0,-24)"><path d="M168,150 h24 v150 l-12,-16 l-12,16 Z" fill="#FF3D68"/></g>`+heart(155,68,0.5,"#FF3D68")},
+  {cap:"반짝임", raw: bookC()+heart(140,143,0.8,"url(#pinkheart)")+spark(96,108,0.95,"#FFFFFF")+spark(278,122,0.7,"#FFFFFF")+spark(258,84,0.5,"#FFFFFF")},
+];
+
+function fill(id,arr){ const g=document.getElementById(id); arr.forEach((it,i)=>{ const c=document.createElement('div'); c.className='cell';
+  c.innerHTML=`<div class="icon">${wrap(it.raw)}</div><div class="cap"><span class="num">${i+1}</span>${it.cap}</div>`; g.appendChild(c); }); }
+fill('gA',A); fill('gB',B); fill('gC',C);
+</script>
+</body>
+</html>
