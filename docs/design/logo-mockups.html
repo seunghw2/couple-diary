@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #ffffff; font-family: -apple-system, "Apple SD Gothic Neo", system-ui, sans-serif; padding: 40px; }
+  h1 { font-size: 30px; color: #2a2320; margin-bottom: 4px; }
+  .sub { font-size: 16px; color: #8a807a; margin-bottom: 32px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px 36px; width: 1180px; }
+  .cell { display: flex; flex-direction: column; align-items: center; }
+  .icon { width: 300px; height: 300px; border-radius: 70px; box-shadow: 0 14px 34px rgba(180,90,60,0.22); overflow: hidden; }
+  .cap { margin-top: 16px; font-size: 19px; font-weight: 700; color: #2a2320; }
+  .desc { margin-top: 4px; font-size: 14px; color: #9a908a; text-align: center; max-width: 280px; }
+  .num { display:inline-block; width:26px;height:26px;line-height:26px;text-align:center;background:#FF7A5C;color:#fff;border-radius:50%;font-size:14px;font-weight:800;margin-right:8px;vertical-align:middle;}
+</style>
+</head>
+<body>
+<h1>love today · 앱 아이콘 시안 9종</h1>
+<div class="sub">따뜻한 코랄 톤 · 커플 교환일기 감성 · iOS 아이콘 형태로 렌더</div>
+<div class="grid" id="grid"></div>
+
+<script>
+const HEART = "M50,86 C12,55 2,32 22,16 C37,5 50,19 50,21 C50,19 63,5 78,16 C98,32 88,55 50,86 Z";
+
+// 각 아이콘 = 360x360 SVG (배경 라운드 스퀘어 + 모티프)
+function svg(inner){ return `<svg viewBox="0 0 360 360" width="300" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="coral" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFA184"/><stop offset="1" stop-color="#F0654A"/></linearGradient>
+    <linearGradient id="coral2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF9E86"/><stop offset="1" stop-color="#FF6F91"/></linearGradient>
+    <linearGradient id="pinkheart" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8E72"/><stop offset="1" stop-color="#FF5A7A"/></linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#B0402A" flood-opacity="0.25"/></filter>
+  </defs>
+  ${inner}
+</svg>`; }
+
+function heart(x,y,s,fill,stroke,sw){ return `<g transform="translate(${x},${y}) scale(${s})"><path d="${HEART}" fill="${fill||'none'}" ${stroke?`stroke="${stroke}" stroke-width="${sw||6}"`:''} stroke-linejoin="round"/></g>`; }
+
+const icons = [
+  // 1. 편지 + 하트 (현재 엠블럼 정제)
+  { cap:"편지 + 하트", desc:"오늘의 편지를 주고받는 커플 — 가장 직관적", svg: svg(`
+    <rect width="360" height="360" fill="url(#coral)"/>
+    <g filter="url(#soft)">
+      <rect x="66" y="128" width="228" height="150" rx="20" fill="#FFFFFF"/>
+      <path d="M66,150 L180,232 L294,150" fill="none" stroke="#FFD9CB" stroke-width="10" stroke-linejoin="round"/>
+    </g>
+    ${heart(140,86,0.80,"#FF5A6E")}
+  `)},
+
+  // 2. 말풍선 두 개 → 하트
+  { cap:"두 말풍선", desc:"서로에게 건네는 대화 — 교환일기의 핵심", svg: svg(`
+    <rect width="360" height="360" fill="#FBEFE9"/>
+    <g filter="url(#soft)">
+      <path d="M70,96 h150 a26,26 0 0 1 26,26 v70 a26,26 0 0 1 -26,26 h-70 l-34,30 v-30 h-46 a26,26 0 0 1 -26,-26 v-70 a26,26 0 0 1 26,-26 Z" fill="url(#coral2)"/>
+      <path d="M300,168 h-120 a24,24 0 0 0 -24,24 v58 a24,24 0 0 0 24,24 h58 l30,26 v-26 h32 a24,24 0 0 0 24,-24 v-58 a24,24 0 0 0 -24,-24 Z" fill="#FFFFFF" stroke="#FFD3C4" stroke-width="4"/>
+    </g>
+    ${heart(150,150,0.42,"#FF5A6E")}
+  `)},
+
+  // 3. 맞물린 두 하트
+  { cap:"맞물린 두 하트", desc:"둘이 하나 — 커플 상징", svg: svg(`
+    <rect width="360" height="360" fill="url(#coral)"/>
+    ${heart(70,110,1.05,"none","#FFFFFF",9)}
+    ${heart(150,110,1.05,"none","#FFE1D6",9)}
+    ${heart(110,120,0.9,"rgba(255,255,255,0.14)")}
+  `)},
+
+  // 4. 펼친 일기장 + 하트
+  { cap:"펼친 일기장", desc:"매일 함께 쓰는 다이어리", svg: svg(`
+    <rect width="360" height="360" fill="#FBEFE9"/>
+    <g filter="url(#soft)">
+      <path d="M180,150 C150,128 108,126 82,140 v128 c26,-14 68,-12 98,10 c30,-22 72,-24 98,-10 v-128 c-26,-14 -68,-12 -98,10 Z" fill="#FFFFFF"/>
+      <path d="M180,150 v138" stroke="#FFD3C4" stroke-width="6"/>
+      <path d="M100,168 h58 M100,190 h58 M202,168 h58 M202,190 h58" stroke="#FFCBB9" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    ${heart(146,70,0.68,"url(#pinkheart)")}
+  `)},
+
+  // 5. 캘린더 + 하트 (오늘)
+  { cap:"오늘 캘린더", desc:"'오늘'을 기록 — today 강조", svg: svg(`
+    <rect width="360" height="360" fill="url(#coral2)"/>
+    <g filter="url(#soft)">
+      <rect x="78" y="104" width="204" height="180" rx="26" fill="#FFFFFF"/>
+      <rect x="78" y="104" width="204" height="52" rx="26" fill="#FF7A5C"/>
+      <rect x="78" y="140" width="204" height="16" fill="#FF7A5C"/>
+      <rect x="120" y="86" width="16" height="42" rx="8" fill="#F0654A"/>
+      <rect x="224" y="86" width="16" height="42" rx="8" fill="#F0654A"/>
+    </g>
+    ${heart(146,168,0.62,"#FF5A6E")}
+  `)},
+
+  // 6. 미니멀 그라데이션 하트
+  { cap:"미니멀 하트", desc:"군더더기 없는 단일 심볼 — 확장성 최고", svg: svg(`
+    <rect width="360" height="360" fill="#FDF4EF"/>
+    <g filter="url(#soft)">${heart(60,60,2.4,"url(#pinkheart)")}</g>
+  `)},
+
+  // 7. 모노그램 t + 하트
+  { cap:"모노그램 t", desc:"today의 t + 하트 액센트", svg: svg(`
+    <rect width="360" height="360" fill="url(#coral)"/>
+    <g filter="url(#soft)">
+      <path d="M180,96 v150 a34,34 0 0 0 40,33" fill="none" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round"/>
+      <path d="M132,150 h96" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round"/>
+    </g>
+    ${heart(198,84,0.42,"#FF5A6E")}
+  `)},
+
+  // 8. 두 사람 → 하트
+  { cap:"두 사람", desc:"마주 본 두 사람이 이루는 하트", svg: svg(`
+    <rect width="360" height="360" fill="url(#coral2)"/>
+    <g filter="url(#soft)" fill="#FFFFFF">
+      <circle cx="132" cy="150" r="34"/>
+      <path d="M84,272 c0,-42 24,-74 48,-74 c24,0 48,32 48,74 Z"/>
+      <circle cx="228" cy="150" r="34"/>
+      <path d="M180,272 c0,-42 24,-74 48,-74 c24,0 48,32 48,74 Z"/>
+    </g>
+    ${heart(150,150,0.5,"#FF5A6E")}
+  `)},
+
+  // 9. 연필로 그린 하트
+  { cap:"손으로 그린 하트", desc:"쓰는 행위 = 일기, 정감 있는 무드", svg: svg(`
+    <rect width="360" height="360" fill="#FDF4EF"/>
+    ${heart(96,96,1.7,"none","url(#pinkheart)",14)}
+    <g filter="url(#soft)" transform="rotate(38 246 250)">
+      <rect x="228" y="150" width="30" height="120" rx="8" fill="#FF8E72"/>
+      <rect x="228" y="150" width="30" height="26" fill="#F0654A"/>
+      <path d="M228,270 l15,26 l15,-26 Z" fill="#FFE0B2"/>
+      <path d="M236,286 l7,10 l7,-10 Z" fill="#3a2f2a"/>
+    </g>
+  `)},
+];
+
+const grid = document.getElementById('grid');
+icons.forEach((it, i) => {
+  const cell = document.createElement('div');
+  cell.className = 'cell';
+  cell.innerHTML = `<div class="icon">${it.svg}</div>
+    <div class="cap"><span class="num">${i+1}</span>${it.cap}</div>
+    <div class="desc">${it.desc}</div>`;
+  grid.appendChild(cell);
+});
+</script>
+</body>
+</html>
