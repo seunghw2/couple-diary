@@ -71,9 +71,9 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: '설정',
+          title: '전체',
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon name={focused ? 'settings' : 'settings-outline'} color={color} />
+            <TabIcon name={focused ? 'menu' : 'menu-outline'} color={color} />
           ),
         }}
       />

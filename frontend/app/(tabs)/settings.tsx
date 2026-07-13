@@ -31,8 +31,8 @@ export default function SettingsScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.titleRow}>
-          <Text style={[styles.title, { color: c.primary }]}>설정</Text>
-          <Icon name="settings-sharp" size={19} color={c.primary} />
+          <Text style={[styles.title, { color: c.primary }]}>전체</Text>
+          <Icon name="menu" size={22} color={c.primary} />
         </View>
 
         {/* 프로필 헤더 → 내 정보 */}
