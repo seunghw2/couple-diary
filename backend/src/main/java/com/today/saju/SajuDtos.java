@@ -30,6 +30,7 @@ public class SajuDtos {
     public record CoupleResult(
             boolean canCompute,
             String blockReason,
+            boolean canRequestBirthday,
             int percent,
             List<CatView> categories,
             String totalComment,

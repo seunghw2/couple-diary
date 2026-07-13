@@ -283,6 +283,20 @@ public class NotificationService {
                 .build());
     }
 
+    /** 내가 생일을 채워 이제 궁합을 볼 수 있음 — 상대에게. refKey=couple 딥링크. */
+    @Transactional
+    public void onSajuCompatibilityReady(User me, User partner) {
+        if (me == null || partner == null) return;
+        persist(Notification.builder()
+                .recipient(partner)
+                .type(NotificationType.SAJU_COMPATIBILITY_READY)
+                .title("이제 궁합을 볼 수 있어요")
+                .body(me.getNickname() + "님이 생일을 입력했어요 — 우리 사주 궁합을 확인해봐요 💞")
+                .entryDate(null)
+                .refKey("couple")
+                .build());
+    }
+
     /** 설정 사주 행 배지 = 아직 안 본 사주 알림 수. */
     @Transactional(readOnly = true)
     public long countUnreadSaju(Long userId) {

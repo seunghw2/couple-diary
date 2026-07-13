@@ -119,10 +119,10 @@ public class SajuService {
     public CoupleResult couple(Long userId) {
         User me = require(userId);
         User partner = partnerOrNull(userId);
-        if (me.getBirthday() == null) return blocked("생일을 먼저 등록하면 궁합을 볼 수 있어요.");
-        if (partner == null) return blocked("커플 연결 후 궁합을 볼 수 있어요.");
+        if (me.getBirthday() == null) return blocked("생일을 먼저 등록하면 궁합을 볼 수 있어요.", false);
+        if (partner == null) return blocked("커플 연결 후 궁합을 볼 수 있어요.", false);
         if (partner.getBirthday() == null)
-            return blocked(partner.getNickname() + "님이 아직 생일을 입력하지 않았어요. 요청해 볼까요?");
+            return blocked(partner.getNickname() + "님이 아직 생일을 입력하지 않았어요. 요청해 볼까요?", true);
 
         Saju sa = SajuCalculator.compute(me.getBirthday(), me.getBirthTime());
         Saju sb = SajuCalculator.compute(partner.getBirthday(), partner.getBirthTime());
@@ -134,7 +134,7 @@ public class SajuService {
         SajuTemplates.DayMaster meDm = SajuTemplates.dayMaster(sa.dayStem());
         SajuTemplates.DayMaster pDm = SajuTemplates.dayMaster(sb.dayStem());
 
-        return new CoupleResult(true, null, r.percent(), cats, r.totalComment(), r.badges(),
+        return new CoupleResult(true, null, false, r.percent(), cats, r.totalComment(), r.badges(),
                 r.relComment(), r.strongestKey(),
                 meDm.name(), meDm.emoji(),
                 partner.getNickname(), pDm.name(), pDm.emoji(),
@@ -155,8 +155,8 @@ public class SajuService {
         return tips;
     }
 
-    private CoupleResult blocked(String reason) {
-        return new CoupleResult(false, reason, 0, List.of(), null, List.of(), null, null,
+    private CoupleResult blocked(String reason, boolean canRequestBirthday) {
+        return new CoupleResult(false, reason, canRequestBirthday, 0, List.of(), null, List.of(), null, null,
                 null, null, null, null, null, List.of(), false, DISCLAIMER);
     }
 

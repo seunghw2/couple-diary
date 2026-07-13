@@ -32,10 +32,10 @@ public class PushTokenService {
         );
     }
 
-    /** 로그아웃 시 이 기기 토큰 해제(다른 유저에게 잘못 발송되는 것 방지). */
+    /** 로그아웃 시 이 기기 토큰 해제 — 본인 소유 토큰만(소유권 검증). */
     @Transactional
-    public void unregister(String token) {
+    public void unregister(Long userId, String token) {
         if (token == null || token.isBlank()) return;
-        pushTokenRepository.deleteByToken(token.trim());
+        pushTokenRepository.deleteByTokenAndUser_Id(token.trim(), userId);
     }
 }

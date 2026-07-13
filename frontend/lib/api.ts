@@ -660,6 +660,7 @@ export type SajuCoupleCategory = {
 export type SajuCouple = {
   canCompute: boolean;
   blockReason?: string;
+  canRequestBirthday: boolean;
   percent: number;
   categories: SajuCoupleCategory[];
   totalComment: string;

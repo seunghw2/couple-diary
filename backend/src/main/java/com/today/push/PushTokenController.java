@@ -24,6 +24,6 @@ public class PushTokenController {
     @DeleteMapping("/api/push-tokens")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unregister(@RequestBody TokenRequest req) {
-        pushTokenService.unregister(req.token());
+        pushTokenService.unregister(SecurityUtil.currentUserId(), req.token());
     }
 }

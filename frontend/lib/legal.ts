@@ -6,7 +6,7 @@ import type { LegalSection } from '../components/LegalDoc';
  */
 export const LEGAL_OPERATOR = '투데이(love today)';
 export const LEGAL_CONTACT = 'seunghw2@gmail.com';
-export const LEGAL_EFFECTIVE_DATE = '2026년 7월 7일';
+export const LEGAL_EFFECTIVE_DATE = '2026년 7월 14일';
 
 export const PRIVACY_SUBTITLE = `시행일 ${LEGAL_EFFECTIVE_DATE} · 문의 ${LEGAL_CONTACT}`;
 
@@ -31,7 +31,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
       '오늘의 질문 콘텐츠: 질문에 대한 답장(편지), 편지에 남긴 댓글·반응',
       '댓글: 상대의 일기·편지에 남긴 한마디',
       '장소 정보: 일기에 기록한 장소의 이름·별명과 위치 좌표(위도/경도)',
-      '생일(선택), 기념일(선택): 기념일/D-day 표시용',
+      '생년월일(선택), 생시(태어난 시각, 선택), 기념일(선택): 기념일·D-day 표시 및 사주 콘텐츠(운세·궁합) 산출용. 연결된 커플 상대에게 생년월일·생시가 서비스 내에서 공유됩니다.',
       '커플 연결 정보: 두 이용자를 하나의 커플로 연결하기 위한 초대/연결 코드',
     ],
   },
@@ -52,6 +52,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     bullets: [
       '회원 관리: 소셜 로그인을 통한 본인 식별, 계정 관리',
       '서비스 제공: 교환일기·오늘의 질문·댓글·반응, 커플 연결, 지도에 장소 표시, 기념일·D-day 계산',
+      '사주 콘텐츠 제공: 생년월일·생시를 기반으로 한 재미 목적의 사주·운세·커플 궁합 산출(실제 운세와 무관한 오락 콘텐츠)',
       '알림 제공: 오늘의 질문 도착, 상대의 작성/콕 찌르기 등 서비스 관련 알림',
       '서비스 개선 및 안정성: 오류 대응, 품질 개선',
       '고객 문의 대응',

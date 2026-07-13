@@ -171,7 +171,7 @@ public final class SajuCompatibility {
         if (yy >= 0.9 && balance >= 0.7) badges.add(BADGE_PERFECT_YINYANG);
         if (sangbo >= 0.75) badges.add(BADGE_PUZZLE);
         if (ganHap && !destiny) badges.add(BADGE_GANHAP);
-        if (badges.size() > 2) badges = badges.subList(0, 2);
+        if (badges.size() > 2) badges = new ArrayList<>(badges.subList(0, 2));
 
         return new Result(percent, cats, totalComment, badges, relComment, strongest, a.hasHour() && b.hasHour());
     }

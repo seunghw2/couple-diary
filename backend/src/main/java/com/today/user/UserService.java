@@ -63,6 +63,7 @@ public class UserService {
     private final NotificationRepository notificationRepository;
     private final WorldcupResultRepository worldcupResultRepository;
     private final com.today.push.PushTokenRepository pushTokenRepository;
+    private final com.today.notification.NotificationService notificationService;
 
     private static final String[] AVATAR_COLORS =
             {"#FF6B6B", "#4ECDC4", "#FFD93D", "#6C5CE7", "#FF8CC8", "#38B000"};
@@ -208,7 +209,15 @@ public class UserService {
             if (req.birthday().isAfter(java.time.LocalDate.now())) {
                 throw new ApiException(ErrorCode.INVALID_INPUT, "생일은 미래일 수 없어요.");
             }
+            boolean wasEmpty = user.getBirthday() == null;
             user.setBirthday(req.birthday());
+            // 생일을 처음 채우면, 커플 상대에게 '이제 궁합 볼 수 있어요' 알림(요청→충족 루프).
+            if (wasEmpty) {
+                coupleRepository.findByMember(userId).ifPresent(couple -> {
+                    User partner = partnerOf(couple, userId);
+                    if (partner != null) notificationService.onSajuCompatibilityReady(user, partner);
+                });
+            }
         }
         return UserSummary.of(user);
     }

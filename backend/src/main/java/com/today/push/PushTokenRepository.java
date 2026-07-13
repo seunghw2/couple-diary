@@ -13,6 +13,9 @@ public interface PushTokenRepository extends JpaRepository<PushToken, Long> {
 
     void deleteByToken(String token);
 
+    // 로그아웃 등: 본인 소유 토큰만 해제(소유권 검증).
+    void deleteByTokenAndUser_Id(String token, Long userId);
+
     // 계정 삭제 시 이 유저의 모든 토큰 제거.
     void deleteByUser_Id(Long userId);
 }

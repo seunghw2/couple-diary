@@ -15,7 +15,7 @@ const SEEN_KEY = 'saju_seen_me';
 
 /** 문단 안의 키워드를 볼드로 강조(정돈형 가독성). */
 function emphasize(text: string, keywords: string[]) {
-  const kws = keywords.filter(Boolean);
+  const kws = keywords.filter(Boolean).sort((a, b) => b.length - a.length); // 긴 키워드 우선(부분문자열 오분할 방지)
   if (kws.length === 0) return text;
   const escaped = kws.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   const re = new RegExp(`(${escaped.join('|')})`, 'g');
@@ -34,7 +34,8 @@ export default function SajuMe() {
   const router = useRouter();
   const c = useColors();
   const [me, setMe] = useState<SajuPersonal | null>(null);
-  const [intro, setIntro] = useState<boolean | null>(null); // null=확인중, true=첫진입 로딩
+  const [firstVisit, setFirstVisit] = useState<boolean | null>(null); // null=확인중
+  const [introTimeUp, setIntroTimeUp] = useState(false); // 3초 연출 종료
   const [error, setError] = useState(false);
   const [savingHour, setSavingHour] = useState(false);
   // 현재 저장된 생시(지지 시작시각). undefined=모름/미설정. hub에서 seed.
@@ -59,11 +60,11 @@ export default function SajuMe() {
 
   // 최초 진입 시에만 신비로운 로딩 연출(3초).
   useEffect(() => {
-    AsyncStorage.getItem(SEEN_KEY).then((v) => setIntro(!v));
+    AsyncStorage.getItem(SEEN_KEY).then((v) => setFirstVisit(!v));
   }, []);
   const finishIntro = useCallback(async () => {
     await AsyncStorage.setItem(SEEN_KEY, '1');
-    setIntro(false);
+    setIntroTimeUp(true);
   }, []);
 
   async function pickHour(hour: number | null) {
@@ -80,8 +81,9 @@ export default function SajuMe() {
     }
   }
 
-  if (intro === null) return <View style={styles.safe} />;
-  if (intro) {
+  if (firstVisit === null) return <View style={styles.safe} />;
+  // 첫 진입: 3초 연출 + 데이터 준비 둘 다 끝나야 콘텐츠로(이중 스피너 방지).
+  if (firstVisit && (!introTimeUp || (me == null && !error))) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <SajuLoading label="내 사주를 푸는 중" onDone={finishIntro} />

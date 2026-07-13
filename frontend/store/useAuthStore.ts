@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import { ApiException, authApi, PartnerSummary, UserSummary } from '../lib/api';
+import { ApiException, authApi, PartnerSummary, pushApi, UserSummary } from '../lib/api';
 import { loginWithApple } from '../lib/appleAuth';
 import { loginWithKakao } from '../lib/kakaoAuth';
+import { getExpoPushToken } from '../lib/push';
 import { tokenStore } from '../lib/tokenStore';
 // 순환참조지만 두 스토어 모두 useAuthStore를 런타임(함수 내부)에서만 쓰므로 안전.
 import { useCoupleStore } from './useCoupleStore';
@@ -109,6 +110,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
+    // 이 기기 푸시 토큰 해제(로그아웃 후에도 옛 유저에게 알림 가는 것 방지). best-effort.
+    try {
+      const token = await getExpoPushToken();
+      if (token) await pushApi.unregister(token);
+    } catch {
+      /* 무시 — 실패해도 로그아웃은 진행 */
+    }
     await tokenStore.clear();
     set({ status: 'guest', user: null, coupled: false, partner: null });
     // 커플·알림 스토어도 즉시 초기화(가드 이펙트 타이밍에 의존하지 않게).

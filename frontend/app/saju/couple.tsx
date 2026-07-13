@@ -25,7 +25,8 @@ export default function SajuCouplePage() {
   const [data, setData] = useState<SajuCouple | null>(null);
   const [error, setError] = useState(false);
   const [requesting, setRequesting] = useState(false);
-  const [intro, setIntro] = useState<boolean | null>(null);
+  const [firstVisit, setFirstVisit] = useState<boolean | null>(null);
+  const [introTimeUp, setIntroTimeUp] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -43,11 +44,11 @@ export default function SajuCouplePage() {
   );
 
   useEffect(() => {
-    AsyncStorage.getItem(SEEN_KEY).then((v) => setIntro(!v));
+    AsyncStorage.getItem(SEEN_KEY).then((v) => setFirstVisit(!v));
   }, []);
   const finishIntro = useCallback(async () => {
     await AsyncStorage.setItem(SEEN_KEY, '1');
-    setIntro(false);
+    setIntroTimeUp(true);
   }, []);
 
   async function requestBirthday() {
@@ -74,8 +75,8 @@ export default function SajuCouplePage() {
     }
   }
 
-  if (intro === null) return <View style={styles.safe} />;
-  if (intro) {
+  if (firstVisit === null) return <View style={styles.safe} />;
+  if (firstVisit && (!introTimeUp || (data == null && !error))) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <SajuLoading label="우리 궁합을 푸는 중" onDone={finishIntro} />
@@ -102,7 +103,7 @@ export default function SajuCouplePage() {
           <Text style={styles.bigEmoji}>💌</Text>
           <Text style={styles.needTitle}>아직 궁합을 볼 수 없어요</Text>
           <Text style={styles.needSub}>{data!.blockReason ?? '조건이 갖춰지면 궁합을 볼 수 있어요.'}</Text>
-          {data!.blockReason?.includes('상대') ? (
+          {data!.canRequestBirthday ? (
             <Button
               label="상대에게 생일 요청"
               icon="paper-plane-outline"
