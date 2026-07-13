@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#fff; font-family:-apple-system,"Apple SD Gothic Neo",system-ui,sans-serif; padding:44px; }
+  h1 { font-size:30px; color:#2a2320; margin-bottom:4px; }
+  .sub { font-size:16px; color:#8a807a; margin-bottom:30px; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:36px 30px; width:1140px; }
+  .cell { display:flex; flex-direction:column; align-items:center; }
+  .icon { width:300px; height:300px; border-radius:70px; box-shadow:0 14px 32px rgba(180,90,60,0.20); overflow:hidden; }
+  .cap { margin-top:15px; font-size:18px; font-weight:700; color:#2a2320; }
+  .desc { margin-top:4px; font-size:14px; color:#9a908a; text-align:center; max-width:280px; line-height:1.4; }
+  .num { display:inline-block; width:24px;height:24px;line-height:24px;text-align:center;background:#FF7A5C;color:#fff;border-radius:50%;font-size:13px;font-weight:800;margin-right:7px;vertical-align:middle;}
+</style>
+</head>
+<body>
+<h1>love today · 책 + 하트 5종</h1>
+<div class="sub">교환일기 감성 · 서로 다른 무드</div>
+<div class="grid" id="grid"></div>
+
+<script>
+const HEART="M50,86 C12,55 2,32 22,16 C37,5 50,19 50,21 C50,19 63,5 78,16 C98,32 88,55 50,86 Z";
+const BOOK="M180,150 C150,128 108,126 82,140 v128 c26,-14 68,-12 98,10 c30,-22 72,-24 98,-10 v-128 c-26,-14 -68,-12 -98,10 Z";
+function heart(x,y,s,fill,stroke,sw){ return `<g transform="translate(${x},${y}) scale(${s})"><path d="${HEART}" fill="${fill||'none'}" ${stroke?`stroke="${stroke}" stroke-width="${sw||6}"`:''} stroke-linejoin="round" stroke-linecap="round"/></g>`; }
+
+const icons=[
+  { cap:"펼친 책 + 하트", desc:"위에 하트가 뜬 다이어리 · 정통", raw:`
+    <rect width="360" height="360" fill="#FDF4EF"/>
+    <g transform="translate(0,16)" filter="url(#soft)"><path d="${BOOK}" fill="#FFFFFF"/>
+      <path d="M180,150 v138" stroke="#FFD3C4" stroke-width="6"/>
+      <path d="M102,170 h56 M102,192 h56 M202,170 h56 M202,192 h56" stroke="#FFCBB9" stroke-width="6" stroke-linecap="round"/></g>
+    ${heart(132,42,1.0,"url(#pinkheart)")}`},
+  { cap:"하트 페이지", desc:"펼친 지면에 하트가 크게 · 임팩트", raw:`
+    <rect width="360" height="360" fill="#FDF4EF"/>
+    <g filter="url(#soft)"><path d="${BOOK}" fill="#FFFFFF"/>
+      <path d="M180,150 v138" stroke="#FFE0D5" stroke-width="6"/></g>
+    ${heart(139,150,0.82,"url(#pinkheart)")}`},
+  { cap:"하트 책갈피", desc:"코랄 배경 · 하트 리본이 흘러내림", raw:`
+    <rect width="360" height="360" fill="url(#coral)"/>
+    <g filter="url(#soft)"><path d="${BOOK}" fill="#FFFFFF"/>
+      <path d="M104,174 h56 M104,196 h56 M202,174 h56 M202,196 h56" stroke="#FFD3C4" stroke-width="6" stroke-linecap="round"/></g>
+    <path d="M168,150 h24 v122 l-12,-16 l-12,16 Z" fill="#FF5A6E"/>
+    ${heart(150,86,0.5,"#FF5A6E")}`},
+  { cap:"잠긴 다이어리", desc:"덮인 표지 + 하트 잠금 · 비밀일기", raw:`
+    <rect width="360" height="360" fill="#FBEFE9"/>
+    <g filter="url(#soft)">
+      <rect x="92" y="66" width="176" height="222" rx="20" fill="url(#coral)"/>
+      <rect x="92" y="66" width="26" height="222" rx="12" fill="#E0553B"/>
+      <rect x="252" y="80" width="14" height="196" rx="6" fill="#FFF3EC"/>
+      <rect x="150" y="66" width="7" height="222" fill="rgba(120,30,10,0.16)"/></g>
+    ${heart(150,138,0.6,"#FFFFFF")}`},
+  { cap:"하트 모양 책", desc:"펼친 책이 하트를 이룸 · 아이덴티티", raw:`
+    <rect width="360" height="360" fill="#FDF4EF"/>
+    ${heart(85,90,1.92,"none","url(#pinkheart)",14)}
+    <path d="M180,138 v112" stroke="url(#pinkheart)" stroke-width="9" stroke-linecap="round"/>
+    <path d="M150,170 q-16,4 -26,14 M210,170 q16,4 26,14 M150,196 q-14,4 -24,12 M210,196 q14,4 24,12" stroke="url(#pinkheart)" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.55"/>`},
+];
+
+const grid=document.getElementById('grid');
+icons.forEach((it,i)=>{ const c=document.createElement('div'); c.className='cell';
+  const s=`<svg viewBox="0 0 360 360" width="300" height="300" xmlns="http://www.w3.org/2000/svg"><defs>
+    <linearGradient id="coral" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFA184"/><stop offset="1" stop-color="#F0654A"/></linearGradient>
+    <linearGradient id="pinkheart" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8E72"/><stop offset="1" stop-color="#FF5A7A"/></linearGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#B0402A" flood-opacity="0.20"/></filter></defs>${it.raw}</svg>`;
+  c.innerHTML=`<div class="icon">${s}</div><div class="cap"><span class="num">${i+1}</span>${it.cap}</div><div class="desc">${it.desc}</div>`;
+  grid.appendChild(c); });
+</script>
+</body>
+</html>
