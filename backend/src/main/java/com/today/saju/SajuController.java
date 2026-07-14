@@ -45,10 +45,16 @@ public class SajuController {
         return sajuService.partner(SecurityUtil.currentUserId());
     }
 
-    /** 오늘의 운세. */
+    /** 오늘의 운세(배너용 요약). */
     @GetMapping("/daily")
     public DailyView daily() {
         return sajuService.daily(SecurityUtil.currentUserId());
+    }
+
+    /** 오늘의 운세(상세 — 점수·항목·행운·커플). */
+    @GetMapping("/daily/detail")
+    public SajuDailyFortune.Result dailyDetail() {
+        return sajuService.dailyDetail(SecurityUtil.currentUserId());
     }
 
     /** 생시(태어난 시각) 저장. hour=null이면 '모름'. */

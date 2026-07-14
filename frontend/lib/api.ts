@@ -686,10 +686,35 @@ export type SajuCouple = {
   disclaimer: string;
 };
 
+/** 오늘의 운세 항목. */
+export type SajuDailyItem = {
+  key: string;
+  name: string;
+  icon: string;
+  score: number; // 60~99
+  comment: string;
+};
+
+/** GET /api/saju/daily/detail — 오늘의 운세 상세. */
+export type SajuDailyDetail = {
+  hasBirthday: boolean;
+  totalScore: number;
+  totalLine: string;
+  items: SajuDailyItem[];
+  colorName: string;
+  colorHex: string;
+  luckyItem: string;
+  keyword: string;
+  luckyNumber: string;
+  coupleGood: string;
+  disclaimer: string;
+};
+
 export const sajuApi = {
   hub: () => api.get<SajuHub>('/api/saju/hub'),
   me: () => api.get<SajuPersonal>('/api/saju/me'),
   partner: () => api.get<SajuPersonal>('/api/saju/partner'),
+  dailyDetail: () => api.get<SajuDailyDetail>('/api/saju/daily/detail'),
   daily: () => api.get<SajuDaily>('/api/saju/daily'),
   /** 생시 설정. null=모름. 204. */
   setBirthTime: (hour: number | null) => api.put<void>('/api/saju/birth-time', { hour }),

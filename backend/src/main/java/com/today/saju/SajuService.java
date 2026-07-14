@@ -105,6 +105,16 @@ public class SajuService {
         return new DailyView(d.fortune(), d.colorName(), d.colorHex(), d.keyword(), d.coupleTip());
     }
 
+    // ───────── 오늘의 운세(상세) ─────────
+    @Transactional(readOnly = true)
+    public SajuDailyFortune.Result dailyDetail(Long userId) {
+        User u = require(userId);
+        boolean has = u.getBirthday() != null;
+        int myStem = has ? SajuCalculator.compute(u.getBirthday(), u.getBirthTime()).dayStem() : 0;
+        LocalDate today = LocalDate.now(SajuCalculator.KST);
+        return SajuDailyFortune.compute(myStem, has, SajuCalculator.compute(today, null), today);
+    }
+
     // ───────── 생시 저장 ─────────
     @Transactional
     public void setBirthTime(Long userId, Integer hour) {

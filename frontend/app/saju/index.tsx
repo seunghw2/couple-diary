@@ -196,15 +196,19 @@ export default function SajuHome() {
             </Pressable>
 
             {daily ? (
-              <View style={[styles.banner, { backgroundColor: c.coralSofter }]}>
+              <Pressable
+                onPress={() => router.push('/saju/today')}
+                style={({ pressed }) => [styles.banner, { backgroundColor: c.coralSofter }, pressed && { opacity: 0.85 }]}
+              >
                 <View style={styles.bannerHead}>
-                  <Text style={styles.bannerTitle}>오늘의 기운</Text>
+                  <Text style={styles.bannerTitle}>오늘의 운세</Text>
                   <View style={[styles.colorDot, { backgroundColor: daily.colorHex }]} />
                   <Text style={styles.bannerColor}>{daily.colorName}</Text>
+                  <Icon name="chevron-forward" size={18} color={colors.subText} />
                 </View>
                 <Text style={styles.bannerFortune}>{daily.fortune}</Text>
-                <Text style={styles.bannerKeyword}>키워드 · {daily.keyword}</Text>
-              </View>
+                <Text style={styles.bannerKeyword}>자세히 보기 · 점수·항목운·행운</Text>
+              </Pressable>
             ) : null}
           </>
         )}
