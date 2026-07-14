@@ -605,6 +605,8 @@ export type SajuHub = {
   partnerName?: string;
   partnerBirthday?: string; // YYYY-MM-DD
   partnerBirthTime?: number;
+  myEmoji?: string; // 일간 이모지(생일 없으면 생략)
+  partnerEmoji?: string;
 };
 
 /** 오늘의 기운. */
@@ -629,6 +631,7 @@ export type SajuOhaeng = {
 /** GET /api/saju/me — 내 사주. hasBirthday=false면 나머지 비어있을 수 있음. */
 export type SajuPersonal = {
   hasBirthday: boolean;
+  ownerName?: string; // 이 사주의 주인 닉네임(제목·해설 주어용)
   dayMasterName: string;
   dayMasterEmoji: string;
   dayMasterKo: string;

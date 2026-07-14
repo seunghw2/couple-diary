@@ -1,9 +1,15 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SajuPersonal } from '../lib/api';
-import { HOUR_OPTIONS } from '../lib/sajuHours';
 import { OhaengBar } from './OhaengBar';
 import { Collapsible } from './Collapsible';
 import { colors, font, radius, shadow, spacing, useColors } from '../theme/theme';
+
+const PILLAR_LABELS = ['년주', '월주', '일주', '시주'];
+const ORIGIN_EXPLAIN =
+  '태어난 연·월·일·시를 각각 두 글자로 나타낸 네 기둥이에요. 각 기둥의 윗글자를 천간, 아랫글자를 지지라고 해요. ' +
+  '그중 일주의 윗글자(일간)가 바로 나를 대표하고, 나머지 기둥은 나를 둘러싼 기운을 보여줘요. ' +
+  '흐름으로는 년주=뿌리·초년, 월주=성장·사회, 일주=나와 짝, 시주=열매·말년으로도 읽어요. ' +
+  '시주는 태어난 시각으로 채워지는 기둥이라, 생시를 넣으면 네 번째 기둥까지 완성돼요.';
 
 /** 문단 안의 키워드를 볼드로 강조(정돈형 가독성). */
 function emphasize(text: string, keywords: string[]) {
@@ -22,19 +28,11 @@ function emphasize(text: string, keywords: string[]) {
   );
 }
 
-type HourEdit = { selected: number | undefined; onPick: (h: number | null) => void; saving: boolean };
-
-/** 개인 사주 본문(내 사주 / 연인 사주 공용). hasBirthday=true 데이터 전제. */
-export function PersonalSaju({
-  data,
-  hourEdit,
-  showDaily = true,
-}: {
-  data: SajuPersonal;
-  hourEdit?: HourEdit; // 있으면 생시 편집 가능(내 사주), 없으면 원국만(연인)
-  showDaily?: boolean;
-}) {
+/** 개인 사주 본문(내 사주 / 연인 사주 공용, 읽기 전용). hasBirthday=true 데이터 전제. */
+export function PersonalSaju({ data, showDaily = true }: { data: SajuPersonal; showDaily?: boolean }) {
   const c = useColors();
+  const subject = !data.ownerName ? '이 사람' : data.ownerName.endsWith('님') ? data.ownerName : `${data.ownerName}님`;
+
   return (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
       {/* 일간 캐릭터 카드 */}
@@ -59,7 +57,7 @@ export function PersonalSaju({
 
       {/* 오행으로 본 나 */}
       <View style={[styles.card, shadow]}>
-        <Text style={styles.cardHead}>오행으로 본 나</Text>
+        <Text style={styles.cardHead}>오행으로 본 {subject}</Text>
         <OhaengBar items={data.ohaeng} />
         {data.ohaengInsight ? (
           <View style={[styles.insightBox, { backgroundColor: c.coralSofter }]}>
@@ -98,7 +96,7 @@ export function PersonalSaju({
         </View>
       ) : null}
 
-      {/* 사주 자세히 — 원국 (+ 내 사주면 생시 편집) */}
+      {/* 사주 자세히 — 원국 + 뜻 설명 (읽기 전용) */}
       <View style={[styles.card, shadow]}>
         <Collapsible title="사주 자세히 보기">
           <Text style={styles.innerHead}>사주 원국</Text>
@@ -106,40 +104,16 @@ export function PersonalSaju({
             {data.pillars.map((p, i) => (
               <View key={i} style={styles.pillar}>
                 <Text style={styles.pillarText}>{p}</Text>
+                <Text style={styles.pillarLabel}>{PILLAR_LABELS[i]}</Text>
               </View>
             ))}
           </View>
           {data.zodiac ? <Text style={styles.zodiac}>띠 · {data.zodiac}</Text> : null}
-
-          {hourEdit ? (
-            <>
-              <Text style={[styles.innerHead, { marginTop: spacing.lg }]}>태어난 시(생시)</Text>
-              <Text style={styles.hint}>생시를 넣으면 시주까지 더 정확해요.</Text>
-              <View style={styles.hourGrid}>
-                {HOUR_OPTIONS.map((o) => {
-                  const active = hourEdit.selected === o.hour;
-                  return (
-                    <Pressable
-                      key={o.hour}
-                      disabled={hourEdit.saving}
-                      onPress={() => hourEdit.onPick(o.hour)}
-                      style={[styles.hourCell, active && { backgroundColor: c.primary, borderColor: c.primary }]}
-                    >
-                      <Text style={[styles.hourLabel, active && styles.hourLabelActive]}>{o.label}시</Text>
-                      <Text style={[styles.hourRange, active && styles.hourLabelActive]}>{o.range}</Text>
-                    </Pressable>
-                  );
-                })}
-                <Pressable
-                  disabled={hourEdit.saving}
-                  onPress={() => hourEdit.onPick(null)}
-                  style={[styles.hourCell, hourEdit.selected === undefined && { backgroundColor: c.primary, borderColor: c.primary }]}
-                >
-                  <Text style={[styles.hourLabel, hourEdit.selected === undefined && styles.hourLabelActive]}>모름</Text>
-                </Pressable>
-              </View>
-            </>
-          ) : null}
+          <View style={styles.explainWrap}>
+            <Collapsible title="사주 원국이란?">
+              <Text style={styles.explain}>{ORIGIN_EXPLAIN}</Text>
+            </Collapsible>
+          </View>
         </Collapsible>
       </View>
 
@@ -199,21 +173,10 @@ const styles = StyleSheet.create({
   pillarRow: { flexDirection: 'row', gap: spacing.sm },
   pillar: { flex: 1, backgroundColor: colors.bg, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
   pillarText: { ...font.h2, fontSize: 18 },
+  pillarLabel: { ...font.caption, color: colors.subText, marginTop: 4 },
   zodiac: { ...font.caption, color: colors.subText, marginTop: spacing.sm },
-
-  hourGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
-  hourCell: {
-    width: '22%',
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  hourLabel: { ...font.label, color: colors.text },
-  hourRange: { ...font.caption, color: colors.subText, marginTop: 1 },
-  hourLabelActive: { color: colors.white },
+  explainWrap: { marginTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.md },
+  explain: { ...font.body, color: colors.subText, lineHeight: 23 },
 
   dailyHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.sm },
   colorDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: colors.border },

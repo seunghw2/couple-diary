@@ -131,15 +131,15 @@ public final class SajuTemplates {
         "시원한 파랑·남색이나 물가 산책, 충분한 수분",
     };
 
-    /** 원국 오행 분포로 강·약 기운을 짚고 부드러운 보완법을 엮은 해설. */
-    public static String ohaengInsight(int[] ec) {
+    /** 원국 오행 분포로 강·약 기운을 짚고 부드러운 보완법을 엮은 해설. subject=주어(예: "요정체리님"). */
+    public static String ohaengInsight(int[] ec, String subject) {
         int strong = 0;
         for (int e = 1; e < 5; e++) if (ec[e] > ec[strong]) strong = e;
         List<Integer> zeros = new ArrayList<>();
         for (int e = 0; e < 5; e++) if (ec[e] == 0) zeros.add(e);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("내 사주엔 ").append(EL_NM[strong]).append(" 기운이 가장 넉넉하게 흘러요. ").append(EL_STRONG[strong]);
+        sb.append(subject).append(" 사주엔 ").append(EL_NM[strong]).append(" 기운이 가장 넉넉하게 흘러요. ").append(EL_STRONG[strong]);
         if (!zeros.isEmpty()) {
             int lack = zeros.get(0);
             String names = EL_NM[lack];

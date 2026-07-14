@@ -55,7 +55,7 @@ public class SajuService {
     }
 
     private PersonalResult emptyPersonal() {
-        return new PersonalResult(false, null, null, null, null, null, null, null, List.of(), null,
+        return new PersonalResult(false, null, null, null, null, null, null, null, null, List.of(), null,
                 List.of(), List.of(), null, List.of(), List.of(), null, null, false, DISCLAIMER);
     }
 
@@ -84,12 +84,15 @@ public class SajuService {
         String dayKo = SajuCalculator.STEM_KO[s.dayStem()] + SajuCalculator.ELEMENT_KO[el];   // 예: 갑목
         String dayHanja = SajuCalculator.STEM_HANJA[s.dayStem()] + SajuCalculator.ELEMENT_HANJA[el]; // 예: 甲木
 
-        return new PersonalResult(true,
+        String nick = u.getNickname();
+        String subj = (nick == null || nick.isBlank()) ? "이 사람" : (nick.endsWith("님") ? nick : nick + "님");
+
+        return new PersonalResult(true, nick,
                 dm.name(), dm.emoji(), dayKo, dayHanja,
                 dm.oneLine(), SajuTemplates.twist(s.dayStem()), dm.desc(), List.of(dm.keywords()), dm.growth(),
                 List.of(SajuTemplates.strengths(s.dayStem())), List.of(SajuTemplates.growthPoints(s.dayStem())),
                 SajuCalculator.BRANCH_ANIMAL[s.zodiac()],
-                pillars, ohaeng, SajuTemplates.ohaengInsight(ec), daily, s.hasHour(), DISCLAIMER);
+                pillars, ohaeng, SajuTemplates.ohaengInsight(ec, subj), daily, s.hasHour(), DISCLAIMER);
     }
 
     // ───────── 오늘의 운세 ─────────
@@ -121,7 +124,15 @@ public class SajuService {
                 me.getNickname(), me.getBirthday() != null ? me.getBirthday().toString() : null, me.getBirthTime(),
                 partner != null ? partner.getNickname() : null,
                 partnerHasBd ? partner.getBirthday().toString() : null,
-                partner != null ? partner.getBirthTime() : null);
+                partner != null ? partner.getBirthTime() : null,
+                me.getBirthday() != null ? dayEmoji(me) : null,
+                partnerHasBd ? dayEmoji(partner) : null);
+    }
+
+    /** 일간 이모지(허브 아바타용). */
+    private String dayEmoji(User u) {
+        int stem = SajuCalculator.compute(u.getBirthday(), u.getBirthTime()).dayStem();
+        return SajuTemplates.dayMaster(stem).emoji();
     }
 
     // ───────── 커플 궁합 ─────────

@@ -7,7 +7,6 @@ import { SajuPersonal, sajuApi } from '../../lib/api';
 import { Icon, Button } from '../../components/ui';
 import { SajuLoading } from '../../components/SajuLoading';
 import { PersonalSaju } from '../../components/PersonalSaju';
-import { showToast } from '../../lib/dialog';
 import { colors, font, spacing, useColors } from '../../theme/theme';
 
 const SEEN_KEY = 'saju_seen_me';
@@ -19,15 +18,11 @@ export default function SajuMe() {
   const [firstVisit, setFirstVisit] = useState<boolean | null>(null);
   const [introTimeUp, setIntroTimeUp] = useState(false);
   const [error, setError] = useState(false);
-  const [savingHour, setSavingHour] = useState(false);
-  const [selectedHour, setSelectedHour] = useState<number | undefined>(undefined);
 
   const load = useCallback(async () => {
     try {
       setError(false);
-      const [m, hub] = await Promise.all([sajuApi.me(), sajuApi.hub().catch(() => null)]);
-      setMe(m);
-      if (hub) setSelectedHour(hub.myBirthTime);
+      setMe(await sajuApi.me());
     } catch {
       setError(true);
     }
@@ -46,20 +41,6 @@ export default function SajuMe() {
     await AsyncStorage.setItem(SEEN_KEY, '1');
     setIntroTimeUp(true);
   }, []);
-
-  async function pickHour(hour: number | null) {
-    if (savingHour) return;
-    setSavingHour(true);
-    setSelectedHour(hour ?? undefined);
-    try {
-      await sajuApi.setBirthTime(hour);
-      await load();
-    } catch {
-      showToast('생시 저장에 실패했어요');
-    } finally {
-      setSavingHour(false);
-    }
-  }
 
   if (firstVisit === null) return <View style={styles.safe} />;
   if (firstVisit && (!introTimeUp || (me == null && !error))) {
@@ -92,7 +73,7 @@ export default function SajuMe() {
           <Button label="생일 등록하러 가기" onPress={() => router.push('/account')} style={{ marginTop: spacing.lg }} />
         </View>
       ) : (
-        <PersonalSaju data={me!} hourEdit={{ selected: selectedHour, onPick: pickHour, saving: savingHour }} showDaily />
+        <PersonalSaju data={me!} showDaily />
       )}
     </SafeAreaView>
   );

@@ -12,6 +12,7 @@ public class SajuDtos {
     /** 개인 사주 결과. */
     public record PersonalResult(
             boolean hasBirthday,
+            String ownerName,   // 이 사주의 주인 닉네임(제목·해설 주어용)
             String dayMasterName, String dayMasterEmoji, String dayMasterKo, String dayMasterHanja,
             String oneLine, String twist, String desc, List<String> keywords, String growth,
             List<String> strengths, List<String> growthPoints,
@@ -52,7 +53,8 @@ public class SajuDtos {
             boolean hasPartner,
             boolean hasPartnerBirthday,
             String myName, String myBirthday, Integer myBirthTime,
-            String partnerName, String partnerBirthday, Integer partnerBirthTime
+            String partnerName, String partnerBirthday, Integer partnerBirthTime,
+            String myEmoji, String partnerEmoji   // 각자 일간 이모지(생일 없으면 null)
     ) {}
 
     public record BirthTimeRequest(Integer hour) {}

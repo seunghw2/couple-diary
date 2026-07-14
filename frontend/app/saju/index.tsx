@@ -106,39 +106,52 @@ export default function SajuHome() {
           <Text style={styles.empty}>불러오지 못했어요.</Text>
         ) : (
           <>
-            {/* 커플 정보 카드 */}
+            {/* 커플 정보 카드 (하트 커플 헤더) */}
             <View style={[styles.info, shadow]}>
-              {/* 나 (편집 가능) */}
-              <View style={styles.infoHead}>
-                <Text style={[styles.who, { color: c.primary }]}>나</Text>
-                <Text style={styles.name}>{hub?.myName ?? '나'}</Text>
-                {saving ? <ActivityIndicator size="small" color={c.primary} /> : null}
+              <View style={styles.cTop}>
+                <View style={styles.cPerson}>
+                  <View style={[styles.cAv, { backgroundColor: c.coralSofter }]}>
+                    <Text style={styles.cAvText}>{hub?.myEmoji ?? '🙂'}</Text>
+                  </View>
+                  <Text style={styles.cNm}>{hub?.myName ?? '나'}</Text>
+                  <Text style={styles.cRl}>나</Text>
+                </View>
+                <Text style={[styles.heart, { color: c.primary }]}>♥</Text>
+                <View style={styles.cPerson}>
+                  <View style={[styles.cAv, { backgroundColor: colors.partnerSoft }]}>
+                    <Text style={styles.cAvText}>{hub?.partnerEmoji ?? '🙂'}</Text>
+                  </View>
+                  <Text style={styles.cNm}>{hub?.partnerName ?? '미연결'}</Text>
+                  <Text style={styles.cRl}>연인</Text>
+                </View>
               </View>
-              <Pressable onPress={() => setShowDate(true)} style={({ pressed }) => [styles.line, pressed && styles.pressed]}>
-                <Text style={styles.lineLabel}>생년월일</Text>
-                <Text style={styles.lineValue}>{fmtDate(hub?.myBirthday)}</Text>
-                <Icon name="pencil" size={15} color={c.primary} />
-              </Pressable>
-              <Pressable onPress={() => setShowHour(true)} style={({ pressed }) => [styles.line, pressed && styles.pressed]}>
-                <Text style={styles.lineLabel}>태어난 시각</Text>
-                <Text style={styles.lineValue}>{hourLabel(hub?.myBirthTime)}</Text>
-                <Icon name="pencil" size={15} color={c.primary} />
-              </Pressable>
 
-              <View style={styles.divider} />
-
-              {/* 연인 (표시만) */}
-              <View style={styles.infoHead}>
-                <Text style={[styles.who, { color: colors.subText }]}>연인</Text>
-                <Text style={styles.name}>{hub?.partnerName ?? '미연결'}</Text>
-              </View>
-              <View style={styles.line}>
-                <Text style={styles.lineLabel}>생년월일</Text>
-                <Text style={[styles.lineValue, styles.readonly]}>{fmtDate(hub?.partnerBirthday)}</Text>
-              </View>
-              <View style={styles.line}>
-                <Text style={styles.lineLabel}>태어난 시각</Text>
-                <Text style={[styles.lineValue, styles.readonly]}>{hourLabel(hub?.partnerBirthTime)}</Text>
+              <View style={styles.cInfoRow}>
+                {/* 나 (편집 가능) */}
+                <View style={styles.cBox}>
+                  <Pressable onPress={() => setShowDate(true)} style={({ pressed }) => [styles.cLine, pressed && styles.pressed]}>
+                    <Text style={styles.cK}>생일</Text>
+                    <Text style={styles.cV}>{fmtDate(hub?.myBirthday)}</Text>
+                    <Icon name="pencil" size={13} color={c.primary} />
+                  </Pressable>
+                  <Pressable onPress={() => setShowHour(true)} style={({ pressed }) => [styles.cLine, pressed && styles.pressed]}>
+                    <Text style={styles.cK}>생시</Text>
+                    <Text style={styles.cV}>{hourLabel(hub?.myBirthTime)}</Text>
+                    <Icon name="pencil" size={13} color={c.primary} />
+                  </Pressable>
+                  {saving ? <ActivityIndicator size="small" color={c.primary} style={{ marginTop: 4 }} /> : null}
+                </View>
+                {/* 연인 (표시만) */}
+                <View style={styles.cBox}>
+                  <View style={styles.cLine}>
+                    <Text style={styles.cK}>생일</Text>
+                    <Text style={[styles.cV, styles.readonly]}>{fmtDate(hub?.partnerBirthday)}</Text>
+                  </View>
+                  <View style={styles.cLine}>
+                    <Text style={styles.cK}>생시</Text>
+                    <Text style={[styles.cV, styles.readonly]}>{hourLabel(hub?.partnerBirthTime)}</Text>
+                  </View>
+                </View>
               </View>
             </View>
 
@@ -251,15 +264,22 @@ const styles = StyleSheet.create({
   sub: { ...font.caption, color: colors.subText, marginBottom: spacing.lg },
 
   info: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.lg },
-  infoHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
-  who: { ...font.label, fontWeight: '800', width: 34 },
-  name: { ...font.title, fontWeight: '700', flex: 1 },
-  line: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 7 },
-  lineLabel: { ...font.caption, color: colors.subText, width: 74 },
-  lineValue: { ...font.body, color: colors.text, flex: 1 },
   readonly: { color: colors.subText },
   pressed: { opacity: 0.55 },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: spacing.md },
+
+  // 하트 커플 헤더
+  cTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.lg, marginBottom: spacing.xs },
+  cPerson: { alignItems: 'center', width: 110 },
+  cAv: { width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
+  cAvText: { fontSize: 28 },
+  cNm: { ...font.title, fontWeight: '800', marginTop: 7, textAlign: 'center' },
+  cRl: { ...font.caption, color: colors.subText, marginTop: 1 },
+  heart: { fontSize: 22, marginTop: -18 },
+  cInfoRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md },
+  cBox: { flex: 1, backgroundColor: colors.bg, borderRadius: radius.md, padding: spacing.md, gap: 4 },
+  cLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  cK: { ...font.caption, color: colors.subText, width: 30 },
+  cV: { ...font.body, fontWeight: '700', color: colors.text, flex: 1, fontSize: 14 },
 
   card: {
     flexDirection: 'row',
