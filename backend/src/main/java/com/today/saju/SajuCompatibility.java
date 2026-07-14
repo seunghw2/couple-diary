@@ -200,7 +200,7 @@ public final class SajuCompatibility {
 
         // 총평: 최고 칭찬 + 최저 '차이'(성장 프레임)를 한 문장으로 엮는다. 격차 작으면 균형형.
         String totalComment = (best - worst < 12 || strongest.equals(weakest))
-                ? clean(pick(TOTAL_75, seed, 91))
+                ? clean(SajuUtil.pick(TOTAL_75, seed, 91))
                 : bestClause(strongest) + " " + worstClause(weakest);
 
         // 대표 한줄(히어로): 가장 희귀·강한 signal 하나.
@@ -209,10 +209,10 @@ public final class SajuCompatibility {
         else if (chDay) relComment = "다툰 뒤 푸는 속도만 맞추면 회복이 빠른 커플이에요.";
         else if (sangbo >= 0.6) relComment = "한 명이 비면 한 명이 채우는, 손발 맞는 조합이에요.";
         else if (combined[1] < 2) relComment = "다 챙기면서 '좋아해'만 아끼는, 표현이 숙제인 사이예요.";
-        else if (sangbo >= 0.5) relComment = clean(pick(REL_SANGBO, seed, 41));
-        else if (sameDay) relComment = clean(pick(REL_SAME, seed, 41));
-        else if (shengDay) relComment = clean(pick(REL_SHENG, seed, 41));
-        else relComment = clean(pick(REL_KE, seed, 41));
+        else if (sangbo >= 0.5) relComment = clean(SajuUtil.pick(REL_SANGBO, seed, 41));
+        else if (sameDay) relComment = clean(SajuUtil.pick(REL_SAME, seed, 41));
+        else if (shengDay) relComment = clean(SajuUtil.pick(REL_SHENG, seed, 41));
+        else relComment = clean(SajuUtil.pick(REL_KE, seed, 41));
 
         // 딱 3줄 해석.
         List<String> summary = List.of(strongLine(strongest), weakLine(weakest), bridgeLine(percent));
@@ -245,7 +245,7 @@ public final class SajuCompatibility {
 
     private static CategoryScore cat(String key, String name, int score, String[][] templates, long seed, String sig) {
         int g = grade(score);
-        String base = clean(pick(templates[g], seed, key.hashCode()));
+        String base = clean(SajuUtil.pick(templates[g], seed, key.hashCode()));
         String comment = (sig == null || sig.isBlank()) ? base : base + " " + sig;
         return new CategoryScore(key, name, score, g, comment);
     }
@@ -352,14 +352,9 @@ public final class SajuCompatibility {
     }
 
     private static long seed(LocalDate a, LocalDate b) {
-        long ya = a.getYear() * 10000L + a.getMonthValue() * 100L + a.getDayOfMonth();
-        long yb = b.getYear() * 10000L + b.getMonthValue() * 100L + b.getDayOfMonth();
+        long ya = SajuUtil.ymd(a), yb = SajuUtil.ymd(b);
         long lo = Math.min(ya, yb), hi = Math.max(ya, yb);
         return lo * 100000000L + hi;
-    }
-
-    private static String pick(String[] arr, long seed, long salt) {
-        return arr[(int) Math.floorMod(seed + salt, arr.length)];
     }
 
     // ───────── 문구 (docs/saju/03) ─────────
@@ -418,37 +413,9 @@ public final class SajuCompatibility {
          "한쪽이 넘칠 때 다른 쪽이 잡아주는 완벽한 밸런스를 지닌 두 분이에요. 서로의 기운이 균형을 이뤄, 함께하면 자연스럽게 안정과 성장이 동시에 따라와요. 서로를 키워주는 커플이랍니다. 🌿",
          "서로에게 더없이 좋은 자극이 되는 두 분이에요. 다른 기운이 만나 균형을 이루며, 만날수록 각자 더 나은 사람이 되어가요. 함께 성장하는 이상적인 커플이랍니다. 🚀"},
     };
-    private static final String[] TOTAL_95 = {
-        "이건 뭐… 하늘이 정해준 짝 아닌가요? 두 분의 기운이 서로를 끌어당기고 채워주는, 좀처럼 만나기 힘든 인연이에요. 이렇게 귀한 인연, 오래오래 아껴주세요! 💍",
-        "만나기 어려운 찰떡 궁합의 두 분이에요. 오행의 결이 조화롭게 어우러져 함께 있는 것만으로 서로가 서로에게 선물 같은 존재랍니다. 지금의 이 마음을 소중히 지켜가면 좋겠어요. 🎁"};
-    private static final String[] TOTAL_85 = {
-        "손발이 척척 맞는 환상의 짝꿍이에요. 서로의 기운이 자연스럽게 통해서, 함께라면 무엇을 해도 즐거운 두 분이랍니다. 지금처럼 서로를 아껴가면 사이가 더 깊어질 거예요. 💞",
-        "곁에 있는 게 참 자연스러운 두 분이에요. 두 사람의 기운이 편안하게 맞물려, 서로에게 마음 놓고 기댈 수 있는 안식처가 되어줘요. 오래도록 든든할 좋은 인연이랍니다. 🏝️"};
     private static final String[] TOTAL_75 = {
         "참 잘 어울리는 두 분이에요. 서로의 좋은 점을 알아봐 주고 다독여주는 다정한 사이라, 함께 있으면 마음이 따뜻해져요. 지금처럼 서로를 바라봐 주면 사이가 더 깊어질 거예요. 🌷",
         "따뜻한 케미가 은은하게 흐르는 두 분이에요. 기운이 서로를 부드럽게 받쳐줘, 함께하는 시간이 편안하게 쌓여가요. 지금처럼 아껴주면 더 애틋해질 인연이랍니다. 💗"};
-    private static final String[] TOTAL_65 = {
-        "서로 다른 매력으로 균형을 이루는 두 분이에요. 기운의 결이 달라 오히려 서로에게 없는 걸 채워주는 사이라, 함께 만들어갈 이야기가 기대돼요. 다름을 즐길수록 빛나는 커플이랍니다. 🌈",
-        "알아갈수록 잘 맞는 부분이 하나씩 늘어나는 두 분이에요. 지금도 서로를 향해 한 걸음씩 다가가는 중이라, 시간이 편이 되어주는 성장형 커플이에요. 오늘도 한 뼘 가까워졌어요. 👣"};
-    private static final String[] TOTAL_60 = {
-        "궁합은 숫자보다 함께 쌓아가는 마음이 만들어가는 거예요. 서로 다른 기운이 만난 만큼 채워갈 여백도 크고, 그건 곧 함께 클 여지가 많다는 뜻이랍니다. 하나씩 맞춰가는 재미가 있는 성장형 커플이에요. 화이팅! 💪",
-        "서로 다른 두 세계가 만나 새로운 이야기를 써가는 중인 두 분이에요. 다른 기운이 부딪히며 서로를 알아갈수록 사이가 단단해져요. 채워갈수록 더 빛나는, 앞날이 기대되는 커플이랍니다. ✨"};
-
-    /** 커플이 더 잘 지내기 위한 따뜻한 조언 한 줄 (오행·기운 살짝 언급). */
-    public static final String[] TIPS = {
-        "서로의 다른 점을 고치려 하기보다 있는 그대로 반겨주면, 두 분의 기운이 더 부드럽게 어우러져요. 🌿",
-        "고마웠던 순간을 자주 말로 표현해 보세요. 다정한 한마디가 서로의 온기를 데워주는 불씨가 돼요. 🔥",
-        "가끔은 함께 물가나 바다처럼 탁 트인 곳을 걸어보세요. 잔잔한 물의 기운이 마음을 편안하게 풀어줘요. 🌊",
-        "서로의 하루를 5분만 천천히 들어주는 습관이 안정감이라는 든든한 뿌리를 키워줘요. 🌳",
-        "의견이 부딪힐 땐 이기려 하기보다 한 박자 쉬어가 보세요. 잠깐의 여유가 두 기운의 균형을 잡아줘요. ⚖️",
-        "작은 약속을 지켜가는 일이 쌓이면, 두 분 사이에 흔들리지 않는 신뢰의 대지가 만들어져요. ⛰️",
-        "함께 새로운 걸 시도해 보세요. 나무의 기운처럼 뻗어나가는 경험이 관계에 생기를 더해줘요. 🌱",
-        "표현이 서툰 쪽의 마음을 넉넉히 기다려 주면, 은은한 촛불 같은 애정이 더 환하게 켜져요. 🕯️",
-        "서로의 강점을 칭찬해 주세요. 인정받는 순간 상대의 좋은 기운이 한층 밝게 빛나요. ✨",
-        "가끔은 아무 계획 없이 함께 쉬어가는 시간을 가져보세요. 비워둔 여백에서 마음이 더 가까워져요. 🍃",
-        "화가 날 땐 '지금 이 마음' 하나만 솔직하게 전해보세요. 담아두기보다 흘려보내면 기운이 맑아져요. 💧",
-        "서로에게 없는 걸 채워주는 걸 부담이 아닌 선물로 여겨보세요. 그게 두 분을 완성하는 퍼즐이랍니다. 🧩",
-    };
     private static final String[] REL_SAME = {
         "닮은꼴 두 분! 취향도 리듬도 비슷해서 편안하게 통하는 사이예요. 👯",
         "같은 결을 가진 커플. 말 안 해도 마음이 맞아떨어질 때가 많아요. 🪞",

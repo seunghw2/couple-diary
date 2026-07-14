@@ -1,28 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect, useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from 'expo-router';
 import { SajuCouple, sajuApi } from '../../lib/api';
 import { Icon, Button } from '../../components/ui';
 import { SajuLoading } from '../../components/SajuLoading';
 import { Collapsible, animateLayout } from '../../components/Collapsible';
+import { ScreenHeader } from '../../components/ScreenHeader';
+import { useFirstVisitIntro } from '../../hooks/useFirstVisitIntro';
+import { coupleScoreColor, coupleScoreLabel } from '../../lib/sajuUi';
 import { showToast } from '../../lib/dialog';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
-
-const SEEN_KEY = 'saju_seen_couple';
-
-/** 점수 구간색: 80+ 골드 · 60~79 브라운 · 0~59 로즈(강한 빨강 지양). */
-function scoreColor(score: number): string {
-  if (score >= 80) return colors.gold;
-  if (score >= 60) return colors.brown;
-  return colors.rose;
-}
-function scoreLabel(score: number): string {
-  if (score >= 80) return '찰떡';
-  if (score >= 60) return '안정적';
-  return '맞춰가기';
-}
+import { cardStyles, barStyles } from '../../theme/cardStyles';
 
 /** 카테고리별 대표 아이콘 1개(문단마다 이모지 난립 방지, 통일). */
 const CAT_ICON: Record<string, string> = {
@@ -42,13 +31,11 @@ const SCORE_INFO =
   '종합 점수는 오행의 상생·상극, 일간의 합·충 등 12가지 관계를 종합해 계산해요. 아래 항목 점수는 첫끌림·대화·애정·안정감·성장을 따로 본 값이라, 항목을 더해 나눈 값과는 다를 수 있어요. 그래서 종합과 항목 평균이 일치하지 않는 게 정상이랍니다. 😊';
 
 export default function SajuCouplePage() {
-  const router = useRouter();
   const c = useColors();
   const [data, setData] = useState<SajuCouple | null>(null);
   const [error, setError] = useState(false);
   const [requesting, setRequesting] = useState(false);
-  const [firstVisit, setFirstVisit] = useState<boolean | null>(null);
-  const [introTimeUp, setIntroTimeUp] = useState(false);
+  const { firstVisit, introTimeUp, finishIntro } = useFirstVisitIntro('saju_seen_couple');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [infoOpen, setInfoOpen] = useState(false);
 
@@ -66,14 +53,6 @@ export default function SajuCouplePage() {
       load();
     }, [load])
   );
-
-  useEffect(() => {
-    AsyncStorage.getItem(SEEN_KEY).then((v) => setFirstVisit(!v));
-  }, []);
-  const finishIntro = useCallback(async () => {
-    await AsyncStorage.setItem(SEEN_KEY, '1');
-    setIntroTimeUp(true);
-  }, []);
 
   async function requestBirthday() {
     if (requesting) return;
@@ -93,7 +72,7 @@ export default function SajuCouplePage() {
     try {
       await Share.share({
         message:
-          `우리 사주 궁합 ${data.percent}% · ${scoreLabel(data.percent)}\n` +
+          `우리 사주 궁합 ${data.percent}% · ${coupleScoreLabel(data.percent)}\n` +
           `${data.meNickname} × ${data.partnerNickname}\n` +
           `${data.meTypeName} × ${data.partnerTypeName}\n` +
           `"${data.relComment}"`,
@@ -122,13 +101,7 @@ export default function SajuCouplePage() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.topBar}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Icon name="chevron-back" size={28} color={colors.subText} />
-        </Pressable>
-        <Text style={[styles.topTitle, { color: c.primary }]}>우리 궁합</Text>
-        <View style={{ width: 28 }} />
-      </View>
+      <ScreenHeader title="우리 궁합" />
 
       {data == null && !error ? (
         <ActivityIndicator color={c.primary} style={{ marginTop: spacing.xxl }} />
@@ -169,13 +142,13 @@ export default function SajuCouplePage() {
               </View>
 
               <View style={styles.percentRow}>
-                <Text style={[styles.percent, { color: scoreColor(data!.percent) }]}>{data!.percent}%</Text>
+                <Text style={[styles.percent, { color: coupleScoreColor(data!.percent) }]}>{data!.percent}%</Text>
                 <Pressable onPress={() => setInfoOpen(true)} hitSlop={10} style={styles.infoBtn}>
                   <Icon name="information-circle-outline" size={20} color={colors.subText} />
                 </Pressable>
               </View>
-              <View style={[styles.labelPill, { backgroundColor: scoreColor(data!.percent) }]}>
-                <Text style={styles.labelPillText}>{scoreLabel(data!.percent)}궁합</Text>
+              <View style={[styles.labelPill, { backgroundColor: coupleScoreColor(data!.percent) }]}>
+                <Text style={styles.labelPillText}>{coupleScoreLabel(data!.percent)}궁합</Text>
               </View>
               {data!.relComment ? <Text style={styles.relComment}>{data!.relComment}</Text> : null}
             </View>
@@ -187,7 +160,7 @@ export default function SajuCouplePage() {
                 <View style={styles.glanceRow}>
                   <Text style={styles.glanceLabel}>가장 잘 맞는 곳</Text>
                   <Text style={styles.glanceValue}>
-                    {strong.name} <Text style={{ color: scoreColor(strong.score) }}>{strong.score}</Text>
+                    {strong.name} <Text style={{ color: coupleScoreColor(strong.score) }}>{strong.score}</Text>
                   </Text>
                 </View>
               ) : null}
@@ -195,7 +168,7 @@ export default function SajuCouplePage() {
                 <View style={styles.glanceRow}>
                   <Text style={styles.glanceLabel}>가장 다른 곳</Text>
                   <Text style={styles.glanceValue}>
-                    {weak.name} <Text style={{ color: scoreColor(weak.score) }}>{weak.score}</Text>
+                    {weak.name} <Text style={{ color: coupleScoreColor(weak.score) }}>{weak.score}</Text>
                   </Text>
                 </View>
               ) : null}
@@ -241,17 +214,17 @@ export default function SajuCouplePage() {
                           {CAT_ICON[cat.key] ?? '·'} {cat.name}
                         </Text>
                         <View style={styles.catRight}>
-                          <View style={[styles.catPill, { backgroundColor: scoreColor(cat.score) }]}>
-                            <Text style={styles.catPillText}>{scoreLabel(cat.score)}</Text>
+                          <View style={[styles.catPill, { backgroundColor: coupleScoreColor(cat.score) }]}>
+                            <Text style={styles.catPillText}>{coupleScoreLabel(cat.score)}</Text>
                           </View>
                           <Text style={styles.catScore}>{cat.score}</Text>
                         </View>
                       </View>
-                      <View style={styles.track}>
+                      <View style={barStyles.track}>
                         <View
                           style={[
-                            styles.fill,
-                            { width: `${Math.max(4, Math.min(100, cat.score))}%`, backgroundColor: scoreColor(cat.score) },
+                            barStyles.fill,
+                            { width: `${Math.max(4, Math.min(100, cat.score))}%`, backgroundColor: coupleScoreColor(cat.score) },
                           ]}
                         />
                       </View>
@@ -324,14 +297,6 @@ export default function SajuCouplePage() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-  },
-  topTitle: { ...font.h2, fontWeight: '800' },
   scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing.xl },
 
   centerBox: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, gap: spacing.sm },
@@ -339,13 +304,7 @@ const styles = StyleSheet.create({
   needTitle: { ...font.h2, marginTop: spacing.sm },
   needSub: { ...font.caption, color: colors.subText, textAlign: 'center' },
 
-  hero: {
-    backgroundColor: colors.card,
-    borderRadius: radius.lg,
-    padding: spacing.xl,
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
+  hero: cardStyles.heroBase,
   pairRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg },
   person: { alignItems: 'center', width: 92 },
   personEmoji: { fontSize: 40 },
@@ -359,13 +318,8 @@ const styles = StyleSheet.create({
   labelPillText: { ...font.label, color: colors.white, fontWeight: '800' },
   relComment: { ...font.body, textAlign: 'center', marginTop: spacing.md, lineHeight: 22 },
 
-  card: {
-    backgroundColor: colors.card,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  cardHead: { ...font.title, marginBottom: spacing.md },
+  card: cardStyles.cardBase,
+  cardHead: { ...cardStyles.cardHeadBase, marginBottom: spacing.md },
 
   glanceRow: {
     flexDirection: 'row',
@@ -392,8 +346,6 @@ const styles = StyleSheet.create({
   catPill: { borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 2 },
   catPillText: { ...font.caption, color: colors.white, fontWeight: '700', fontSize: 11 },
   catScore: { ...font.label, color: colors.subText, minWidth: 24, textAlign: 'right' },
-  track: { height: 12, borderRadius: radius.pill, backgroundColor: colors.border, overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: radius.pill },
   catComment: { ...font.caption, color: colors.subText, marginTop: 8, lineHeight: 21, fontSize: 13 },
   moreBtn: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: 6 },
   moreText: { ...font.label, fontWeight: '700' },

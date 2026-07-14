@@ -618,14 +618,12 @@ export type SajuDaily = {
   coupleTip: string;
 };
 
-/** 오행 한 줄. level: 0 부족 · 1 적당 · 2 강함. */
+/** 오행 한 줄. */
 export type SajuOhaeng = {
   elem: number;
   name: string;
   emoji: string;
   count: number;
-  level: number;
-  comment: string;
 };
 
 /** GET /api/saju/me — 내 사주. hasBirthday=false면 나머지 비어있을 수 있음. */
@@ -640,7 +638,6 @@ export type SajuPersonal = {
   twist: string; // 반전 매력 한 줄(겉/속)
   desc: string;
   keywords: string[];
-  growth: string;
   strengths: string[];
   growthPoints: string[];
   zodiac: string;
@@ -652,12 +649,11 @@ export type SajuPersonal = {
   disclaimer: string;
 };
 
-/** 궁합 카테고리 한 줄. grade별로 색조를 달리한다. */
+/** 궁합 카테고리 한 줄. score 구간별로 색조를 달리한다. */
 export type SajuCoupleCategory = {
   key: string;
   name: string;
   score: number; // 0~100
-  grade: number;
   comment: string;
 };
 

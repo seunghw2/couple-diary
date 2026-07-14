@@ -3,6 +3,7 @@ import { SajuPersonal } from '../lib/api';
 import { OhaengBar } from './OhaengBar';
 import { Collapsible } from './Collapsible';
 import { colors, font, radius, shadow, spacing, useColors } from '../theme/theme';
+import { cardStyles } from '../theme/cardStyles';
 
 const PILLAR_LABELS = ['년주', '월주', '일주', '시주'];
 const ORIGIN_EXPLAIN =
@@ -139,13 +140,7 @@ export function PersonalSaju({ data, showDaily = true }: { data: SajuPersonal; s
 const styles = StyleSheet.create({
   scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing.xxl * 2 },
 
-  hero: {
-    backgroundColor: colors.card,
-    borderRadius: radius.lg,
-    padding: spacing.xl,
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
+  hero: cardStyles.heroBase,
   heroCircle: { width: 96, height: 96, borderRadius: 48, alignItems: 'center', justifyContent: 'center' },
   heroEmoji: { fontSize: 46 },
   heroHanja: { ...font.h1, fontSize: 30, marginTop: spacing.md },
@@ -156,8 +151,8 @@ const styles = StyleSheet.create({
   chip: { borderRadius: radius.pill, paddingHorizontal: 11, paddingVertical: 5 },
   chipText: { ...font.label, color: colors.text },
 
-  card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.md },
-  cardHead: { ...font.title, marginBottom: spacing.sm },
+  card: cardStyles.cardBase,
+  cardHead: { ...cardStyles.cardHeadBase, marginBottom: spacing.sm },
   innerHead: { ...font.label, color: colors.text, marginBottom: spacing.sm },
   body: { ...font.body, color: colors.text, lineHeight: 22 },
   pullQuote: { ...font.h2, fontSize: 17, fontWeight: '800', color: colors.text, lineHeight: 24, marginBottom: spacing.md },

@@ -3,13 +3,10 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SajuDailyDetail, sajuApi } from '../../lib/api';
-import { Icon } from '../../components/ui';
+import { ScreenHeader } from '../../components/ScreenHeader';
+import { dailyScoreColor } from '../../lib/sajuUi';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
-
-/** 점수 구간색: 80+ 골드 · 60~79 브라운. (오늘운세는 60~99 긍정밴드) */
-function scoreColor(score: number): string {
-  return score >= 80 ? colors.gold : colors.brown;
-}
+import { cardStyles, barStyles } from '../../theme/cardStyles';
 
 const WD = ['일', '월', '화', '수', '목', '금', '토'];
 function todayLabel(): string {
@@ -40,13 +37,7 @@ export default function SajuToday() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.topBar}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Icon name="chevron-back" size={28} color={colors.subText} />
-        </Pressable>
-        <Text style={[styles.topTitle, { color: c.primary }]}>오늘의 운세</Text>
-        <View style={{ width: 28 }} />
-      </View>
+      <ScreenHeader title="오늘의 운세" />
 
       {data == null && !error ? (
         <ActivityIndicator color={c.primary} style={{ marginTop: spacing.xxl }} />
@@ -57,7 +48,7 @@ export default function SajuToday() {
           {/* 히어로: 점수 + 한 줄 */}
           <View style={[styles.hero, shadow]}>
             <Text style={styles.date}>{todayLabel()}</Text>
-            <Text style={[styles.score, { color: scoreColor(data!.totalScore) }]}>{data!.totalScore}</Text>
+            <Text style={[styles.score, { color: dailyScoreColor(data!.totalScore) }]}>{data!.totalScore}</Text>
             <Text style={styles.totalLine}>{data!.totalLine}</Text>
             <Text style={styles.caption}>재미로 보는 오늘 기운 ✨</Text>
           </View>
@@ -74,11 +65,11 @@ export default function SajuToday() {
                     </Text>
                     <Text style={styles.itemScore}>{it.score}</Text>
                   </View>
-                  <View style={styles.track}>
+                  <View style={barStyles.track}>
                     <View
                       style={[
-                        styles.fill,
-                        { width: `${Math.max(4, Math.min(100, it.score))}%`, backgroundColor: scoreColor(it.score) },
+                        barStyles.fill,
+                        { width: `${Math.max(4, Math.min(100, it.score))}%`, backgroundColor: dailyScoreColor(it.score) },
                       ]}
                     />
                   </View>
@@ -137,36 +128,20 @@ export default function SajuToday() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-  },
-  topTitle: { ...font.h2, fontWeight: '800' },
   scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing.xxl * 2 },
 
-  hero: {
-    backgroundColor: colors.card,
-    borderRadius: radius.lg,
-    padding: spacing.xl,
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
+  hero: cardStyles.heroBase,
   date: { ...font.caption, color: colors.subText },
   score: { fontSize: 64, fontWeight: '800', marginTop: spacing.xs },
   totalLine: { ...font.body, textAlign: 'center', marginTop: spacing.sm, lineHeight: 22 },
   caption: { ...font.caption, color: colors.subText, marginTop: spacing.md },
 
-  card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.md },
-  cardHead: { ...font.title, marginBottom: spacing.md },
+  card: cardStyles.cardBase,
+  cardHead: { ...cardStyles.cardHeadBase, marginBottom: spacing.md },
 
   itemHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   itemName: { ...font.label, color: colors.text, fontSize: 14 },
   itemScore: { ...font.label, color: colors.subText },
-  track: { height: 12, borderRadius: radius.pill, backgroundColor: colors.border, overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: radius.pill },
   itemComment: { ...font.caption, color: colors.subText, marginTop: 8, lineHeight: 21, fontSize: 13 },
 
   luckRow: {

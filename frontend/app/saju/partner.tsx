@@ -1,23 +1,19 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect, useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from 'expo-router';
 import { SajuPersonal, sajuApi } from '../../lib/api';
-import { Icon } from '../../components/ui';
 import { SajuLoading } from '../../components/SajuLoading';
 import { PersonalSaju } from '../../components/PersonalSaju';
+import { ScreenHeader } from '../../components/ScreenHeader';
+import { useFirstVisitIntro } from '../../hooks/useFirstVisitIntro';
 import { colors, font, spacing, useColors } from '../../theme/theme';
 
-const SEEN_KEY = 'saju_seen_partner';
-
 export default function SajuPartner() {
-  const router = useRouter();
   const c = useColors();
   const [data, setData] = useState<SajuPersonal | null>(null);
   const [name, setName] = useState<string>('연인');
-  const [firstVisit, setFirstVisit] = useState<boolean | null>(null);
-  const [introTimeUp, setIntroTimeUp] = useState(false);
+  const { firstVisit, introTimeUp, finishIntro } = useFirstVisitIntro('saju_seen_partner');
   const [error, setError] = useState(false);
 
   const load = useCallback(async () => {
@@ -37,14 +33,6 @@ export default function SajuPartner() {
     }, [load])
   );
 
-  useEffect(() => {
-    AsyncStorage.getItem(SEEN_KEY).then((v) => setFirstVisit(!v));
-  }, []);
-  const finishIntro = useCallback(async () => {
-    await AsyncStorage.setItem(SEEN_KEY, '1');
-    setIntroTimeUp(true);
-  }, []);
-
   if (firstVisit === null) return <View style={styles.safe} />;
   if (firstVisit && (!introTimeUp || (data == null && !error))) {
     return (
@@ -56,13 +44,7 @@ export default function SajuPartner() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.topBar}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Icon name="chevron-back" size={28} color={colors.subText} />
-        </Pressable>
-        <Text style={[styles.topTitle, { color: c.primary }]}>연인 사주</Text>
-        <View style={{ width: 28 }} />
-      </View>
+      <ScreenHeader title="연인 사주" />
 
       {data == null && !error ? (
         <ActivityIndicator color={c.primary} style={{ marginTop: spacing.xxl }} />
@@ -83,14 +65,6 @@ export default function SajuPartner() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-  },
-  topTitle: { ...font.h2, fontWeight: '800' },
   centerBox: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, gap: spacing.sm },
   bigEmoji: { fontSize: 52 },
   needTitle: { ...font.h2, marginTop: spacing.sm },

@@ -252,8 +252,7 @@ public final class SajuTemplates {
 
     /** 날짜 + 일간으로 결정론적 오늘의 운세. */
     public static Daily daily(int dayStem, LocalDate date) {
-        long ymd = date.getYear() * 10000L + date.getMonthValue() * 100L + date.getDayOfMonth();
-        long seed = ymd + dayStem;
+        long seed = SajuUtil.ymd(date) + dayStem;
         int f = (int) Math.floorMod(seed, FORTUNE.length);
         int c = (int) Math.floorMod(seed * 7 + 3, COLOR_NAME.length);
         int k = (int) Math.floorMod(seed * 13 + 5, KEYWORD.length);

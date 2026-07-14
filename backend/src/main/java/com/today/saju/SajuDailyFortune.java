@@ -37,19 +37,10 @@ public final class SajuDailyFortune {
         };
     }
 
-    private static int remap(double raw, double lo, double hi) {
-        double norm = Math.min(1, Math.max(0, (raw - lo) / (hi - lo)));
-        return (int) Math.round(60 + norm * 39);
-    }
-
     private static int band(int score) { return score >= 78 ? 2 : (score >= 66 ? 1 : 0); }
 
     /** 항목별 결정론 지터 0~13. */
     private static int jit(long seed, long salt) { return (int) Math.floorMod(seed * salt + salt, 14); }
-
-    private static String pick(String[] arr, long seed, long salt) {
-        return arr[(int) Math.floorMod(seed + salt, arr.length)];
-    }
 
     public static Result compute(int myStem, boolean hasBirthday, Saju today, LocalDate date) {
         int myEl = SajuCalculator.STEM_ELEMENT[myStem];
@@ -59,39 +50,38 @@ public final class SajuDailyFortune {
         ElemRel relBranch = SajuCompatibility.elemRel(myEl, tBranchEl);
 
         double rawTotal = favor(relStem) * 0.6 + favor(relBranch) * 0.4;
-        int total = remap(rawTotal, 60, 92);
+        int total = SajuUtil.remap(rawTotal, 60, 92);
 
-        long ymd = date.getYear() * 10000L + date.getMonthValue() * 100L + date.getDayOfMonth();
-        long seed = ymd * 100L + myStem * 10L + today.dayStem();
+        long seed = SajuUtil.ymd(date) * 100L + myStem * 10L + today.dayStem();
 
         int base = (int) Math.round(rawTotal);
         int boost = hasBirthday ? 18 : 9;   // 비생일(고정 일간)은 부스트 절반으로 인위적 편향 완화
         int bb = hasBirthday ? 6 : 3;
 
         // 항목별 결정론 지터(0~13) — 부스트 없는 항목도 매일·항목별로 다양하게 흩어지게.
-        int love = remap(base - 6 + jit(seed, 101) + (relStem == ElemRel.SHENG_FWD ? boost : 0) + (relBranch == ElemRel.SHENG_FWD ? bb : 0), 62, 100);
-        int money = remap(base - 6 + jit(seed, 103) + (relStem == ElemRel.KE_FWD ? boost : 0) + (relBranch == ElemRel.KE_FWD ? bb : 0), 62, 100);
-        int vital = remap(base - 6 + jit(seed, 107) + ((relStem == ElemRel.SHENG_REV || relStem == ElemRel.SAME) ? boost : 0)
+        int love = SajuUtil.remap(base - 6 + jit(seed, 101) + (relStem == ElemRel.SHENG_FWD ? boost : 0) + (relBranch == ElemRel.SHENG_FWD ? bb : 0), 62, 100);
+        int money = SajuUtil.remap(base - 6 + jit(seed, 103) + (relStem == ElemRel.KE_FWD ? boost : 0) + (relBranch == ElemRel.KE_FWD ? bb : 0), 62, 100);
+        int vital = SajuUtil.remap(base - 6 + jit(seed, 107) + ((relStem == ElemRel.SHENG_REV || relStem == ElemRel.SAME) ? boost : 0)
                 + ((relBranch == ElemRel.SHENG_REV || relBranch == ElemRel.SAME) ? bb : 0), 62, 100);
-        int luck = remap(base - 6 + jit(seed, 109) + (relStem == ElemRel.KE_REV ? boost : 0) + (relBranch == ElemRel.KE_REV ? bb : 0), 62, 100);
+        int luck = SajuUtil.remap(base - 6 + jit(seed, 109) + (relStem == ElemRel.KE_REV ? boost : 0) + (relBranch == ElemRel.KE_REV ? bb : 0), 62, 100);
 
         List<Item> items = new ArrayList<>();
-        items.add(new Item("LOVE", "애정운", "💕", love, pick(LOVE_T[band(love)], seed, 11)));
-        items.add(new Item("MONEY", "재물운", "💰", money, pick(MONEY_T[band(money)], seed, 23)));
-        items.add(new Item("VITAL", "활력운", "⚡", vital, pick(VITAL_T[band(vital)], seed, 37)));
-        items.add(new Item("LUCK", "행운운", "🍀", luck, pick(LUCK_T[band(luck)], seed, 53)));
+        items.add(new Item("LOVE", "애정운", "💕", love, SajuUtil.pick(LOVE_T[band(love)], seed, 11)));
+        items.add(new Item("MONEY", "재물운", "💰", money, SajuUtil.pick(MONEY_T[band(money)], seed, 23)));
+        items.add(new Item("VITAL", "활력운", "⚡", vital, SajuUtil.pick(VITAL_T[band(vital)], seed, 37)));
+        items.add(new Item("LUCK", "행운운", "🍀", luck, SajuUtil.pick(LUCK_T[band(luck)], seed, 53)));
 
-        String totalLine = pick(TOTAL_LINE[band(total)], seed, 91);
+        String totalLine = SajuUtil.pick(TOTAL_LINE[band(total)], seed, 91);
 
         // 행운색: 오늘 천간 오행 그룹에서 선택("오늘 기운과 어울리는 색").
         int ci = (int) Math.floorMod(seed, 2);
         String colorName = COLOR_NAME[tStemEl][ci];
         String colorHex = COLOR_HEX[tStemEl][ci];
 
-        String luckyItem = pick(LUCKY_ITEM, seed, 61);
-        String keyword = pick(KEYWORD, seed, 71);
+        String luckyItem = SajuUtil.pick(LUCKY_ITEM, seed, 61);
+        String keyword = SajuUtil.pick(KEYWORD, seed, 71);
         String luckyNumber = String.valueOf((int) Math.floorMod(seed * 7 + 3, 9) + 1);
-        String coupleGood = pick(COUPLE_GOOD, seed, 83);
+        String coupleGood = SajuUtil.pick(COUPLE_GOOD, seed, 83);
 
         return new Result(hasBirthday, total, totalLine, items,
                 colorName, colorHex, luckyItem, keyword, luckyNumber, coupleGood, SajuTemplates.DISCLAIMER);

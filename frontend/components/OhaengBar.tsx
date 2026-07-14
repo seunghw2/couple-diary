@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { SajuOhaeng } from '../lib/api';
-import { colors, font, radius, spacing } from '../theme/theme';
+import { colors, font, spacing } from '../theme/theme';
+import { barStyles } from '../theme/cardStyles';
 
 /** 오행 이름 → 막대 색. 목 화 토 금 수 순. */
 const OHAENG_COLOR: Record<string, string> = {
@@ -42,13 +43,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   emoji: { fontSize: 15, width: 20, textAlign: 'center' },
   name: { ...font.label, color: colors.text, width: 18 },
-  track: {
-    flex: 1,
-    height: 12,
-    borderRadius: radius.pill,
-    backgroundColor: colors.border,
-    overflow: 'hidden',
-  },
-  fill: { height: '100%', borderRadius: radius.pill },
+  track: { ...barStyles.track, flex: 1 },
+  fill: barStyles.fill,
   count: { ...font.caption, color: colors.subText, width: 16, textAlign: 'right' },
 });

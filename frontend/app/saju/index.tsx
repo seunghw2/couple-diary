@@ -8,6 +8,7 @@ import { showToast } from '../../lib/dialog';
 import { useAuthStore } from '../../store/useAuthStore';
 import { DatePickerSheet } from '../../components/DatePickerSheet';
 import { Icon } from '../../components/ui';
+import { ScreenHeader } from '../../components/ScreenHeader';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
 function fmtDate(d?: string) {
@@ -89,13 +90,7 @@ export default function SajuHome() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.topBar}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Icon name="chevron-back" size={28} color={colors.subText} />
-        </Pressable>
-        <Text style={[styles.topTitle, { color: c.primary }]}>우리 사주 궁합</Text>
-        <View style={{ width: 28 }} />
-      </View>
+      <ScreenHeader title="우리 사주 궁합" />
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.sub}>재미로 보는 사주 🔮</Text>
@@ -260,14 +255,6 @@ export default function SajuHome() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-  },
-  topTitle: { ...font.h2, fontWeight: '800' },
   scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing.xxl * 2 },
   sub: { ...font.caption, color: colors.subText, marginBottom: spacing.lg },
 
