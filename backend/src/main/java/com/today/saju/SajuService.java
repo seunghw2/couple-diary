@@ -48,8 +48,8 @@ public class SajuService {
 
     private PersonalResult personalOf(User u) {
         if (u.getBirthday() == null) {
-            return new PersonalResult(false, null, null, null, null, null, null, List.of(), null,
-                    List.of(), List.of(), null, List.of(), List.of(), null, false, DISCLAIMER);
+            return new PersonalResult(false, null, null, null, null, null, null, null, List.of(), null,
+                    List.of(), List.of(), null, List.of(), List.of(), null, null, false, DISCLAIMER);
         }
         Saju s = SajuCalculator.compute(u.getBirthday(), u.getBirthTime());
         SajuTemplates.DayMaster dm = SajuTemplates.dayMaster(s.dayStem());
@@ -76,10 +76,10 @@ public class SajuService {
 
         return new PersonalResult(true,
                 dm.name(), dm.emoji(), dayKo, dayHanja,
-                dm.oneLine(), dm.desc(), List.of(dm.keywords()), dm.growth(),
+                dm.oneLine(), SajuTemplates.twist(s.dayStem()), dm.desc(), List.of(dm.keywords()), dm.growth(),
                 List.of(SajuTemplates.strengths(s.dayStem())), List.of(SajuTemplates.growthPoints(s.dayStem())),
                 SajuCalculator.BRANCH_ANIMAL[s.zodiac()],
-                pillars, ohaeng, daily, s.hasHour(), DISCLAIMER);
+                pillars, ohaeng, SajuTemplates.ohaengInsight(ec), daily, s.hasHour(), DISCLAIMER);
     }
 
     // ───────── 오늘의 운세 ─────────

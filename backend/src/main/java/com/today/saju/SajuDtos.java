@@ -13,11 +13,12 @@ public class SajuDtos {
     public record PersonalResult(
             boolean hasBirthday,
             String dayMasterName, String dayMasterEmoji, String dayMasterKo, String dayMasterHanja,
-            String oneLine, String desc, List<String> keywords, String growth,
+            String oneLine, String twist, String desc, List<String> keywords, String growth,
             List<String> strengths, List<String> growthPoints,
             String zodiac,
             List<String> pillars,        // [년주, 월주, 일주, (시주)]
             List<OhaengView> ohaeng,
+            String ohaengInsight,        // 강한·부족한 기운 근거 + 보완법
             DailyView daily,
             boolean hasHour,
             String disclaimer

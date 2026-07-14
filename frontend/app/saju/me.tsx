@@ -123,6 +123,7 @@ export default function SajuMe() {
             <Text style={styles.heroHanja}>{me!.dayMasterHanja}</Text>
             <Text style={styles.heroName}>{me!.dayMasterName}</Text>
             <Text style={styles.heroOneLine}>{me!.oneLine}</Text>
+            {me!.twist ? <Text style={[styles.heroTwist, { color: c.primary }]}>{me!.twist}</Text> : null}
             {me!.keywords.length > 0 ? (
               <View style={styles.chipRow}>
                 {me!.keywords.map((k) => (
@@ -134,10 +135,15 @@ export default function SajuMe() {
             ) : null}
           </View>
 
-          {/* 오행 분포 */}
+          {/* 오행으로 본 나 */}
           <View style={[styles.card, shadow]}>
-            <Text style={styles.cardHead}>오행 분포</Text>
+            <Text style={styles.cardHead}>오행으로 본 나</Text>
             <OhaengBar items={me!.ohaeng} />
+            {me!.ohaengInsight ? (
+              <View style={[styles.insightBox, { backgroundColor: c.coralSofter }]}>
+                <Text style={styles.insightText}>{me!.ohaengInsight}</Text>
+              </View>
+            ) : null}
           </View>
 
           {/* 성격 — 정돈형: 인용구 + 짧은 문단 + 키워드 볼드 */}
@@ -264,6 +270,9 @@ const styles = StyleSheet.create({
   heroHanja: { ...font.h1, fontSize: 30, marginTop: spacing.md },
   heroName: { ...font.title, color: colors.subText, marginTop: 2 },
   heroOneLine: { ...font.body, textAlign: 'center', marginTop: spacing.sm, lineHeight: 21 },
+  heroTwist: { ...font.label, fontWeight: '700', textAlign: 'center', marginTop: spacing.xs, lineHeight: 20 },
+  insightBox: { borderRadius: radius.md, padding: spacing.md, marginTop: spacing.md },
+  insightText: { ...font.body, color: colors.text, lineHeight: 24 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, justifyContent: 'center', marginTop: spacing.md },
   chip: { borderRadius: radius.pill, paddingHorizontal: 11, paddingVertical: 5 },
   chipText: { ...font.label, color: colors.text },

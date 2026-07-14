@@ -634,6 +634,7 @@ export type SajuPersonal = {
   dayMasterKo: string;
   dayMasterHanja: string;
   oneLine: string;
+  twist: string; // 반전 매력 한 줄(겉/속)
   desc: string;
   keywords: string[];
   growth: string;
@@ -642,6 +643,7 @@ export type SajuPersonal = {
   zodiac: string;
   pillars: string[]; // 년월일[시]
   ohaeng: SajuOhaeng[];
+  ohaengInsight: string; // 강한·부족한 기운 근거 + 보완법
   daily: SajuDaily;
   hasHour: boolean;
   disclaimer: string;

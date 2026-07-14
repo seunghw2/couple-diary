@@ -1,6 +1,8 @@
 package com.today.saju;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /** 개인 사주 고정 템플릿 콘텐츠(일간 캐릭터·오행 코멘트·오늘의 운세). 전부 응원 톤. */
 public final class SajuTemplates {
@@ -85,8 +87,70 @@ public final class SajuTemplates {
     public static String[] strengths(int stemIndex) { return STRENGTHS[Math.floorMod(stemIndex, 10)]; }
     public static String[] growthPoints(int stemIndex) { return GROWTH_POINTS[Math.floorMod(stemIndex, 10)]; }
 
+    // 일간별 반전 매력 한 줄(겉/속). 캐릭터를 입체적으로.
+    private static final String[] TWIST = {
+        "겉은 올곧지만, 속은 사람을 품는 따뜻한 숲 같은 사람이에요.",
+        "여려 보여도, 척박한 땅에서 끝내 꽃을 피워내는 사람이에요.",
+        "환하게 웃는 뒤편엔, 남을 먼저 챙기는 세심함이 숨어 있어요.",
+        "잔잔해 보여도, 소중한 걸 지키는 불씨는 누구보다 뜨거워요.",
+        "묵직해 보여도, 그 품 안엔 모두를 받아주는 너그러움이 있어요.",
+        "무던해 보여도, 사람을 길러내는 정성만큼은 은근히 깊어요.",
+        "단단한 겉모습 속에, 의외로 뜨거운 속정을 품고 있어요.",
+        "차분해 보여도, 마음을 준 사람에겐 더없이 세심해지는 사람이에요.",
+        "겉은 잔잔한 호수 같아도, 속엔 큰 꿈이 넘실대는 사람이에요.",
+        "조용해 보여도, 곁을 촉촉이 적시는 다정함이 깊이 스며 있어요.",
+    };
+    public static String twist(int stemIndex) { return TWIST[Math.floorMod(stemIndex, 10)]; }
+
     public static DayMaster dayMaster(int stemIndex) {
         return DAY_MASTERS[Math.floorMod(stemIndex, 10)];
+    }
+
+    // ── 오행으로 본 나: 원국의 강한 기운·부족한 기운 근거 + 부드러운 보완법 ──
+    // 0목 1화 2토 3금 4수
+    private static final String[] EL_NM = {"목", "화", "토", "금", "수"};
+    private static final String[] EL_STRONG = {
+        "새로운 걸 벌이고 앞으로 뻗어나가는 의욕과 성장 에너지가 넘치는 사람이에요.",
+        "감정과 열정을 환하게 드러내는 표현력과 따뜻한 온기를 지녔어요.",
+        "중심을 지키는 안정감과 현실을 야무지게 챙기는 실속이 있어요.",
+        "맺고 끊는 결단력과 일을 야무지게 마무리하는 힘이 돋보여요.",
+        "깊이 헤아리고 유연하게 흐르는 지혜와 직관이 뛰어나요.",
+    };
+    private static final String[] EL_LACK = {
+        "새로 시작하는 일 앞에서는 신중한 편이에요. 작은 목표부터 하나씩 세워 성취감을 쌓아가면 의욕이 쑥쑥 자라요.",
+        "속정은 깊은데 겉으로는 덜 드러나는 편이에요. 좋아하는 마음을 한마디씩 표현해가면 온기가 더 환하게 전해져요.",
+        "자유롭고 변화를 즐기는 편이에요. 나만의 든든한 루틴을 하나 만들어가면 그 위에 안정이 더해져요.",
+        "마음이 여리고 배려가 깊은 편이에요. '이건 이렇게'라는 나만의 기준을 세워가면 다정함에 단단함이 더해져요.",
+        "솔직하고 시원시원한 편이에요. 한 박자 쉬며 살피는 여유를 더해가면 지혜가 한층 깊어져요.",
+    };
+    private static final String[] EL_BOOST = {
+        "초록빛 소품이나 가까운 공원 산책, 화분 하나 곁에 두기",
+        "따뜻한 붉은 톤이나 햇살 아래 산책, 밝은 조명",
+        "포근한 노랑·베이지 톤이나 흙을 밟는 산책, 자리 정리",
+        "깔끔한 흰색이나 금속 소품, 정돈된 공간",
+        "시원한 파랑·남색이나 물가 산책, 충분한 수분",
+    };
+
+    /** 원국 오행 분포로 강·약 기운을 짚고 부드러운 보완법을 엮은 해설. */
+    public static String ohaengInsight(int[] ec) {
+        int strong = 0;
+        for (int e = 1; e < 5; e++) if (ec[e] > ec[strong]) strong = e;
+        List<Integer> zeros = new ArrayList<>();
+        for (int e = 0; e < 5; e++) if (ec[e] == 0) zeros.add(e);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("내 사주엔 ").append(EL_NM[strong]).append(" 기운이 가장 넉넉하게 흘러요. ").append(EL_STRONG[strong]);
+        if (!zeros.isEmpty()) {
+            int lack = zeros.get(0);
+            String names = EL_NM[lack];
+            if (zeros.size() >= 2) names += "·" + EL_NM[zeros.get(1)];
+            sb.append(" 반면 ").append(names).append(" 기운은 아직 여백으로 남아 있어요. ")
+              .append(EL_LACK[lack]).append(" ").append(EL_BOOST[lack])
+              .append(" 같은 ").append(EL_NM[lack]).append("의 기운을 곁에 두면 균형이 한결 살아날 거예요.");
+        } else {
+            sb.append(" 오행이 고르게 어우러져 어느 한쪽으로 치우치지 않는, 균형 잡힌 사주예요. 지금의 조화를 잘 지켜가면 좋아요.");
+        }
+        return sb.toString();
     }
 
     // 오행 코멘트 [elem 0목1화2토3금4수][level 0 LOW / 1 MID / 2 HIGH]
