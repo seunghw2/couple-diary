@@ -72,6 +72,13 @@ export default function SajuHome() {
   }
 
   const meSub = !hub ? '' : !hub.hasMyBirthday ? '생일을 먼저 등록해요' : '일간·오행으로 보는 나';
+  const partnerSub = !hub
+    ? ''
+    : !hub.hasPartner
+      ? '상대와 연결되면 볼 수 있어요'
+      : !hub.hasPartnerBirthday
+        ? '상대 생일이 등록되면 볼 수 있어요'
+        : `일간·오행으로 보는 ${hub.partnerName ?? '연인'}`;
   const coupleSub = !hub
     ? ''
     : !hub.hasPartner
@@ -143,6 +150,18 @@ export default function SajuHome() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.cardTitle}>내 사주 보기</Text>
                 <Text style={styles.cardSub}>{meSub}</Text>
+              </View>
+              <Icon name="chevron-forward" size={20} color={colors.subText} />
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push('/saju/partner')}
+              style={({ pressed }) => [styles.card, shadow, pressed && { opacity: 0.85 }]}
+            >
+              <Text style={styles.emoji}>🌸</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>연인 사주 보기</Text>
+                <Text style={styles.cardSub}>{partnerSub}</Text>
               </View>
               <Icon name="chevron-forward" size={20} color={colors.subText} />
             </Pressable>

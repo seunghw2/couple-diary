@@ -4,30 +4,28 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SajuPersonal, sajuApi } from '../../lib/api';
-import { Icon, Button } from '../../components/ui';
+import { Icon } from '../../components/ui';
 import { SajuLoading } from '../../components/SajuLoading';
 import { PersonalSaju } from '../../components/PersonalSaju';
-import { showToast } from '../../lib/dialog';
 import { colors, font, spacing, useColors } from '../../theme/theme';
 
-const SEEN_KEY = 'saju_seen_me';
+const SEEN_KEY = 'saju_seen_partner';
 
-export default function SajuMe() {
+export default function SajuPartner() {
   const router = useRouter();
   const c = useColors();
-  const [me, setMe] = useState<SajuPersonal | null>(null);
+  const [data, setData] = useState<SajuPersonal | null>(null);
+  const [name, setName] = useState<string>('연인');
   const [firstVisit, setFirstVisit] = useState<boolean | null>(null);
   const [introTimeUp, setIntroTimeUp] = useState(false);
   const [error, setError] = useState(false);
-  const [savingHour, setSavingHour] = useState(false);
-  const [selectedHour, setSelectedHour] = useState<number | undefined>(undefined);
 
   const load = useCallback(async () => {
     try {
       setError(false);
-      const [m, hub] = await Promise.all([sajuApi.me(), sajuApi.hub().catch(() => null)]);
-      setMe(m);
-      if (hub) setSelectedHour(hub.myBirthTime);
+      const [p, hub] = await Promise.all([sajuApi.partner(), sajuApi.hub().catch(() => null)]);
+      setData(p);
+      if (hub?.partnerName) setName(hub.partnerName);
     } catch {
       setError(true);
     }
@@ -47,25 +45,11 @@ export default function SajuMe() {
     setIntroTimeUp(true);
   }, []);
 
-  async function pickHour(hour: number | null) {
-    if (savingHour) return;
-    setSavingHour(true);
-    setSelectedHour(hour ?? undefined);
-    try {
-      await sajuApi.setBirthTime(hour);
-      await load();
-    } catch {
-      showToast('생시 저장에 실패했어요');
-    } finally {
-      setSavingHour(false);
-    }
-  }
-
   if (firstVisit === null) return <View style={styles.safe} />;
-  if (firstVisit && (!introTimeUp || (me == null && !error))) {
+  if (firstVisit && (!introTimeUp || (data == null && !error))) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <SajuLoading label="내 사주를 푸는 중" onDone={finishIntro} />
+        <SajuLoading label="연인 사주를 푸는 중" onDone={finishIntro} />
       </SafeAreaView>
     );
   }
@@ -76,23 +60,22 @@ export default function SajuMe() {
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Icon name="chevron-back" size={28} color={colors.subText} />
         </Pressable>
-        <Text style={[styles.topTitle, { color: c.primary }]}>내 사주</Text>
+        <Text style={[styles.topTitle, { color: c.primary }]}>연인 사주</Text>
         <View style={{ width: 28 }} />
       </View>
 
-      {me == null && !error ? (
+      {data == null && !error ? (
         <ActivityIndicator color={c.primary} style={{ marginTop: spacing.xxl }} />
       ) : error ? (
         <Text style={styles.empty}>불러오지 못했어요.</Text>
-      ) : !me!.hasBirthday ? (
+      ) : !data!.hasBirthday ? (
         <View style={styles.centerBox}>
           <Text style={styles.bigEmoji}>🎂</Text>
-          <Text style={styles.needTitle}>생일을 먼저 등록해요</Text>
-          <Text style={styles.needSub}>생일을 넣으면 나의 일간과 오행을 볼 수 있어요.</Text>
-          <Button label="생일 등록하러 가기" onPress={() => router.push('/account')} style={{ marginTop: spacing.lg }} />
+          <Text style={styles.needTitle}>아직 연인 사주를 볼 수 없어요</Text>
+          <Text style={styles.needSub}>{name}님이 생일을 등록하면 일간과 오행을 볼 수 있어요.</Text>
         </View>
       ) : (
-        <PersonalSaju data={me!} hourEdit={{ selected: selectedHour, onPick: pickHour, saving: savingHour }} showDaily />
+        <PersonalSaju data={data!} showDaily={false} />
       )}
     </SafeAreaView>
   );

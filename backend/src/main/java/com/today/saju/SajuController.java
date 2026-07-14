@@ -39,6 +39,12 @@ public class SajuController {
         return sajuService.me(SecurityUtil.currentUserId());
     }
 
+    /** 연인 사주. */
+    @GetMapping("/partner")
+    public PersonalResult partner() {
+        return sajuService.partner(SecurityUtil.currentUserId());
+    }
+
     /** 오늘의 운세. */
     @GetMapping("/daily")
     public DailyView daily() {

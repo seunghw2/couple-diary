@@ -686,6 +686,7 @@ export type SajuCouple = {
 export const sajuApi = {
   hub: () => api.get<SajuHub>('/api/saju/hub'),
   me: () => api.get<SajuPersonal>('/api/saju/me'),
+  partner: () => api.get<SajuPersonal>('/api/saju/partner'),
   daily: () => api.get<SajuDaily>('/api/saju/daily'),
   /** 생시 설정. null=모름. 204. */
   setBirthTime: (hour: number | null) => api.put<void>('/api/saju/birth-time', { hour }),

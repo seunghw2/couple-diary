@@ -46,11 +46,21 @@ public class SajuService {
         return personalOf(u);
     }
 
+    // ───────── 연인 사주 ─────────
+    @Transactional(readOnly = true)
+    public PersonalResult partner(Long userId) {
+        User partner = partnerOrNull(userId);
+        if (partner == null || partner.getBirthday() == null) return emptyPersonal();
+        return personalOf(partner);
+    }
+
+    private PersonalResult emptyPersonal() {
+        return new PersonalResult(false, null, null, null, null, null, null, null, List.of(), null,
+                List.of(), List.of(), null, List.of(), List.of(), null, null, false, DISCLAIMER);
+    }
+
     private PersonalResult personalOf(User u) {
-        if (u.getBirthday() == null) {
-            return new PersonalResult(false, null, null, null, null, null, null, null, List.of(), null,
-                    List.of(), List.of(), null, List.of(), List.of(), null, null, false, DISCLAIMER);
-        }
+        if (u.getBirthday() == null) return emptyPersonal();
         Saju s = SajuCalculator.compute(u.getBirthday(), u.getBirthTime());
         SajuTemplates.DayMaster dm = SajuTemplates.dayMaster(s.dayStem());
 
