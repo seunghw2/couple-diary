@@ -129,30 +129,34 @@ export default function SajuHome() {
               <View style={styles.cInfoRow}>
                 {/* 나 (편집 가능) */}
                 <View style={styles.cBox}>
-                  <Pressable onPress={() => setShowDate(true)} style={({ pressed }) => [styles.cLine, pressed && styles.pressed]}>
+                  <Pressable onPress={() => setShowDate(true)} style={({ pressed }) => [styles.cField, pressed && styles.pressed]} hitSlop={4}>
                     <Text style={styles.cK}>생일</Text>
-                    <Text style={styles.cV}>{fmtDate(hub?.myBirthday)}</Text>
-                    <Icon name="pencil" size={13} color={c.primary} />
+                    <View style={styles.cValRow}>
+                      <Text style={styles.cV} numberOfLines={1}>{fmtDate(hub?.myBirthday)}</Text>
+                      <Icon name="pencil" size={12} color={c.primary} />
+                    </View>
                   </Pressable>
-                  <Pressable onPress={() => setShowHour(true)} style={({ pressed }) => [styles.cLine, pressed && styles.pressed]}>
+                  <Pressable onPress={() => setShowHour(true)} style={({ pressed }) => [styles.cField, pressed && styles.pressed]} hitSlop={4}>
                     <Text style={styles.cK}>생시</Text>
-                    <Text style={styles.cV}>{hourLabel(hub?.myBirthTime)}</Text>
-                    <Icon name="pencil" size={13} color={c.primary} />
+                    <View style={styles.cValRow}>
+                      <Text style={styles.cV} numberOfLines={1}>{hourLabel(hub?.myBirthTime)}</Text>
+                      <Icon name="pencil" size={12} color={c.primary} />
+                    </View>
                   </Pressable>
-                  {saving ? <ActivityIndicator size="small" color={c.primary} style={{ marginTop: 4 }} /> : null}
                 </View>
                 {/* 연인 (표시만) */}
                 <View style={styles.cBox}>
-                  <View style={styles.cLine}>
+                  <View style={styles.cField}>
                     <Text style={styles.cK}>생일</Text>
-                    <Text style={[styles.cV, styles.readonly]}>{fmtDate(hub?.partnerBirthday)}</Text>
+                    <Text style={[styles.cV, styles.readonly]} numberOfLines={1}>{fmtDate(hub?.partnerBirthday)}</Text>
                   </View>
-                  <View style={styles.cLine}>
+                  <View style={styles.cField}>
                     <Text style={styles.cK}>생시</Text>
-                    <Text style={[styles.cV, styles.readonly]}>{hourLabel(hub?.partnerBirthTime)}</Text>
+                    <Text style={[styles.cV, styles.readonly]} numberOfLines={1}>{hourLabel(hub?.partnerBirthTime)}</Text>
                   </View>
                 </View>
               </View>
+              {saving ? <ActivityIndicator size="small" color={c.primary} style={{ marginTop: spacing.sm }} /> : null}
             </View>
 
             <Pressable
@@ -272,14 +276,15 @@ const styles = StyleSheet.create({
   cPerson: { alignItems: 'center', width: 110 },
   cAv: { width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
   cAvText: { fontSize: 28 },
-  cNm: { ...font.title, fontWeight: '800', marginTop: 7, textAlign: 'center' },
+  cNm: { ...font.title, fontWeight: '700', marginTop: 7, textAlign: 'center' },
   cRl: { ...font.caption, color: colors.subText, marginTop: 1 },
   heart: { fontSize: 22, marginTop: -18 },
   cInfoRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md },
-  cBox: { flex: 1, backgroundColor: colors.bg, borderRadius: radius.md, padding: spacing.md, gap: 4 },
-  cLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  cK: { ...font.caption, color: colors.subText, width: 30 },
-  cV: { ...font.body, fontWeight: '700', color: colors.text, flex: 1, fontSize: 14 },
+  cBox: { flex: 1, backgroundColor: colors.bg, borderRadius: radius.md, padding: spacing.md, gap: spacing.sm },
+  cField: { gap: 2 },
+  cValRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  cK: { ...font.caption, color: colors.subText },
+  cV: { ...font.body, fontWeight: '700', color: colors.text, fontSize: 14, flexShrink: 1 },
 
   card: {
     flexDirection: 'row',
