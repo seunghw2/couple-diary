@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<style>
+  body{margin:0;background:#E9E9E9;font-family:-apple-system,"Apple SD Gothic Neo",sans-serif;}
+  .wrap{width:300px;margin:0 auto;padding:20px;}
+  .cap{font-size:13px;font-weight:800;color:#333;margin:20px 4px 9px;}
+  .tile{width:220px;height:220px;border-radius:50px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.14);
+        margin:0 auto;overflow:hidden;}
+  svg{display:block;width:100%;height:100%;}
+</style></head>
+<body>
+<div class="wrap" id="root"></div>
+<script>
+// 현재 아이콘 구성(펼친 책 + 하트) 유지. 배경=흰색 고정, 책·하트 색만 변주.
+const BOOK_L = "M50 31 C 40 25, 26 24, 17 28 L 17 69 C 26 65, 40 66, 50 73 Z";
+const BOOK_R = "M50 31 C 60 25, 74 24, 83 28 L 83 69 C 74 65, 60 66, 50 73 Z";
+const HEART  = "M50 65 C 39 56, 32 50, 32 43 C 32 38, 36 35, 40 35 C 44 35, 47 38, 50 41 C 53 38, 56 35, 60 35 C 64 35, 68 38, 68 43 C 68 50, 61 56, 50 65 Z";
+
+function icon(id, book, spine, h1, h2){
+  return `
+  <svg viewBox="0 0 100 100">
+    <defs>
+      <linearGradient id="ht${id}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="${h1}"/><stop offset="1" stop-color="${h2}"/>
+      </linearGradient>
+      <filter id="sh${id}" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="1" stdDeviation="1.1" flood-color="#000" flood-opacity="0.10"/>
+      </filter>
+    </defs>
+    <rect width="100" height="100" fill="#FFFFFF"/>
+    <g filter="url(#sh${id})">
+      <path d="${BOOK_L}" fill="${book}"/>
+      <path d="${BOOK_R}" fill="${book}"/>
+      <rect x="48.7" y="31" width="2.6" height="42" fill="${spine}"/>
+    </g>
+    <path d="${HEART}" fill="url(#ht${id})"/>
+  </svg>`;
+}
+
+const items = [
+  ["1 · 코럴 (현재 톤)",           "#FF8E72","#FFFFFF","#FF9E7D","#FF5C8A"],
+  ["2 · 라벤더/보라",             "#9B8CFF","#FFFFFF","#A78BFF","#7A5CE0"],
+  ["3 · 로즈/핑크",              "#FF8FB0","#FFFFFF","#FF6FA5","#D6408A"],
+  ["4 · 민트/틸",                "#3DBE9E","#FFFFFF","#33C6A4","#178E76"],
+  ["5 · 블루 책 · 핑크 하트(투톤)","#6E86D8","#FFFFFF","#FF7AA0","#FF5C8A"],
+  ["6 · 코럴 책 · 보라 하트(투톤)","#FF8E72","#FFFFFF","#A78BFF","#7A5CE0"],
+];
+const root = document.getElementById('root');
+items.forEach((it, i) => {
+  const [cap, ...c] = it;
+  const capEl = document.createElement('div'); capEl.className='cap'; capEl.textContent=cap;
+  const tileEl = document.createElement('div'); tileEl.className='tile'; tileEl.innerHTML=icon(i, ...c);
+  root.appendChild(capEl); root.appendChild(tileEl);
+});
+</script>
+</body></html>
