@@ -592,10 +592,17 @@ public class QuestionService {
 
     private List<DailyQuestion> assignToday(Couple couple, LocalDate today, LocalDateTime deadline) {
         // 새 기간 배정 직전, 직전 기간이 열리지 못했으면 '지나간 편지' 알림(마감 = 다음 도착시간).
+        // 하루에 슬롯이 2개(slot1/2)이고 하나만 선택되므로, top-slot 하나만 보면 '선택 안 된 슬롯'을
+        // 오판해 오발송된다 → 반드시 직전 date의 '선택된(chosen) 질문이 둘 다 봉인됐는지'로 판정.
         dailyQuestionRepository.findTopByCouple_IdOrderByDateDescSlotDesc(couple.getId())
-                .filter(prev -> !bothSealed(prev))
-                .ifPresent(prev -> notificationService.onQuestionMissed(
-                        couple.getUser1(), couple.getUser2(), prev.getDate()));
+                .map(DailyQuestion::getDate)
+                .ifPresent(prevDate -> {
+                    List<DailyQuestion> prevPeriod = dailyQuestionRepository.findByCouple_IdAndDate(couple.getId(), prevDate);
+                    boolean opened = prevPeriod.stream().anyMatch(dq -> dq.isChosen() && bothSealed(dq));
+                    if (!opened) {
+                        notificationService.onQuestionMissed(couple.getUser1(), couple.getUser2(), prevDate);
+                    }
+                });
 
         List<QuestionPool> nonTemplate = poolRepository.findByActiveTrueAndIsTemplateFalse();
         if (nonTemplate.isEmpty()) {
