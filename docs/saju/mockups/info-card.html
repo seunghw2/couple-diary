@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#FFF6EF; --card:#FFFDFA; --primary:#FF8E72; --coralSoft:#FFA98C; --coralSofter:#FFC7B0;
+    --text:#5A4038; --sub:#7A5A4E; --border:#F1E2D6; --partner:#9B8CFF; --partnerSoft:#C7BEFF; --white:#fff;
+  }
+  *{box-sizing:border-box; -webkit-font-smoothing:antialiased;}
+  body{margin:0; background:var(--bg); font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; color:var(--text);}
+  .wrap{width:430px; margin:0 auto; padding:22px;}
+  .caption{font-size:13px; font-weight:800; color:var(--primary); margin:26px 4px 10px;}
+  .sub{font-size:12px; color:var(--sub); margin:0 4px 14px;}
+  .card{background:var(--card); border-radius:22px; padding:20px; box-shadow:0 6px 16px rgba(201,150,126,0.16);}
+  .pencil{color:var(--primary);}
+  .divider{height:1px; background:var(--border); margin:16px 0;}
+
+  /* ===== A. 대칭 2열 ===== */
+  .a-grid{display:flex;}
+  .a-col{flex:1; padding:2px 6px;}
+  .a-col + .a-col{border-left:1px solid var(--border); padding-left:16px;}
+  .a-head{display:flex; align-items:center; gap:9px; margin-bottom:12px;}
+  .avatar{width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; flex:none;}
+  .av-me{background:linear-gradient(135deg,#FFB59C,#FF8E72);}
+  .av-you{background:linear-gradient(135deg,#C7BEFF,#9B8CFF);}
+  .a-role{font-size:11px; font-weight:800; color:var(--sub);}
+  .a-name{font-size:16px; font-weight:800;}
+  .a-field{margin-top:10px;}
+  .a-label{font-size:11px; color:var(--sub);}
+  .a-value{font-size:15px; font-weight:600; margin-top:2px; display:flex; align-items:center; gap:6px;}
+  .edit-badge{margin-left:auto; font-size:11px; color:var(--primary); font-weight:700;}
+
+  /* ===== B. 아바타 + 칩 ===== */
+  .b-row{display:flex; align-items:center; gap:13px; padding:6px 0;}
+  .b-mid{flex:1; min-width:0;}
+  .b-name{font-size:16px; font-weight:800;}
+  .b-role{font-size:11px; color:var(--sub); font-weight:700; margin-bottom:5px;}
+  .chips{display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;}
+  .chip{background:var(--bg); border:1px solid var(--border); border-radius:999px; padding:5px 11px; font-size:12.5px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:5px;}
+  .chip .ic{font-size:12px;}
+  .b-edit{width:30px; height:30px; border-radius:50%; background:var(--bg); display:flex; align-items:center; justify-content:center; flex:none;}
+
+  /* ===== C. 하트 커플 헤더 ===== */
+  .c-top{display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:4px;}
+  .c-person{text-align:center;}
+  .c-av{width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto;}
+  .c-nm{font-size:14px; font-weight:800; margin-top:7px;}
+  .c-rl{font-size:11px; color:var(--sub);}
+  .heart{font-size:22px; color:var(--primary); margin-top:-18px;}
+  .c-info{display:flex; gap:12px; margin-top:16px;}
+  .c-box{flex:1; background:var(--bg); border-radius:16px; padding:13px 14px;}
+  .c-line{display:flex; justify-content:space-between; align-items:baseline; margin-top:6px;}
+  .c-line:first-child{margin-top:0;}
+  .c-k{font-size:11px; color:var(--sub);}
+  .c-v{font-size:13.5px; font-weight:700;}
+  .c-editrow{display:flex; align-items:center; justify-content:center; gap:5px; margin-top:12px; font-size:12px; color:var(--primary); font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= A ================= -->
+  <div class="caption">A · 대칭 2열 (나 vs 연인 한눈에)</div>
+  <div class="card">
+    <div class="a-grid">
+      <div class="a-col">
+        <div class="a-head">
+          <div class="avatar av-me">💪</div>
+          <div>
+            <div class="a-role">나</div>
+            <div class="a-name">근육남친</div>
+          </div>
+        </div>
+        <div class="a-field">
+          <div class="a-label">생년월일</div>
+          <div class="a-value">1998.03.16 <span class="edit-badge">✎ 편집</span></div>
+        </div>
+        <div class="a-field">
+          <div class="a-label">태어난 시각</div>
+          <div class="a-value">미시 13~15 <span class="edit-badge">✎</span></div>
+        </div>
+      </div>
+      <div class="a-col">
+        <div class="a-head">
+          <div class="avatar av-you">🍒</div>
+          <div>
+            <div class="a-role">연인</div>
+            <div class="a-name">요정체리</div>
+          </div>
+        </div>
+        <div class="a-field">
+          <div class="a-label">생년월일</div>
+          <div class="a-value">1999.11.29</div>
+        </div>
+        <div class="a-field">
+          <div class="a-label">태어난 시각</div>
+          <div class="a-value">유시 17~19</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= B ================= -->
+  <div class="caption">B · 아바타 + 정보 칩 (미니멀·정보 밀도↓)</div>
+  <div class="card">
+    <div class="b-row">
+      <div class="avatar av-me">💪</div>
+      <div class="b-mid">
+        <div class="b-role">나</div>
+        <div class="b-name">근육남친</div>
+        <div class="chips">
+          <span class="chip"><span class="ic">🎂</span>1998.03.16</span>
+          <span class="chip"><span class="ic">🕐</span>미시 13~15</span>
+        </div>
+      </div>
+      <div class="b-edit"><span class="pencil">✎</span></div>
+    </div>
+    <div class="divider"></div>
+    <div class="b-row">
+      <div class="avatar av-you">🍒</div>
+      <div class="b-mid">
+        <div class="b-role">연인</div>
+        <div class="b-name">요정체리</div>
+        <div class="chips">
+          <span class="chip"><span class="ic">🎂</span>1999.11.29</span>
+          <span class="chip"><span class="ic">🕐</span>유시 17~19</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= C ================= -->
+  <div class="caption">C · 하트 커플 헤더 (감성·관계 강조)</div>
+  <div class="card">
+    <div class="c-top">
+      <div class="c-person">
+        <div class="c-av av-me">💪</div>
+        <div class="c-nm">근육남친</div>
+        <div class="c-rl">나</div>
+      </div>
+      <div class="heart">♥</div>
+      <div class="c-person">
+        <div class="c-av av-you">🍒</div>
+        <div class="c-nm">요정체리</div>
+        <div class="c-rl">연인</div>
+      </div>
+    </div>
+    <div class="c-info">
+      <div class="c-box">
+        <div class="c-line"><span class="c-k">생일</span><span class="c-v">1998.03.16</span></div>
+        <div class="c-line"><span class="c-k">생시</span><span class="c-v">미시 13~15</span></div>
+      </div>
+      <div class="c-box">
+        <div class="c-line"><span class="c-k">생일</span><span class="c-v">1999.11.29</span></div>
+        <div class="c-line"><span class="c-k">생시</span><span class="c-v">유시 17~19</span></div>
+      </div>
+    </div>
+    <div class="c-editrow"><span>✎</span> 내 생일·생시 편집</div>
+  </div>
+
+</div>
+</body>
+</html>
