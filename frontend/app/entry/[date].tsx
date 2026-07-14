@@ -23,6 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_URL } from '../../lib/config';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, calendarMarkApi, entryApi, isLocked } from '../../lib/api';
+import { usePollWhileFocused } from '../../hooks/usePollWhileFocused';
 import { dDayOn, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
 import { specialDayFor } from '../../lib/anniversary';
 import { confirmAsync, showAlert } from '../../lib/dialog';
@@ -114,6 +115,11 @@ export default function EntryDetailScreen() {
   }, [dateStr, getDetail, loadDetail]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  // 화면이 열려 있는 동안 상대 댓글이 실시간처럼 들어오도록 조용히 폴링.
+  usePollWhileFocused(() => {
+    loadDetail(dateStr).then((d) => d && setDetail(d)).catch(() => {});
+  }, 6000);
 
   async function onPoke() {
     if (poking) return;

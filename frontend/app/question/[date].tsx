@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ArchiveDetail, CommentView, dailyQuestionApi } from '../../lib/api';
+import { usePollWhileFocused } from '../../hooks/usePollWhileFocused';
 import { formatKoLong, weekdayKo } from '../../lib/date';
 import { subj } from '../../lib/josa';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -53,6 +54,12 @@ export default function QuestionDetailScreen() {
       load();
     }, [load])
   );
+
+  // 화면이 열려 있는 동안 상대 댓글이 실시간처럼 들어오도록 조용히 폴링(로딩 표시 없이).
+  usePollWhileFocused(() => {
+    if (!date) return;
+    dailyQuestionApi.archiveDetail(date).then((res) => setDetail(res)).catch(() => {});
+  }, 6000);
 
   async function onComment() {
     const text = commentText.trim();
