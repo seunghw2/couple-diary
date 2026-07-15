@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { showAlert } from '../../lib/dialog';
+import { errorMessage } from '../../lib/errors';
 import { subj } from '../../lib/josa';
 import { useQuestionStore } from '../../store/useQuestionStore';
 import { Button, Icon } from '../../components/ui';
@@ -68,8 +69,8 @@ export default function QuestionWriteScreen() {
     try {
       await answer(trimmed);
       router.back();
-    } catch {
-      showAlert('답장을 보내지 못했어요', '잠시 후 다시 시도해 주세요.');
+    } catch (e) {
+      showAlert('답장을 보내지 못했어요', errorMessage(e, '잠시 후 다시 시도해 주세요.'));
       setSaving(false);
     }
   }

@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { WorldcupSummary, worldcupApi } from '../../lib/api';
+import { ErrorState } from '../../components/ErrorState';
 import { Icon } from '../../components/ui';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
@@ -46,7 +47,7 @@ export default function WorldcupHome() {
         {cups == null && !error ? (
           <ActivityIndicator color={c.primary} style={{ marginTop: spacing.xxl }} />
         ) : error ? (
-          <Text style={styles.empty}>목록을 불러오지 못했어요.</Text>
+          <ErrorState onRetry={load} />
         ) : (
           cups!.map((cup) => (
             <Pressable

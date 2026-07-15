@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { authApi } from '../lib/api';
 import { confirmAsync, showAlert } from '../lib/dialog';
+import { errorMessage } from '../lib/errors';
 import { todayISO } from '../lib/date';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCoupleStore } from '../store/useCoupleStore';
@@ -70,8 +71,8 @@ export default function AccountScreen() {
       const updated = await authApi.updateMe({ birthday: v });
       setUser(updated);
       setBdayMsg('저장했어요');
-    } catch {
-      setBdayMsg('저장에 실패했어요.');
+    } catch (e) {
+      setBdayMsg(errorMessage(e, '저장에 실패했어요.'));
     } finally {
       setBdaySaving(false);
     }
@@ -88,8 +89,8 @@ export default function AccountScreen() {
     try {
       await setAnniversary(v);
       setMsg('저장했어요');
-    } catch {
-      setMsg('저장에 실패했어요.');
+    } catch (e) {
+      setMsg(errorMessage(e, '저장에 실패했어요.'));
     } finally {
       setSaving(false);
     }
@@ -107,8 +108,8 @@ export default function AccountScreen() {
       const updated = await authApi.updateMe({ nickname: v });
       setUser(updated);
       setNickMsg('저장했어요');
-    } catch {
-      setNickMsg('저장에 실패했어요.');
+    } catch (e) {
+      setNickMsg(errorMessage(e, '저장에 실패했어요.'));
     } finally {
       setNickSaving(false);
     }
@@ -177,6 +178,7 @@ export default function AccountScreen() {
                 onChangeText={setNickname}
                 placeholder="닉네임"
                 placeholderTextColor={colors.placeholder}
+                maxLength={30}
                 style={[styles.input, { flex: 1, marginTop: 0 }]}
               />
               <Button label="저장" variant="soft" onPress={onSaveNickname} loading={nickSaving} style={styles.nickBtn} />

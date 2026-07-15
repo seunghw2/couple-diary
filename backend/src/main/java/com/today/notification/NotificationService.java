@@ -318,7 +318,7 @@ public class NotificationService {
                 .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT));
         User me = memberOf(couple, userId);
         User partner = partnerOf(couple, userId);
-        if (partner == null) throw new ApiException(ErrorCode.INVALID_INPUT);
+        if (partner == null) throw new ApiException(ErrorCode.COUPLE_NOT_FOUND);
 
         // 스팸 방지: 최근 1시간 내 상대에게 보낸 POKE 있으면 무시(중복 생성 안 함)
         LocalDateTime since = LocalDateTime.now().minusHours(POKE_COOLDOWN_HOURS);

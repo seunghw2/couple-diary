@@ -6,6 +6,7 @@ import { AnniversaryItem, calendarMarkApi, coupleApi } from '../lib/api';
 import { formatKoLong, weekdayKo } from '../lib/date';
 import { showAlert } from '../lib/dialog';
 import { Card, Icon } from '../components/ui';
+import { ErrorState } from '../components/ErrorState';
 import { colors, font, radius, spacing, useColors } from '../theme/theme';
 
 /** dday(남은 일수, 0=오늘) → 표기. */
@@ -86,10 +87,7 @@ export default function AnniversariesScreen() {
       ) : (
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           {error ? (
-            <View style={styles.empty}>
-              <Icon name="alert-circle-outline" size={40} color={colors.coralSoft} />
-              <Text style={styles.emptyText}>{error}</Text>
-            </View>
+            <ErrorState message={error} onRetry={load} />
           ) : items.length === 0 ? (
             <View style={styles.empty}>
               <Icon name="gift-outline" size={40} color={colors.coralSoft} />

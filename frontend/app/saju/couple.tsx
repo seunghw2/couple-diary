@@ -10,6 +10,8 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { useFirstVisitIntro } from '../../hooks/useFirstVisitIntro';
 import { coupleScoreColor, coupleScoreLabel } from '../../lib/sajuUi';
 import { showToast } from '../../lib/dialog';
+import { errorMessage } from '../../lib/errors';
+import { ErrorState } from '../../components/ErrorState';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 import { cardStyles, barStyles } from '../../theme/cardStyles';
 
@@ -60,8 +62,8 @@ export default function SajuCouplePage() {
     try {
       await sajuApi.requestBirthday();
       showToast('상대에게 생일 등록을 요청했어요');
-    } catch {
-      showToast('요청에 실패했어요');
+    } catch (e) {
+      showToast(errorMessage(e, '요청에 실패했어요'));
     } finally {
       setRequesting(false);
     }
@@ -106,7 +108,7 @@ export default function SajuCouplePage() {
       {data == null && !error ? (
         <ActivityIndicator color={c.primary} style={{ marginTop: spacing.xxl }} />
       ) : error ? (
-        <Text style={styles.empty}>불러오지 못했어요.</Text>
+        <ErrorState onRetry={load} />
       ) : !data!.canCompute ? (
         <View style={styles.centerBox}>
           <Text style={styles.bigEmoji}>💌</Text>

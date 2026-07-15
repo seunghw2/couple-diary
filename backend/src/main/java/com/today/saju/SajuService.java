@@ -189,7 +189,7 @@ public class SajuService {
         Couple couple = coupleService.requireCouple(userId);
         User me = memberOf(couple, userId);
         User partner = partnerOf(couple, userId);
-        if (partner == null) throw new ApiException(ErrorCode.INVALID_INPUT);
+        if (partner == null) throw new ApiException(ErrorCode.COUPLE_NOT_FOUND);
         notificationService.onSajuBirthdayRequest(me, partner);
     }
 

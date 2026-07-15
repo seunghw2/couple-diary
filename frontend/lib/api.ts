@@ -37,11 +37,28 @@ async function request<T = unknown>(path: string, opts: RequestOpts = {}): Promi
     if (token) headers.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_URL}${path}`, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  // 타임아웃 + 오프라인/DNS 실패를 4xx/5xx와 구분되는 예외(status 0)로 래핑.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
+  } catch (e) {
+    const aborted = e instanceof Error && e.name === 'AbortError';
+    throw new ApiException(0, {
+      code: aborted ? 'TIMEOUT' : 'NETWORK',
+      message: aborted
+        ? '응답이 지연되고 있어요. 잠시 후 다시 시도해 주세요.'
+        : '인터넷 연결을 확인해 주세요.',
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (res.status === 401 && auth) {
     // 토큰 만료/무효 → 세션 정리 후 로그인으로 복귀
@@ -99,14 +116,36 @@ export async function uploadPhoto(image: PickedImage): Promise<{ url: string }> 
     form.append('file', { uri: image.uri, name, type } as unknown as Blob);
   }
 
-  const res = await fetch(`${API_URL}/api/photos`, {
-    method: 'POST',
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    body: form,
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}/api/photos`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: form,
+      signal: controller.signal,
+    });
+  } catch (e) {
+    const aborted = e instanceof Error && e.name === 'AbortError';
+    throw new ApiException(0, {
+      code: aborted ? 'TIMEOUT' : 'NETWORK',
+      message: aborted
+        ? '사진 업로드가 지연되고 있어요. 다시 시도해 주세요.'
+        : '인터넷 연결을 확인해 주세요.',
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (res.status === 401) await handleUnauthorized();
-  if (!res.ok) throw new ApiException(res.status, { message: '사진 업로드에 실패했어요' });
+  if (!res.ok) {
+    // 백엔드 사유(용량/형식 등)를 보존, 없으면 상태별 폴백.
+    const text = await res.text().catch(() => '');
+    const errBody = (text ? safeJson(text) : {}) as ApiErrorBody;
+    const fallback = res.status === 413 ? '사진 용량이 너무 커요. 더 작은 사진을 골라 주세요.' : '사진 업로드에 실패했어요.';
+    throw new ApiException(res.status, { code: errBody.code, message: errBody.message ?? fallback });
+  }
   return (await res.json()) as { url: string };
 }
 

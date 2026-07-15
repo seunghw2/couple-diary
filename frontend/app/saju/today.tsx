@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SajuDailyDetail, sajuApi } from '../../lib/api';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { ErrorState } from '../../components/ErrorState';
 import { dailyScoreColor } from '../../lib/sajuUi';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 import { cardStyles, barStyles } from '../../theme/cardStyles';
@@ -42,7 +43,7 @@ export default function SajuToday() {
       {data == null && !error ? (
         <ActivityIndicator color={c.primary} style={{ marginTop: spacing.xxl }} />
       ) : error ? (
-        <Text style={styles.empty}>불러오지 못했어요.</Text>
+        <ErrorState onRetry={load} />
       ) : (
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           {/* 히어로: 점수 + 한 줄 */}

@@ -29,6 +29,7 @@ import {
 } from '../../lib/api';
 import { formatKoLong, todayISO, weekdayKo } from '../../lib/date';
 import { showAlert } from '../../lib/dialog';
+import { errorMessage } from '../../lib/errors';
 import { invalidateAfterMutation } from '../../store/useDataCache';
 import { clearDraft, draftHasContent, loadDraft, saveDraft } from '../../lib/writeDraft';
 import { MOODS, TEMPLATE_PROMPTS } from '../../constants/content';
@@ -333,8 +334,8 @@ export default function WriteScreen() {
       }
       const { url } = await uploadPhoto(up);
       setPhotoUrls((prev) => [...prev, url]);
-    } catch {
-      showAlert('사진 업로드에 실패했어요', '잠시 후 다시 시도해 주세요.');
+    } catch (e) {
+      showAlert('사진 업로드에 실패했어요', errorMessage(e, '연결을 확인하고 다시 시도해 주세요.'));
     } finally {
       setUploading(false);
     }
@@ -408,8 +409,8 @@ export default function WriteScreen() {
       // 캐시 무효화: 해당 date detail + 그 달 month + 알림 최신화
       invalidateAfterMutation(dateStr);
       router.replace({ pathname: '/entry/[date]', params: { date: dateStr } });
-    } catch {
-      setError('저장에 실패했어요. 다시 시도해 주세요.');
+    } catch (e) {
+      setError(errorMessage(e, '저장에 실패했어요. 다시 시도해 주세요.'));
     } finally {
       setSubmitting(false);
     }

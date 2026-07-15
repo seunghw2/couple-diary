@@ -5,6 +5,8 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { authApi, SajuDaily, SajuHub, sajuApi } from '../../lib/api';
 import { HOUR_OPTIONS, hourLabel } from '../../lib/sajuHours';
 import { showToast } from '../../lib/dialog';
+import { errorMessage } from '../../lib/errors';
+import { ErrorState } from '../../components/ErrorState';
 import { useAuthStore } from '../../store/useAuthStore';
 import { DatePickerSheet } from '../../components/DatePickerSheet';
 import { Icon } from '../../components/ui';
@@ -52,8 +54,8 @@ export default function SajuHome() {
       const u = await authApi.updateMe({ birthday: date });
       setUser(u);
       await load();
-    } catch {
-      showToast('생일 저장에 실패했어요');
+    } catch (e) {
+      showToast(errorMessage(e, '생일 저장에 실패했어요'));
     } finally {
       setSaving(false);
     }
@@ -65,8 +67,8 @@ export default function SajuHome() {
     try {
       await sajuApi.setBirthTime(hour);
       await load();
-    } catch {
-      showToast('생시 저장에 실패했어요');
+    } catch (e) {
+      showToast(errorMessage(e, '생시 저장에 실패했어요'));
     } finally {
       setSaving(false);
     }
@@ -98,7 +100,7 @@ export default function SajuHome() {
         {hub == null && !error ? (
           <ActivityIndicator color={c.primary} style={{ marginTop: spacing.xxl }} />
         ) : error ? (
-          <Text style={styles.empty}>불러오지 못했어요.</Text>
+          <ErrorState onRetry={load} />
         ) : (
           <>
             {/* 커플 정보 카드 (하트 커플 헤더) */}

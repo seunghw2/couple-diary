@@ -14,6 +14,7 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiException } from '../../lib/api';
+import { errorMessage } from '../../lib/errors';
 import { confirmAsync } from '../../lib/dialog';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useCoupleStore } from '../../store/useCoupleStore';
@@ -101,7 +102,23 @@ export default function CoupleConnectScreen() {
       await connect(code);
       // 연결되면 _layout 가드가 홈으로 이동시킴.
     } catch (e) {
-      setError(e instanceof ApiException ? e.message : '연결에 실패했어요. 코드를 확인해 주세요.');
+      const code = e instanceof ApiException ? e.body?.code : undefined;
+      switch (code) {
+        case 'P003':
+          setError('내 초대코드예요. 상대에게 받은 코드를 입력해 주세요.');
+          break;
+        case 'P002':
+          setError('코드를 찾을 수 없어요. 오타가 없는지 다시 확인해 주세요.');
+          break;
+        case 'P001':
+          setError('이미 다른 상대와 연결돼 있어요.');
+          break;
+        case 'P005':
+          setError('이 코드의 상대는 이미 다른 사람과 연결됐어요.');
+          break;
+        default:
+          setError(errorMessage(e, '연결에 실패했어요. 잠시 후 다시 시도해 주세요.'));
+      }
     } finally {
       setConnecting(false);
     }

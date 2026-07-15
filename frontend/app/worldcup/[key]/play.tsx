@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { WorldcupItem, worldcupApi } from '../../../lib/api';
-import { showAlert } from '../../../lib/dialog';
+import { showAlert, showToast } from '../../../lib/dialog';
 import { Icon } from '../../../components/ui';
 import { colors, font, radius, spacing, useColors } from '../../../theme/theme';
 
@@ -55,6 +55,7 @@ export default function WorldcupPlay() {
       await worldcupApi.saveResult(key, winner.id, stages);
     } catch {
       // 저장 실패해도 결과 화면은 보여준다(다음 방문 시 재시도 가능).
+      showToast('결과 저장에 실패했어요. 다음에 다시 시도돼요.');
     }
     router.replace({
       pathname: '/worldcup/[key]',

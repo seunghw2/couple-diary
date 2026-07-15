@@ -12,6 +12,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
@@ -43,9 +44,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraint(ConstraintViolationException e) {
+        // e.getMessage()는 "method.arg0.field: ..." 형태로 내부정보가 노출되므로 고정 메시지 사용.
         ErrorCode ec = ErrorCode.INVALID_INPUT;
         return ResponseEntity.status(ec.getStatus())
-                .body(new ErrorResponse(ec.getCode(), e.getMessage(), null));
+                .body(new ErrorResponse(ec.getCode(), ec.getMessage(), null));
     }
 
     // 잘못된 경로 변수/파라미터 타입 (예: /api/entries/notadate)
@@ -88,6 +90,13 @@ public class GlobalExceptionHandler {
         ErrorCode ec = ErrorCode.INVALID_INPUT;
         return ResponseEntity.status(ec.getStatus())
                 .body(new ErrorResponse(ec.getCode(), ec.getMessage(), null));
+    }
+
+    // 업로드 용량 초과(멀티파트 제한 10MB) — MultipartException보다 구체적 핸들러. 413 + 명확 안내.
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleTooLarge(MaxUploadSizeExceededException e) {
+        return ResponseEntity.status(413)
+                .body(new ErrorResponse("U413", "사진 용량이 너무 커요. 10MB 이하로 올려 주세요.", null));
     }
 
     @ExceptionHandler(AccessDeniedException.class)

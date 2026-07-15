@@ -14,6 +14,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Notification, NotificationType } from '../lib/api';
 import { timeAgo } from '../lib/date';
 import { useNotifStore } from '../store/useNotifStore';
+import { ErrorState } from '../components/ErrorState';
 import { Icon } from '../components/ui';
 import { colors, font, radius, spacing, useColors } from '../theme/theme';
 
@@ -40,7 +41,7 @@ const NOTIF_ICON: Record<NotificationType, React.ComponentProps<typeof Ionicons>
 export default function NotificationsScreen() {
   const router = useRouter();
   const c = useColors();
-  const { items, unreadCount, loading, fetch, markRead, markAllRead } = useNotifStore();
+  const { items, unreadCount, loading, error, fetch, markRead, markAllRead } = useNotifStore();
   const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
@@ -101,7 +102,11 @@ export default function NotificationsScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
           }
         >
-          {items.length === 0 ? (
+          {error && items.length === 0 ? (
+            <View style={styles.empty}>
+              <ErrorState onRetry={fetch} />
+            </View>
+          ) : items.length === 0 ? (
             <View style={styles.empty}>
               <Icon name="notifications-outline" size={44} color={colors.coralSoft} />
               <Text style={styles.emptyTitle}>아직 알림이 없어요</Text>

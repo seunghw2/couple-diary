@@ -6,6 +6,7 @@ import { SajuPersonal, sajuApi } from '../../lib/api';
 import { SajuLoading } from '../../components/SajuLoading';
 import { PersonalSaju } from '../../components/PersonalSaju';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { ErrorState } from '../../components/ErrorState';
 import { useFirstVisitIntro } from '../../hooks/useFirstVisitIntro';
 import { colors, font, spacing, useColors } from '../../theme/theme';
 
@@ -49,7 +50,7 @@ export default function SajuPartner() {
       {data == null && !error ? (
         <ActivityIndicator color={c.primary} style={{ marginTop: spacing.xxl }} />
       ) : error ? (
-        <Text style={styles.empty}>불러오지 못했어요.</Text>
+        <ErrorState onRetry={load} />
       ) : !data!.hasBirthday ? (
         <View style={styles.centerBox}>
           <Text style={styles.bigEmoji}>🎂</Text>

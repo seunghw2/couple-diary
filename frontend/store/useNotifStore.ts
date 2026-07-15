@@ -9,6 +9,7 @@ type NotifState = {
   items: Notification[];
   unreadCount: number;
   loading: boolean;
+  error: boolean;
   /** 알림 목록 재조회. 커플 연결된 경우에만 실제 호출. */
   fetch: () => Promise<void>;
   markRead: (id: number) => Promise<void>;
@@ -21,20 +22,21 @@ export const useNotifStore = create<NotifState>((set, get) => ({
   items: [],
   unreadCount: 0,
   loading: false,
+  error: false,
 
   fetch: async () => {
     // 커플 연결된 경우만 조회.
     if (!useAuthStore.getState().coupled) {
-      set({ items: [], unreadCount: 0, loading: false });
+      set({ items: [], unreadCount: 0, loading: false, error: false });
       return;
     }
     // 캐시(이미 목록 있음)면 스피너 없이 조용히 갱신, 첫 로드만 loading.
     set({ loading: get().items.length === 0 });
     try {
       const res = await notificationApi.list();
-      set({ items: res.items, unreadCount: res.unreadCount, loading: false });
+      set({ items: res.items, unreadCount: res.unreadCount, loading: false, error: false });
     } catch {
-      set({ loading: false });
+      set({ loading: false, error: true });
     }
   },
 
@@ -76,5 +78,5 @@ export const useNotifStore = create<NotifState>((set, get) => ({
     }
   },
 
-  reset: () => set({ items: [], unreadCount: 0, loading: false }),
+  reset: () => set({ items: [], unreadCount: 0, loading: false, error: false }),
 }));

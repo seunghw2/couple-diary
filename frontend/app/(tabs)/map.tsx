@@ -15,6 +15,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { locationApi } from '../../lib/api';
 import type { LocationCount, LocationNickname } from '../../lib/api';
 import { KakaoMap } from '../../components/KakaoMap';
+import { ErrorState } from '../../components/ErrorState';
 import { Icon } from '../../components/ui';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
@@ -28,6 +29,7 @@ export default function MapScreen() {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [nicknames, setNicknames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   // 웹은 지도(WebView) 미지원 → 기본 리스트.
   const [mode, setMode] = useState<ViewMode>(Platform.OS === 'web' ? 'list' : 'map');
@@ -36,6 +38,7 @@ export default function MapScreen() {
 
   const load = useCallback(async () => {
     try {
+      setError(false);
       const res = await locationApi.list();
       setPlaces(Array.isArray(res?.locations) ? res.locations.filter(Boolean) : []);
       const map: Record<string, number> = {};
@@ -49,9 +52,7 @@ export default function MapScreen() {
       });
       setNicknames(nick);
     } catch {
-      setPlaces([]);
-      setCounts({});
-      setNicknames({});
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -122,6 +123,10 @@ export default function MapScreen() {
         {loading ? (
           <View style={styles.center}>
             <ActivityIndicator color={c.primary} />
+          </View>
+        ) : error && places.length === 0 ? (
+          <View style={styles.center}>
+            <ErrorState onRetry={load} />
           </View>
         ) : places.length === 0 ? (
           <View style={styles.center}>

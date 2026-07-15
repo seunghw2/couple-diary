@@ -10,6 +10,7 @@ import {
   worldcupApi,
 } from '../../../lib/api';
 import { Button, Icon } from '../../../components/ui';
+import { ErrorState } from '../../../components/ErrorState';
 import { colors, font, radius, shadow, spacing, useColors } from '../../../theme/theme';
 
 /** 월드컵 상세 — 진행하기 / 이전 기록 보기 + 커플 비교. 완주 직후엔 축하 배너. */
@@ -32,10 +33,16 @@ export default function WorldcupDetailScreen() {
   const [records, setRecords] = useState<WorldcupRecords | null>(null);
   const [showRecords, setShowRecords] = useState(autoOpen);
   const [loadingRecords, setLoadingRecords] = useState(false);
+  const [error, setError] = useState(false);
+
+  const loadDetail = useCallback(() => {
+    setError(false);
+    worldcupApi.detail(key).then(setDetail).catch(() => setError(true));
+  }, [key]);
 
   useEffect(() => {
-    worldcupApi.detail(key).then(setDetail).catch(() => {});
-  }, [key]);
+    loadDetail();
+  }, [loadDetail]);
 
   const loadRecords = useCallback(async () => {
     setLoadingRecords(true);
@@ -72,6 +79,10 @@ export default function WorldcupDetailScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {error && !detail ? (
+          <ErrorState onRetry={loadDetail} />
+        ) : (
+        <>
         {/* 완주 축하 배너 */}
         {justWon ? (
           <View style={[styles.winBanner, { backgroundColor: c.primary }]}>
@@ -138,6 +149,8 @@ export default function WorldcupDetailScreen() {
             )}
           </View>
         ) : null}
+        </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
