@@ -15,8 +15,6 @@ type QuestionState = {
   loadToday: () => Promise<void>;
   choose: (questionId: number) => Promise<void>;
   answer: (text: string) => Promise<void>;
-  /** 상대 답장 하트 토글. add=true면 하트 추가, false면 해제. */
-  react: (answerId: number) => Promise<void>;
   /** 오늘 열린 편지에 댓글 달기. 성공 시 today.comments에 낙관적 추가. */
   comment: (text: string) => Promise<void>;
   /** API 응답으로 today/hasTodo를 한 번에 갱신(choose/answer 결과 반영). */
@@ -49,26 +47,6 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
   answer: async (text) => {
     const today = await dailyQuestionApi.answer(text);
     get().setFromResponse(today);
-  },
-
-  react: async (answerId) => {
-    const prev = get().today;
-    // 낙관적 업데이트: 상대 답의 reactedByMe를 즉시 토글(백엔드도 단일 토글).
-    if (prev?.partnerAnswer && prev.partnerAnswer.id === answerId) {
-      set({
-        today: {
-          ...prev,
-          partnerAnswer: { ...prev.partnerAnswer, reactedByMe: !prev.partnerAnswer.reactedByMe },
-        },
-      });
-    }
-    try {
-      await dailyQuestionApi.react(answerId);
-    } catch {
-      // 실패 시 원복.
-      if (prev) set({ today: prev });
-      throw new Error('react-failed');
-    }
   },
 
   comment: async (text) => {

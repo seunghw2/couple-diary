@@ -312,10 +312,6 @@ export type QuestionAnswer = {
   id: number;
   text?: string;
   sealed: boolean;
-  /** 상대가 내 답에 하트를 눌렀는지 (myAnswer 쪽). */
-  reactedByPartner?: boolean;
-  /** 내가 상대 답에 하트를 눌렀는지 (partnerAnswer 쪽). */
-  reactedByMe?: boolean;
 };
 
 /** GET /api/questions/today. */
@@ -385,9 +381,6 @@ export const dailyQuestionApi = {
   /** 오늘 열린 편지(또는 date 지정)에 댓글 달기. */
   comment: (text: string, date?: string) =>
     api.post<CommentView>('/api/questions/daily/comment', { date, text }),
-  /** 상대 답장에 하트 토글. 백엔드가 단일 POST로 토글(추가/해제), 204 반환. */
-  react: (answerId: number) =>
-    api.post<void>(`/api/questions/daily/answers/${answerId}/react`),
   /** '이 질문 별로예요' 신고. 해당 봉투(선택지)를 덜 보여주도록 요청. */
   report: (questionId: number) => api.post<void>(`/api/questions/daily/${questionId}/report`),
   archive: (cursor?: string, limit?: number) => {

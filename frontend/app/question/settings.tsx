@@ -129,19 +129,6 @@ export default function QuestionSettingsScreen() {
 
           <Card style={{ marginTop: spacing.lg }}>
             <Row
-              label="연속 일수 표시"
-              hint="함께한 날들을 하트로 세어드려요"
-              value={
-                <Switch
-                  value={settings.showStreak}
-                  onValueChange={(v) => patch({ showStreak: v })}
-                  trackColor={{ true: c.coralSoft, false: colors.border }}
-                  thumbColor={colors.white}
-                />
-              }
-            />
-            <View style={styles.divider} />
-            <Row
               label="소소한 기념 알림"
               hint="7일, 30일 같은 특별한 날을 축하해요"
               value={
