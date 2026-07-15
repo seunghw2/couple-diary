@@ -193,16 +193,15 @@ export default function SajuHome() {
             {daily ? (
               <Pressable
                 onPress={() => router.push('/saju/today')}
-                style={({ pressed }) => [styles.banner, { backgroundColor: c.coralSofter }, pressed && { opacity: 0.85 }]}
+                style={({ pressed }) => [styles.card, { backgroundColor: c.coralSofter }, pressed && { opacity: 0.85 }]}
               >
-                <View style={styles.bannerHead}>
-                  <Text style={styles.bannerTitle}>오늘의 운세</Text>
-                  <View style={[styles.colorDot, { backgroundColor: daily.colorHex }]} />
-                  <Text style={styles.bannerColor}>{daily.colorName}</Text>
-                  <Icon name="chevron-forward" size={18} color={colors.subText} />
+                <View style={[styles.todayColorIcon, { backgroundColor: daily.colorHex }]} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardTitle}>오늘의 운세</Text>
+                  <Text style={styles.todaySub} numberOfLines={2}>{daily.fortune}</Text>
                 </View>
-                <Text style={styles.bannerFortune}>{daily.fortune}</Text>
-                <Text style={styles.bannerKeyword}>자세히 보기 · 점수·항목운·행운</Text>
+                <Text style={styles.todayColorName}>{daily.colorName}</Text>
+                <Icon name="chevron-forward" size={20} color={colors.subText} />
               </Pressable>
             ) : null}
           </>
@@ -289,6 +288,10 @@ const styles = StyleSheet.create({
   emoji: { fontSize: 30 },
   cardTitle: { ...font.h2, fontSize: 17 },
   cardSub: { ...font.caption, color: colors.subText, marginTop: 3 },
+  // 오늘의 운세 카드(궁합 카드 형식 + 색 유지)
+  todayColorIcon: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: colors.white },
+  todaySub: { ...font.body, color: colors.text, marginTop: 3, lineHeight: 20 },
+  todayColorName: { ...font.label, color: colors.text },
   banner: { borderRadius: radius.lg, padding: spacing.lg, marginTop: spacing.sm },
   bannerHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   bannerTitle: { ...font.title, flex: 1 },
