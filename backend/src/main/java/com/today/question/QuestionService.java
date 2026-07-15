@@ -628,18 +628,25 @@ public class QuestionService {
         // 안 고른 채 매일 재등장하던 버그를 막기 위해 템플릿 선택에서 제외한다.
         Set<Long> everShown = new HashSet<>();
         Set<Long> recentTemplateShown = new HashSet<>();
+        // 최근 보여준 컨텍스트 트리거(기념일·생일·계절 등) — 같은 테마가 연일 반복되지 않게 회피.
+        Set<String> recentContextTriggers = new HashSet<>();
         LocalDate templSince = today.minusDays(RECENT_AVOID_DAYS);
         for (DailyQuestion dq : dailyQuestionRepository.findByCouple_Id(couple.getId())) {
-            if (dq.getQuestion() == null) continue;
-            everShown.add(dq.getQuestion().getId());
-            if (!dq.getDate().isBefore(templSince)) recentTemplateShown.add(dq.getQuestion().getId());
+            QuestionPool q = dq.getQuestion();
+            if (q == null) continue;
+            everShown.add(q.getId());
+            if (!dq.getDate().isBefore(templSince)) {
+                recentTemplateShown.add(q.getId());
+                if (q.isTemplate() && q.getContextTrigger() != null) recentContextTriggers.add(q.getContextTrigger());
+            }
         }
         long freshCount = nonTemplate.stream().filter(q -> !everShown.contains(q.getId())).count();
         if (freshCount >= 2) usedIds.addAll(everShown);
 
-        // slot1: 컨텍스트 트리거 우선
+        // slot1: 컨텍스트 트리거 우선. 단, 같은 트리거(예: 300일 기념일)를 최근에 이미 보여줬으면
+        // 연일 같은 테마가 반복되지 않도록 건너뛰고 일반 질문으로 채운다.
         ContextSignal signal = computeContext(couple, today);
-        if (signal != null) {
+        if (signal != null && !recentContextTriggers.contains(signal.trigger())) {
             PickedQuestion ctx = pickTemplate(signal, couple, today, recentTemplateShown);
             if (ctx != null) {
                 picks.add(ctx);
