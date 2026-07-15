@@ -96,7 +96,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   appleLogin: async () => {
     const cred = await loginWithApple();
     if (!cred) return false; // 사용자 취소
-    const res = await authApi.appleLogin(cred.identityToken, cred.fullName);
+    const res = await authApi.appleLogin(cred.identityToken, cred.authorizationCode, cred.fullName);
     await tokenStore.saveToken(res.accessToken);
     set({ status: 'authenticated', user: res.user });
     // 로그인 직후 내 정보/커플 상태 동기화

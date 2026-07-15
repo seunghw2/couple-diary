@@ -104,6 +104,9 @@ public class UserService {
         AppleUser appleUser = appleClient.verify(req.identityToken());
         User user = userRepository.findByAppleId(appleUser.appleId())
                 .orElseGet(() -> createAppleUser(appleUser, req.fullName()));
+        // 계정 삭제 시 Apple 토큰 revoke(5.1.1v)를 위해 refresh_token 확보(Apple 키 설정 시에만 동작).
+        String refresh = appleClient.exchangeRefreshToken(req.authorizationCode());
+        if (refresh != null) user.setAppleRefreshToken(refresh);
         String token = jwtTokenProvider.createAccessToken(user.getId());
         return new AuthResponse(token, UserSummary.of(user));
     }
@@ -245,6 +248,11 @@ public class UserService {
     @Transactional
     public void deleteAccount(Long userId) {
         User user = getUser(userId);
+
+        // Apple 로그인 유저면 Apple 토큰 revoke(5.1.1v). 실패해도 계정 삭제는 계속 진행.
+        if (user.getAppleRefreshToken() != null) {
+            appleClient.revoke(user.getAppleRefreshToken());
+        }
 
         coupleRepository.findByMember(userId).ifPresent(couple -> {
             Long coupleId = couple.getId();

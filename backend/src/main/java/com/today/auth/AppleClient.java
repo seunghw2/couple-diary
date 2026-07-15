@@ -11,15 +11,22 @@ import io.jsonwebtoken.Locator;
 import io.jsonwebtoken.ProtectedHeader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
 import java.math.BigInteger;
 import java.security.Key;
 import java.security.KeyFactory;
+import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.time.Instant;
 import java.util.Base64;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,13 +48,24 @@ public class AppleClient {
 
     /** 검증 대상(aud). iOS 앱 번들 ID와 동일해야 한다. */
     private final String clientId;
+    // 서버-서버 인증(토큰 교환·revoke)용. Apple Developer의 'Sign in with Apple' 키에서 발급.
+    private final String teamId;
+    private final String keyId;
+    private final String privateKeyPem;  // .p8 내용(PEM)
     private final RestClient jwksClient;
 
     // kid → 공개키 캐시. Apple 키는 자주 바뀌지 않으므로 재사용하되, 미스 시 재조회한다.
     private final Map<String, RSAPublicKey> keyCache = new ConcurrentHashMap<>();
 
-    public AppleClient(@Value("${app.apple.client-id:uk.terrylovesapp.lovetoday}") String clientId) {
+    public AppleClient(
+            @Value("${app.apple.client-id:uk.terrylovesapp.lovetoday}") String clientId,
+            @Value("${app.apple.team-id:}") String teamId,
+            @Value("${app.apple.key-id:}") String keyId,
+            @Value("${app.apple.private-key:}") String privateKeyPem) {
         this.clientId = clientId;
+        this.teamId = teamId;
+        this.keyId = keyId;
+        this.privateKeyPem = privateKeyPem;
         this.jwksClient = RestClient.builder()
                 .baseUrl("https://appleid.apple.com")
                 .build();
@@ -125,6 +143,78 @@ public class AppleClient {
             }
         }
     }
+
+    // ===================== 서버-서버 인증(토큰 교환 · revoke) =====================
+
+    /** revoke/토큰 교환에 필요한 Apple 키가 모두 설정됐는가(미설정이면 관련 기능 no-op). */
+    public boolean isServerAuthConfigured() {
+        return notBlank(teamId) && notBlank(keyId) && notBlank(privateKeyPem);
+    }
+
+    /** 로그인 시 authorizationCode → refresh_token 교환. 미설정/코드없음/실패면 null. */
+    public String exchangeRefreshToken(String authorizationCode) {
+        if (!isServerAuthConfigured() || !notBlank(authorizationCode)) return null;
+        try {
+            MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+            form.add("client_id", clientId);
+            form.add("client_secret", clientSecret());
+            form.add("grant_type", "authorization_code");
+            form.add("code", authorizationCode);
+            TokenResponse res = jwksClient.post().uri("/auth/token")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(form).retrieve().body(TokenResponse.class);
+            return res == null ? null : res.refresh_token();
+        } catch (RuntimeException e) {
+            log.warn("Apple token exchange failed", e);
+            return null;
+        }
+    }
+
+    /** 계정 삭제 시 Apple 토큰 revoke(Apple 5.1.1(v) 요건). 미설정/토큰없음/실패면 조용히 넘어간다. */
+    public void revoke(String refreshToken) {
+        if (!isServerAuthConfigured() || !notBlank(refreshToken)) return;
+        try {
+            MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+            form.add("client_id", clientId);
+            form.add("client_secret", clientSecret());
+            form.add("token", refreshToken);
+            form.add("token_type_hint", "refresh_token");
+            jwksClient.post().uri("/auth/revoke")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(form).retrieve().toBodilessEntity();
+        } catch (RuntimeException e) {
+            log.warn("Apple token revoke failed (계정 삭제는 계속 진행)", e);
+        }
+    }
+
+    /** client_secret = ES256로 서명한 JWT(iss=teamId, sub=clientId, aud=Apple). */
+    private String clientSecret() {
+        try {
+            String pem = privateKeyPem
+                    .replace("-----BEGIN PRIVATE KEY-----", "")
+                    .replace("-----END PRIVATE KEY-----", "")
+                    .replaceAll("\\s", "");
+            byte[] der = Base64.getDecoder().decode(pem);
+            PrivateKey key = KeyFactory.getInstance("EC").generatePrivate(new PKCS8EncodedKeySpec(der));
+            Instant now = Instant.now();
+            return Jwts.builder()
+                    .header().keyId(keyId).and()
+                    .issuer(teamId).subject(clientId)
+                    .audience().add(APPLE_ISSUER).and()
+                    .issuedAt(Date.from(now))
+                    .expiration(Date.from(now.plusSeconds(3600)))
+                    .signWith(key, Jwts.SIG.ES256)
+                    .compact();
+        } catch (Exception e) {
+            log.warn("Apple client_secret 생성 실패", e);
+            throw new ApiException(ErrorCode.APPLE_AUTH_FAILED);
+        }
+    }
+
+    private static boolean notBlank(String s) { return s != null && !s.isBlank(); }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record TokenResponse(String access_token, String refresh_token, String id_token) {}
 
     /** 우리 도메인이 필요로 하는 Apple 사용자 최소 정보. */
     public record AppleUser(String appleId, String email) {}

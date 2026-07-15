@@ -2,6 +2,8 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 
 export type AppleCredential = {
   identityToken: string;
+  /** 서버가 refresh_token으로 교환 → 계정 삭제 시 Apple 토큰 revoke에 사용. */
+  authorizationCode: string | null;
   /** Apple은 최초 로그인 1회에만 이름을 준다. 이후엔 null. */
   fullName: string | null;
 };
@@ -25,7 +27,7 @@ export async function loginWithApple(): Promise<AppleCredential | null> {
     const fullName = name
       ? [name.familyName, name.givenName].filter(Boolean).join('').trim() || null
       : null;
-    return { identityToken: cred.identityToken, fullName };
+    return { identityToken: cred.identityToken, authorizationCode: cred.authorizationCode ?? null, fullName };
   } catch (e) {
     // 사용자가 시트를 닫은 경우는 오류가 아니라 취소로 처리.
     if (e && typeof e === 'object' && 'code' in e && e.code === 'ERR_REQUEST_CANCELED') {

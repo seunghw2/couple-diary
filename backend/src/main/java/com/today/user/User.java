@@ -44,6 +44,10 @@ public class User {
     @Column(name = "apple_id")
     private String appleId;
 
+    /** Apple refresh token — 계정 삭제 시 Apple 토큰 revoke(5.1.1v)에 사용. 키 설정 시에만 저장. */
+    @Column(name = "apple_refresh_token", length = 512)
+    private String appleRefreshToken;
+
     @Column
     private LocalDate birthday;
 

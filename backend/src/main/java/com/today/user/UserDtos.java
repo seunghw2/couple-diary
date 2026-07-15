@@ -24,6 +24,7 @@ public class UserDtos {
      */
     public record AppleLoginRequest(
             @NotBlank String identityToken,
+            String authorizationCode,   // 선택 — refresh_token 발급/저장용(계정 삭제 시 revoke 대비)
             String fullName
     ) {}
 
