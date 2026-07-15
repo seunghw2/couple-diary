@@ -34,7 +34,10 @@ export default function PlaceScreen() {
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
-    if (!placeName) return;
+    if (!placeName) {
+      setLoading(false); // 이름 없이 진입 시 무한 스피너 방지
+      return;
+    }
     try {
       const res = await locationApi.detail(placeName);
       setDetail(res);

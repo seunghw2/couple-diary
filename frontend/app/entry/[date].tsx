@@ -103,16 +103,27 @@ export default function EntryDetailScreen() {
     setViewer({ urls, index });
   }
 
-  // 캐시우선 + 백그라운드 갱신. 캐시 없을 때만 스피너.
+  // 캐시우선 + 직접 재조회로 404(진짜 없음)와 네트워크/서버 오류를 구분한다.
+  // (오류를 빈 상태로 위장해 "일기 없음 → 재작성 유도"하던 문제 방지)
   const load = useCallback(async () => {
     const cached = getDetail(dateStr);
     if (cached) setDetail(cached);
     else setLoading(true);
     setError(null);
-    const d = await loadDetail(dateStr);
-    setDetail(d);
-    setLoading(false);
-  }, [dateStr, getDetail, loadDetail]);
+    try {
+      const d = await entryApi.detail(dateStr);
+      setCacheDetail(dateStr, d);
+      setDetail(d);
+    } catch (e) {
+      if (e instanceof ApiException && e.status === 404) {
+        setDetail(null); // 아직 아무도 안 쓴 날 → 작성 유도가 맞음
+      } else if (!getDetail(dateStr)) {
+        setError('불러오지 못했어요'); // 네트워크/서버 오류 → 재시도 안내
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [dateStr, getDetail, setCacheDetail]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
@@ -298,6 +309,12 @@ export default function EntryDetailScreen() {
         <ScrollView ref={scrollRef} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           {loading ? (
             <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xxl }} />
+          ) : error && !detail ? (
+            <View style={styles.errorBox}>
+              <Text style={styles.emptyTitle}>불러오지 못했어요</Text>
+              <Text style={styles.emptySub}>연결을 확인하고 다시 시도해 주세요</Text>
+              <Button label="다시 시도" variant="soft" onPress={() => void load()} style={{ marginTop: spacing.lg }} />
+            </View>
           ) : status === 'EMPTY' || !detail ? (
             <EmptyState
               future={isFuture}
@@ -812,6 +829,7 @@ const styles = StyleSheet.create({
 
   emptyTitle: { ...font.title },
   emptySub: { ...font.caption, marginTop: spacing.xs },
+  errorBox: { alignItems: 'center', marginTop: spacing.xxl },
 
   myActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
 

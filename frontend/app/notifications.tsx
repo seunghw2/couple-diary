@@ -29,6 +29,12 @@ const NOTIF_ICON: Record<NotificationType, React.ComponentProps<typeof Ionicons>
   WORLDCUP_COMPARABLE: 'trophy',
   SAJU_BIRTHDAY_REQUEST: 'sparkles-outline',
   SAJU_COMPATIBILITY_READY: 'sparkles-outline',
+  QUESTION_ARRIVED: 'mail-outline',
+  QUESTION_CHOSEN: 'checkmark-circle-outline',
+  QUESTION_ANSWERED: 'mail-unread-outline',
+  QUESTION_OPENED: 'mail-open-outline',
+  QUESTION_MISSED: 'time-outline',
+  QUESTION_COMMENT: 'chatbubble-ellipses-outline',
 };
 
 export default function NotificationsScreen() {
@@ -57,6 +63,12 @@ export default function NotificationsScreen() {
       else router.push('/worldcup');
     } else if (n.type === 'SAJU_BIRTHDAY_REQUEST' || n.type === 'SAJU_COMPATIBILITY_READY') {
       router.push('/saju/couple');
+    } else if (n.type === 'ANNIVERSARY') {
+      router.push('/anniversaries');
+    } else if (n.type === 'QUESTION_COMMENT' && n.entryDate) {
+      router.push({ pathname: '/question/[date]', params: { date: n.entryDate } });
+    } else if (n.type.startsWith('QUESTION_')) {
+      router.push('/question');
     } else if (n.entryDate) {
       router.push({ pathname: '/entry/[date]', params: { date: n.entryDate } });
     }

@@ -96,8 +96,8 @@ export default function SajuCouplePage() {
     );
   }
 
-  const strong = data?.categories.find((x) => x.key === data.strongestKey);
-  const weak = data?.categories.find((x) => x.key === data.weakestKey);
+  const strong = data?.categories?.find((x) => x.key === data.strongestKey);
+  const weak = data?.categories?.find((x) => x.key === data.weakestKey);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

@@ -67,6 +67,12 @@ export default function RootLayout() {
         else router.push('/worldcup');
       } else if (d.type === 'SAJU_BIRTHDAY_REQUEST' || d.type === 'SAJU_COMPATIBILITY_READY') {
         router.push('/saju/couple');
+      } else if (d.type === 'ANNIVERSARY') {
+        router.push('/anniversaries');
+      } else if (d.type === 'QUESTION_COMMENT' && d.entryDate) {
+        router.push({ pathname: '/question/[date]', params: { date: d.entryDate } });
+      } else if (d.type?.startsWith('QUESTION_')) {
+        router.push('/question');
       } else if (d.entryDate) {
         router.push({ pathname: '/entry/[date]', params: { date: d.entryDate } });
       } else {

@@ -27,7 +27,8 @@ export default function QuestionArchiveScreen() {
   const [error, setError] = useState(false);
 
   const apply = useCallback((res: ArchiveResponse, append: boolean) => {
-    setItems((prev) => (append ? [...prev, ...res.items] : res.items));
+    const list = res.items ?? [];
+    setItems((prev) => (append ? [...prev, ...list] : list));
     setCursor(res.nextCursor);
     setSummary({ totalOpened: res.totalOpened, streak: res.streak, milestone: res.milestone });
   }, []);
