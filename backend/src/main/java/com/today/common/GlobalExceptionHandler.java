@@ -110,7 +110,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAll(Exception e) {
         log.error("Unhandled exception", e);
         return ResponseEntity.internalServerError()
-                .body(new ErrorResponse("S001", "서버 오류가 발생했습니다.", null));
+                .body(new ErrorResponse("S001", "서버에 문제가 생겼어요. 잠시 후 다시 시도해 주세요.", null));
     }
 
     public record ErrorResponse(String code, String message, Map<String, String> details) {}
