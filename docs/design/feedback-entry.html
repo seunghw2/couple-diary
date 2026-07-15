@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<style>
+  :root{--bg:#FFF6EF;--card:#FFFDFA;--primary:#FF8E72;--soft:#FFC7B0;--softer:#FFE1D4;
+        --text:#5A4038;--sub:#9A857B;--border:#F1E2D6;}
+  *{box-sizing:border-box}
+  body{margin:0;background:#E8E8E8;font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;}
+  .wrap{width:420px;margin:0 auto;padding:18px;}
+  .cap{font-size:14px;font-weight:800;color:#333;margin:22px 4px 10px;}
+  .screen{background:var(--bg);border-radius:26px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.12);}
+  .body{padding:22px 20px 10px;}
+  /* 위쪽 콘텐츠(맥락용, 흐리게) */
+  .ghost{background:var(--card);border-radius:20px;height:96px;box-shadow:0 4px 12px rgba(201,150,126,.12);opacity:.55;margin-bottom:8px;}
+  .ghost.small{height:60px;opacity:.4;}
+  .spacer{height:26px;}
+  /* 탭바 */
+  .tabbar{display:flex;justify-content:space-around;padding:12px 0 16px;border-top:1px solid var(--border);background:var(--bg);}
+  .tab{width:26px;height:26px;border-radius:7px;background:#D8C7BC;opacity:.6;}
+  .tab.on{background:var(--primary);opacity:.85;}
+
+  /* A. 푸터 텍스트 링크 */
+  .fa{text-align:center;padding:8px 0 20px;}
+  .fa .t{font-size:14.5px;color:var(--sub);line-height:1.55;}
+  .fa .a{margin-top:10px;font-size:16px;font-weight:800;color:var(--primary);}
+
+  /* B. 카드형 */
+  .fb{display:flex;align-items:center;gap:13px;background:var(--card);border-radius:18px;padding:15px 16px;
+      box-shadow:0 4px 12px rgba(201,150,126,.14);margin-bottom:20px;}
+  .fb .ic{width:42px;height:42px;border-radius:50%;background:var(--softer);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none;}
+  .fb .m{flex:1;}
+  .fb .m .t1{font-size:16px;font-weight:800;color:var(--text);}
+  .fb .m .t2{font-size:12.5px;color:var(--sub);margin-top:2px;}
+  .fb .chev{color:#C9B4A8;font-size:20px;}
+
+  /* C. 필 버튼 */
+  .fc{display:flex;justify-content:center;padding:6px 0 22px;}
+  .fc .pill{display:inline-flex;align-items:center;gap:7px;background:var(--softer);color:var(--primary);
+      font-size:15px;font-weight:800;padding:11px 20px;border-radius:999px;}
+</style></head>
+<body>
+<div class="wrap">
+
+  <!-- A -->
+  <div class="cap">A · 은은한 푸터 텍스트 링크 (참고 이미지와 동일 톤)</div>
+  <div class="screen">
+    <div class="body">
+      <div class="ghost"></div>
+      <div class="ghost small"></div>
+      <div class="spacer"></div>
+      <div class="fa">
+        <div class="t">아쉬운 점이나 아이디어가 있다면<br>소중한 의견을 보내주세요.</div>
+        <div class="a">의견 보내기 ›</div>
+      </div>
+    </div>
+    <div class="tabbar"><div class="tab"></div><div class="tab"></div><div class="tab on"></div><div class="tab"></div></div>
+  </div>
+
+  <!-- B -->
+  <div class="cap">B · 카드형 (메뉴 카드처럼, 콘텐츠 맨 아래)</div>
+  <div class="screen">
+    <div class="body">
+      <div class="ghost"></div>
+      <div class="ghost small"></div>
+      <div class="spacer"></div>
+      <div class="fb">
+        <div class="ic">💌</div>
+        <div class="m">
+          <div class="t1">의견 보내기</div>
+          <div class="t2">아쉬운 점·바라는 점을 편하게 들려주세요</div>
+        </div>
+        <div class="chev">›</div>
+      </div>
+    </div>
+    <div class="tabbar"><div class="tab"></div><div class="tab"></div><div class="tab on"></div><div class="tab"></div></div>
+  </div>
+
+  <!-- C -->
+  <div class="cap">C · 작은 필 버튼 (콘텐츠 아래 중앙, 가볍게)</div>
+  <div class="screen">
+    <div class="body">
+      <div class="ghost"></div>
+      <div class="ghost small"></div>
+      <div class="spacer"></div>
+      <div class="fc"><div class="pill">💬 의견 보내기</div></div>
+    </div>
+    <div class="tabbar"><div class="tab"></div><div class="tab"></div><div class="tab on"></div><div class="tab"></div></div>
+  </div>
+
+</div>
+</body></html>
