@@ -5,13 +5,13 @@ import { useThemeStore } from '../store/useThemeStore';
 import { Icon } from '../components/ui';
 import { colors, font, radius, spacing, useColors } from '../theme/theme';
 
-/** 앱 강조색 팔레트(뮤트 웜 18색). 탭하면 즉시 적용. */
+/** 앱 강조색 팔레트(뮤트 웜 25색). 탭하면 즉시 적용. */
 const APP_COLORS = [
-  '#FF8E72', '#FF9E80', '#FFB59E', '#F49BA0',
-  '#E98A8A', '#E0A98F', '#D6A16A', '#CBB994',
-  '#E3B23C', '#B0857A', '#A8B58F', '#8FB4A0',
-  '#7FB0A8', '#9AB6C9', '#A99BC4', '#C29BB8',
-  '#D98CA6', '#C98A8A',
+  '#FF8E72', '#FF9E80', '#FFB59E', '#F49BA0', '#EF7E7E',
+  '#E98A8A', '#E0A98F', '#D6A16A', '#CBB994', '#E3B23C',
+  '#C9A227', '#B0857A', '#A8B58F', '#8FB4A0', '#7FB0A8',
+  '#6FA8A0', '#9AB6C9', '#7FA8C7', '#A99BC4', '#8E86C9',
+  '#C29BB8', '#D98CA6', '#C98A8A', '#B98A9E', '#A68B7B',
 ] as const;
 
 /** 앱 컬러 변경 — 설정에서 진입하는 별도 화면. */

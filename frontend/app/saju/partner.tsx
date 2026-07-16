@@ -58,7 +58,7 @@ export default function SajuPartner() {
           <Text style={styles.needSub}>{name}님이 생일을 등록하면 일간과 오행을 볼 수 있어요.</Text>
         </View>
       ) : (
-        <PersonalSaju data={data!} showDaily={false} />
+        <PersonalSaju data={data!} showDaily={false} showDetail={false} />
       )}
     </SafeAreaView>
   );

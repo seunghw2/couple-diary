@@ -116,7 +116,6 @@ export default function SajuHome() {
                     <Text style={styles.cAvText}>{hub?.myEmoji ?? '🙂'}</Text>
                   </View>
                   <Text style={styles.cNm}>{hub?.myName ?? '나'}</Text>
-                  <Text style={styles.cRl}>나</Text>
                 </View>
                 <Text style={[styles.heart, { color: c.primary }]}>♥</Text>
                 <View style={styles.cPerson}>
@@ -124,7 +123,6 @@ export default function SajuHome() {
                     <Text style={styles.cAvText}>{hub?.partnerEmoji ?? '🙂'}</Text>
                   </View>
                   <Text style={styles.cNm}>{hub?.partnerName ?? '미연결'}</Text>
-                  <Text style={styles.cRl}>연인</Text>
                 </View>
               </View>
 
@@ -204,7 +202,12 @@ export default function SajuHome() {
               >
                 <View style={[styles.todayColorIcon, { backgroundColor: daily.colorHex }]} />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.cardTitle}>오늘의 운세</Text>
+                  <View style={styles.todayTitleRow}>
+                    <Text style={styles.cardTitle}>오늘의 운세</Text>
+                    {daily.totalScore ? (
+                      <Text style={[styles.todayScore, { color: c.primary }]}>{daily.totalScore}점</Text>
+                    ) : null}
+                  </View>
                   <Text style={styles.todaySub} numberOfLines={2}>{daily.totalLine}</Text>
                 </View>
                 <Icon name="chevron-forward" size={20} color={colors.subText} />
@@ -298,6 +301,8 @@ const styles = StyleSheet.create({
   cardSub: { ...font.caption, color: colors.subText, marginTop: 3 },
   // 오늘의 운세 카드(궁합 카드 형식 + 색 유지)
   todayColorIcon: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: colors.white },
+  todayTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  todayScore: { fontSize: 17, fontWeight: '800' },
   todaySub: { ...font.body, color: colors.text, marginTop: 3, lineHeight: 20 },
   todayColorName: { ...font.label, color: colors.text },
   banner: { borderRadius: radius.lg, padding: spacing.lg, marginTop: spacing.sm },

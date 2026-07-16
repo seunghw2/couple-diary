@@ -7,7 +7,7 @@ public class SajuDtos {
     /** 오행 한 칸(막대용). level 0부족/1적당/2강함. */
     public record OhaengView(int elem, String name, String emoji, int count, int level, String comment) {}
 
-    public record DailyView(String fortune, String colorName, String colorHex, String keyword, String coupleTip, String totalLine) {}
+    public record DailyView(String fortune, String colorName, String colorHex, String keyword, String coupleTip, String totalLine, int totalScore) {}
 
     /** 개인 사주 결과. */
     public record PersonalResult(

@@ -723,6 +723,7 @@ export type SajuDaily = {
   keyword: string;
   coupleTip: string;
   totalLine: string;
+  totalScore: number;
 };
 
 /** 오행 한 줄. */

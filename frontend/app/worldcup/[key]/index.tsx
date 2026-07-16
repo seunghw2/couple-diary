@@ -11,6 +11,7 @@ import {
 } from '../../../lib/api';
 import { Button, Icon } from '../../../components/ui';
 import { ErrorState } from '../../../components/ErrorState';
+import { confirmAsync } from '../../../lib/dialog';
 import { colors, font, radius, shadow, spacing, useColors } from '../../../theme/theme';
 
 /** 월드컵 상세 — 진행하기 / 이전 기록 보기 + 커플 비교. 완주 직후엔 축하 배너. */
@@ -31,18 +32,13 @@ export default function WorldcupDetailScreen() {
 
   const [detail, setDetail] = useState<WorldcupDetail | null>(null);
   const [records, setRecords] = useState<WorldcupRecords | null>(null);
-  const [showRecords, setShowRecords] = useState(autoOpen);
-  const [loadingRecords, setLoadingRecords] = useState(false);
+  const [loadingRecords, setLoadingRecords] = useState(true);
   const [error, setError] = useState(false);
 
   const loadDetail = useCallback(() => {
     setError(false);
     worldcupApi.detail(key).then(setDetail).catch(() => setError(true));
   }, [key]);
-
-  useEffect(() => {
-    loadDetail();
-  }, [loadDetail]);
 
   const loadRecords = useCallback(async () => {
     setLoadingRecords(true);
@@ -55,14 +51,25 @@ export default function WorldcupDetailScreen() {
     }
   }, [key]);
 
-  // 완주 직후·비교 딥링크면 기록/비교를 바로 로드.
+  // 진입 시 상세 + 기록을 함께 로드(진행 여부에 따라 버튼/기록 표시가 달라짐).
   useEffect(() => {
-    if (autoOpen) loadRecords();
-  }, [autoOpen, loadRecords]);
+    loadDetail();
+    loadRecords();
+  }, [loadDetail, loadRecords]);
 
-  function onShowRecords() {
-    setShowRecords(true);
-    if (!records) loadRecords();
+  const hasPlayed = !!records && records.myRecords.length > 0;
+
+  async function onPlay() {
+    if (hasPlayed) {
+      const ok = await confirmAsync(
+        '다시 진행하기',
+        '이전에 진행한 기록이 사라지고 새로 시작해요. 계속할까요?',
+        '다시 진행',
+        true,
+      );
+      if (!ok) return;
+    }
+    router.push(`/worldcup/${key}/play`);
   }
 
   const title = detail?.title ?? records?.title ?? '월드컵';
@@ -98,55 +105,38 @@ export default function WorldcupDetailScreen() {
           </View>
         )}
 
-        {/* 액션 */}
+        {/* 액션 — 진행한 적 있으면 '다시 진행하기'(기록 삭제 확인) */}
         <Button
-          label={justWon ? '다시 도전하기' : '진행하기'}
+          label={hasPlayed || justWon ? '다시 진행하기' : '진행하기'}
           icon="play"
-          onPress={() => router.push(`/worldcup/${key}/play`)}
+          onPress={onPlay}
           style={{ marginTop: spacing.xl }}
         />
-        {!showRecords ? (
-          <Button
-            label="이전 기록 보기"
-            variant="soft"
-            icon="albums-outline"
-            onPress={onShowRecords}
-            style={{ marginTop: spacing.md }}
-          />
-        ) : null}
 
-        {/* 기록 + 커플 비교 */}
-        {showRecords ? (
+        {/* 진행 이력이 있으면 이전 기록/비교를 바로 표시(구분선으로 버튼과 분리) */}
+        {loadingRecords ? (
+          <ActivityIndicator color={c.primary} style={{ marginTop: spacing.xl }} />
+        ) : hasPlayed || cmp ? (
           <View style={{ marginTop: spacing.xl }}>
-            {loadingRecords ? (
-              <ActivityIndicator color={c.primary} style={{ marginTop: spacing.lg }} />
-            ) : (
-              <>
-                {cmp ? (
-                  <JourneyCompare cmp={cmp} />
-                ) : records ? (
-                  <Text style={styles.hint}>
-                    {records.myRecords.length === 0
-                      ? '아직 기록이 없어요. 먼저 진행해 보세요!'
-                      : '상대가 아직 안 했어요. 둘 다 완주하면 취향을 비교할 수 있어요.'}
-                  </Text>
-                ) : null}
+            <View style={styles.divider} />
+            {cmp ? (
+              <JourneyCompare cmp={cmp} />
+            ) : hasPlayed ? (
+              <Text style={styles.hint}>상대가 아직 안 했어요. 둘 다 완주하면 취향을 비교할 수 있어요.</Text>
+            ) : null}
 
-                {/* 내 기록 목록 */}
-                {records && records.myRecords.length > 0 ? (
-                  <View style={{ marginTop: spacing.xl }}>
-                    <Text style={styles.sectionLabel}>내 기록</Text>
-                    {records.myRecords.map((r) => (
-                      <View key={r.id} style={styles.recRow}>
-                        <Text style={styles.recEmoji}>{r.winner.emoji}</Text>
-                        <Text style={styles.recName}>{r.winner.label}</Text>
-                        <Text style={styles.recDate}>{r.playedAt}</Text>
-                      </View>
-                    ))}
+            {hasPlayed ? (
+              <View style={{ marginTop: spacing.xl }}>
+                <Text style={styles.sectionLabel}>내 기록</Text>
+                {records!.myRecords.map((r) => (
+                  <View key={r.id} style={styles.recRow}>
+                    <Text style={styles.recEmoji}>{r.winner.emoji}</Text>
+                    <Text style={styles.recName}>{r.winner.label}</Text>
+                    <Text style={styles.recDate}>{r.playedAt}</Text>
                   </View>
-                ) : null}
-              </>
-            )}
+                ))}
+              </View>
+            ) : null}
           </View>
         ) : null}
         </>
@@ -277,6 +267,7 @@ const styles = StyleSheet.create({
   foldText: { ...font.body, fontWeight: '700', color: colors.subText },
 
   hint: { ...font.body, color: colors.subText, textAlign: 'center', paddingVertical: spacing.lg },
+  divider: { height: 1, backgroundColor: colors.border, marginBottom: spacing.lg },
   sectionLabel: { ...font.label, fontWeight: '800', marginBottom: spacing.sm },
   recRow: {
     flexDirection: 'row',

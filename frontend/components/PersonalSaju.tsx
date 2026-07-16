@@ -42,6 +42,10 @@ export function PersonalSaju({
   const c = useColors();
   const subject = !data.ownerName ? '이 사람' : data.ownerName.endsWith('님') ? data.ownerName : `${data.ownerName}님`;
 
+  // 설명을 문단으로 나누고 궁합 화면처럼 소제목을 붙여 보기 좋게.
+  const descParas = (data.desc ?? '').split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
+  const DESC_LABELS = ['타고난 결', '관계·사랑에선', '그리고 이런 면도'];
+
   return (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
       {/* 일간 캐릭터 카드 */}
@@ -96,15 +100,21 @@ export function PersonalSaju({
         </View>
       ) : null}
 
-      {/* 이런 사람이에요 */}
+      {/* 이런 사람이에요 — 소제목으로 구조화 */}
       <View style={[styles.card, shadow]}>
         <Text style={styles.cardHead}>이런 사람이에요</Text>
         {data.oneLine ? <Text style={styles.pullQuote}>“{data.oneLine}”</Text> : null}
-        {data.desc.split(/\n\n+/).map((para, i) => (
-          <Text key={i} style={[styles.para, i > 0 && { marginTop: spacing.md }]}>
-            {emphasize(para.trim(), data.keywords)}
-          </Text>
-        ))}
+        {descParas.map((para, i) => {
+          const label = descParas.length >= 2 ? DESC_LABELS[i] : undefined;
+          return (
+            <View key={i}>
+              {label ? <Text style={[styles.subLabel, { color: c.primary }]}>{label}</Text> : null}
+              <Text style={[styles.para, !label && i > 0 && { marginTop: spacing.md }]}>
+                {emphasize(para, data.keywords)}
+              </Text>
+            </View>
+          );
+        })}
       </View>
 
       {/* 강점 & 보완점 */}
@@ -190,7 +200,8 @@ const styles = StyleSheet.create({
   para: { ...font.body, color: colors.text, lineHeight: 25 },
   insightBox: { borderRadius: radius.md, padding: spacing.md, marginTop: spacing.md },
   insightText: { ...font.body, color: colors.text, lineHeight: 24 },
-  subHead: { ...font.label, color: colors.subText, marginBottom: 4 },
+  subHead: { fontSize: 12, fontWeight: '800', color: colors.primary, marginBottom: 5 },
+  subLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.3, marginTop: spacing.md, marginBottom: 5 },
   li: { ...font.body, color: colors.text, lineHeight: 22, marginTop: 2 },
   liGrow: { ...font.body, color: colors.subText, lineHeight: 22, marginTop: 2 },
   hint: { ...font.caption, color: colors.subText, marginTop: spacing.xs },

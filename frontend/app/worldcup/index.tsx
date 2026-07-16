@@ -53,11 +53,23 @@ export default function WorldcupHome() {
             <Pressable
               key={cup.key}
               onPress={() => router.push(`/worldcup/${cup.key}`)}
-              style={({ pressed }) => [styles.card, shadow, pressed && { opacity: 0.85 }]}
+              style={({ pressed }) => [
+                styles.card,
+                shadow,
+                cup.myPlayed && { borderLeftWidth: 4, borderLeftColor: c.primary },
+                pressed && { opacity: 0.85 },
+              ]}
             >
               <Text style={styles.emoji}>{cup.emoji}</Text>
               <View style={{ flex: 1 }}>
-                <Text style={styles.title}>{cup.title}</Text>
+                <View style={styles.titleRow}>
+                  <Text style={styles.title}>{cup.title}</Text>
+                  {cup.myPlayed ? (
+                    <View style={[styles.donePill, { backgroundColor: c.primary }]}>
+                      <Text style={styles.donePillText}>✓ 완료</Text>
+                    </View>
+                  ) : null}
+                </View>
                 <Text style={styles.status}>{statusLabel(cup)}</Text>
               </View>
               <View style={[styles.chip, { backgroundColor: c.coralSofter }]}>
@@ -101,7 +113,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   emoji: { fontSize: 30 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 7, flexWrap: 'wrap' },
   title: { ...font.h2, fontSize: 17 },
+  donePill: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
+  donePillText: { fontSize: 11, fontWeight: '800', color: '#fff' },
   status: { ...font.caption, color: colors.subText, marginTop: 3 },
   chip: { borderRadius: 12, paddingVertical: 5, paddingHorizontal: 10 },
   chipText: { ...font.caption, color: colors.white, fontWeight: '800' },

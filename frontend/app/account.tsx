@@ -215,9 +215,13 @@ export default function AccountScreen() {
             <Button label="기념일 저장" variant="soft" onPress={onSaveAnniv} loading={saving} style={{ marginTop: spacing.md }} />
           </Card>
 
-          <Pressable onPress={confirmLogout} style={{ marginTop: spacing.xxl, alignSelf: 'center' }}>
-            <Text style={styles.logout}>로그아웃</Text>
-          </Pressable>
+          <Button
+            label="로그아웃"
+            variant="soft"
+            icon="log-out-outline"
+            onPress={confirmLogout}
+            style={{ marginTop: spacing.xxl }}
+          />
 
           {/* 계정 삭제 (앱스토어 필수) — 위험 강조. 커플·일기·편지·사진 전부 삭제. */}
           <View style={styles.dangerZone}>

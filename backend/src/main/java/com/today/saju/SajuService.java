@@ -83,7 +83,7 @@ public class SajuService {
         LocalDate todayD = LocalDate.now(SajuCalculator.KST);
         var d = SajuTemplates.daily(s.dayStem(), todayD);
         var detD = SajuDailyFortune.compute(s.dayStem(), true, SajuCalculator.compute(todayD, null), todayD);
-        DailyView daily = new DailyView(d.fortune(), d.colorName(), d.colorHex(), d.keyword(), d.coupleTip(), detD.totalLine());
+        DailyView daily = new DailyView(d.fortune(), d.colorName(), d.colorHex(), d.keyword(), d.coupleTip(), detD.totalLine(), detD.totalScore());
 
         int el = SajuCalculator.STEM_ELEMENT[s.dayStem()];
         String dayKo = SajuCalculator.STEM_KO[s.dayStem()] + SajuCalculator.ELEMENT_KO[el];   // 예: 갑목
@@ -112,7 +112,7 @@ public class SajuService {
         var d = SajuTemplates.daily(dayStem, today);
         var det = SajuDailyFortune.compute(dayStem, has, SajuCalculator.compute(today, null), today);
         // 색·키워드·문구는 상세(오늘의 운세) 계산과 동일 소스로 맞춰 배너/상세 불일치를 없앤다.
-        return new DailyView(det.totalLine(), det.colorName(), det.colorHex(), det.keyword(), d.coupleTip(), det.totalLine());
+        return new DailyView(det.totalLine(), det.colorName(), det.colorHex(), det.keyword(), d.coupleTip(), det.totalLine(), det.totalScore());
     }
 
     // ───────── 오늘의 운세(상세) ─────────
