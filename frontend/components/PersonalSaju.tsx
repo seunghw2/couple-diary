@@ -12,22 +12,6 @@ const ORIGIN_EXPLAIN =
   '흐름으로는 년주=뿌리·초년, 월주=성장·사회, 일주=나와 짝, 시주=열매·말년으로도 읽어요. ' +
   '시주는 태어난 시각으로 채워지는 기둥이라, 생시를 넣으면 네 번째 기둥까지 완성돼요.';
 
-/** 문단 안의 키워드를 볼드로 강조(정돈형 가독성). */
-function emphasize(text: string, keywords: string[]) {
-  const kws = keywords.filter(Boolean).sort((a, b) => b.length - a.length);
-  if (kws.length === 0) return text;
-  const escaped = kws.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const re = new RegExp(`(${escaped.join('|')})`, 'g');
-  return text.split(re).map((part, i) =>
-    kws.includes(part) ? (
-      <Text key={i} style={{ fontWeight: '800', color: colors.text }}>
-        {part}
-      </Text>
-    ) : (
-      part
-    )
-  );
-}
 
 /** 개인 사주 본문(내 사주 / 연인 사주 공용, 읽기 전용). hasBirthday=true 데이터 전제. */
 export function PersonalSaju({
@@ -83,12 +67,15 @@ export function PersonalSaju({
       {data.tenGodName ? (
         <View style={[styles.card, shadow]}>
           <Text style={styles.cardHead}>타고난 기질</Text>
+          <Text style={styles.tgHint}>
+            사주 여덟 글자와 일간의 관계(십성)를 풀어, 가장 두드러진 성향을 뽑았어요.
+          </Text>
           <View style={styles.tgHead}>
             <Text style={styles.tgEmoji}>{data.tenGodEmoji}</Text>
             <Text style={styles.tgName}>{data.tenGodName}</Text>
           </View>
           {data.tenGodKeywords && data.tenGodKeywords.length > 0 ? (
-            <View style={styles.chipRow}>
+            <View style={styles.tgChips}>
               {data.tenGodKeywords.map((k) => (
                 <View key={k} style={[styles.chip, { backgroundColor: c.coralSofter }]}>
                   <Text style={styles.chipText}>{k}</Text>
@@ -109,9 +96,7 @@ export function PersonalSaju({
           return (
             <View key={i}>
               {label ? <Text style={[styles.subLabel, { color: c.primary }]}>{label}</Text> : null}
-              <Text style={[styles.para, !label && i > 0 && { marginTop: spacing.md }]}>
-                {emphasize(para, data.keywords)}
-              </Text>
+              <Text style={[styles.para, !label && i > 0 && { marginTop: spacing.md }]}>{para}</Text>
             </View>
           );
         })}
@@ -215,7 +200,9 @@ const styles = StyleSheet.create({
   explainWrap: { marginTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.md },
   explain: { ...font.body, color: colors.subText, lineHeight: 23 },
 
-  tgHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
+  tgHint: { ...font.caption, color: colors.subText, lineHeight: 18, marginTop: 2, marginBottom: spacing.md },
+  tgHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
+  tgChips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.xs },
   tgEmoji: { fontSize: 30 },
   tgName: { ...font.h2, fontSize: 18, fontWeight: '800', color: colors.text, flex: 1 },
   tgDesc: { ...font.body, color: colors.text, lineHeight: 24, marginTop: spacing.md },

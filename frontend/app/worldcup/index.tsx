@@ -49,46 +49,53 @@ export default function WorldcupHome() {
         ) : error ? (
           <ErrorState onRetry={load} />
         ) : (
-          cups!.map((cup) => (
-            <Pressable
-              key={cup.key}
-              onPress={() => router.push(`/worldcup/${cup.key}`)}
-              style={({ pressed }) => [
-                styles.card,
-                shadow,
-                cup.myPlayed && { borderLeftWidth: 4, borderLeftColor: c.primary },
-                pressed && { opacity: 0.85 },
-              ]}
-            >
-              <Text style={styles.emoji}>{cup.emoji}</Text>
-              <View style={{ flex: 1 }}>
+          cups!.map((cup) => {
+            const tag = statusTag(cup);
+            return (
+              <Pressable
+                key={cup.key}
+                onPress={() => router.push(`/worldcup/${cup.key}`)}
+                style={({ pressed }) => [styles.card, shadow, pressed && { opacity: 0.85 }]}
+              >
+                <Text style={styles.emoji}>{cup.emoji}</Text>
                 <View style={styles.titleRow}>
-                  <Text style={styles.title}>{cup.title}</Text>
-                  {cup.myPlayed ? (
-                    <View style={[styles.donePill, { backgroundColor: c.primary }]}>
-                      <Text style={styles.donePillText}>✓ 완료</Text>
+                  <Text style={styles.title} numberOfLines={1}>{cup.title}</Text>
+                  {tag ? (
+                    <View
+                      style={[
+                        styles.tag,
+                        tag.kind === 'both'
+                          ? { backgroundColor: c.primary }
+                          : tag.kind === 'me'
+                            ? { backgroundColor: c.coralSofter }
+                            : { backgroundColor: colors.partnerSoft },
+                      ]}
+                    >
+                      <Text style={[styles.tagText, { color: tag.kind === 'both' ? '#fff' : colors.text }]}>
+                        {tag.label}
+                      </Text>
                     </View>
                   ) : null}
                 </View>
-                <Text style={styles.status}>{statusLabel(cup)}</Text>
-              </View>
-              <View style={[styles.chip, { backgroundColor: c.coralSofter }]}>
-                <Text style={styles.chipText}>{cup.size}강</Text>
-              </View>
-              <Icon name="chevron-forward" size={20} color={colors.subText} />
-            </Pressable>
-          ))
+                <View style={[styles.chip, { backgroundColor: c.coralSofter }]}>
+                  <Text style={styles.chipText}>{cup.size}강</Text>
+                </View>
+                <Icon name="chevron-forward" size={20} color={colors.subText} />
+              </Pressable>
+            );
+          })
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function statusLabel(cup: WorldcupSummary): string {
-  if (cup.myPlayed && cup.partnerPlayed) return '둘 다 완료 ✓ · 결과 비교 가능';
-  if (cup.myPlayed) return '내 기록 있음 · 상대는 아직';
-  if (cup.partnerPlayed) return '상대는 완료 · 나도 해볼까?';
-  return '아직 안 해봤어요';
+/** 진행 상태를 태그로. 아무도 안 했으면 태그 없음(제목만). */
+function statusTag(cup: WorldcupSummary): { label: string; kind: 'both' | 'me' | 'partner' } | null {
+  if (cup.myPlayed && cup.partnerPlayed) return { label: '둘다완료', kind: 'both' };
+  if (cup.myPlayed) return { label: '나 완료', kind: 'me' };
+  if (cup.partnerPlayed) return { label: '연인 완료', kind: 'partner' };
+  return null;
 }
 
 const styles = StyleSheet.create({
@@ -106,19 +113,19 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing.sm,
     backgroundColor: colors.card,
     borderRadius: radius.lg,
-    padding: spacing.lg,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
   },
-  emoji: { fontSize: 30 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 7, flexWrap: 'wrap' },
-  title: { ...font.h2, fontSize: 17 },
-  donePill: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
-  donePillText: { fontSize: 11, fontWeight: '800', color: '#fff' },
-  status: { ...font.caption, color: colors.subText, marginTop: 3 },
-  chip: { borderRadius: 12, paddingVertical: 5, paddingHorizontal: 10 },
-  chipText: { ...font.caption, color: colors.white, fontWeight: '800' },
+  emoji: { fontSize: 26 },
+  titleRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  title: { ...font.h2, fontSize: 16, flexShrink: 1 },
+  tag: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
+  tagText: { fontSize: 11.5, fontWeight: '800' },
+  chip: { borderRadius: 12, paddingVertical: 4, paddingHorizontal: 8 },
+  chipText: { ...font.caption, color: colors.white, fontWeight: '800', fontSize: 11 },
   empty: { ...font.body, color: colors.subText, textAlign: 'center', marginTop: spacing.xxl },
 });

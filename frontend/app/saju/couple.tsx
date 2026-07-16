@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { SajuCouple, sajuApi } from '../../lib/api';
@@ -24,16 +24,12 @@ const CAT_ICON: Record<string, string> = {
   GROWTH: '🌱',
 };
 
-const SCORE_INFO =
-  '종합 점수는 오행의 상생·상극, 일간의 합·충 등 12가지 관계를 종합해 계산해요. 아래 항목 점수는 첫끌림·대화·애정·안정감·성장을 따로 본 값이라, 항목을 더해 나눈 값과는 다를 수 있어요. 그래서 종합과 항목 평균이 일치하지 않는 게 정상이랍니다. 😊';
-
 export default function SajuCouplePage() {
   const c = useColors();
   const [data, setData] = useState<SajuCouple | null>(null);
   const [error, setError] = useState(false);
   const [requesting, setRequesting] = useState(false);
   const { firstVisit, introTimeUp, finishIntro } = useFirstVisitIntro('saju_seen_couple');
-  const [infoOpen, setInfoOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -134,9 +130,6 @@ export default function SajuCouplePage() {
 
               <View style={styles.percentRow}>
                 <Text style={[styles.percent, { color: coupleScoreColor(data!.percent) }]}>{data!.percent}%</Text>
-                <Pressable onPress={() => setInfoOpen(true)} hitSlop={10} style={styles.infoBtn}>
-                  <Icon name="information-circle-outline" size={20} color={colors.subText} />
-                </Pressable>
               </View>
               <View style={[styles.labelPill, { backgroundColor: coupleScoreColor(data!.percent) }]}>
                 <Text style={styles.labelPillText}>{coupleScoreLabel(data!.percent)}궁합</Text>
@@ -279,17 +272,6 @@ export default function SajuCouplePage() {
           </View>
         </>
       )}
-
-      {/* 종합 점수 설명 모달 */}
-      <Modal visible={infoOpen} transparent animationType="fade" onRequestClose={() => setInfoOpen(false)}>
-        <Pressable style={styles.modalBg} onPress={() => setInfoOpen(false)}>
-          <View style={[styles.modalCard, shadow]}>
-            <Text style={styles.modalTitle}>종합 점수는 어떻게 나오나요?</Text>
-            <Text style={styles.modalBody}>{SCORE_INFO}</Text>
-            <Button label="알겠어요" variant="soft" onPress={() => setInfoOpen(false)} style={{ marginTop: spacing.md }} />
-          </View>
-        </Pressable>
-      </Modal>
     </SafeAreaView>
   );
 }
