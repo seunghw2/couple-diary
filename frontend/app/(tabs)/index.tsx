@@ -52,6 +52,20 @@ export default function HomeScreen() {
   }, []);
 
   // 캐시우선 + 백그라운드 갱신. 캐시 없을 때만 스피너.
+  // 인접 월(이전/다음)을 조용히 미리 받아둔다 → 넘길 때 캐시로 즉시 표시.
+  const prefetchNeighbors = useCallback(
+    (year: number, month: number) => {
+      const nb = [
+        month === 1 ? { y: year - 1, m: 12 } : { y: year, m: month - 1 },
+        month === 12 ? { y: year + 1, m: 1 } : { y: year, m: month + 1 },
+      ];
+      nb.forEach(({ y, m }) => {
+        if (!getMonth(y, m)) loadMonth(y, m).catch(() => {});
+      });
+    },
+    [getMonth, loadMonth]
+  );
+
   const load = useCallback(
     async (year: number, month: number, force = false) => {
       const cached = getMonth(year, month);
@@ -60,8 +74,9 @@ export default function HomeScreen() {
       const map = await loadMonth(year, month, { force });
       if (map) setEntries(map);
       setLoading(false);
+      prefetchNeighbors(year, month);
     },
-    [getMonth, loadMonth]
+    [getMonth, loadMonth, prefetchNeighbors]
   );
 
   // 화면 포커스 시: 캐시우선 렌더 + 조용한 갱신 (전체 스피너 깜빡임 제거).
@@ -216,20 +231,20 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        {/* 캘린더 — 캐시가 있으면 스피너 없이 즉시 렌더 */}
+        {/* 캘린더 — 날짜 그리드는 항상 즉시 렌더, 일기 표시만 로드되면 채워진다.
+            (월 이동 시 카드가 스피너로 통째 비지 않도록) */}
         <View style={[styles.calCard, shadow]}>
-          {loading && Object.keys(entries).length === 0 ? (
-            <ActivityIndicator color={c.primary} style={{ marginVertical: spacing.xxl }} />
-          ) : (
-            <CalendarGrid
-              year={cursor.year}
-              month={cursor.month}
-              entries={entries}
-              today={today}
-              onPressDate={openDate}
-              markedDates={markedAll}
-            />
-          )}
+          {loading ? (
+            <ActivityIndicator color={c.primary} size="small" style={styles.calLoading} />
+          ) : null}
+          <CalendarGrid
+            year={cursor.year}
+            month={cursor.month}
+            entries={entries}
+            today={today}
+            onPressDate={openDate}
+            markedDates={markedAll}
+          />
         </View>
 
         {/* Today 버튼 — 오늘 일기를 이미 썼으면 '작성 완료' 상태로 표시 */}
@@ -327,4 +342,5 @@ const styles = StyleSheet.create({
   },
   monthTitle: { ...font.h2, color: colors.text },
   calCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg },
+  calLoading: { position: 'absolute', top: 10, right: 12, zIndex: 2 },
 });
