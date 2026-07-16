@@ -11,6 +11,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { DatePickerSheet } from '../../components/DatePickerSheet';
 import { Icon } from '../../components/ui';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { FeedbackLink } from '../../components/FeedbackLink';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
 function fmtDate(d?: string) {
@@ -208,6 +209,8 @@ export default function SajuHome() {
             ) : null}
           </>
         )}
+
+        <FeedbackLink source="saju" />
       </ScrollView>
 
       {/* 생일 편집 */}

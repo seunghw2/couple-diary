@@ -5,6 +5,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { SajuDailyDetail, sajuApi } from '../../lib/api';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { ErrorState } from '../../components/ErrorState';
+import { FeedbackLink } from '../../components/FeedbackLink';
 import { dailyScoreColor } from '../../lib/sajuUi';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 import { cardStyles, barStyles } from '../../theme/cardStyles';
@@ -121,6 +122,8 @@ export default function SajuToday() {
           ) : null}
 
           {data!.disclaimer ? <Text style={styles.disclaimer}>{data!.disclaimer}</Text> : null}
+
+          <FeedbackLink source="saju_today" />
         </ScrollView>
       )}
     </SafeAreaView>

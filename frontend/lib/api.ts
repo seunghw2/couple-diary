@@ -544,6 +544,14 @@ export const notificationApi = {
   poke: () => api.post<void>('/api/poke'),
 };
 
+// ─────────────────────────── 사용자 의견 ───────────────────────────
+
+export const feedbackApi = {
+  /** 자유 의견 보내기. source = 어느 화면에서 보냈는지(맥락용). */
+  send: (content: string, source?: string) =>
+    api.post<void>('/api/feedback', { content, source }),
+};
+
 // ─────────────────────────── 원격 푸시 토큰 ───────────────────────────
 
 export const pushApi = {

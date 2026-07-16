@@ -20,6 +20,7 @@ import { subj } from '../../lib/josa';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useQuestionStore } from '../../store/useQuestionStore';
 import { Button, Card, Icon } from '../../components/ui';
+import { FeedbackLink } from '../../components/FeedbackLink';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
 /** 오늘의 질문 — 감성 편지함. state별로 봉투 도착 → 선택 → 답장 → 열람 흐름. */
@@ -323,6 +324,8 @@ export default function QuestionScreen() {
             </View>
           </View>
         )}
+
+        <FeedbackLink source="question" />
       </ScrollView>
 
       {/* 댓글 입력 (OPENED에서만) */}
