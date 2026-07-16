@@ -62,7 +62,9 @@ export default function WorldcupHome() {
             return (
               <Pressable
                 key={cup.key}
-                onPress={() => router.push(`/worldcup/${cup.key}`)}
+                onPress={() =>
+                  router.push(cup.myPlayed ? `/worldcup/${cup.key}` : `/worldcup/${cup.key}/play`)
+                }
                 style={({ pressed }) => [styles.card, shadow, pressed && { opacity: 0.85 }]}
               >
                 <Text style={styles.emoji}>{cup.emoji}</Text>

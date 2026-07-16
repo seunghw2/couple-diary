@@ -105,20 +105,11 @@ export default function WorldcupDetailScreen() {
           </View>
         )}
 
-        {/* 액션 — 진행한 적 있으면 '다시 진행하기'(기록 삭제 확인) */}
-        <Button
-          label={hasPlayed || justWon ? '다시 진행하기' : '진행하기'}
-          icon="play"
-          onPress={onPlay}
-          style={{ marginTop: spacing.xl }}
-        />
-
-        {/* 진행 이력이 있으면 이전 기록/비교를 바로 표시(구분선으로 버튼과 분리) */}
+        {/* 결과/비교를 상단에 먼저 보여준다 */}
         {loadingRecords ? (
           <ActivityIndicator color={c.primary} style={{ marginTop: spacing.xl }} />
         ) : hasPlayed || cmp ? (
           <View style={{ marginTop: spacing.xl }}>
-            <View style={styles.divider} />
             {cmp ? (
               <JourneyCompare cmp={cmp} />
             ) : hasPlayed ? (
@@ -139,6 +130,15 @@ export default function WorldcupDetailScreen() {
             ) : null}
           </View>
         ) : null}
+
+        {/* 액션 — 맨 아래. 진행 이력 있으면 '다시 진행하기'(기록 삭제 확인) */}
+        {hasPlayed || cmp ? <View style={[styles.divider, { marginTop: spacing.xl }]} /> : null}
+        <Button
+          label={hasPlayed || justWon ? '다시 진행하기' : '진행하기'}
+          icon="play"
+          onPress={onPlay}
+          style={{ marginTop: hasPlayed || cmp ? 0 : spacing.xl }}
+        />
         </>
         )}
       </ScrollView>
