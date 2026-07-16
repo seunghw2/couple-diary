@@ -761,8 +761,10 @@ export type SajuCoupleCategory = {
   key: string;
   name: string;
   score: number; // 0~100
-  comment: string;
-  /** 오행(사주) 근거 — 있으면 '사주로 보면' 박스로 분리 노출. */
+  comment: string; // 기본 설명('두 사람의 결')
+  /** 행동/성향 부연('조금 더 보면'). 없을 수 있음. */
+  behavior?: string;
+  /** 오행(사주) 근거('사주로 보면'). 없을 수 있음. */
   sajuNote?: string;
 };
 

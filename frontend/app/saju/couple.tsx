@@ -194,6 +194,7 @@ export default function SajuCouplePage() {
               <Text style={styles.cardHead}>항목별 궁합</Text>
               <View style={{ gap: spacing.lg }}>
                 {data!.categories.map((cat) => {
+                  const multi = !!(cat.behavior || cat.sajuNote);
                   return (
                     <View key={cat.key}>
                       <View style={styles.catHead}>
@@ -215,12 +216,23 @@ export default function SajuCouplePage() {
                           ]}
                         />
                       </View>
-                      {cat.comment ? <Text style={styles.catComment}>{cat.comment}</Text> : null}
+                      {multi && cat.comment ? (
+                        <Text style={[styles.subLabel, { color: c.primary }]}>두 사람의 결</Text>
+                      ) : null}
+                      {cat.comment ? (
+                        <Text style={[styles.catComment, !multi && { marginTop: 8 }]}>{cat.comment}</Text>
+                      ) : null}
+                      {cat.behavior ? (
+                        <>
+                          <Text style={[styles.subLabel, { color: c.primary }]}>조금 더 보면</Text>
+                          <Text style={styles.catComment}>{cat.behavior}</Text>
+                        </>
+                      ) : null}
                       {cat.sajuNote ? (
-                        <View style={[styles.sajuBox, { backgroundColor: c.coralSofter }]}>
-                          <Text style={[styles.sajuBoxLabel, { color: c.primary }]}>사주로 보면</Text>
-                          <Text style={styles.sajuBoxText}>{cat.sajuNote}</Text>
-                        </View>
+                        <>
+                          <Text style={[styles.subLabel, { color: c.primary }]}>사주로 보면</Text>
+                          <Text style={styles.catComment}>{cat.sajuNote}</Text>
+                        </>
                       ) : null}
                     </View>
                   );
@@ -333,10 +345,8 @@ const styles = StyleSheet.create({
   catPill: { borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 2 },
   catPillText: { ...font.caption, color: colors.white, fontWeight: '700', fontSize: 11 },
   catScore: { ...font.label, color: colors.subText, minWidth: 24, textAlign: 'right' },
-  catComment: { color: colors.subText, marginTop: 8, lineHeight: 22, fontSize: 14 },
-  sajuBox: { borderRadius: radius.md, paddingHorizontal: 13, paddingVertical: 11, marginTop: 10 },
-  sajuBoxLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.3, marginBottom: 5 },
-  sajuBoxText: { color: colors.text, fontSize: 13.5, lineHeight: 21 },
+  catComment: { color: colors.text, marginTop: 0, lineHeight: 22.5, fontSize: 14 },
+  subLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.3, marginTop: 12, marginBottom: 4 },
   moreBtn: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: 6 },
   moreText: { ...font.label, fontWeight: '700' },
 

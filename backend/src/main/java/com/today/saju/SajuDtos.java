@@ -26,7 +26,7 @@ public class SajuDtos {
     ) {}
 
     /** 궁합 카테고리 한 줄. */
-    public record CatView(String key, String name, int score, int grade, String comment, String sajuNote) {}
+    public record CatView(String key, String name, int score, int grade, String comment, String behavior, String sajuNote) {}
 
     /** 커플 궁합 결과(계산 불가면 canCompute=false + reason). */
     public record CoupleResult(

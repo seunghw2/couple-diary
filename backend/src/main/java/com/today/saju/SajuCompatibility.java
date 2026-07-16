@@ -103,7 +103,8 @@ public final class SajuCompatibility {
     private static int grade(int s) { return s >= 70 ? 2 : (s >= 45 ? 1 : 0); }
 
     // ── 결과 DTO ──
-    public record CategoryScore(String key, String name, int score, int grade, String comment, String sajuNote) {}
+    public record CategoryScore(String key, String name, int score, int grade,
+                                String comment, String behavior, String sajuNote) {}
     public record Result(int percent, List<CategoryScore> categories, String totalComment,
                          List<String> badges, String relComment, String strongestKey, String weakestKey,
                          List<String> keywords, List<String> summaryLines, List<String> tips, boolean hasHour) {}
@@ -250,9 +251,9 @@ public final class SajuCompatibility {
     private static CategoryScore cat(String key, String name, int score, String[][] templates, long seed, String sig, String sajuNote) {
         int g = grade(score);
         String base = clean(SajuUtil.pick(templates[g], seed, key.hashCode()));
-        String comment = (sig == null || sig.isBlank()) ? base : base + " " + sig;
+        String behavior = (sig == null || sig.isBlank()) ? null : sig;
         String note = (sajuNote == null || sajuNote.isBlank()) ? null : sajuNote;
-        return new CategoryScore(key, name, score, g, comment, note);
+        return new CategoryScore(key, name, score, g, base, behavior, note);
     }
 
     // 방향 결정(결정론): 일간 양(짝수)=바로 움직이는 쪽, 일지 음(홀수)=혼자 정리하는 쪽, KE_FWD=a가 브레이크.
