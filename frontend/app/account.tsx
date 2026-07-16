@@ -12,14 +12,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { authApi } from '../lib/api';
-import { confirmAsync, showAlert } from '../lib/dialog';
+import { confirmAsync, showAlert, showToast } from '../lib/dialog';
 import { errorMessage } from '../lib/errors';
-import { todayISO } from '../lib/date';
+import { todayISO, dDay } from '../lib/date';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCoupleStore } from '../store/useCoupleStore';
 import { Button, Card, Icon } from '../components/ui';
 import { DatePickerSheet } from '../components/DatePickerSheet';
-import { colors, font, radius, spacing, useColors } from '../theme/theme';
+import { colors, font, radius, shadow, spacing, useColors } from '../theme/theme';
 
 /** YYYY-MM-DD가 실제 존재하는 날짜인지 검증. */
 function isValidDate(v: string): boolean {
@@ -27,6 +27,13 @@ function isValidDate(v: string): boolean {
   const [y, m, d] = v.split('-').map(Number);
   const date = new Date(y, m - 1, d);
   return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
+}
+
+/** 기념일 기준 D-day 라벨(D+n / D-day). */
+function ddayLabel(anniv?: string | null): string {
+  const n = dDay(anniv);
+  if (n == null) return '함께';
+  return n >= 0 ? `D+${n}` : `D${n}`;
 }
 
 /** 설정 > 내 정보. 닉네임/프로필 컬러/생일/상대/기념일/로그아웃을 한데 모은 화면. */
@@ -37,16 +44,13 @@ export default function AccountScreen() {
   const { couple, setAnniversary } = useCoupleStore();
 
   const [anniv, setAnniv] = useState(couple?.anniversaryDate ?? '');
-  const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
 
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [nickSaving, setNickSaving] = useState(false);
   const [nickMsg, setNickMsg] = useState<string | null>(null);
+  const [editingNick, setEditingNick] = useState(false);
 
   const [birthday, setBirthday] = useState(user?.birthday ?? '');
-  const [bdaySaving, setBdaySaving] = useState(false);
-  const [bdayMsg, setBdayMsg] = useState<string | null>(null);
   const [bdayPickerOpen, setBdayPickerOpen] = useState(false);
   const [annivPickerOpen, setAnnivPickerOpen] = useState(false);
 
@@ -59,40 +63,32 @@ export default function AccountScreen() {
     if (user?.birthday) setBirthday(user.birthday);
   }, [user?.birthday]);
 
-  async function onSaveBirthday() {
-    const v = birthday.trim();
+  async function onSaveBirthday(value?: string) {
+    const v = (value ?? birthday).trim();
     if (!isValidDate(v)) {
-      setBdayMsg('존재하는 날짜를 YYYY-MM-DD 형식으로 입력해 주세요.');
+      showToast('존재하는 날짜를 골라 주세요.');
       return;
     }
-    setBdaySaving(true);
-    setBdayMsg(null);
     try {
       const updated = await authApi.updateMe({ birthday: v });
       setUser(updated);
-      setBdayMsg('저장했어요');
+      showToast('저장했어요');
     } catch (e) {
-      setBdayMsg(errorMessage(e, '저장에 실패했어요.'));
-    } finally {
-      setBdaySaving(false);
+      showToast(errorMessage(e, '저장에 실패했어요.'));
     }
   }
 
-  async function onSaveAnniv() {
-    const v = anniv.trim();
+  async function onSaveAnniv(value?: string) {
+    const v = (value ?? anniv).trim();
     if (!isValidDate(v)) {
-      setMsg('존재하는 날짜를 YYYY-MM-DD 형식으로 입력해 주세요.');
+      showToast('존재하는 날짜를 골라 주세요.');
       return;
     }
-    setSaving(true);
-    setMsg(null);
     try {
       await setAnniversary(v);
-      setMsg('저장했어요');
+      showToast('저장했어요');
     } catch (e) {
-      setMsg(errorMessage(e, '저장에 실패했어요.'));
-    } finally {
-      setSaving(false);
+      showToast(errorMessage(e, '저장에 실패했어요.'));
     }
   }
 
@@ -107,7 +103,8 @@ export default function AccountScreen() {
     try {
       const updated = await authApi.updateMe({ nickname: v });
       setUser(updated);
-      setNickMsg('저장했어요');
+      setNickMsg(null);
+      setEditingNick(false);
     } catch (e) {
       setNickMsg(errorMessage(e, '저장에 실패했어요.'));
     } finally {
@@ -169,72 +166,91 @@ export default function AccountScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Card>
-            <Text style={styles.label}>닉네임</Text>
-            <Text style={styles.sub}>{user?.email ?? ''}</Text>
-            <TextInput
-              value={nickname}
-              onChangeText={setNickname}
-              placeholder="닉네임"
-              placeholderTextColor={colors.placeholder}
-              maxLength={30}
-              style={styles.input}
-            />
-            {nickMsg ? <Text style={[styles.msg, { color: c.primary }]}>{nickMsg}</Text> : null}
-            <Button label="저장" variant="soft" onPress={onSaveNickname} loading={nickSaving} style={styles.saveBtn} />
-          </Card>
+          {/* 프로필 헤더 */}
+          <View style={styles.hero}>
+            <View style={[styles.avatar, { backgroundColor: user?.avatarColor || c.coralSofter }]}>
+              <Text style={styles.avatarText}>{(user?.nickname ?? '?').slice(0, 1)}</Text>
+            </View>
+            {editingNick ? (
+              <View style={styles.nickEdit}>
+                <TextInput
+                  value={nickname}
+                  onChangeText={setNickname}
+                  placeholder="닉네임"
+                  placeholderTextColor={colors.placeholder}
+                  maxLength={30}
+                  autoFocus
+                  style={styles.input}
+                />
+                {nickMsg ? <Text style={[styles.msg, { color: c.primary }]}>{nickMsg}</Text> : null}
+                <View style={styles.nickBtns}>
+                  <Button
+                    label="취소"
+                    variant="soft"
+                    onPress={() => {
+                      setEditingNick(false);
+                      setNickname(user?.nickname ?? '');
+                      setNickMsg(null);
+                    }}
+                    style={{ flex: 1 }}
+                  />
+                  <Button label="저장" onPress={() => onSaveNickname()} loading={nickSaving} style={{ flex: 1 }} />
+                </View>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.heroName}>{user?.nickname ?? ''}</Text>
+                <Pressable onPress={() => setEditingNick(true)} hitSlop={8} style={styles.editLink}>
+                  <Icon name="pencil" size={13} color={c.primary} />
+                  <Text style={[styles.editLinkText, { color: c.primary }]}>닉네임 수정</Text>
+                </Pressable>
+                {partner?.nickname ? (
+                  <View style={[styles.dday, { backgroundColor: c.coralSofter }]}>
+                    <Text style={[styles.ddayText, { color: c.primary }]}>
+                      {partner.nickname}님과 {ddayLabel(anniv || couple?.anniversaryDate)} 💛
+                    </Text>
+                  </View>
+                ) : null}
+              </>
+            )}
+          </View>
 
-          <Card style={styles.section}>
-            <Text style={styles.label}>생일</Text>
-            <Pressable style={styles.dateField} onPress={() => setBdayPickerOpen(true)}>
-              <Text style={[styles.dateText, !birthday && { color: colors.placeholder }]}>
-                {birthday || '생일 선택'}
-              </Text>
-              <Icon name="calendar-outline" size={20} color={c.primary} />
+          {/* 정보 리스트 */}
+          <View style={styles.group}>
+            <Pressable style={styles.li} onPress={() => setBdayPickerOpen(true)}>
+              <Text style={styles.liKey}>생일</Text>
+              <View style={styles.liRight}>
+                <Text style={[styles.liVal, !birthday && { color: colors.placeholder }]}>{birthday || '선택'}</Text>
+                <Icon name="chevron-forward" size={18} color={colors.subText} />
+              </View>
             </Pressable>
-            {bdayMsg ? <Text style={[styles.msg, { color: c.primary }]}>{bdayMsg}</Text> : null}
-            <Button label="생일 저장" variant="soft" onPress={onSaveBirthday} loading={bdaySaving} style={styles.saveBtn} />
-          </Card>
-
-          <Card style={styles.section}>
-            <Text style={styles.label}>상대</Text>
-            <Text style={styles.value}>{partner?.nickname ?? '연결 대기 중'}</Text>
-          </Card>
-
-          <Card style={styles.section}>
-            <Text style={styles.label}>기념일 (D-day 기준)</Text>
-            <Pressable style={styles.dateField} onPress={() => setAnnivPickerOpen(true)}>
-              <Text style={[styles.dateText, !anniv && { color: colors.placeholder }]}>
-                {anniv || '기념일 선택'}
-              </Text>
-              <Icon name="calendar-outline" size={20} color={c.primary} />
+            <Pressable style={[styles.li, styles.liBorder]} onPress={() => setAnnivPickerOpen(true)}>
+              <Text style={styles.liKey}>기념일 (D-day 기준)</Text>
+              <View style={styles.liRight}>
+                <Text style={[styles.liVal, !anniv && { color: colors.placeholder }]}>{anniv || '선택'}</Text>
+                <Icon name="chevron-forward" size={18} color={colors.subText} />
+              </View>
             </Pressable>
-            {msg ? <Text style={[styles.msg, { color: c.primary }]}>{msg}</Text> : null}
-            <Button label="기념일 저장" variant="soft" onPress={onSaveAnniv} loading={saving} style={styles.saveBtn} />
-          </Card>
+            <View style={[styles.li, styles.liBorder]}>
+              <Text style={styles.liKey}>상대</Text>
+              <Text style={styles.liVal}>{partner?.nickname ?? '연결 대기 중'}</Text>
+            </View>
+          </View>
 
-          <Button
-            label="로그아웃"
-            variant="soft"
-            icon="log-out-outline"
-            onPress={confirmLogout}
-            style={{ marginTop: spacing.xxl }}
-          />
-
-          {/* 계정 삭제 (앱스토어 필수) — 위험 강조. 커플·일기·편지·사진 전부 삭제. */}
-          <View style={styles.dangerZone}>
-            <Text style={styles.dangerHint}>
-              계정을 삭제하면 커플 연결과 일기, 편지, 사진이 모두 사라지고 되돌릴 수 없어요.
-            </Text>
-            <Pressable
-              onPress={confirmDeleteAccount}
-              disabled={deleting}
-              style={({ pressed }) => [styles.deleteBtn, (pressed || deleting) && { opacity: 0.6 }]}
-            >
-              <Icon name="trash-outline" size={18} color={colors.white} />
-              <Text style={styles.deleteBtnText}>{deleting ? '삭제 중…' : '계정 삭제'}</Text>
+          {/* 계정 */}
+          <View style={[styles.group, styles.section]}>
+            <Pressable style={styles.li} onPress={confirmLogout}>
+              <Text style={styles.liKey}>로그아웃</Text>
+              <Icon name="chevron-forward" size={18} color={colors.subText} />
+            </Pressable>
+            <Pressable style={[styles.li, styles.liBorder]} onPress={confirmDeleteAccount} disabled={deleting}>
+              <Text style={[styles.liKey, { color: colors.danger, fontWeight: '700' }]}>
+                {deleting ? '삭제 중…' : '계정 삭제'}
+              </Text>
+              <Icon name="chevron-forward" size={18} color={colors.danger} />
             </Pressable>
           </View>
+          <Text style={styles.dangerHint}>계정을 삭제하면 커플 연결과 일기·편지·사진이 모두 사라지고 되돌릴 수 없어요.</Text>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -246,8 +262,8 @@ export default function AccountScreen() {
         onClose={() => setBdayPickerOpen(false)}
         onConfirm={(d) => {
           setBirthday(d);
-          setBdayMsg(null);
           setBdayPickerOpen(false);
+          onSaveBirthday(d);
         }}
       />
       <DatePickerSheet
@@ -258,8 +274,8 @@ export default function AccountScreen() {
         onClose={() => setAnnivPickerOpen(false)}
         onConfirm={(d) => {
           setAnniv(d);
-          setMsg(null);
           setAnnivPickerOpen(false);
+          onSaveAnniv(d);
         }}
       />
     </SafeAreaView>
@@ -277,6 +293,32 @@ const styles = StyleSheet.create({
   },
   topTitle: { ...font.h2 },
   scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.xxl * 2 },
+
+  // 프로필 헤더
+  hero: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
+    alignItems: 'center',
+    ...shadow,
+  },
+  avatar: { width: 76, height: 76, borderRadius: 38, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 34, fontWeight: '800', color: colors.white },
+  heroName: { ...font.h1, fontSize: 22, marginTop: spacing.md },
+  editLink: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.xs },
+  editLinkText: { ...font.label, fontWeight: '700' },
+  dday: { marginTop: spacing.md, borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 6 },
+  ddayText: { ...font.label, fontWeight: '800' },
+  nickEdit: { alignSelf: 'stretch', marginTop: spacing.md },
+  nickBtns: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+
+  // 설정 리스트
+  group: { backgroundColor: colors.card, borderRadius: radius.lg, overflow: 'hidden', marginTop: spacing.lg, ...require('../theme/theme').shadow },
+  li: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: 15 },
+  liBorder: { borderTopWidth: 1, borderTopColor: colors.border },
+  liKey: { ...font.body, fontWeight: '600', color: colors.text },
+  liRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  liVal: { ...font.body, color: colors.subText },
   section: { marginTop: spacing.lg },
   saveBtn: { marginTop: spacing.md },
   label: { ...font.label, marginBottom: spacing.xs },

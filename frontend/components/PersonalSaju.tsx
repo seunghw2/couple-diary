@@ -68,7 +68,7 @@ export function PersonalSaju({
         <View style={[styles.card, shadow]}>
           <Text style={styles.cardHead}>타고난 기질</Text>
           <Text style={styles.tgHint}>
-            사주 여덟 글자와 일간의 관계(십성)를 풀어, 가장 두드러진 성향을 뽑았어요.
+            사주의 십성(내 기운을 8가지 역할로 나눠 보는 법)으로 뽑은 성향이에요.
           </Text>
           <View style={styles.tgHead}>
             <Text style={styles.tgEmoji}>{data.tenGodEmoji}</Text>

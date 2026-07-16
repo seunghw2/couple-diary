@@ -332,6 +332,8 @@ export default function EntryDetailScreen() {
                     mode={detail.mode}
                     questions={detail.questions}
                     onOpenPhoto={openPhotoViewer}
+                    avatarColor={me?.avatarColor}
+                    avatarName={me?.nickname}
                   />
                   <View style={styles.myActions}>
                     <Button label="수정하기" variant="soft" onPress={onEditMine} style={{ flex: 1, height: 44 }} />
@@ -355,12 +357,14 @@ export default function EntryDetailScreen() {
                 />
               ) : partnerOpen ? (
                 <SideCard
-                  title="상대가 쓴 일기"
+                  title={`${partner?.nickname ?? '상대'}님이 쓴 일기`}
                   side={partnerOpen}
                   tone="partner"
                   mode={detail.mode}
                   questions={detail.questions}
                   onOpenPhoto={openPhotoViewer}
+                  avatarColor={partner?.avatarColor}
+                  avatarName={partner?.nickname}
                 />
               ) : status === 'LOCKED' ? (
                 <Card style={styles.waitCard}>
@@ -687,6 +691,8 @@ function SideCard({
   mode,
   questions,
   onOpenPhoto,
+  avatarColor,
+  avatarName,
 }: {
   title: string;
   side: EntryView;
@@ -694,6 +700,8 @@ function SideCard({
   mode: DayDetail['mode'];
   questions: QuestionResponse[];
   onOpenPhoto: (urls: string[], index: number) => void;
+  avatarColor?: string | null;
+  avatarName?: string | null;
 }) {
   const c = useColors();
   // 색상은 내/상대 구분 없이 앱 컬러로 통일.
@@ -707,6 +715,9 @@ function SideCard({
   return (
     <Card style={{ marginTop: spacing.lg }}>
       <View style={styles.sideHead}>
+        <View style={[styles.sideAvatar, { backgroundColor: avatarColor || c.coralSofter }]}>
+          <Text style={styles.sideAvatarText}>{(avatarName ?? '?').slice(0, 1)}</Text>
+        </View>
         <Text style={[styles.sideTitle, { color: accent }]}>{title}</Text>
       </View>
 
@@ -847,7 +858,9 @@ const styles = StyleSheet.create({
   pillEmoji: { fontSize: 13 },
   pillLabel: { ...font.label, color: colors.text },
 
-  sideHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sideHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  sideAvatar: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  sideAvatarText: { fontSize: 15, fontWeight: '800', color: colors.white },
   sideTitle: { ...font.title },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md },
   photoRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
