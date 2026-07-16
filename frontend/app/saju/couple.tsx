@@ -192,11 +192,11 @@ export default function SajuCouplePage() {
             {/* ④ 항목별 궁합 (2줄 프리뷰 + 자세히 보기) */}
             <View style={[styles.card, shadow]}>
               <Text style={styles.cardHead}>항목별 궁합</Text>
-              <View style={{ gap: spacing.lg }}>
-                {data!.categories.map((cat) => {
+              <View>
+                {data!.categories.map((cat, i) => {
                   const multi = !!(cat.behavior || cat.sajuNote);
                   return (
-                    <View key={cat.key}>
+                    <View key={cat.key} style={i > 0 ? styles.catBlock : undefined}>
                       <View style={styles.catHead}>
                         <Text style={styles.catName}>
                           {CAT_ICON[cat.key] ?? '·'} {cat.name}
@@ -347,6 +347,7 @@ const styles = StyleSheet.create({
   catScore: { ...font.label, color: colors.subText, minWidth: 24, textAlign: 'right' },
   catComment: { color: colors.text, marginTop: 0, lineHeight: 22.5, fontSize: 14 },
   subLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.3, marginTop: 12, marginBottom: 4 },
+  catBlock: { marginTop: 20, paddingTop: 20, borderTopWidth: 1, borderTopColor: colors.border },
   moreBtn: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: 6 },
   moreText: { ...font.label, fontWeight: '700' },
 
