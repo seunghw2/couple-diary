@@ -209,6 +209,12 @@ public class UserService {
             }
             user.setAvatarColor(color);
         }
+        if (req.avatar() != null) {
+            // 이모지 아바타. 빈 문자열이면 해제(색+이니셜 폴백). 너무 길면 비정상 입력이라 무시.
+            String av = req.avatar().trim();
+            if (av.isEmpty()) user.setAvatar(null);
+            else if (av.length() <= 16) user.setAvatar(av);
+        }
         if (req.birthday() != null) {
             if (req.birthday().isAfter(java.time.LocalDate.now())) {
                 throw new ApiException(ErrorCode.INVALID_INPUT, "생일은 미래일 수 없어요.");

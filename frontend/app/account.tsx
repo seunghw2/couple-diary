@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -168,56 +169,39 @@ export default function AccountScreen() {
         >
           {/* 프로필 헤더 */}
           <View style={styles.hero}>
-            <View style={[styles.avatar, { backgroundColor: user?.avatarColor || c.coralSofter }]}>
-              <Text style={styles.avatarText}>{(user?.nickname ?? '?').slice(0, 1)}</Text>
-            </View>
-            {editingNick ? (
-              <View style={styles.nickEdit}>
-                <TextInput
-                  value={nickname}
-                  onChangeText={setNickname}
-                  placeholder="닉네임"
-                  placeholderTextColor={colors.placeholder}
-                  maxLength={30}
-                  autoFocus
-                  style={styles.input}
-                />
-                {nickMsg ? <Text style={[styles.msg, { color: c.primary }]}>{nickMsg}</Text> : null}
-                <View style={styles.nickBtns}>
-                  <Button
-                    label="취소"
-                    variant="soft"
-                    onPress={() => {
-                      setEditingNick(false);
-                      setNickname(user?.nickname ?? '');
-                      setNickMsg(null);
-                    }}
-                    style={{ flex: 1 }}
-                  />
-                  <Button label="저장" onPress={() => onSaveNickname()} loading={nickSaving} style={{ flex: 1 }} />
-                </View>
+            <Pressable
+              onPress={() => router.push('/avatar')}
+              style={[styles.avatar, { backgroundColor: user?.avatarColor || c.coralSofter }]}
+            >
+              {user?.avatar ? (
+                <Text style={styles.avatarEmoji}>{user.avatar}</Text>
+              ) : (
+                <Text style={styles.avatarText}>{(user?.nickname ?? '?').slice(0, 1)}</Text>
+              )}
+              <View style={[styles.camBadge, { backgroundColor: c.primary }]}>
+                <Icon name="camera" size={12} color={colors.white} />
               </View>
-            ) : (
-              <>
-                <Text style={styles.heroName}>{user?.nickname ?? ''}</Text>
-                <Pressable onPress={() => setEditingNick(true)} hitSlop={8} style={styles.editLink}>
-                  <Icon name="pencil" size={13} color={c.primary} />
-                  <Text style={[styles.editLinkText, { color: c.primary }]}>닉네임 수정</Text>
-                </Pressable>
-                {partner?.nickname ? (
-                  <View style={[styles.dday, { backgroundColor: c.coralSofter }]}>
-                    <Text style={[styles.ddayText, { color: c.primary }]}>
-                      {partner.nickname}님과 {ddayLabel(anniv || couple?.anniversaryDate)} 💛
-                    </Text>
-                  </View>
-                ) : null}
-              </>
-            )}
+            </Pressable>
+            <Text style={styles.heroName}>{user?.nickname ?? ''}</Text>
+            {partner?.nickname ? (
+              <View style={[styles.dday, { backgroundColor: c.coralSofter }]}>
+                <Text style={[styles.ddayText, { color: c.primary }]}>
+                  {partner.nickname}님과 {ddayLabel(anniv || couple?.anniversaryDate)} 💛
+                </Text>
+              </View>
+            ) : null}
           </View>
 
           {/* 정보 리스트 */}
           <View style={styles.group}>
-            <Pressable style={styles.li} onPress={() => setBdayPickerOpen(true)}>
+            <Pressable style={styles.li} onPress={() => setEditingNick(true)}>
+              <Text style={styles.liKey}>닉네임</Text>
+              <View style={styles.liRight}>
+                <Text style={styles.liVal}>{user?.nickname ?? ''}</Text>
+                <Icon name="chevron-forward" size={18} color={colors.subText} />
+              </View>
+            </Pressable>
+            <Pressable style={[styles.li, styles.liBorder]} onPress={() => setBdayPickerOpen(true)}>
               <Text style={styles.liKey}>생일</Text>
               <View style={styles.liRight}>
                 <Text style={[styles.liVal, !birthday && { color: colors.placeholder }]}>{birthday || '선택'}</Text>
@@ -278,6 +262,45 @@ export default function AccountScreen() {
           onSaveAnniv(d);
         }}
       />
+
+      {/* 닉네임 편집 */}
+      <Modal
+        visible={editingNick}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setEditingNick(false)}
+      >
+        <KeyboardAvoidingView style={styles.modalBg} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setEditingNick(false)} />
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>닉네임</Text>
+            <TextInput
+              value={nickname}
+              onChangeText={setNickname}
+              placeholder="닉네임"
+              placeholderTextColor={colors.placeholder}
+              maxLength={30}
+              autoFocus
+              style={styles.input}
+            />
+            {nickMsg ? <Text style={[styles.msg, { color: c.primary }]}>{nickMsg}</Text> : null}
+            <View style={styles.nickBtns}>
+              <Button
+                label="취소"
+                variant="soft"
+                onPress={() => {
+                  setEditingNick(false);
+                  setNickname(user?.nickname ?? '');
+                  setNickMsg(null);
+                }}
+                style={{ flex: 1 }}
+              />
+              <Button label="저장" onPress={() => onSaveNickname()} loading={nickSaving} style={{ flex: 1 }} />
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -304,6 +327,22 @@ const styles = StyleSheet.create({
   },
   avatar: { width: 76, height: 76, borderRadius: 38, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 34, fontWeight: '800', color: colors.white },
+  avatarEmoji: { fontSize: 40 },
+  camBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.card,
+  },
+  modalBg: { flex: 1, backgroundColor: 'rgba(50,35,30,0.35)', alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
+  modalCard: { width: '100%', maxWidth: 360, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.xl, ...shadow },
+  modalTitle: { ...font.h2, marginBottom: spacing.sm },
   heroName: { ...font.h1, fontSize: 22, marginTop: spacing.md },
   editLink: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.xs },
   editLinkText: { ...font.label, fontWeight: '700' },

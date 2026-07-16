@@ -334,6 +334,7 @@ export default function EntryDetailScreen() {
                     onOpenPhoto={openPhotoViewer}
                     avatarColor={me?.avatarColor}
                     avatarName={me?.nickname}
+                    avatar={me?.avatar}
                   />
                   <View style={styles.myActions}>
                     <Button label="수정하기" variant="soft" onPress={onEditMine} style={{ flex: 1, height: 44 }} />
@@ -365,6 +366,7 @@ export default function EntryDetailScreen() {
                   onOpenPhoto={openPhotoViewer}
                   avatarColor={partner?.avatarColor}
                   avatarName={partner?.nickname}
+                  avatar={partner?.avatar}
                 />
               ) : status === 'LOCKED' ? (
                 <Card style={styles.waitCard}>
@@ -693,6 +695,7 @@ function SideCard({
   onOpenPhoto,
   avatarColor,
   avatarName,
+  avatar,
 }: {
   title: string;
   side: EntryView;
@@ -702,6 +705,7 @@ function SideCard({
   onOpenPhoto: (urls: string[], index: number) => void;
   avatarColor?: string | null;
   avatarName?: string | null;
+  avatar?: string | null;
 }) {
   const c = useColors();
   // 색상은 내/상대 구분 없이 앱 컬러로 통일.
@@ -716,7 +720,11 @@ function SideCard({
     <Card style={{ marginTop: spacing.lg }}>
       <View style={styles.sideHead}>
         <View style={[styles.sideAvatar, { backgroundColor: avatarColor || c.coralSofter }]}>
-          <Text style={styles.sideAvatarText}>{(avatarName ?? '?').slice(0, 1)}</Text>
+          {avatar ? (
+            <Text style={styles.sideAvatarEmoji}>{avatar}</Text>
+          ) : (
+            <Text style={styles.sideAvatarText}>{(avatarName ?? '?').slice(0, 1)}</Text>
+          )}
         </View>
         <Text style={[styles.sideTitle, { color: accent }]}>{title}</Text>
       </View>
@@ -858,9 +866,10 @@ const styles = StyleSheet.create({
   pillEmoji: { fontSize: 13 },
   pillLabel: { ...font.label, color: colors.text },
 
-  sideHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  sideAvatar: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  sideAvatarText: { fontSize: 15, fontWeight: '800', color: colors.white },
+  sideHead: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  sideAvatar: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  sideAvatarText: { fontSize: 12, fontWeight: '800', color: colors.white },
+  sideAvatarEmoji: { fontSize: 14 },
   sideTitle: { ...font.title },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md },
   photoRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },

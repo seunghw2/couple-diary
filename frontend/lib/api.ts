@@ -158,6 +158,7 @@ export type UserSummary = {
   email: string;
   nickname: string;
   avatarColor: string;
+  avatar?: string; // 프로필 이모지(없으면 색+이니셜)
   birthday?: string; // YYYY-MM-DD
   inviteCode: string;
 };
@@ -167,6 +168,7 @@ export type PartnerSummary = {
   id: number;
   nickname: string;
   avatarColor: string;
+  avatar?: string;
   birthday?: string; // YYYY-MM-DD
 };
 
@@ -302,7 +304,7 @@ export const authApi = {
   appleLogin: (identityToken: string, authorizationCode?: string | null, fullName?: string | null) =>
     api.post<AuthResponse>('/api/auth/apple', { identityToken, authorizationCode, fullName }, false),
   me: () => api.get<MeResponse>('/api/me'),
-  updateMe: (patch: Partial<Pick<UserSummary, 'nickname' | 'avatarColor' | 'birthday'>>) =>
+  updateMe: (patch: Partial<Pick<UserSummary, 'nickname' | 'avatarColor' | 'avatar' | 'birthday'>>) =>
     api.patch<UserSummary>('/api/me', patch),
   /** 계정 삭제 (앱스토어 필수). 내 계정과 커플·일기·편지 등 관련 데이터 전부 삭제. 204. */
   deleteAccount: () => api.del<void>('/api/me'),

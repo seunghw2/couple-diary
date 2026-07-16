@@ -33,6 +33,7 @@ public class UserDtos {
     public record UpdateMeRequest(
             String nickname,
             String avatarColor,
+            String avatar,
             LocalDate birthday
     ) {}
 
@@ -42,12 +43,13 @@ public class UserDtos {
             String email,
             String nickname,
             String avatarColor,
+            String avatar,
             LocalDate birthday,
             String inviteCode
     ) {
         public static UserSummary of(User u) {
             return new UserSummary(u.getId(), u.getEmail(), u.getNickname(),
-                    u.getAvatarColor(), u.getBirthday(), u.getInviteCode());
+                    u.getAvatarColor(), u.getAvatar(), u.getBirthday(), u.getInviteCode());
         }
     }
 
@@ -64,10 +66,11 @@ public class UserDtos {
             Long id,
             String nickname,
             String avatarColor,
+            String avatar,
             LocalDate birthday
     ) {
         public static PartnerSummary of(User u) {
-            return new PartnerSummary(u.getId(), u.getNickname(), u.getAvatarColor(), u.getBirthday());
+            return new PartnerSummary(u.getId(), u.getNickname(), u.getAvatarColor(), u.getAvatar(), u.getBirthday());
         }
     }
 }

@@ -182,6 +182,7 @@ export default function RootLayout() {
           <Stack.Screen name="notifications" options={{ presentation: 'card' }} />
           <Stack.Screen name="anniversaries" options={{ presentation: 'card' }} />
           <Stack.Screen name="account" options={{ presentation: 'card' }} />
+          <Stack.Screen name="avatar" options={{ presentation: 'card' }} />
           <Stack.Screen name="place" options={{ presentation: 'card' }} />
           <Stack.Screen name="question/write" options={{ presentation: 'card' }} />
           <Stack.Screen name="question/archive" options={{ presentation: 'card' }} />
