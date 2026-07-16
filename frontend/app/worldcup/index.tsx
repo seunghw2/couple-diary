@@ -51,6 +51,14 @@ export default function WorldcupHome() {
         ) : (
           cups!.map((cup) => {
             const tag = statusTag(cup);
+            const tagBg =
+              tag.kind === 'both'
+                ? c.primary
+                : tag.kind === 'me'
+                  ? c.coralSofter
+                  : tag.kind === 'partner'
+                    ? colors.partnerSoft
+                    : colors.border;
             return (
               <Pressable
                 key={cup.key}
@@ -58,24 +66,13 @@ export default function WorldcupHome() {
                 style={({ pressed }) => [styles.card, shadow, pressed && { opacity: 0.85 }]}
               >
                 <Text style={styles.emoji}>{cup.emoji}</Text>
-                <View style={styles.titleRow}>
+                <View style={styles.mid}>
                   <Text style={styles.title} numberOfLines={1}>{cup.title}</Text>
-                  {tag ? (
-                    <View
-                      style={[
-                        styles.tag,
-                        tag.kind === 'both'
-                          ? { backgroundColor: c.primary }
-                          : tag.kind === 'me'
-                            ? { backgroundColor: c.coralSofter }
-                            : { backgroundColor: colors.partnerSoft },
-                      ]}
-                    >
-                      <Text style={[styles.tagText, { color: tag.kind === 'both' ? '#fff' : colors.text }]}>
-                        {tag.label}
-                      </Text>
-                    </View>
-                  ) : null}
+                  <View style={[styles.tag, { backgroundColor: tagBg }]}>
+                    <Text style={[styles.tagText, { color: tag.kind === 'both' ? '#fff' : colors.subText }]}>
+                      {tag.label}
+                    </Text>
+                  </View>
                 </View>
                 <View style={[styles.chip, { backgroundColor: c.coralSofter }]}>
                   <Text style={styles.chipText}>{cup.size}강</Text>
@@ -90,12 +87,12 @@ export default function WorldcupHome() {
   );
 }
 
-/** 진행 상태를 태그로. 아무도 안 했으면 태그 없음(제목만). */
-function statusTag(cup: WorldcupSummary): { label: string; kind: 'both' | 'me' | 'partner' } | null {
+/** 진행 상태를 태그로(모든 카드가 태그 한 줄을 가져 높이가 통일된다). */
+function statusTag(cup: WorldcupSummary): { label: string; kind: 'both' | 'me' | 'partner' | 'none' } {
   if (cup.myPlayed && cup.partnerPlayed) return { label: '둘다완료', kind: 'both' };
   if (cup.myPlayed) return { label: '나 완료', kind: 'me' };
   if (cup.partnerPlayed) return { label: '연인 완료', kind: 'partner' };
-  return null;
+  return { label: '아직 안 함', kind: 'none' };
 }
 
 const styles = StyleSheet.create({
@@ -120,10 +117,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
   },
-  emoji: { fontSize: 26 },
-  titleRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  title: { ...font.h2, fontSize: 16, flexShrink: 1 },
-  tag: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
+  emoji: { fontSize: 28 },
+  mid: { flex: 1, gap: 5 },
+  title: { ...font.h2, fontSize: 16.5 },
+  tag: { alignSelf: 'flex-start', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3 },
   tagText: { fontSize: 11.5, fontWeight: '800' },
   chip: { borderRadius: 12, paddingVertical: 4, paddingHorizontal: 8 },
   chipText: { ...font.caption, color: colors.white, fontWeight: '800', fontSize: 11 },

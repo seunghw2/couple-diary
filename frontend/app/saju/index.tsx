@@ -8,7 +8,6 @@ import { showToast } from '../../lib/dialog';
 import { errorMessage } from '../../lib/errors';
 import { ErrorState } from '../../components/ErrorState';
 import { useAuthStore } from '../../store/useAuthStore';
-import { DatePickerSheet } from '../../components/DatePickerSheet';
 import { Icon } from '../../components/ui';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { FeedbackLink } from '../../components/FeedbackLink';
@@ -26,7 +25,6 @@ export default function SajuHome() {
   const [hub, setHub] = useState<SajuHub | null>(null);
   const [daily, setDaily] = useState<SajuDaily | null>(null);
   const [error, setError] = useState(false);
-  const [showDate, setShowDate] = useState(false);
   const [showHour, setShowHour] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -47,20 +45,6 @@ export default function SajuHome() {
       sajuApi.markSeen().catch(() => {});
     }, [load])
   );
-
-  async function saveBirthday(date: string) {
-    setShowDate(false);
-    setSaving(true);
-    try {
-      const u = await authApi.updateMe({ birthday: date });
-      setUser(u);
-      await load();
-    } catch (e) {
-      showToast(errorMessage(e, '생일 저장에 실패했어요'));
-    } finally {
-      setSaving(false);
-    }
-  }
 
   async function saveHour(hour: number | null) {
     setShowHour(false);
@@ -127,15 +111,12 @@ export default function SajuHome() {
               </View>
 
               <View style={styles.cInfoRow}>
-                {/* 나 (편집 가능) */}
+                {/* 나 — 생일은 표시만(변경은 '내 정보'에서), 생시만 편집 */}
                 <View style={styles.cBox}>
-                  <Pressable onPress={() => setShowDate(true)} style={({ pressed }) => [styles.cField, pressed && styles.pressed]} hitSlop={4}>
+                  <View style={styles.cField}>
                     <Text style={styles.cK}>생일</Text>
-                    <View style={styles.cValRow}>
-                      <Text style={styles.cV} numberOfLines={1}>{fmtDate(hub?.myBirthday)}</Text>
-                      <Icon name="pencil" size={12} color={c.primary} />
-                    </View>
-                  </Pressable>
+                    <Text style={[styles.cV, styles.readonly]} numberOfLines={1}>{fmtDate(hub?.myBirthday)}</Text>
+                  </View>
                   <Pressable onPress={() => setShowHour(true)} style={({ pressed }) => [styles.cField, pressed && styles.pressed]} hitSlop={4}>
                     <Text style={styles.cK}>생시</Text>
                     <View style={styles.cValRow}>
@@ -219,17 +200,7 @@ export default function SajuHome() {
         <FeedbackLink source="saju" />
       </ScrollView>
 
-      {/* 생일 편집 */}
-      <DatePickerSheet
-        visible={showDate}
-        value={hub?.myBirthday}
-        title="생년월일"
-        maxDate={new Date().toISOString().slice(0, 10)}
-        onConfirm={saveBirthday}
-        onClose={() => setShowDate(false)}
-      />
-
-      {/* 생시 편집 */}
+      {/* 생시 편집 (생일 변경은 '내 정보'에서) */}
       <Modal visible={showHour} transparent animationType="slide" onRequestClose={() => setShowHour(false)}>
         <Pressable style={styles.backdrop} onPress={() => setShowHour(false)}>
           <Pressable style={styles.sheet} onPress={() => {}}>

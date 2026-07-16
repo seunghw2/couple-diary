@@ -172,21 +172,19 @@ export default function AccountScreen() {
           <Card>
             <Text style={styles.label}>닉네임</Text>
             <Text style={styles.sub}>{user?.email ?? ''}</Text>
-            <View style={styles.nickRow}>
-              <TextInput
-                value={nickname}
-                onChangeText={setNickname}
-                placeholder="닉네임"
-                placeholderTextColor={colors.placeholder}
-                maxLength={30}
-                style={[styles.input, { flex: 1, marginTop: 0 }]}
-              />
-              <Button label="저장" variant="soft" onPress={onSaveNickname} loading={nickSaving} style={styles.nickBtn} />
-            </View>
+            <TextInput
+              value={nickname}
+              onChangeText={setNickname}
+              placeholder="닉네임"
+              placeholderTextColor={colors.placeholder}
+              maxLength={30}
+              style={styles.input}
+            />
             {nickMsg ? <Text style={[styles.msg, { color: c.primary }]}>{nickMsg}</Text> : null}
+            <Button label="저장" variant="soft" onPress={onSaveNickname} loading={nickSaving} style={styles.saveBtn} />
           </Card>
 
-          <Card style={{ marginTop: spacing.lg }}>
+          <Card style={styles.section}>
             <Text style={styles.label}>생일</Text>
             <Pressable style={styles.dateField} onPress={() => setBdayPickerOpen(true)}>
               <Text style={[styles.dateText, !birthday && { color: colors.placeholder }]}>
@@ -195,15 +193,15 @@ export default function AccountScreen() {
               <Icon name="calendar-outline" size={20} color={c.primary} />
             </Pressable>
             {bdayMsg ? <Text style={[styles.msg, { color: c.primary }]}>{bdayMsg}</Text> : null}
-            <Button label="생일 저장" variant="soft" onPress={onSaveBirthday} loading={bdaySaving} style={{ marginTop: spacing.md }} />
+            <Button label="생일 저장" variant="soft" onPress={onSaveBirthday} loading={bdaySaving} style={styles.saveBtn} />
           </Card>
 
-          <Card style={{ marginTop: spacing.lg }}>
+          <Card style={styles.section}>
             <Text style={styles.label}>상대</Text>
             <Text style={styles.value}>{partner?.nickname ?? '연결 대기 중'}</Text>
           </Card>
 
-          <Card style={{ marginTop: spacing.lg }}>
+          <Card style={styles.section}>
             <Text style={styles.label}>기념일 (D-day 기준)</Text>
             <Pressable style={styles.dateField} onPress={() => setAnnivPickerOpen(true)}>
               <Text style={[styles.dateText, !anniv && { color: colors.placeholder }]}>
@@ -212,7 +210,7 @@ export default function AccountScreen() {
               <Icon name="calendar-outline" size={20} color={c.primary} />
             </Pressable>
             {msg ? <Text style={[styles.msg, { color: c.primary }]}>{msg}</Text> : null}
-            <Button label="기념일 저장" variant="soft" onPress={onSaveAnniv} loading={saving} style={{ marginTop: spacing.md }} />
+            <Button label="기념일 저장" variant="soft" onPress={onSaveAnniv} loading={saving} style={styles.saveBtn} />
           </Card>
 
           <Button
@@ -279,6 +277,8 @@ const styles = StyleSheet.create({
   },
   topTitle: { ...font.h2 },
   scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.xxl * 2 },
+  section: { marginTop: spacing.lg },
+  saveBtn: { marginTop: spacing.md },
   label: { ...font.label, marginBottom: spacing.xs },
   hint: { ...font.caption, marginTop: 2, marginBottom: spacing.xs },
   value: { ...font.title },
