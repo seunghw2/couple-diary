@@ -74,6 +74,10 @@ spring:
 ---
 # 운영(PaaS) 프로파일. SPRING_PROFILES_ACTIVE=prod 로 활성화하고 DB_* 를 환경변수로 주입한다.
 # DB_URL 예: jdbc:mysql://<host>:<port>/<db>?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=true&allowPublicKeyRetrieval=true
+app:
+  # 운영에서는 개발용 origin(exp://*, *.trycloudflare.com, localhost)을 제거하고 서비스 도메인만 허용.
+  cors:
+    allowed-origins: ${CORS_ORIGINS:https://terrylovesapp.uk,https://*.terrylovesapp.uk,https://today.hammerslog.trade,https://today-web.hammerslog.trade}
 spring:
   config:
     activate:

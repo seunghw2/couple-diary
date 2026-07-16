@@ -33,13 +33,13 @@ public class DiaryDtos {
     public record UpsertEntryRequest(
             @NotNull DiaryMode mode,
             String templateType,
-            List<Long> questionIds,
-            List<@Valid AnswerInput> answers,
-            List<String> photoSeeds,
-            List<@Size(max = 500) String> photoUrls,
+            @Size(max = 20) List<Long> questionIds,
+            @Size(max = 50) List<@Valid AnswerInput> answers,
+            @Size(max = 30) List<String> photoSeeds,
+            @Size(max = 30) List<@Size(max = 500) String> photoUrls,
             @Size(max = 100) String locationName,
-            List<@Size(max = 100) String> locations,
-            List<@Valid LocationPointInput> locationPoints,
+            @Size(max = 30) List<@Size(max = 100) String> locations,
+            @Size(max = 30) List<@Valid LocationPointInput> locationPoints,
             @Min(1) @Max(5) Integer rating, // 별점 기능 제거 → 선택(있으면 1~5 검증)
             @NotBlank @Size(max = 100) String mood
     ) {}

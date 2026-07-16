@@ -91,15 +91,22 @@ export function KakaoMap({ places, counts, onSelectPlace, onDeselect }: Props) {
   );
 }
 
+/** JSON을 인라인 <script>에 안전하게 삽입(장소명에 </script> 등 포함 시 태그 탈출 방지). */
+function safeJson(v: unknown): string {
+  return JSON.stringify(v)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e');
+}
+
 /** 장소 배열 → JS 리터럴(안전 인코딩). */
 function toJsArray(places: string[]): string {
-  return JSON.stringify(places.filter((p) => typeof p === 'string' && p.trim().length > 0));
+  return safeJson(places.filter((p) => typeof p === 'string' && p.trim().length > 0));
 }
 
 /** Kakao Maps를 로드·핀 표시하는 완결형 HTML 문자열. */
 function buildHtml(key: string, places: string[], counts: Record<string, number>): string {
   const placesJson = toJsArray(places);
-  const countsJson = JSON.stringify(counts ?? {});
+  const countsJson = safeJson(counts ?? {});
   const sdkUrl = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(key)}&libraries=services&autoload=false`;
   return `<!DOCTYPE html>
 <html>
