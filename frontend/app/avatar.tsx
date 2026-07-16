@@ -5,15 +5,10 @@ import { router } from 'expo-router';
 import { authApi } from '../lib/api';
 import { useAuthStore } from '../store/useAuthStore';
 import { Icon } from '../components/ui';
+import { AvatarIcon, AVATAR_SECTIONS } from '../components/AvatarIcon';
 import { showToast } from '../lib/dialog';
 import { errorMessage } from '../lib/errors';
-import { colors, font, radius, shadow, spacing, useColors } from '../theme/theme';
-
-// 프로필 아바타(귀여운 이모지, 남녀 다양). 16종.
-const AVATARS = [
-  '👦', '👧', '👨', '👩', '🧑', '🧔', '👱‍♂️', '👱‍♀️',
-  '👨‍🦰', '👩‍🦰', '👨‍🦱', '👩‍🦱', '👨‍🦳', '👩‍🦳', '🧒', '👶',
-];
+import { colors, font, shadow, spacing, useColors } from '../theme/theme';
 
 export default function AvatarPickScreen() {
   const c = useColors();
@@ -21,11 +16,11 @@ export default function AvatarPickScreen() {
   const [saving, setSaving] = useState<string | null>(null);
   const current = user?.avatar ?? '';
 
-  async function pick(emoji: string) {
+  async function pick(value: string) {
     if (saving) return;
-    setSaving(emoji);
+    setSaving(value);
     try {
-      const u = await authApi.updateMe({ avatar: emoji });
+      const u = await authApi.updateMe({ avatar: value });
       setUser(u);
       showToast('프로필 사진을 바꿨어요');
       router.back();
@@ -48,34 +43,38 @@ export default function AvatarPickScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.hint}>귀여운 아이콘 중에서 골라보세요</Text>
-        <View style={styles.grid}>
-          {AVATARS.map((e) => {
-            const selected = current === e;
-            return (
-              <Pressable key={e} onPress={() => pick(e)} style={styles.cell} hitSlop={4}>
-                <View
-                  style={[
-                    styles.circle,
-                    { backgroundColor: user?.avatarColor || c.coralSofter },
-                    selected && [styles.selected, { borderColor: c.primary }],
-                  ]}
-                >
-                  {saving === e ? (
-                    <ActivityIndicator color={colors.white} />
-                  ) : (
-                    <Text style={styles.emoji}>{e}</Text>
-                  )}
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
+        {AVATAR_SECTIONS.map((sec) => (
+          <View key={sec.key} style={styles.section}>
+            <Text style={styles.secLabel}>{sec.label}</Text>
+            <View style={styles.grid}>
+              {sec.items.map((value) => {
+                const selected = current === value;
+                return (
+                  <Pressable key={value} onPress={() => pick(value)} style={styles.cell} hitSlop={4}>
+                    <View
+                      style={[
+                        styles.circle,
+                        selected && [styles.selected, { borderColor: c.primary, backgroundColor: c.coralSofter }],
+                      ]}
+                    >
+                      {saving === value ? (
+                        <ActivityIndicator color={c.primary} />
+                      ) : (
+                        <AvatarIcon value={value} size={34} color={colors.subText} />
+                      )}
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        ))}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const CIRCLE = 68;
+const CIRCLE = 66;
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   topBar: {
@@ -87,8 +86,10 @@ const styles = StyleSheet.create({
   },
   topTitle: { ...font.h2 },
   scroll: { padding: spacing.xl, paddingBottom: spacing.xxl * 2 },
-  hint: { ...font.caption, color: colors.subText, textAlign: 'center', marginBottom: spacing.xl },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: spacing.lg },
+  hint: { ...font.caption, color: colors.subText, textAlign: 'center', marginBottom: spacing.lg },
+  section: { marginBottom: spacing.xl },
+  secLabel: { ...font.body, fontWeight: '800', color: colors.text, marginBottom: spacing.md, marginLeft: spacing.xs },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', rowGap: spacing.md, columnGap: 0 },
   cell: { width: '25%', alignItems: 'center' },
   circle: {
     width: CIRCLE,
@@ -96,8 +97,10 @@ const styles = StyleSheet.create({
     borderRadius: CIRCLE / 2,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.card,
+    borderWidth: 1.5,
+    borderColor: colors.border,
     ...shadow,
   },
   selected: { borderWidth: 3 },
-  emoji: { fontSize: 36 },
 });

@@ -36,8 +36,8 @@ public class User {
     @Column(name = "avatar_color")
     private String avatarColor;
 
-    /** 프로필 이모지(아바타). 없으면 색+이니셜 폴백. */
-    @Column(name = "avatar", length = 20)
+    /** 프로필 아이콘 아바타(예: "ph:cat"). 없으면 이니셜 폴백. */
+    @Column(name = "avatar", length = 32)
     private String avatar;
 
     /** 카카오 회원번호(문자열 보관). 카카오로 로그인한 유저만 채워진다. */
