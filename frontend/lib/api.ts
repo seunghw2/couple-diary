@@ -751,6 +751,10 @@ export type SajuPersonal = {
   pillars: string[]; // 년월일[시]
   ohaeng: SajuOhaeng[];
   ohaengInsight: string; // 강한·부족한 기운 근거 + 보완법
+  tenGodName?: string; // 십성 기반 우세 기질(예: 표현이 풍부한 기질)
+  tenGodEmoji?: string;
+  tenGodKeywords?: string[];
+  tenGodDesc?: string;
   daily: SajuDaily;
   hasHour: boolean;
   disclaimer: string;

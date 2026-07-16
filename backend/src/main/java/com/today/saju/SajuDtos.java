@@ -20,6 +20,7 @@ public class SajuDtos {
             List<String> pillars,        // [년주, 월주, 일주, (시주)]
             List<OhaengView> ohaeng,
             String ohaengInsight,        // 강한·부족한 기운 근거 + 보완법
+            String tenGodName, String tenGodEmoji, List<String> tenGodKeywords, String tenGodDesc, // 십성 기반 기질
             DailyView daily,
             boolean hasHour,
             String disclaimer

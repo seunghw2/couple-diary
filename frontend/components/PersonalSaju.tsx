@@ -75,6 +75,27 @@ export function PersonalSaju({
         ) : null}
       </View>
 
+      {/* 타고난 기질 (십성) */}
+      {data.tenGodName ? (
+        <View style={[styles.card, shadow]}>
+          <Text style={styles.cardHead}>타고난 기질</Text>
+          <View style={styles.tgHead}>
+            <Text style={styles.tgEmoji}>{data.tenGodEmoji}</Text>
+            <Text style={styles.tgName}>{data.tenGodName}</Text>
+          </View>
+          {data.tenGodKeywords && data.tenGodKeywords.length > 0 ? (
+            <View style={styles.chipRow}>
+              {data.tenGodKeywords.map((k) => (
+                <View key={k} style={[styles.chip, { backgroundColor: c.coralSofter }]}>
+                  <Text style={styles.chipText}>{k}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+          {data.tenGodDesc ? <Text style={styles.tgDesc}>{data.tenGodDesc}</Text> : null}
+        </View>
+      ) : null}
+
       {/* 이런 사람이에요 */}
       <View style={[styles.card, shadow]}>
         <Text style={styles.cardHead}>이런 사람이에요</Text>
@@ -182,6 +203,11 @@ const styles = StyleSheet.create({
   zodiac: { ...font.caption, color: colors.subText, marginTop: spacing.sm },
   explainWrap: { marginTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.md },
   explain: { ...font.body, color: colors.subText, lineHeight: 23 },
+
+  tgHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
+  tgEmoji: { fontSize: 30 },
+  tgName: { ...font.h2, fontSize: 18, fontWeight: '800', color: colors.text, flex: 1 },
+  tgDesc: { ...font.body, color: colors.text, lineHeight: 24, marginTop: spacing.md },
 
   dailyHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.sm },
   colorDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: colors.border },

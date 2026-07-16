@@ -56,13 +56,16 @@ public class SajuService {
 
     private PersonalResult emptyPersonal() {
         return new PersonalResult(false, null, null, null, null, null, null, null, null, List.of(), null,
-                List.of(), List.of(), null, List.of(), List.of(), null, null, false, DISCLAIMER);
+                List.of(), List.of(), null, List.of(), List.of(), null,
+                null, null, List.of(), null,
+                null, false, DISCLAIMER);
     }
 
     private PersonalResult personalOf(User u) {
         if (u.getBirthday() == null) return emptyPersonal();
         Saju s = SajuCalculator.compute(u.getBirthday(), u.getBirthTime());
         SajuTemplates.DayMaster dm = SajuTemplates.dayMaster(s.dayStem());
+        SajuTenGods.Result tg = SajuTenGods.analyze(s);
 
         List<String> pillars = new ArrayList<>();
         pillars.add(ganji(s.yearStem(), s.yearBranch()));
@@ -94,7 +97,9 @@ public class SajuService {
                 dm.oneLine(), SajuTemplates.twist(s.dayStem()), dm.desc(), List.of(dm.keywords()), dm.growth(),
                 List.of(SajuTemplates.strengths(s.dayStem())), List.of(SajuTemplates.growthPoints(s.dayStem())),
                 SajuCalculator.BRANCH_ANIMAL[s.zodiac()],
-                pillars, ohaeng, SajuTemplates.ohaengInsight(ec, subj), daily, s.hasHour(), DISCLAIMER);
+                pillars, ohaeng, SajuTemplates.ohaengInsight(ec, subj),
+                tg.name(), tg.emoji(), tg.keywords(), tg.desc(),
+                daily, s.hasHour(), DISCLAIMER);
     }
 
     // ───────── 오늘의 운세 ─────────
