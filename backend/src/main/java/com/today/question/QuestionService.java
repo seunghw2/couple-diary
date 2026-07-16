@@ -221,7 +221,11 @@ public class QuestionService {
         boolean alreadySealed = existing != null && existing.getSealedAt() != null;
 
         if (existing != null) {
-            // 이미 봉인된 답장은 봉인 후 24시간 이내에만 수정 가능.
+            // 편지가 열린(양쪽 답 봉인) 뒤에는 답을 수정할 수 없다(봉인된 편지 컨셉).
+            if (alreadySealed && bothSealed(chosen)) {
+                throw new ApiException(ErrorCode.ANSWER_NOT_EDITABLE, "편지가 열린 뒤에는 답을 수정할 수 없어요.");
+            }
+            // 아직 안 열렸다면 봉인 후 24시간 이내에만 수정 가능.
             if (existing.getSealedAt() != null && !answerEditable(existing)) {
                 throw new ApiException(ErrorCode.ANSWER_NOT_EDITABLE);
             }

@@ -80,6 +80,9 @@ public class WorldcupService {
         String stages = formatStages(key, req.stages());
         if (stages.isEmpty()) throw new ApiException(ErrorCode.INVALID_INPUT, "진행 정보가 올바르지 않아요.");
 
+        // 재플레이 시 같은 월드컵은 최신 1건만 유지(중복 누적 방지).
+        resultRepository.deleteByAuthor_IdAndWorldcupKey(me.getId(), cup.key());
+
         resultRepository.save(WorldcupResult.builder()
                 .author(me)
                 .couple(couple)

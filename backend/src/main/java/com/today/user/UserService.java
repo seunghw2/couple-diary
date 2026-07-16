@@ -196,7 +196,8 @@ public class UserService {
         User user = getUser(userId);
         // 부분 업데이트지만 넘어온 값은 검증(빈 닉네임·이상한 색·미래 생일 방지).
         if (req.nickname() != null) {
-            String nick = req.nickname().trim();
+            // HTML 태그/꺾쇠 제거(저장형 XSS 방어) 후 검증.
+            String nick = req.nickname().replaceAll("<[^>]*>", "").replace("<", "").replace(">", "").trim();
             if (nick.isEmpty()) throw new ApiException(ErrorCode.INVALID_INPUT, "닉네임을 입력해 주세요.");
             if (nick.length() > 30) throw new ApiException(ErrorCode.INVALID_INPUT, "닉네임은 30자 이하로 해 주세요.");
             user.setNickname(nick);
