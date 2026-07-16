@@ -56,7 +56,8 @@ public class UserDtos {
             UserSummary user,
             boolean coupled,
             Long coupleId,
-            PartnerSummary partner
+            PartnerSummary partner,
+            boolean admin
     ) {}
 
     public record PartnerSummary(

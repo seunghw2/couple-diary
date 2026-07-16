@@ -61,6 +61,16 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    /** 권한. null/USER=일반, ADMIN=슈퍼 관리자. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", length = 20)
+    private UserRole role;
+
+    /** 슈퍼 관리자 여부(null=일반). */
+    public boolean isAdmin() {
+        return role == UserRole.ADMIN;
+    }
+
     @Builder
     public User(String email, String nickname, String avatarColor, String kakaoId, String appleId, LocalDate birthday, String inviteCode) {
         this.email = email;

@@ -186,9 +186,9 @@ public class UserService {
                 .map(c -> {
                     User partner = partnerOf(c, userId);
                     return new MeResponse(UserSummary.of(user), true, c.getId(),
-                            partner == null ? null : PartnerSummary.of(partner));
+                            partner == null ? null : PartnerSummary.of(partner), user.isAdmin());
                 })
-                .orElseGet(() -> new MeResponse(UserSummary.of(user), false, null, null));
+                .orElseGet(() -> new MeResponse(UserSummary.of(user), false, null, null, user.isAdmin()));
     }
 
     @Transactional

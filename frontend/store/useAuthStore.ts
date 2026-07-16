@@ -17,6 +17,8 @@ type AuthState = {
   user: UserSummary | null;
   coupled: boolean;
   partner: PartnerSummary | null;
+  /** 슈퍼 관리자 여부(개발자도구 노출용). */
+  admin: boolean;
   bootstrap: () => Promise<void>;
   devLogin: (nickname: string) => Promise<void>;
   /** 카카오 웹 OAuth 로그인. 사용자가 취소하면 false, 로그인 성공 시 true. */
@@ -32,13 +34,14 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   coupled: false,
   partner: null,
+  admin: false,
 
   bootstrap: async () => {
     if (bootstrapInflight) return bootstrapInflight;
     bootstrapInflight = (async () => {
       const token = await tokenStore.getToken();
       if (!token) {
-        set({ status: 'guest', user: null, coupled: false, partner: null });
+        set({ status: 'guest', user: null, coupled: false, partner: null, admin: false });
         return;
       }
       try {
@@ -48,6 +51,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           user: me.user,
           coupled: me.coupled,
           partner: me.partner ?? null,
+          admin: me.admin ?? false,
         });
       } catch (e) {
         // 진짜 401(토큰 만료/무효)일 때만 토큰 삭제. 네트워크/5xx 같은 일시 오류엔
@@ -55,7 +59,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         if (e instanceof ApiException && e.status === 401) {
           await tokenStore.clear();
         }
-        set({ status: 'guest', user: null, coupled: false, partner: null });
+        set({ status: 'guest', user: null, coupled: false, partner: null, admin: false });
       }
     })();
     try {
@@ -72,7 +76,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     // 로그인 직후 커플 상태 동기화
     try {
       const me = await authApi.me();
-      set({ user: me.user, coupled: me.coupled, partner: me.partner ?? null });
+      set({ user: me.user, coupled: me.coupled, partner: me.partner ?? null, admin: me.admin ?? false });
     } catch {
       /* 무시: 가드가 재조회 */
     }
@@ -86,7 +90,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     // 로그인 직후 내 정보/커플 상태 동기화
     try {
       const me = await authApi.me();
-      set({ user: me.user, coupled: me.coupled, partner: me.partner ?? null });
+      set({ user: me.user, coupled: me.coupled, partner: me.partner ?? null, admin: me.admin ?? false });
     } catch {
       /* 무시: 가드가 재조회 */
     }
@@ -102,7 +106,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     // 로그인 직후 내 정보/커플 상태 동기화
     try {
       const me = await authApi.me();
-      set({ user: me.user, coupled: me.coupled, partner: me.partner ?? null });
+      set({ user: me.user, coupled: me.coupled, partner: me.partner ?? null, admin: me.admin ?? false });
     } catch {
       /* 무시: 가드가 재조회 */
     }
@@ -118,7 +122,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       /* 무시 — 실패해도 로그아웃은 진행 */
     }
     await tokenStore.clear();
-    set({ status: 'guest', user: null, coupled: false, partner: null });
+    set({ status: 'guest', user: null, coupled: false, partner: null, admin: false });
     // 커플·알림 스토어도 즉시 초기화(가드 이펙트 타이밍에 의존하지 않게).
     useCoupleStore.getState().reset();
     useNotifStore.getState().reset();

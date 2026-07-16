@@ -180,6 +180,8 @@ export type MeResponse = {
   coupled: boolean;
   coupleId?: number;
   partner?: PartnerSummary;
+  /** 슈퍼 관리자 여부(개발자도구 노출용). */
+  admin?: boolean;
 };
 
 /** GET/PUT/connect 커플 응답. user1=커플 생성자, user2=상대. */
@@ -550,6 +552,45 @@ export const feedbackApi = {
   /** 자유 의견 보내기. source = 어느 화면에서 보냈는지(맥락용). */
   send: (content: string, source?: string) =>
     api.post<void>('/api/feedback', { content, source }),
+};
+
+// ─────────────────────────── 개발자도구(관리자) ───────────────────────────
+
+export type DevFeedback = {
+  id: number;
+  userId: number;
+  userNickname: string;
+  content: string;
+  source?: string;
+  createdAt: string;
+};
+
+export type DevPoolItem = {
+  id: number;
+  text: string;
+  category?: string;
+  theme?: string;
+  depth: number;
+  contextTrigger?: string;
+  template: boolean;
+  usedCount: number;
+  active: boolean;
+};
+
+export type DevStats = {
+  users: number;
+  couples: number;
+  coupledUsers: number;
+  entries: number;
+  questionsPool: number;
+  questionsActive: number;
+  feedback: number;
+};
+
+export const devApi = {
+  feedback: () => api.get<DevFeedback[]>('/api/dev/feedback'),
+  questions: () => api.get<DevPoolItem[]>('/api/dev/questions'),
+  stats: () => api.get<DevStats>('/api/dev/stats'),
 };
 
 // ─────────────────────────── 원격 푸시 토큰 ───────────────────────────

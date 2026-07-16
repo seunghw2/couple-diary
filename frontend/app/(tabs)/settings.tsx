@@ -12,6 +12,7 @@ export default function SettingsScreen() {
   const c = useColors();
   const user = useAuthStore((s) => s.user);
   const partner = useAuthStore((s) => s.partner);
+  const admin = useAuthStore((s) => s.admin);
   // 월드컵 배지: 상대가 새로 완료한 수(월드컵 목록 열면 서버에서 초기화됨).
   const [wcUnseen, setWcUnseen] = useState(0);
   // 사주 배지: 아직 안 본 사주 소식 수(사주 허브 열면 초기화됨).
@@ -125,6 +126,22 @@ export default function SettingsScreen() {
             last
           />
         </View>
+
+        {/* 관리자 전용 — 개발자도구 */}
+        {admin && (
+          <>
+            <Text style={styles.groupLabel}>관리자</Text>
+            <View style={styles.groupCard}>
+              <SettingsRow
+                icon="construct-outline"
+                tint={c.primary}
+                label="개발자도구"
+                onPress={() => router.push('/dev')}
+                last
+              />
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
