@@ -77,8 +77,10 @@ public class SajuService {
             ohaeng.add(new OhaengView(e, EL_NAME[e], EL_EMOJI[e], ec[e], level, SajuTemplates.ohaengComment(e, level)));
         }
 
-        var d = SajuTemplates.daily(s.dayStem(), LocalDate.now(SajuCalculator.KST));
-        DailyView daily = new DailyView(d.fortune(), d.colorName(), d.colorHex(), d.keyword(), d.coupleTip());
+        LocalDate todayD = LocalDate.now(SajuCalculator.KST);
+        var d = SajuTemplates.daily(s.dayStem(), todayD);
+        var detD = SajuDailyFortune.compute(s.dayStem(), true, SajuCalculator.compute(todayD, null), todayD);
+        DailyView daily = new DailyView(d.fortune(), d.colorName(), d.colorHex(), d.keyword(), d.coupleTip(), detD.totalLine());
 
         int el = SajuCalculator.STEM_ELEMENT[s.dayStem()];
         String dayKo = SajuCalculator.STEM_KO[s.dayStem()] + SajuCalculator.ELEMENT_KO[el];   // 예: 갑목
@@ -99,10 +101,12 @@ public class SajuService {
     @Transactional(readOnly = true)
     public DailyView daily(Long userId) {
         User u = require(userId);
-        int dayStem = u.getBirthday() == null ? 0
-                : SajuCalculator.compute(u.getBirthday(), u.getBirthTime()).dayStem();
-        var d = SajuTemplates.daily(dayStem, LocalDate.now(SajuCalculator.KST));
-        return new DailyView(d.fortune(), d.colorName(), d.colorHex(), d.keyword(), d.coupleTip());
+        boolean has = u.getBirthday() != null;
+        int dayStem = has ? SajuCalculator.compute(u.getBirthday(), u.getBirthTime()).dayStem() : 0;
+        LocalDate today = LocalDate.now(SajuCalculator.KST);
+        var d = SajuTemplates.daily(dayStem, today);
+        var det = SajuDailyFortune.compute(dayStem, has, SajuCalculator.compute(today, null), today);
+        return new DailyView(d.fortune(), d.colorName(), d.colorHex(), d.keyword(), d.coupleTip(), det.totalLine());
     }
 
     // ───────── 오늘의 운세(상세) ─────────

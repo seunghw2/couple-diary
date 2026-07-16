@@ -596,6 +596,22 @@ export const devApi = {
   stats: () => api.get<DevStats>('/api/dev/stats'),
 };
 
+// ─────────────────────────── 알림 설정 ───────────────────────────
+
+export type NotificationSettings = {
+  diary: boolean;
+  question: boolean;
+  poke: boolean;
+  anniversary: boolean;
+  worldcup: boolean;
+  saju: boolean;
+};
+
+export const notificationSettingsApi = {
+  get: () => api.get<NotificationSettings>('/api/notification-settings'),
+  update: (s: NotificationSettings) => api.put<NotificationSettings>('/api/notification-settings', s),
+};
+
 // ─────────────────────────── 원격 푸시 토큰 ───────────────────────────
 
 export const pushApi = {
@@ -706,6 +722,7 @@ export type SajuDaily = {
   colorHex: string;
   keyword: string;
   coupleTip: string;
+  totalLine: string;
 };
 
 /** 오행 한 줄. */

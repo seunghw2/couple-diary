@@ -196,6 +196,7 @@ export default function RootLayout() {
           <Stack.Screen name="saju/index" options={{ presentation: 'card' }} />
           <Stack.Screen name="saju/me" options={{ presentation: 'card' }} />
           <Stack.Screen name="saju/couple" options={{ presentation: 'card' }} />
+          <Stack.Screen name="notification-settings" options={{ presentation: 'card' }} />
           <Stack.Screen name="dev/index" options={{ presentation: 'card' }} />
           <Stack.Screen name="dev/feedback" options={{ presentation: 'card' }} />
           <Stack.Screen name="dev/questions" options={{ presentation: 'card' }} />

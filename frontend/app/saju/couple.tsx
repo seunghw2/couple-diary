@@ -5,7 +5,7 @@ import { useFocusEffect } from 'expo-router';
 import { SajuCouple, sajuApi } from '../../lib/api';
 import { Icon, Button } from '../../components/ui';
 import { SajuLoading } from '../../components/SajuLoading';
-import { Collapsible, animateLayout } from '../../components/Collapsible';
+import { Collapsible } from '../../components/Collapsible';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useFirstVisitIntro } from '../../hooks/useFirstVisitIntro';
 import { coupleScoreColor, coupleScoreLabel } from '../../lib/sajuUi';
@@ -24,11 +24,6 @@ const CAT_ICON: Record<string, string> = {
   GROWTH: '🌱',
 };
 
-/** 문장 단위로 나눠 프리뷰 2문장 + 더보기. */
-function sentences(text: string): string[] {
-  return (text ?? '').split(/(?<=[.!?…])\s+/).filter(Boolean);
-}
-
 const SCORE_INFO =
   '종합 점수는 오행의 상생·상극, 일간의 합·충 등 12가지 관계를 종합해 계산해요. 아래 항목 점수는 첫끌림·대화·애정·안정감·성장을 따로 본 값이라, 항목을 더해 나눈 값과는 다를 수 있어요. 그래서 종합과 항목 평균이 일치하지 않는 게 정상이랍니다. 😊';
 
@@ -38,7 +33,6 @@ export default function SajuCouplePage() {
   const [error, setError] = useState(false);
   const [requesting, setRequesting] = useState(false);
   const { firstVisit, introTimeUp, finishIntro } = useFirstVisitIntro('saju_seen_couple');
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [infoOpen, setInfoOpen] = useState(false);
 
   const load = useCallback(async () => {
@@ -82,11 +76,6 @@ export default function SajuCouplePage() {
     } catch {
       // 공유 취소는 무시.
     }
-  }
-
-  function toggle(key: string) {
-    animateLayout();
-    setExpanded((m) => ({ ...m, [key]: !m[key] }));
   }
 
   if (firstVisit === null) return <View style={styles.safe} />;
@@ -205,10 +194,6 @@ export default function SajuCouplePage() {
               <Text style={styles.cardHead}>항목별 궁합</Text>
               <View style={{ gap: spacing.lg }}>
                 {data!.categories.map((cat) => {
-                  const parts = sentences(cat.comment);
-                  const open = !!expanded[cat.key];
-                  const preview = open ? cat.comment : parts.slice(0, 2).join(' ');
-                  const hasMore = parts.length > 2;
                   return (
                     <View key={cat.key}>
                       <View style={styles.catHead}>
@@ -230,13 +215,7 @@ export default function SajuCouplePage() {
                           ]}
                         />
                       </View>
-                      {preview ? <Text style={styles.catComment}>{preview}</Text> : null}
-                      {hasMore ? (
-                        <Pressable onPress={() => toggle(cat.key)} hitSlop={8} style={styles.moreBtn}>
-                          <Text style={[styles.moreText, { color: c.primary }]}>{open ? '접기' : '자세히 보기'}</Text>
-                          <Icon name={open ? 'chevron-up' : 'chevron-down'} size={15} color={c.primary} />
-                        </Pressable>
-                      ) : null}
+                      {cat.comment ? <Text style={styles.catComment}>{cat.comment}</Text> : null}
                     </View>
                   );
                 })}

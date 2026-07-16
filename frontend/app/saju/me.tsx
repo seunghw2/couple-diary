@@ -58,7 +58,7 @@ export default function SajuMe() {
           <Button label="생일 등록하러 가기" onPress={() => router.push('/account')} style={{ marginTop: spacing.lg }} />
         </View>
       ) : (
-        <PersonalSaju data={me!} showDaily />
+        <PersonalSaju data={me!} showDaily={false} showDetail={false} />
       )}
     </SafeAreaView>
   );

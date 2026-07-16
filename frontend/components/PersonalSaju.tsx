@@ -30,7 +30,15 @@ function emphasize(text: string, keywords: string[]) {
 }
 
 /** 개인 사주 본문(내 사주 / 연인 사주 공용, 읽기 전용). hasBirthday=true 데이터 전제. */
-export function PersonalSaju({ data, showDaily = true }: { data: SajuPersonal; showDaily?: boolean }) {
+export function PersonalSaju({
+  data,
+  showDaily = true,
+  showDetail = true,
+}: {
+  data: SajuPersonal;
+  showDaily?: boolean;
+  showDetail?: boolean;
+}) {
   const c = useColors();
   const subject = !data.ownerName ? '이 사람' : data.ownerName.endsWith('님') ? data.ownerName : `${data.ownerName}님`;
 
@@ -98,25 +106,27 @@ export function PersonalSaju({ data, showDaily = true }: { data: SajuPersonal; s
       ) : null}
 
       {/* 사주 자세히 — 원국 + 뜻 설명 (읽기 전용) */}
-      <View style={[styles.card, shadow]}>
-        <Collapsible title="사주 자세히 보기">
-          <Text style={styles.innerHead}>사주 원국</Text>
-          <View style={styles.pillarRow}>
-            {data.pillars.map((p, i) => (
-              <View key={i} style={styles.pillar}>
-                <Text style={styles.pillarText}>{p}</Text>
-                <Text style={styles.pillarLabel}>{PILLAR_LABELS[i]}</Text>
-              </View>
-            ))}
-          </View>
-          {data.zodiac ? <Text style={styles.zodiac}>띠 · {data.zodiac}</Text> : null}
-          <View style={styles.explainWrap}>
-            <Collapsible title="사주 원국이란?">
-              <Text style={styles.explain}>{ORIGIN_EXPLAIN}</Text>
-            </Collapsible>
-          </View>
-        </Collapsible>
-      </View>
+      {showDetail ? (
+        <View style={[styles.card, shadow]}>
+          <Collapsible title="사주 자세히 보기">
+            <Text style={styles.innerHead}>사주 원국</Text>
+            <View style={styles.pillarRow}>
+              {data.pillars.map((p, i) => (
+                <View key={i} style={styles.pillar}>
+                  <Text style={styles.pillarText}>{p}</Text>
+                  <Text style={styles.pillarLabel}>{PILLAR_LABELS[i]}</Text>
+                </View>
+              ))}
+            </View>
+            {data.zodiac ? <Text style={styles.zodiac}>띠 · {data.zodiac}</Text> : null}
+            <View style={styles.explainWrap}>
+              <Collapsible title="사주 원국이란?">
+                <Text style={styles.explain}>{ORIGIN_EXPLAIN}</Text>
+              </Collapsible>
+            </View>
+          </Collapsible>
+        </View>
+      ) : null}
 
       {/* 오늘의 기운 */}
       {showDaily && data.daily ? (

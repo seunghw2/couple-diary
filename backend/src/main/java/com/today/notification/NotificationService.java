@@ -31,6 +31,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final CoupleRepository coupleRepository;
     private final PushSender pushSender;
+    private final NotificationSettingService notificationSettingService;
 
     private static final int LIST_LIMIT = 50;
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
@@ -48,7 +49,10 @@ public class NotificationService {
         data.put("type", n.getType().name());
         if (n.getRefKey() != null) data.put("refKey", n.getRefKey());
         if (n.getEntryDate() != null) data.put("entryDate", n.getEntryDate().toString());
-        pushSender.sendToUser(n.getRecipient().getId(), n.getTitle(), n.getBody(), data);
+        // 인앱 알림은 항상 기록하되, 사용자가 끈 카테고리는 원격 푸시만 건너뛴다.
+        if (notificationSettingService.pushEnabled(n.getRecipient().getId(), n.getType())) {
+            pushSender.sendToUser(n.getRecipient().getId(), n.getTitle(), n.getBody(), data);
+        }
         return saved;
     }
 

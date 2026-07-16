@@ -83,6 +83,10 @@ export default function SajuHome() {
       : !hub.hasPartnerBirthday
         ? '상대 생일이 등록되면 볼 수 있어요'
         : `일간·오행으로 보는 ${hub.partnerName ?? '연인'}`;
+  const partnerName = hub?.partnerName?.trim();
+  const partnerTitle = partnerName
+    ? `${partnerName.endsWith('님') ? partnerName : `${partnerName}님`} 사주 보기`
+    : '연인 사주 보기';
   const coupleSub = !hub
     ? ''
     : !hub.hasPartner
@@ -175,7 +179,7 @@ export default function SajuHome() {
             >
               <Text style={styles.emoji}>🌸</Text>
               <View style={{ flex: 1 }}>
-                <Text style={styles.cardTitle}>연인 사주 보기</Text>
+                <Text style={styles.cardTitle}>{partnerTitle}</Text>
                 <Text style={styles.cardSub}>{partnerSub}</Text>
               </View>
               <Icon name="chevron-forward" size={20} color={colors.subText} />
@@ -201,9 +205,8 @@ export default function SajuHome() {
                 <View style={[styles.todayColorIcon, { backgroundColor: daily.colorHex }]} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardTitle}>오늘의 운세</Text>
-                  <Text style={styles.todaySub} numberOfLines={2}>{daily.fortune}</Text>
+                  <Text style={styles.todaySub} numberOfLines={2}>{daily.totalLine}</Text>
                 </View>
-                <Text style={styles.todayColorName}>{daily.colorName}</Text>
                 <Icon name="chevron-forward" size={20} color={colors.subText} />
               </Pressable>
             ) : null}

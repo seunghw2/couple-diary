@@ -150,7 +150,7 @@ public final class SajuCompatibility {
         String nB = honBase(nameB, "다른 분");
 
         // 관계 feature → 행동 시그니처(구체성). 카테고리마다 가장 강한 feature 하나만 얹는다.
-        String sigChemi = ganChung
+        String behChemi = ganChung
                 ? "생각이 부딪힐 땐 둘 다 물러서지 않아 스파크가 튀지만, 그만큼 서로에게 솔직한 사이예요."
                 : yinYangComplementDay
                     ? (speedFast(a) ? nA : nB) + "님은 마음이 정해지면 바로 움직이고, " + (speedFast(a) ? nB : nA) + "님은 한 박자 살핀 뒤 확신이 서요. 서두름과 신중함이 서로를 채워줘요."
@@ -168,9 +168,13 @@ public final class SajuCompatibility {
         String sigStab = chDay
                 ? (calmSide(a) ? nA : nB) + "님은 다툰 뒤 혼자 정리할 시간이 필요하고, " + (calmSide(a) ? nB : nA) + "님은 바로 풀고 싶어 하는 편이에요. 이 타이밍만 맞추면 회복이 빨라져요."
                 : sangbo >= 0.5 ? "역할이 겹치지 않아, 한 분이 놓치는 걸 다른 분이 자연스럽게 챙기는 팀플레이형이에요." : null;
-        String sigGrowth = control
+        String behGrowth = control
                 ? (aBrake(rel) ? nB : nA) + "님이 달아오를 때 " + (aBrake(rel) ? nA : nB) + "님이 자연스럽게 브레이크가 되어줘요. 잔소리 같아도 균형을 잡아주는 거예요."
                 : balance < 0.3 ? "비슷한 기운이 한쪽으로 모여 있어, 잘 맞을 땐 최고지만 지칠 땐 함께 지치기 쉬워요. 번갈아 기분을 끌어올려 주면 좋아요." : null;
+
+        // 사주(오행) 근거를 설명에 실어 전문성을 더한다. 첫끌림=일간 오행 관계, 성장=오행 분포 상보.
+        String sigChemi = joinSig(dayMasterElemClause(nA, dEA, nB, dEB), behChemi);
+        String sigGrowth = joinSig(elemDistClause(nA, dA, nB, dB), behGrowth);
 
         List<CategoryScore> cats = new ArrayList<>();
         cats.add(cat("CHEMI", "첫끌림", chemi, CHEMI_T, seed, sigChemi));
@@ -206,9 +210,9 @@ public final class SajuCompatibility {
         // 대표 한줄(히어로): 가장 희귀·강한 signal 하나.
         String relComment;
         if (destiny) relComment = "말로 설명하기 어려운 끌림이 흐르는, 흔치 않은 인연이에요.";
-        else if (chDay) relComment = "다툰 뒤 푸는 속도만 맞추면 회복이 빠른 커플이에요.";
+        else if (chDay) relComment = "사소한 엇박도 금세 웃음으로 바꾸는, 회복이 빠른 커플이에요.";
         else if (sangbo >= 0.6) relComment = "한 명이 비면 한 명이 채우는, 손발 맞는 조합이에요.";
-        else if (combined[1] < 2) relComment = "다 챙기면서 '좋아해'만 아끼는, 표현이 숙제인 사이예요.";
+        else if (combined[1] < 2) relComment = "서로를 살뜰히 챙기는 마음이 깊어, 말 한마디만 더하면 완벽해지는 사이예요.";
         else if (sangbo >= 0.5) relComment = clean(SajuUtil.pick(REL_SANGBO, seed, 41));
         else if (sameDay) relComment = clean(SajuUtil.pick(REL_SAME, seed, 41));
         else if (shengDay) relComment = clean(SajuUtil.pick(REL_SHENG, seed, 41));
@@ -257,6 +261,43 @@ public final class SajuCompatibility {
         String n = name.strip();
         return n.endsWith("님") ? n.substring(0, n.length() - 1) : n;
     }
+    /** 오행 근거 문장 + 행동 시그니처를 잇는다(둘 중 하나가 없어도 안전). */
+    private static String joinSig(String elem, String beh) {
+        if (elem == null || elem.isBlank()) return beh;
+        return (beh == null || beh.isBlank()) ? elem : elem + " " + beh;
+    }
+
+    /** 두 사람 일간 오행의 관계를 전문 용어(상생·상극)로 설명. */
+    private static String dayMasterElemClause(String nA, int eA, String nB, int eB) {
+        String koA = SajuCalculator.ELEMENT_KO[eA], hjA = SajuCalculator.ELEMENT_HANJA[eA];
+        String koB = SajuCalculator.ELEMENT_KO[eB], hjB = SajuCalculator.ELEMENT_HANJA[eB];
+        String rel = switch (elemRel(eA, eB)) {
+            case SAME -> "같은 " + koA + "(" + hjA + ") 기운을 나눠 가진 사이라, 결이 비슷해 편안하게 통해요.";
+            case SHENG_FWD, SHENG_REV -> "두 기운이 서로를 살리는 상생(相生)의 결이라, 곁에 있을수록 자연스럽게 힘이 나요.";
+            case KE_FWD, KE_REV -> "두 기운이 서로를 다듬는 상극(相剋)의 결이라, 톡톡 부딪히는 자극이 오히려 설렘이 돼요.";
+        };
+        return nA + "님의 일간은 " + koA + "(" + hjA + "), " + nB + "님은 " + koB + "(" + hjB + ") 기운이에요. " + rel;
+    }
+
+    /** 두 사람 오행 분포의 상보/공통을 전문 용어로 설명("~는 목이 많고 ~는 금이 적어서"). */
+    private static String elemDistClause(String nA, int[] dA, String nB, int[] dB) {
+        int aEl = -1, aVal = 0, bEl = -1, bVal = 0;
+        for (int e = 0; e < 5; e++) {
+            int d = dA[e] - dB[e];
+            if (d > aVal) { aVal = d; aEl = e; }     // A가 더 넉넉한 오행
+            if (-d > bVal) { bVal = -d; bEl = e; }   // B가 더 넉넉한 오행
+        }
+        if (aEl >= 0 && bEl >= 0 && aEl != bEl) {
+            return "사주로 보면 " + nA + "님은 " + SajuCalculator.ELEMENT_KO[aEl] + "(" + SajuCalculator.ELEMENT_HANJA[aEl]
+                    + ") 기운이 넉넉하고, " + nB + "님은 " + SajuCalculator.ELEMENT_KO[bEl] + "(" + SajuCalculator.ELEMENT_HANJA[bEl]
+                    + ") 기운이 도드라져요. 서로가 지닌 기운으로 상대의 옅은 자리를 채워주는 상보(相補) 관계라, 함께일수록 균형이 잡혀요.";
+        }
+        int[] comb = new int[5]; int maxE = 0;
+        for (int e = 0; e < 5; e++) { comb[e] = dA[e] + dB[e]; if (comb[e] > comb[maxE]) maxE = e; }
+        return "사주로 보면 두 분 모두 " + SajuCalculator.ELEMENT_KO[maxE] + "(" + SajuCalculator.ELEMENT_HANJA[maxE]
+                + ") 기운이 도드라져요. 닮은 기운이 강점이자 과제라, 번갈아 서로를 북돋아 주면 오래 단단해져요.";
+    }
+
     private static boolean speedFast(Saju a) { return a.dayStem() % 2 == 0; }
     private static boolean calmSide(Saju a) { return a.dayBranch() % 2 == 1; }
     private static boolean aBrake(ElemRel rel) { return rel == ElemRel.KE_FWD; }

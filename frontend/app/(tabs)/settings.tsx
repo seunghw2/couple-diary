@@ -94,6 +94,12 @@ export default function SettingsScreen() {
         <Text style={styles.groupLabel}>설정</Text>
         <View style={styles.groupCard}>
           <SettingsRow
+            icon="notifications-outline"
+            tint={c.primary}
+            label="알림 설정"
+            onPress={() => router.push('/notification-settings')}
+          />
+          <SettingsRow
             icon="mail-outline"
             tint={c.primary}
             label="오늘의 질문 설정"

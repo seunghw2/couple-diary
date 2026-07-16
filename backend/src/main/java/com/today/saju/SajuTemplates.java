@@ -260,5 +260,5 @@ public final class SajuTemplates {
         return new Daily(FORTUNE[f], COLOR_NAME[c], COLOR_HEX[c], KEYWORD[k], COUPLE_TIP[t]);
     }
 
-    public static final String DISCLAIMER = "재미로 보는 사주예요 😊 오늘을 특별하게 만드는 건 언제나 두 분의 마음이에요 💕";
+    public static final String DISCLAIMER = "재미로 보는 사주예요 😊\n오늘을 특별하게 만드는 건 언제나 두 분의 마음이에요 💕";
 }
