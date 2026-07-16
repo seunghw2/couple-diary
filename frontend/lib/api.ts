@@ -579,8 +579,11 @@ export type DevPoolItem = {
 
 export type DevStats = {
   users: number;
+  usersReal: number;
   couples: number;
+  couplesReal: number;
   coupledUsers: number;
+  coupledUsersReal: number;
   entries: number;
   questionsPool: number;
   questionsActive: number;

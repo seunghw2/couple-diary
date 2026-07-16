@@ -27,11 +27,14 @@ public class DevDtos {
             boolean active
     ) {}
 
-    /** 가입·커플 등 요약 통계. */
+    /** 가입·커플 등 요약 통계. real* = 테스트/dev 계정 제외(카카오·애플 로그인만). */
     public record StatsView(
             long users,
+            long usersReal,
             long couples,
+            long couplesReal,
             long coupledUsers,
+            long coupledUsersReal,
             long entries,
             long questionsPool,
             long questionsActive,

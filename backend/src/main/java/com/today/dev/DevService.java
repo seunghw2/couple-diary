@@ -70,10 +70,14 @@ public class DevService {
     public StatsView stats(Long userId) {
         requireAdmin(userId);
         long couples = coupleRepository.count();
+        long realCouples = coupleRepository.countRealCouples();
         return new StatsView(
                 userRepository.count(),
+                userRepository.countByKakaoIdIsNotNullOrAppleIdIsNotNull(),
                 couples,
+                realCouples,
                 couples * 2,
+                realCouples * 2,
                 diaryEntryRepository.count(),
                 questionPoolRepository.count(),
                 questionPoolRepository.countByActiveTrue(),

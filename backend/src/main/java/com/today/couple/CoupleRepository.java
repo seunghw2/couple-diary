@@ -12,4 +12,10 @@ public interface CoupleRepository extends JpaRepository<Couple, Long> {
     Optional<Couple> findByMember(@Param("userId") Long userId);
 
     boolean existsByUser1_IdOrUser2_Id(Long user1Id, Long user2Id);
+
+    /** 두 멤버 모두 실사용자(카카오/애플 로그인)인 커플 수. */
+    @Query("select count(c) from Couple c "
+            + "where (c.user1.kakaoId is not null or c.user1.appleId is not null) "
+            + "and (c.user2.kakaoId is not null or c.user2.appleId is not null)")
+    long countRealCouples();
 }
