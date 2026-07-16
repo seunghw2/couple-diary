@@ -16,11 +16,11 @@
 | High | prod CORS가 개발용 origin(`exp://*`, `*.trycloudflare.com`, localhost)까지 credentials 허용 | prod 프로파일 CORS를 서비스 도메인만으로 축소(`CORS_ORIGINS` env로 override 가능) | trycloudflare origin → 허용헤더 없음(차단), 서비스도메인 → 허용 |
 | High | 무제한 리스트로 DoS/대량삽입(answers 10만개 → 8.4초·10만행 저장) | UpsertEntryRequest 리스트 개수 상한(@Size: answers 50, photos 30, locations 30, questionIds 20) | answers 10만개 → 400 |
 | High | 카카오맵 WebView가 장소명을 인라인 `<script>`에 JSON 삽입 → `</script>` 태그 탈출 여지(저장형 XSS 실행 경로) | 삽입용 JSON을 `<`·`>` 이스케이프(safeJson)로 태그 탈출 차단 | 코드 반영(tsc 통과) |
+| Medium | 사진이 `/files/**` UUID로 **무인증 접근**(링크만 알면 로그인 없이 열람) | **시간제한 서명 링크(방법 A)**: 사진 URL에 exp/sig(HMAC) 부여, `/files/**`·`/api/photos/thumb` 서빙 시 검증. 앱은 로그인 상태로 서명 URL을 받아 정상 열람, 외부인·타 커플·관리자는 서명 없어 403. 구버전 앱 하위호환 처리 | 무서명/변조 403, 서명 200, 신·구 앱 모두 정상 |
 
 ## 보류(권고) — 후속 처리 대상
 
 - **카카오 REST 키 하드코딩**(High): app.json·application.yml에 평문. OAuth client_id라 반쯤 공개값이지만, **콘솔에서 키 로테이션 + 환경변수 주입** 권장(코드만으론 완결 불가한 운영 작업).
-- **사진 무인증 접근**(Medium): `/files/**`·`/api/photos/thumb`가 UUID 난독화로만 보호(공개 GET). 민감 사진이므로 **서명 URL 또는 소유권 게이트** 도입 권장. (현재는 랜덤 UUID로 추측 방어)
 - **저장형 XSS 서버 무필터**(Medium, 잠재): mood·댓글·답장·feedback 등 자유텍스트를 서버가 필터 없이 저장. **현재 RN `<Text>`/WebView textContent 렌더라 실행 안 됨.** 자유텍스트를 입력단에서 전부 제거하면 "<3" 같은 정상 문자가 깨지므로, **출력 인코딩(현행)을 유지**하고 향후 HTML/메일/웹뷰 innerHTML 경로 추가 시 그 지점에서 이스케이프 필수(닉네임은 이미 서버 필터).
 - **레이트리밋 전무**(Medium): connect·feedback·comment 등 쓰기 무제한. 스팸·무차별 방어용 IP/유저 레이트리밋(Bucket4j 등) 도입 권장.
 - **JWT 서버측 폐기 불가**(Medium): 30일 TTL·무상태. `tokenVersion` 컬럼으로 계정삭제/강제로그아웃 시 즉시 무효화 권장. (현재 삭제 유저는 조회 null로 우연히 차단됨)

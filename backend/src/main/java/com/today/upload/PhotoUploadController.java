@@ -41,8 +41,10 @@ public class PhotoUploadController {
 
     private final Path uploadDir;
     private final Path thumbDir;
+    private final PhotoUrlSigner signer;
 
-    public PhotoUploadController(@Value("${app.upload.dir}") String uploadDir) {
+    public PhotoUploadController(@Value("${app.upload.dir}") String uploadDir, PhotoUrlSigner signer) {
+        this.signer = signer;
         this.uploadDir = Paths.get(uploadDir).toAbsolutePath().normalize();
         this.thumbDir = this.uploadDir.resolve("thumbs").normalize();
         try {
@@ -77,7 +79,7 @@ public class PhotoUploadController {
         } catch (IOException e) {
             throw new UncheckedIOException("파일 저장 실패", e);
         }
-        return Map.of("url", "/files/" + filename);
+        return Map.of("url", signer.signRelative("/files/" + filename));
     }
 
     /**
@@ -88,14 +90,31 @@ public class PhotoUploadController {
     @GetMapping("/thumb")
     public ResponseEntity<Resource> thumb(
             @RequestParam("path") String path,
-            @RequestParam(value = "w", required = false) Integer w) {
+            @RequestParam(value = "w", required = false) Integer w,
+            @RequestParam(value = "exp", required = false) String exp,
+            @RequestParam(value = "sig", required = false) String sig) {
 
         int width = clampWidth(w);
 
-        // path -> 실제 파일명 추출 (/files/abc.jpg 또는 abc.jpg 모두 허용)
+        // path -> 실제 파일명 추출 (/files/abc.jpg 또는 abc.jpg 모두 허용, 쿼리는 제거)
         String filename = extractFilename(path);
         if (filename.isEmpty()) {
             throw new ApiException(ErrorCode.INVALID_INPUT);
+        }
+        // 하위호환: 구버전 앱은 서명을 path 안에 담아 보냄(path=/files/x.png?exp=..&sig=..).
+        // exp/sig가 별도 파라미터로 안 왔으면 path의 쿼리에서 뽑는다.
+        if ((exp == null || sig == null) && path != null && path.contains("?")) {
+            for (String kv : path.substring(path.indexOf('?') + 1).split("&")) {
+                int eq = kv.indexOf('=');
+                if (eq < 0) continue;
+                String k = kv.substring(0, eq), v = kv.substring(eq + 1);
+                if (exp == null && k.equals("exp")) exp = v;
+                else if (sig == null && k.equals("sig")) sig = v;
+            }
+        }
+        // 시간제한 서명 검증(유효 서명 없으면 접근 거부).
+        if (!signer.verify(filename, exp, sig)) {
+            throw new ApiException(ErrorCode.FORBIDDEN, "만료되었거나 잘못된 사진 링크예요.");
         }
 
         // path traversal 방어: 정규화 후 uploadDir 밖으로 나가면 거부
@@ -179,6 +198,9 @@ public class PhotoUploadController {
         if (path == null) return "";
         String p = path.trim();
         if (p.isEmpty()) return "";
+        // 쿼리스트링(?exp=..&sig=..) 제거 후 파일명만.
+        int qi = p.indexOf('?');
+        if (qi >= 0) p = p.substring(0, qi);
         // "/files/" 프리픽스 제거
         if (p.startsWith("/files/")) {
             p = p.substring("/files/".length());

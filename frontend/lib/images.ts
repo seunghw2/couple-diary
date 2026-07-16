@@ -12,14 +12,19 @@ export function toFull(url: string): string {
  */
 export function toThumb(url: string, w = 300): string {
   if (!url) return url;
+  // 우리 /files/ 업로드 이미지만 썸네일 엔드포인트로. 서명 쿼리(exp/sig)는 분리해 보존한다.
+  let rel: string | null = null;
   if (url.startsWith('/files/')) {
-    return `${API_URL}/api/photos/thumb?path=${encodeURIComponent(url)}&w=${w}`;
+    rel = url;
+  } else {
+    const full = toFull(url);
+    const prefix = `${API_URL}/files/`;
+    if (full.startsWith(prefix)) rel = full.slice(API_URL.length); // "/files/xxx.jpg?exp=..&sig=.."
   }
-  const full = toFull(url);
-  const prefix = `${API_URL}/files/`;
-  if (full.startsWith(prefix)) {
-    const path = full.slice(API_URL.length); // "/files/xxx.jpg"
-    return `${API_URL}/api/photos/thumb?path=${encodeURIComponent(path)}&w=${w}`;
-  }
-  return full;
+  if (!rel) return toFull(url);
+  const q = rel.indexOf('?');
+  const path = q >= 0 ? rel.slice(0, q) : rel; // "/files/xxx.jpg"
+  const query = q >= 0 ? rel.slice(q + 1) : ''; // "exp=..&sig=.."
+  const suffix = query ? `&${query}` : '';
+  return `${API_URL}/api/photos/thumb?path=${encodeURIComponent(path)}${suffix}&w=${w}`;
 }

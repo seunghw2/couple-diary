@@ -41,6 +41,7 @@ public class DiaryService {
     private final PhotoRepository photoRepository;
     private final PlaceNicknameRepository placeNicknameRepository;
     private final CommentRepository commentRepository;
+    private final com.today.upload.PhotoUrlSigner photoUrlSigner;
     private final DiaryDayFactory dayFactory;
     private final NotificationService notificationService;
 
@@ -224,7 +225,7 @@ public class DiaryService {
             String thumbUrl = null;
             for (DiaryEntry e : dayEntries) {
                 for (Photo p : photosByEntry.getOrDefault(e.getId(), List.of())) {
-                    if (p.getUrl() != null && !p.getUrl().isBlank()) { thumbUrl = p.getUrl(); break; }
+                    if (p.getUrl() != null && !p.getUrl().isBlank()) { thumbUrl = photoUrlSigner.signRelative(p.getUrl()); break; }
                 }
                 if (thumbUrl != null) break;
             }
@@ -336,7 +337,10 @@ public class DiaryService {
         if (req.photoUrls() != null) {
             for (String url : req.photoUrls()) {
                 if (url == null || url.isBlank()) continue;
-                photoRepository.save(Photo.builder().entry(entry).url(url).build());
+                // 서명 쿼리(?exp=..&sig=..)가 붙어 오면 떼고 bare 경로만 저장(재열람 시 새로 서명).
+                int qi = url.indexOf('?');
+                String bare = qi >= 0 ? url.substring(0, qi) : url;
+                photoRepository.save(Photo.builder().entry(entry).url(bare).build());
             }
         }
 
@@ -559,7 +563,7 @@ public class DiaryService {
                 .map(a -> new AnswerView(a.getQuestionId(), a.getPromptKey(), a.getText()))
                 .toList();
         List<PhotoView> photos = photoRepository.findByEntry_Id(e.getId()).stream()
-                .map(p -> new PhotoView(p.getId(), p.getColorSeed(), p.getUrl()))
+                .map(p -> new PhotoView(p.getId(), p.getColorSeed(), photoUrlSigner.signRelative(p.getUrl())))
                 .toList();
         boolean editable = e.getEditableAfter() == null || LocalDateTime.now().isBefore(e.getEditableAfter());
         List<String> locations = new ArrayList<>(e.getLocations());
