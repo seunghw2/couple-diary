@@ -73,6 +73,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint((req, res, e) -> {
                             res.setStatus(ErrorCode.UNAUTHORIZED.getStatus().value());
                             res.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            res.setCharacterEncoding("UTF-8");
                             res.getWriter().write(mapper.writeValueAsString(new ErrorResponse(
                                     ErrorCode.UNAUTHORIZED.getCode(),
                                     ErrorCode.UNAUTHORIZED.getMessage(),
@@ -81,6 +82,7 @@ public class SecurityConfig {
                         .accessDeniedHandler((req, res, e) -> {
                             res.setStatus(ErrorCode.FORBIDDEN.getStatus().value());
                             res.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            res.setCharacterEncoding("UTF-8");
                             res.getWriter().write(mapper.writeValueAsString(new ErrorResponse(
                                     ErrorCode.FORBIDDEN.getCode(),
                                     ErrorCode.FORBIDDEN.getMessage(),

@@ -99,6 +99,13 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("U413", "사진 용량이 너무 커요. 10MB 이하로 올려 주세요.", null));
     }
 
+    // 허용되지 않은 HTTP 메서드(예: POST 전용 경로에 GET) → 500 대신 405.
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotSupported(org.springframework.web.HttpRequestMethodNotSupportedException e) {
+        return ResponseEntity.status(405)
+                .body(new ErrorResponse("C405", "지원하지 않는 요청이에요.", null));
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException e) {
         ErrorCode ec = ErrorCode.FORBIDDEN;

@@ -309,6 +309,10 @@ public class QuestionService {
                 .orElseThrow(() -> new ApiException(ErrorCode.COUPLE_NOT_FOUND));
         QuestionPool question = poolRepository.findById(questionId)
                 .orElseThrow(() -> new ApiException(ErrorCode.QUESTION_NOT_FOUND));
+        // 이 커플에 실제 배정된 적 있는 질문만 신고 가능(임의 질문 표적 신고 방지).
+        if (!dailyQuestionRepository.existsByCouple_IdAndQuestion_Id(couple.getId(), questionId)) {
+            throw new ApiException(ErrorCode.QUESTION_NOT_FOUND);
+        }
 
         if (!reportRepository.existsByQuestion_IdAndCouple_Id(questionId, couple.getId())) {
             try {

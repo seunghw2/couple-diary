@@ -12,6 +12,9 @@ public interface DailyQuestionRepository extends JpaRepository<DailyQuestion, Lo
 
     boolean existsByCouple_Id(Long coupleId);
 
+    /** 해당 질문이 이 커플에 배정된 적 있는지(신고 소속 검증용). */
+    boolean existsByCouple_IdAndQuestion_Id(Long coupleId, Long questionId);
+
     /** 가장 최근 기간의 한 행(마감 판정·직전 기간 확인용). */
     java.util.Optional<DailyQuestion> findTopByCouple_IdOrderByDateDescSlotDesc(Long coupleId);
 

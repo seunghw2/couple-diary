@@ -77,6 +77,7 @@ public class DiaryService {
         List<MonthEntrySummary> out = new ArrayList<>();
         for (DiaryDay day : days) {
             List<DiaryEntry> entries = entriesByDay.getOrDefault(day.getId(), List.of());
+            if (entries.isEmpty()) continue; // 양쪽 다 글이 없는 빈 날(고아/삭제 잔여)은 달력에서 숨김
             boolean mine = entries.stream().anyMatch(e -> e.getAuthor().getId().equals(userId));
             boolean partner = entries.stream().anyMatch(e -> !e.getAuthor().getId().equals(userId));
             DayStatus status = statusOf(mine, partner);

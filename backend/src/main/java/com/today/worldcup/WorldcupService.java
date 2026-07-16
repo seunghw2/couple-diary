@@ -71,6 +71,12 @@ public class WorldcupService {
         if (WorldcupCatalog.item(key, req.winnerId()) == null) {
             throw new ApiException(ErrorCode.INVALID_INPUT, "우승 후보가 올바르지 않아요.");
         }
+        // 우승자가 탈락 목록에 동시에 들어가면 무결성 위반 → 거부.
+        if (req.stages() != null && req.stages().values().stream()
+                .filter(java.util.Objects::nonNull)
+                .anyMatch(ids -> ids.contains(req.winnerId()))) {
+            throw new ApiException(ErrorCode.INVALID_INPUT, "진행 정보가 올바르지 않아요.");
+        }
         String stages = formatStages(key, req.stages());
         if (stages.isEmpty()) throw new ApiException(ErrorCode.INVALID_INPUT, "진행 정보가 올바르지 않아요.");
 

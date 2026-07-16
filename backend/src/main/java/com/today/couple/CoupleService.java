@@ -77,6 +77,9 @@ public class CoupleService {
     @Transactional
     public CoupleResponse setAnniversary(Long userId, AnniversaryRequest req) {
         Couple couple = requireCouple(userId);
+        if (req.anniversaryDate() != null && req.anniversaryDate().isAfter(LocalDate.now(KST))) {
+            throw new ApiException(ErrorCode.INVALID_INPUT, "처음 만난 날은 미래일 수 없어요.");
+        }
         couple.setAnniversaryDate(req.anniversaryDate());
         return toResponse(couple);
     }

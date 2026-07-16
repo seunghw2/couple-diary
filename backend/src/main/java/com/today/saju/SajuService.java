@@ -111,7 +111,8 @@ public class SajuService {
         LocalDate today = LocalDate.now(SajuCalculator.KST);
         var d = SajuTemplates.daily(dayStem, today);
         var det = SajuDailyFortune.compute(dayStem, has, SajuCalculator.compute(today, null), today);
-        return new DailyView(d.fortune(), d.colorName(), d.colorHex(), d.keyword(), d.coupleTip(), det.totalLine());
+        // 색·키워드·문구는 상세(오늘의 운세) 계산과 동일 소스로 맞춰 배너/상세 불일치를 없앤다.
+        return new DailyView(det.totalLine(), det.colorName(), det.colorHex(), det.keyword(), d.coupleTip(), det.totalLine());
     }
 
     // ───────── 오늘의 운세(상세) ─────────

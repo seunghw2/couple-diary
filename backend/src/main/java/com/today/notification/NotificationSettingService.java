@@ -22,12 +22,13 @@ public class NotificationSettingService {
     public SettingsView update(Long userId, SettingsView req) {
         NotificationSetting s = repository.findByUserId(userId)
                 .orElseGet(() -> repository.save(new NotificationSetting(userId)));
-        s.setDiary(req.diary());
-        s.setQuestion(req.question());
-        s.setPoke(req.poke());
-        s.setAnniversary(req.anniversary());
-        s.setWorldcup(req.worldcup());
-        s.setSaju(req.saju());
+        // null 필드는 건드리지 않는다(부분 업데이트로 나머지 카테고리가 조용히 꺼지는 사고 방지).
+        if (req.diary() != null) s.setDiary(req.diary());
+        if (req.question() != null) s.setQuestion(req.question());
+        if (req.poke() != null) s.setPoke(req.poke());
+        if (req.anniversary() != null) s.setAnniversary(req.anniversary());
+        if (req.worldcup() != null) s.setWorldcup(req.worldcup());
+        if (req.saju() != null) s.setSaju(req.saju());
         return SettingsView.of(s);
     }
 
