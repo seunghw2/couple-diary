@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
 import { ComponentProps, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ErrorState } from '../../components/ErrorState';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { Icon } from '../../components/ui';
+import { Toggle } from '../../components/Toggle';
 import { DevStats, devApi } from '../../lib/api';
 import { errorMessage } from '../../lib/errors';
 import { colors, font, radius, shadow, spacing } from '../../theme/theme';
@@ -40,12 +41,7 @@ export default function DevHome() {
               <Text style={styles.groupLabel}>가입 · 커플 통계</Text>
               <View style={styles.toggle}>
                 <Text style={styles.toggleLabel}>테스트 계정 제외</Text>
-                <Switch
-                  value={excludeTest}
-                  onValueChange={setExcludeTest}
-                  trackColor={{ true: colors.primary, false: colors.border }}
-                  thumbColor={colors.white}
-                />
+                <Toggle value={excludeTest} onValueChange={setExcludeTest} />
               </View>
             </View>
             <View style={styles.statGrid}>

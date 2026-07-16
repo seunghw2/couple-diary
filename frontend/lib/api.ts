@@ -762,6 +762,8 @@ export type SajuCoupleCategory = {
   name: string;
   score: number; // 0~100
   comment: string;
+  /** 오행(사주) 근거 — 있으면 '사주로 보면' 박스로 분리 노출. */
+  sajuNote?: string;
 };
 
 /** GET /api/saju/couple — 궁합. canCompute=false면 blockReason만 유효. */

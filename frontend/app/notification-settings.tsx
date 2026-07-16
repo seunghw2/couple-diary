@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ErrorState } from '../components/ErrorState';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { Toggle } from '../components/Toggle';
 import { NotificationSettings, notificationSettingsApi } from '../lib/api';
 import { showToast } from '../lib/dialog';
 import { errorMessage } from '../lib/errors';
@@ -65,12 +66,7 @@ export default function NotificationSettingsScreen() {
                   <Text style={styles.rowLabel}>{r.label}</Text>
                   <Text style={styles.rowDesc}>{r.desc}</Text>
                 </View>
-                <Switch
-                  value={s[r.key]}
-                  onValueChange={(v) => toggle(r.key, v)}
-                  trackColor={{ true: colors.primary, false: colors.border }}
-                  thumbColor={colors.white}
-                />
+                <Toggle value={s[r.key]} onValueChange={(v) => toggle(r.key, v)} />
               </View>
             ))}
           </View>

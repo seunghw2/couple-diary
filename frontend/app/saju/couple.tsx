@@ -216,6 +216,12 @@ export default function SajuCouplePage() {
                         />
                       </View>
                       {cat.comment ? <Text style={styles.catComment}>{cat.comment}</Text> : null}
+                      {cat.sajuNote ? (
+                        <View style={[styles.sajuBox, { backgroundColor: c.coralSofter }]}>
+                          <Text style={[styles.sajuBoxLabel, { color: c.primary }]}>사주로 보면</Text>
+                          <Text style={styles.sajuBoxText}>{cat.sajuNote}</Text>
+                        </View>
+                      ) : null}
                     </View>
                   );
                 })}
@@ -327,7 +333,10 @@ const styles = StyleSheet.create({
   catPill: { borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 2 },
   catPillText: { ...font.caption, color: colors.white, fontWeight: '700', fontSize: 11 },
   catScore: { ...font.label, color: colors.subText, minWidth: 24, textAlign: 'right' },
-  catComment: { ...font.caption, color: colors.subText, marginTop: 8, lineHeight: 21, fontSize: 13 },
+  catComment: { color: colors.subText, marginTop: 8, lineHeight: 22, fontSize: 14 },
+  sajuBox: { borderRadius: radius.md, paddingHorizontal: 13, paddingVertical: 11, marginTop: 10 },
+  sajuBoxLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.3, marginBottom: 5 },
+  sajuBoxText: { color: colors.text, fontSize: 13.5, lineHeight: 21 },
   moreBtn: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: 6 },
   moreText: { ...font.label, fontWeight: '700' },
 

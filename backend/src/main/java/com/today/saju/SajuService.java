@@ -165,7 +165,7 @@ public class SajuService {
                 sa, sb, me.getBirthday(), partner.getBirthday(), me.getNickname(), partner.getNickname());
 
         List<CatView> cats = new ArrayList<>();
-        for (var c : r.categories()) cats.add(new CatView(c.key(), c.name(), c.score(), c.grade(), c.comment()));
+        for (var c : r.categories()) cats.add(new CatView(c.key(), c.name(), c.score(), c.grade(), c.comment(), c.sajuNote()));
 
         SajuTemplates.DayMaster meDm = SajuTemplates.dayMaster(sa.dayStem());
         SajuTemplates.DayMaster pDm = SajuTemplates.dayMaster(sb.dayStem());

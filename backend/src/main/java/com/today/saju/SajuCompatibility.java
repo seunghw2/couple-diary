@@ -103,7 +103,7 @@ public final class SajuCompatibility {
     private static int grade(int s) { return s >= 70 ? 2 : (s >= 45 ? 1 : 0); }
 
     // ── 결과 DTO ──
-    public record CategoryScore(String key, String name, int score, int grade, String comment) {}
+    public record CategoryScore(String key, String name, int score, int grade, String comment, String sajuNote) {}
     public record Result(int percent, List<CategoryScore> categories, String totalComment,
                          List<String> badges, String relComment, String strongestKey, String weakestKey,
                          List<String> keywords, List<String> summaryLines, List<String> tips, boolean hasHour) {}
@@ -172,16 +172,16 @@ public final class SajuCompatibility {
                 ? (aBrake(rel) ? nB : nA) + "님이 달아오를 때 " + (aBrake(rel) ? nA : nB) + "님이 자연스럽게 브레이크가 되어줘요. 잔소리 같아도 균형을 잡아주는 거예요."
                 : balance < 0.3 ? "비슷한 기운이 한쪽으로 모여 있어, 잘 맞을 땐 최고지만 지칠 땐 함께 지치기 쉬워요. 번갈아 기분을 끌어올려 주면 좋아요." : null;
 
-        // 사주(오행) 근거를 설명에 실어 전문성을 더한다. 첫끌림=일간 오행 관계, 성장=오행 분포 상보.
-        String sigChemi = joinSig(dayMasterElemClause(nA, dEA, nB, dEB), behChemi);
-        String sigGrowth = joinSig(elemDistClause(nA, dA, nB, dB), behGrowth);
+        // 사주(오행) 근거는 별도 sajuNote로 분리해 프론트에서 '사주로 보면' 박스로 노출한다.
+        String noteChemi = dayMasterElemClause(nA, dEA, nB, dEB);
+        String noteGrowth = elemDistClause(nA, dA, nB, dB);
 
         List<CategoryScore> cats = new ArrayList<>();
-        cats.add(cat("CHEMI", "첫끌림", chemi, CHEMI_T, seed, sigChemi));
-        cats.add(cat("TALK", "대화", talk, TALK_T, seed, sigTalk));
-        cats.add(cat("AFFECTION", "애정", affection, AFFECTION_T, seed, sigAff));
-        cats.add(cat("STABILITY", "안정감", stability, STABILITY_T, seed, sigStab));
-        cats.add(cat("GROWTH", "성장", growth, GROWTH_T, seed, sigGrowth));
+        cats.add(cat("CHEMI", "첫끌림", chemi, CHEMI_T, seed, behChemi, noteChemi));
+        cats.add(cat("TALK", "대화", talk, TALK_T, seed, sigTalk, null));
+        cats.add(cat("AFFECTION", "애정", affection, AFFECTION_T, seed, sigAff, null));
+        cats.add(cat("STABILITY", "안정감", stability, STABILITY_T, seed, sigStab, null));
+        cats.add(cat("GROWTH", "성장", growth, GROWTH_T, seed, behGrowth, noteGrowth));
 
         // 최고·최저 카테고리(스토리·한눈에 보기용).
         String strongest = cats.get(0).key(); int best = -1;
@@ -247,11 +247,12 @@ public final class SajuCompatibility {
                 keywords, summary, tips, a.hasHour() && b.hasHour());
     }
 
-    private static CategoryScore cat(String key, String name, int score, String[][] templates, long seed, String sig) {
+    private static CategoryScore cat(String key, String name, int score, String[][] templates, long seed, String sig, String sajuNote) {
         int g = grade(score);
         String base = clean(SajuUtil.pick(templates[g], seed, key.hashCode()));
         String comment = (sig == null || sig.isBlank()) ? base : base + " " + sig;
-        return new CategoryScore(key, name, score, g, comment);
+        String note = (sajuNote == null || sajuNote.isBlank()) ? null : sajuNote;
+        return new CategoryScore(key, name, score, g, comment, note);
     }
 
     // 방향 결정(결정론): 일간 양(짝수)=바로 움직이는 쪽, 일지 음(홀수)=혼자 정리하는 쪽, KE_FWD=a가 브레이크.
@@ -261,12 +262,6 @@ public final class SajuCompatibility {
         String n = name.strip();
         return n.endsWith("님") ? n.substring(0, n.length() - 1) : n;
     }
-    /** 오행 근거 문장 + 행동 시그니처를 잇는다(둘 중 하나가 없어도 안전). */
-    private static String joinSig(String elem, String beh) {
-        if (elem == null || elem.isBlank()) return beh;
-        return (beh == null || beh.isBlank()) ? elem : elem + " " + beh;
-    }
-
     /** 두 사람 일간 오행의 관계를 전문 용어(상생·상극)로 설명. */
     private static String dayMasterElemClause(String nA, int eA, String nB, int eB) {
         String koA = SajuCalculator.ELEMENT_KO[eA], hjA = SajuCalculator.ELEMENT_HANJA[eA];
@@ -288,13 +283,13 @@ public final class SajuCompatibility {
             if (-d > bVal) { bVal = -d; bEl = e; }   // B가 더 넉넉한 오행
         }
         if (aEl >= 0 && bEl >= 0 && aEl != bEl) {
-            return "사주로 보면 " + nA + "님은 " + SajuCalculator.ELEMENT_KO[aEl] + "(" + SajuCalculator.ELEMENT_HANJA[aEl]
+            return nA + "님은 " + SajuCalculator.ELEMENT_KO[aEl] + "(" + SajuCalculator.ELEMENT_HANJA[aEl]
                     + ") 기운이 넉넉하고, " + nB + "님은 " + SajuCalculator.ELEMENT_KO[bEl] + "(" + SajuCalculator.ELEMENT_HANJA[bEl]
                     + ") 기운이 도드라져요. 서로가 지닌 기운으로 상대의 옅은 자리를 채워주는 상보(相補) 관계라, 함께일수록 균형이 잡혀요.";
         }
         int[] comb = new int[5]; int maxE = 0;
         for (int e = 0; e < 5; e++) { comb[e] = dA[e] + dB[e]; if (comb[e] > comb[maxE]) maxE = e; }
-        return "사주로 보면 두 분 모두 " + SajuCalculator.ELEMENT_KO[maxE] + "(" + SajuCalculator.ELEMENT_HANJA[maxE]
+        return "두 분 모두 " + SajuCalculator.ELEMENT_KO[maxE] + "(" + SajuCalculator.ELEMENT_HANJA[maxE]
                 + ") 기운이 도드라져요. 닮은 기운이 강점이자 과제라, 번갈아 서로를 북돋아 주면 오래 단단해져요.";
     }
 
