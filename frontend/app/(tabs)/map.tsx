@@ -10,10 +10,12 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { locationApi } from '../../lib/api';
 import type { LocationCount, LocationNickname } from '../../lib/api';
+import { toThumb } from '../../lib/images';
 import { KakaoMap } from '../../components/KakaoMap';
 import { ErrorState } from '../../components/ErrorState';
 import { Icon } from '../../components/ui';
@@ -21,12 +23,20 @@ import { colors, font, radius, shadow, spacing, useColors } from '../../theme/th
 
 type ViewMode = 'map' | 'list';
 
+/** "2026-07-17" → "7.17" */
+function fmtMD(iso: string): string {
+  const parts = iso.split('-');
+  if (parts.length < 3) return iso;
+  return `${Number(parts[1])}.${Number(parts[2])}`;
+}
+
 /** 지도 탭 — 일기에 남긴 장소들을 Kakao 핀맵 / 리스트로 모아보기. */
 export default function MapScreen() {
   const c = useColors();
   const router = useRouter();
   const [places, setPlaces] = useState<string[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
+  const [meta, setMeta] = useState<Record<string, LocationCount>>({}); // 대표사진·최근날짜(사진 카드형)
   const [nicknames, setNicknames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -42,10 +52,15 @@ export default function MapScreen() {
       const res = await locationApi.list();
       setPlaces(Array.isArray(res?.locations) ? res.locations.filter(Boolean) : []);
       const map: Record<string, number> = {};
+      const metaMap: Record<string, LocationCount> = {};
       (res?.counts ?? []).forEach((c: LocationCount) => {
-        if (c?.name) map[c.name] = c.count;
+        if (c?.name) {
+          map[c.name] = c.count;
+          metaMap[c.name] = c;
+        }
       });
       setCounts(map);
+      setMeta(metaMap);
       const nick: Record<string, string> = {};
       (res?.nicknames ?? []).forEach((n: LocationNickname) => {
         if (n?.name && n?.nickname) nick[n.name] = n.nickname;
@@ -151,33 +166,39 @@ export default function MapScreen() {
             {filtered.length === 0 ? (
               <Text style={styles.noMatch}>'{query}'와 일치하는 장소가 없어요</Text>
             ) : (
-              filtered.map((name) => (
-                <Pressable
-                  key={name}
-                  style={({ pressed }) => [styles.placeCard, pressed && { opacity: 0.85 }]}
-                  onPress={() => setSelected(name)}
-                >
-                  <View style={[styles.placeIcon, { backgroundColor: c.coralSofter }]}>
-                    <Icon name="heart" size={16} color={c.primary} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    {nicknames[name] ? (
-                      <>
-                        <Text style={styles.placeName} numberOfLines={1}>{nicknames[name]}</Text>
-                        <Text style={styles.placeSubName} numberOfLines={1}>{name}</Text>
-                      </>
+              filtered.map((name) => {
+                const m = meta[name];
+                const nick = nicknames[name];
+                const visits = `${m?.count ?? counts[name] ?? 1}번 방문${m?.recentDate ? ` · 최근 ${fmtMD(m.recentDate)}` : ''}`;
+                return (
+                  <Pressable
+                    key={name}
+                    style={({ pressed }) => [styles.placeCard, pressed && { opacity: 0.85 }]}
+                    onPress={() => router.push({ pathname: '/place', params: { name } })}
+                  >
+                    {m?.thumbUrl ? (
+                      <Image
+                        source={{ uri: toThumb(m.thumbUrl, 120) }}
+                        style={styles.cardThumb}
+                        contentFit="cover"
+                        cachePolicy="memory-disk"
+                        transition={120}
+                      />
                     ) : (
-                      <Text style={styles.placeName} numberOfLines={1}>{name}</Text>
+                      <View style={[styles.cardThumb, styles.cardThumbEmpty, { backgroundColor: c.coralSofter }]}>
+                        <Icon name="heart" size={20} color={c.primary} />
+                      </View>
                     )}
-                  </View>
-                  {counts[name] >= 2 && (
-                    <View style={[styles.countPill, { backgroundColor: c.coralSofter }]}>
-                      <Text style={[styles.countPillText, { color: c.primary }]}>{counts[name]}회</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.placeName} numberOfLines={1}>{nick ?? name}</Text>
+                      <Text style={styles.placeSubName} numberOfLines={1}>
+                        {nick ? `${name} · ${visits}` : visits}
+                      </Text>
                     </View>
-                  )}
-                  <Icon name="chevron-forward" size={18} color={colors.placeholder} />
-                </Pressable>
-              ))
+                    <Icon name="chevron-forward" size={18} color={colors.placeholder} />
+                  </Pressable>
+                );
+              })
             )}
           </ScrollView>
         )}
@@ -315,8 +336,10 @@ const styles = StyleSheet.create({
     ...shadow,
   },
   placeIcon: { width: 32, height: 32, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  cardThumb: { width: 52, height: 52, borderRadius: radius.md, backgroundColor: colors.border },
+  cardThumbEmpty: { alignItems: 'center', justifyContent: 'center' },
   placeName: { ...font.title },
-  placeSubName: { ...font.caption, color: colors.subText, marginTop: 1 },
+  placeSubName: { ...font.caption, color: colors.subText, marginTop: 2 },
   countPill: { borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 3 },
   countPillText: { ...font.caption, fontWeight: '800' },
   // 지도 아래 흐름 배치 카드(지도와 겹치지 않도록 — 지도 body가 flex로 줄어듦).

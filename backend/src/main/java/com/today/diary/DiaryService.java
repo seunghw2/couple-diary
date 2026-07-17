@@ -147,7 +147,7 @@ public class DiaryService {
         List<String> locations = entryRepository.findDistinctLocationsByCouple(couple.getId(), page);
         List<DiaryDtos.LocationCount> counts = entryRepository
                 .findLocationCountsByCouple(couple.getId(), page).stream()
-                .map(p -> new DiaryDtos.LocationCount(p.getName(), p.getCount()))
+                .map(p -> buildLocationCount(couple.getId(), p.getName(), p.getCount()))
                 .toList();
         List<DiaryDtos.PlaceNicknameView> nicknames = placeNicknameRepository
                 .findByCouple_Id(couple.getId()).stream()
@@ -179,6 +179,29 @@ public class DiaryService {
             placeNicknameRepository.save(PlaceNickname.builder()
                     .couple(couple).name(cleanName).nickname(cleanNick).build());
         }
+    }
+
+    // 지도 목록용: 한 장소의 대표 사진(가장 최근 방문일의 사진) + 최근 방문일.
+    private DiaryDtos.LocationCount buildLocationCount(Long coupleId, String name, long count) {
+        List<DiaryEntry> entries = entryRepository.findByCoupleAndLocation(coupleId, name);
+        if (entries.isEmpty()) {
+            return new DiaryDtos.LocationCount(name, count, null, null);
+        }
+        String recentDate = entries.get(0).getDay().getDate().toString(); // date desc → 첫 항목이 최근
+        List<Long> ids = entries.stream().map(DiaryEntry::getId).toList();
+        Map<Long, List<Photo>> byEntry = photoRepository.findByEntry_IdIn(ids).stream()
+                .collect(Collectors.groupingBy(p -> p.getEntry().getId()));
+        String thumb = null;
+        outer:
+        for (DiaryEntry e : entries) {
+            for (Photo p : byEntry.getOrDefault(e.getId(), List.of())) {
+                if (p.getUrl() != null && !p.getUrl().isBlank()) {
+                    thumb = photoUrlSigner.signRelative(p.getUrl());
+                    break outer;
+                }
+            }
+        }
+        return new DiaryDtos.LocationCount(name, count, thumb, recentDate);
     }
 
     // ================= 장소 상세(그 장소에 쌓인 기록) =================

@@ -441,7 +441,7 @@ export const dailyQuestionApi = {
 
 /** 이전에 쓴 장소 추천 목록. */
 /** 장소별 방문 일수(지도 핀 뱃지용). */
-export type LocationCount = { name: string; count: number };
+export type LocationCount = { name: string; count: number; thumbUrl?: string | null; recentDate?: string | null };
 /** 장소 별명(커플별). */
 export type LocationNickname = { name: string; nickname: string };
 /** 장소 상세의 한 항목(그곳에 갔던 날). */

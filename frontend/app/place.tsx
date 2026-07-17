@@ -162,33 +162,32 @@ export default function PlaceScreen() {
             entries.map((e) => (
               <Pressable
                 key={e.date}
-                style={({ pressed }) => [styles.entryCard, pressed && { opacity: 0.85 }]}
+                style={({ pressed }) => [styles.galleryCard, pressed && { opacity: 0.92 }]}
                 onPress={() => router.push({ pathname: '/entry/[date]', params: { date: e.date } })}
               >
-                {e.thumbUrl ? (
-                  <Image
-                    source={{ uri: toThumb(e.thumbUrl, 120) }}
-                    style={styles.thumb}
-                    contentFit="cover"
-                    cachePolicy="memory-disk"
-                    transition={120}
-                  />
-                ) : (
-                  <View style={[styles.thumb, styles.thumbEmpty, { backgroundColor: c.coralSofter }]}>
-                    <Icon name="heart" size={20} color={c.primary} />
-                  </View>
-                )}
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.entryDate}>
-                    {formatKoLong(e.date)} ({weekdayKo(e.date)})
-                  </Text>
-                  {e.snippet ? (
-                    <Text style={styles.entrySnippet} numberOfLines={2}>{e.snippet}</Text>
+                <View style={styles.photoWrap}>
+                  {e.thumbUrl ? (
+                    <Image
+                      source={{ uri: toThumb(e.thumbUrl, 600) }}
+                      style={styles.galleryPhoto}
+                      contentFit="cover"
+                      cachePolicy="memory-disk"
+                      transition={150}
+                    />
                   ) : (
-                    <Text style={[styles.entrySnippet, { color: colors.placeholder }]}>기록을 열어보기</Text>
+                    <View style={[styles.galleryPhoto, styles.galleryEmpty, { backgroundColor: c.coralSofter }]}>
+                      <Icon name="heart" size={30} color={c.primary} />
+                    </View>
                   )}
+                  <View style={styles.dateBadge}>
+                    <Text style={styles.dateBadgeText}>
+                      {formatKoLong(e.date)} ({weekdayKo(e.date)})
+                    </Text>
+                  </View>
                 </View>
-                <Icon name="chevron-forward" size={18} color={colors.placeholder} />
+                {e.snippet ? (
+                  <Text style={styles.gallerySnippet} numberOfLines={2}>{e.snippet}</Text>
+                ) : null}
               </Pressable>
             ))
           )}
@@ -244,20 +243,28 @@ const styles = StyleSheet.create({
 
   sectionLabel: { ...font.label, color: colors.subText, marginTop: spacing.xl, marginBottom: spacing.sm, marginLeft: spacing.sm },
 
-  entryCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
+  // 갤러리형 방문 카드: 큰 사진 + 날짜 오버레이 + 아래 한 줄.
+  galleryCard: {
     backgroundColor: colors.card,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginTop: spacing.sm,
+    borderRadius: radius.lg,
+    marginTop: spacing.md,
+    overflow: 'hidden',
     ...shadow,
   },
-  thumb: { width: 56, height: 56, borderRadius: radius.md, backgroundColor: colors.border },
-  thumbEmpty: { alignItems: 'center', justifyContent: 'center' },
-  entryDate: { ...font.title },
-  entrySnippet: { ...font.caption, color: colors.text, marginTop: 3, lineHeight: 18 },
+  photoWrap: { width: '100%', aspectRatio: 16 / 10, position: 'relative' },
+  galleryPhoto: { width: '100%', height: '100%' },
+  galleryEmpty: { alignItems: 'center', justifyContent: 'center' },
+  dateBadge: {
+    position: 'absolute',
+    left: spacing.md,
+    bottom: spacing.md,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 5,
+  },
+  dateBadgeText: { ...font.caption, color: colors.white, fontWeight: '800' },
+  gallerySnippet: { ...font.body, color: colors.text, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, lineHeight: 20 },
 
   empty: { alignItems: 'center', marginTop: spacing.xxl, gap: spacing.md },
   emptyText: { ...font.body, color: colors.subText, textAlign: 'center' },
