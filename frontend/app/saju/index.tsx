@@ -7,6 +7,7 @@ import { HOUR_OPTIONS, hourLabel } from '../../lib/sajuHours';
 import { showToast } from '../../lib/dialog';
 import { errorMessage } from '../../lib/errors';
 import { ErrorState } from '../../components/ErrorState';
+import { AvatarBubble } from '../../components/AvatarIcon';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Icon } from '../../components/ui';
 import { ScreenHeader } from '../../components/ScreenHeader';
@@ -22,6 +23,8 @@ export default function SajuHome() {
   const router = useRouter();
   const c = useColors();
   const setUser = useAuthStore((s) => s.setUser);
+  const user = useAuthStore((s) => s.user);
+  const partner = useAuthStore((s) => s.partner);
   const [hub, setHub] = useState<SajuHub | null>(null);
   const [daily, setDaily] = useState<SajuDaily | null>(null);
   const [error, setError] = useState(false);
@@ -96,16 +99,12 @@ export default function SajuHome() {
             <View style={[styles.info, shadow]}>
               <View style={styles.cTop}>
                 <View style={styles.cPerson}>
-                  <View style={[styles.cAv, { backgroundColor: c.coralSofter }]}>
-                    <Text style={styles.cAvText}>{hub?.myEmoji ?? '🙂'}</Text>
-                  </View>
+                  <AvatarBubble value={user?.avatar} color={user?.avatarColor} name={hub?.myName ?? user?.nickname} size={60} />
                   <Text style={styles.cNm}>{hub?.myName ?? '나'}</Text>
                 </View>
                 <Text style={[styles.heart, { color: c.primary }]}>♥</Text>
                 <View style={styles.cPerson}>
-                  <View style={[styles.cAv, { backgroundColor: colors.partnerSoft }]}>
-                    <Text style={styles.cAvText}>{hub?.partnerEmoji ?? '🙂'}</Text>
-                  </View>
+                  <AvatarBubble value={partner?.avatar} color={partner?.avatarColor} name={hub?.partnerName ?? partner?.nickname} size={60} />
                   <Text style={styles.cNm}>{hub?.partnerName ?? '미연결'}</Text>
                 </View>
               </View>
