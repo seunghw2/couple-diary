@@ -472,7 +472,7 @@ export default function WriteScreen() {
                     onPress={() => setMood(m.key)}
                     style={[styles.moodItem, on && [styles.moodSelected, { borderColor: c.primary }]]}
                   >
-                    <MIcon size={26} color={on ? c.primary : colors.subText} strokeWidth={1.7} />
+                    <MIcon size={26} color={on ? c.primary : colors.subText} strokeWidth={1.7} style={styles.moodIcon} />
                   </Pressable>
                 );
               })}
@@ -917,6 +917,8 @@ const styles = StyleSheet.create({
     ...shadow,
   },
   moodSelected: { borderColor: colors.primary },
+  // Tabler mood 아이콘이 칸에서 살짝 아래로 보여 광학 보정(위로 2px).
+  moodIcon: { transform: [{ translateY: -2 }] },
 
   formHeadingRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.md },
   formHeading: { ...font.title },
