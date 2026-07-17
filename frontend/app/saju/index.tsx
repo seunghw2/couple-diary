@@ -99,7 +99,7 @@ export default function SajuHome() {
             <View style={[styles.info, shadow]}>
               <View style={styles.cTop}>
                 <View style={styles.cPerson}>
-                  <AvatarBubble value={user?.avatar} color={user?.avatarColor} name={hub?.myName ?? user?.nickname} size={60} />
+                  <AvatarBubble value={user?.avatar} name={hub?.myName ?? user?.nickname} size={60} self />
                   <Text style={styles.cNm}>{hub?.myName ?? '나'}</Text>
                 </View>
                 <Text style={[styles.heart, { color: c.primary }]}>♥</Text>

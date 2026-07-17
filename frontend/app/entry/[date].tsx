@@ -336,6 +336,7 @@ export default function EntryDetailScreen() {
                     avatarColor={me?.avatarColor}
                     avatarName={me?.nickname}
                     avatar={me?.avatar}
+                    self
                   />
                   <View style={styles.myActions}>
                     <Button label="수정하기" variant="soft" onPress={onEditMine} style={{ flex: 1, height: 44 }} />
@@ -697,6 +698,7 @@ function SideCard({
   avatarColor,
   avatarName,
   avatar,
+  self,
 }: {
   title: string;
   side: EntryView;
@@ -707,6 +709,7 @@ function SideCard({
   avatarColor?: string | null;
   avatarName?: string | null;
   avatar?: string | null;
+  self?: boolean;
 }) {
   const c = useColors();
   // 색상은 내/상대 구분 없이 앱 컬러로 통일.
@@ -720,7 +723,7 @@ function SideCard({
   return (
     <Card style={{ marginTop: spacing.lg }}>
       <View style={styles.sideHead}>
-        <AvatarBubble value={avatar} color={avatarColor} name={avatarName} size={24} />
+        <AvatarBubble value={avatar} color={avatarColor} name={avatarName} size={24} self={self} />
         <Text style={[styles.sideTitle, { color: accent }]}>{title}</Text>
       </View>
 

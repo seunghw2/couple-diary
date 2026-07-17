@@ -12,6 +12,7 @@ import {
 import { Turtle, Snail, Squirrel, Rat, Panda } from 'lucide-react-native';
 import { IconDeer, IconPig } from '@tabler/icons-react-native';
 import { colors } from '../theme/theme';
+import { useThemeStore } from '../store/useThemeStore';
 
 type IconProps = { size: number; color: string };
 
@@ -67,23 +68,28 @@ export function AvatarIcon({ value, size, color }: { value?: string | null; size
 }
 
 /**
- * 프로필 사진 = 그 사람이 고른 앱 컬러(color) 배경 + 아이콘(흰색).
+ * 프로필 사진 = 그 사람이 고른 앱 컬러 배경 + 아이콘(흰색).
  * 아이콘 없으면 구버전 이모지, 그것도 없으면 닉네임 이니셜.
+ * self=true면 "내" 프로필 → 현재 앱 색상(appPrimary)을 배경으로(즉시 반영).
+ * self=false(상대)면 color(상대 avatarColor)를 배경으로.
  */
 export function AvatarBubble({
   value,
   color,
   name,
   size,
+  self,
   style,
 }: {
   value?: string | null;
   color?: string | null;
   name?: string | null;
   size: number;
+  self?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
-  const bg = color || colors.coralSofter;
+  const appPrimary = useThemeStore((s) => s.appPrimary);
+  const bg = self ? appPrimary : color || colors.coralSofter;
   return (
     <View
       style={[

@@ -120,7 +120,7 @@ export default function SajuCouplePage() {
             <View style={[styles.hero, shadow]}>
               <View style={styles.pairRow}>
                 <View style={styles.person}>
-                  <AvatarBubble value={user?.avatar} color={user?.avatarColor} name={data!.meNickname} size={56} />
+                  <AvatarBubble value={user?.avatar} name={data!.meNickname} size={56} self />
                   <Text style={styles.personName}>{data!.meNickname}</Text>
                   <Text style={styles.personType}>{data!.meTypeName}</Text>
                 </View>

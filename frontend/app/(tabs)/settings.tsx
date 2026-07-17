@@ -38,7 +38,7 @@ export default function SettingsScreen() {
         {/* 프로필 헤더 → 내 정보 */}
         <Pressable onPress={() => router.push('/account')} style={({ pressed }) => [pressed && styles.pressed]}>
           <View style={styles.profileCard}>
-            <AvatarBubble value={user?.avatar} color={user?.avatarColor} name={user?.nickname} size={52} />
+            <AvatarBubble value={user?.avatar} name={user?.nickname} size={52} self />
             <View style={{ flex: 1 }}>
               <Text style={styles.profileName}>{user?.nickname ?? '나'}</Text>
               <Text style={styles.profileSub}>

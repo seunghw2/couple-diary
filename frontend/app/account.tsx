@@ -174,7 +174,7 @@ export default function AccountScreen() {
               onPress={() => router.push('/avatar')}
               style={styles.avatar}
             >
-              <AvatarBubble value={user?.avatar} color={user?.avatarColor} name={user?.nickname} size={76} />
+              <AvatarBubble value={user?.avatar} name={user?.nickname} size={76} self />
               <View style={[styles.camBadge, { backgroundColor: c.primary }]}>
                 <Icon name="camera" size={12} color={colors.white} />
               </View>
