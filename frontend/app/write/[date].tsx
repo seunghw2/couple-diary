@@ -38,6 +38,13 @@ import { KakaoMapPicker } from '../../components/KakaoMapPicker';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
 type Step = 'mode' | 'form';
+
+/** 서명 쿼리(?exp=..&sig=..)를 뗀 bare 경로 — 대표 사진 매칭 비교용. */
+function bareUrl(u?: string | null): string {
+  if (!u) return '';
+  const i = u.indexOf('?');
+  return i >= 0 ? u.slice(0, i) : u;
+}
 /** 화면 로컬 모드. 'FREE'=내가 질문 3개를 고르는 단계(제출 시 QUESTION_PICK으로 저장). */
 type FormMode = EntryMode | 'FREE';
 
@@ -90,6 +97,7 @@ export default function WriteScreen() {
   const [prevLocations, setPrevLocations] = useState<string[]>([]); // 이전 장소 추천
   const [mapPickerOpen, setMapPickerOpen] = useState(false); // 지도+검색 통합 시트
   const [photoUrls, setPhotoUrls] = useState<string[]>([]); // 업로드 완료된 /files/... 경로
+  const [repPhotoUrl, setRepPhotoUrl] = useState<string | null>(null); // 그날 대표 사진(탭해 별표)
   const [uploading, setUploading] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
@@ -130,6 +138,7 @@ export default function WriteScreen() {
       try {
         const detail: DayDetail = await entryApi.detail(dateStr);
         const mine = detail.myEntry;
+        if (detail.repPhotoUrl) setRepPhotoUrl(detail.repPhotoUrl); // 그날 대표 사진 프리필(별표)
         if (mine) {
           // 수정 진입: editable=false면 작성 화면 대신 안내
           if (!mine.editable) {
@@ -406,6 +415,7 @@ export default function WriteScreen() {
       photoUrls,
       locations: locations.length > 0 ? locations : undefined,
       locationPoints: locationPoints.length > 0 ? locationPoints : undefined,
+      repPhotoUrl: photoUrls.length > 0 ? (repPhotoUrl ?? photoUrls[0]) : undefined,
       mood: mood ?? undefined,
     };
 
@@ -521,10 +531,21 @@ export default function WriteScreen() {
               <Icon name="images-outline" size={18} color={colors.text} />
               <Text style={styles.sectionLabel}>오늘의 흔적</Text>
             </View>
+            {photoUrls.length > 0 ? (
+              <Text style={styles.repHint}>사진을 탭해 대표 사진(⭐)을 정해요 · 지도·장소에 보여요</Text>
+            ) : null}
             <View style={styles.photoRow}>
-              {photoUrls.map((u, i) => (
-                <PhotoThumb key={u + i} url={u} seed={u} size={72} round={false} />
-              ))}
+              {photoUrls.map((u, i) => {
+                const isRep = bareUrl(repPhotoUrl ?? photoUrls[0]) === bareUrl(u);
+                return (
+                  <Pressable key={u + i} onPress={() => setRepPhotoUrl(u)} style={styles.photoItem}>
+                    <PhotoThumb url={u} seed={u} size={72} round={false} />
+                    <View style={[styles.repStar, isRep && { backgroundColor: c.primary }]}>
+                      <Icon name={isRep ? 'star' : 'star-outline'} size={13} color={isRep ? colors.white : colors.white} />
+                    </View>
+                  </Pressable>
+                );
+              })}
               {uploading ? (
                 <View style={styles.addPhoto}>
                   <ActivityIndicator color={c.primary} />
@@ -971,6 +992,19 @@ const styles = StyleSheet.create({
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { ...font.caption, color: colors.text },
 
+  repHint: { ...font.caption, color: colors.subText, marginBottom: spacing.sm },
+  photoItem: { position: 'relative' },
+  repStar: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   addPhoto: {
     width: 72,

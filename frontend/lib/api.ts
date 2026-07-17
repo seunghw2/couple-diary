@@ -273,6 +273,7 @@ export type DayDetail = {
   myEntry?: EntryView;
   partnerEntry?: EntryView | LockedEntryView;
   comments: CommentView[];
+  repPhotoUrl?: string | null; // 그날 대표 사진(서명, 없으면 null)
 };
 
 /** 작성 요청 (UpsertEntryRequest). 사진은 업로드 후 photoUrls로 전송. */
@@ -285,6 +286,7 @@ export type UpsertEntryRequest = {
   photoUrls?: string[];
   locations?: string[]; // 다중 장소
   locationPoints?: LocationPoint[]; // 좌표 메타(선택)
+  repPhotoUrl?: string; // 그날 대표 사진(photoUrls 중 하나)
   rating?: number;
   mood?: string;
 };

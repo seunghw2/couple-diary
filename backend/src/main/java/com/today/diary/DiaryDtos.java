@@ -40,6 +40,7 @@ public class DiaryDtos {
             @Size(max = 100) String locationName,
             @Size(max = 30) List<@Size(max = 100) String> locations,
             @Size(max = 30) List<@Valid LocationPointInput> locationPoints,
+            @Size(max = 500) String repPhotoUrl, // 그날 대표 사진(photoUrls 중 하나). 커플 공유.
             @Min(1) @Max(5) Integer rating, // 별점 기능 제거 → 선택(있으면 1~5 검증)
             @NotBlank @Size(max = 100) String mood
     ) {}
@@ -126,6 +127,7 @@ public class DiaryDtos {
             List<QuestionResponse> questions,
             EntryView myEntry,
             Object partnerEntry,        // EntryView(OPEN) 또는 LockedEntryView
-            List<CommentView> comments
+            List<CommentView> comments,
+            String repPhotoUrl          // 그날 대표 사진(서명, 없으면 null) — 작성 화면 별표 프리필용
     ) {}
 }

@@ -104,7 +104,7 @@ public class DiaryService {
 
         if (dayOpt.isEmpty()) {
             return new DayDetail(date.toString(), DayStatus.EMPTY, null, null,
-                    List.of(), null, null, List.of());
+                    List.of(), null, null, List.of(), null);
         }
         DiaryDay day = dayOpt.get();
         List<DiaryEntry> entries = entryRepository.findByDay_Id(day.getId());
@@ -135,8 +135,10 @@ public class DiaryService {
                     .map(this::toCommentView).toList()
                 : List.of();
 
+        String repPhoto = day.getRepPhotoUrl() != null && !day.getRepPhotoUrl().isBlank()
+                ? photoUrlSigner.signRelative(day.getRepPhotoUrl()) : null;
         return new DayDetail(date.toString(), status, day.getMode(), day.getTemplateType(),
-                questions, myView, partnerView, comments);
+                questions, myView, partnerView, comments, repPhoto);
     }
 
     // ================= 이전 장소 추천 =================
@@ -187,17 +189,24 @@ public class DiaryService {
         if (entries.isEmpty()) {
             return new DiaryDtos.LocationCount(name, count, null, null);
         }
-        String recentDate = entries.get(0).getDay().getDate().toString(); // date desc → 첫 항목이 최근
-        List<Long> ids = entries.stream().map(DiaryEntry::getId).toList();
-        Map<Long, List<Photo>> byEntry = photoRepository.findByEntry_IdIn(ids).stream()
-                .collect(Collectors.groupingBy(p -> p.getEntry().getId()));
-        String thumb = null;
-        outer:
-        for (DiaryEntry e : entries) {
-            for (Photo p : byEntry.getOrDefault(e.getId(), List.of())) {
-                if (p.getUrl() != null && !p.getUrl().isBlank()) {
-                    thumb = photoUrlSigner.signRelative(p.getUrl());
-                    break outer;
+        DiaryDay recentDay = entries.get(0).getDay(); // date desc → 첫 항목이 최근
+        String recentDate = recentDay.getDate().toString();
+        String thumb;
+        if (recentDay.getRepPhotoUrl() != null && !recentDay.getRepPhotoUrl().isBlank()) {
+            thumb = photoUrlSigner.signRelative(recentDay.getRepPhotoUrl()); // 최근 일기의 대표 사진
+        } else {
+            // 대표 미지정 → 최근 방문일부터 첫 사진으로 폴백
+            List<Long> ids = entries.stream().map(DiaryEntry::getId).toList();
+            Map<Long, List<Photo>> byEntry = photoRepository.findByEntry_IdIn(ids).stream()
+                    .collect(Collectors.groupingBy(p -> p.getEntry().getId()));
+            thumb = null;
+            outer:
+            for (DiaryEntry e : entries) {
+                for (Photo p : byEntry.getOrDefault(e.getId(), List.of())) {
+                    if (p.getUrl() != null && !p.getUrl().isBlank()) {
+                        thumb = photoUrlSigner.signRelative(p.getUrl());
+                        break outer;
+                    }
                 }
             }
         }
@@ -247,12 +256,18 @@ public class DiaryService {
             boolean mine = dayEntries.stream().anyMatch(e -> e.getAuthor().getId().equals(userId));
             boolean partner = dayEntries.stream().anyMatch(e -> !e.getAuthor().getId().equals(userId));
 
+            // 그 날짜의 대표 사진(커플 공유) 우선, 없으면 첫 사진 폴백.
             String thumbUrl = null;
-            for (DiaryEntry e : dayEntries) {
-                for (Photo p : photosByEntry.getOrDefault(e.getId(), List.of())) {
-                    if (p.getUrl() != null && !p.getUrl().isBlank()) { thumbUrl = photoUrlSigner.signRelative(p.getUrl()); break; }
+            DiaryDay theDay = dayEntries.get(0).getDay();
+            if (theDay.getRepPhotoUrl() != null && !theDay.getRepPhotoUrl().isBlank()) {
+                thumbUrl = photoUrlSigner.signRelative(theDay.getRepPhotoUrl());
+            } else {
+                for (DiaryEntry e : dayEntries) {
+                    for (Photo p : photosByEntry.getOrDefault(e.getId(), List.of())) {
+                        if (p.getUrl() != null && !p.getUrl().isBlank()) { thumbUrl = photoUrlSigner.signRelative(p.getUrl()); break; }
+                    }
+                    if (thumbUrl != null) break;
                 }
-                if (thumbUrl != null) break;
             }
 
             String snippet = null;
@@ -370,6 +385,18 @@ public class DiaryService {
                 String bare = qi >= 0 ? url.substring(0, qi) : url;
                 photoRepository.save(Photo.builder().entry(entry).url(bare).build());
             }
+        }
+
+        // 그날 대표 사진(커플 공유). 서명 쿼리(?exp=..&sig=..)는 떼고 bare 경로만 저장.
+        if (req.repPhotoUrl() != null) {
+            String rep = req.repPhotoUrl().trim();
+            if (rep.isEmpty()) {
+                day.setRepPhotoUrl(null);
+            } else {
+                int qi = rep.indexOf('?');
+                day.setRepPhotoUrl(qi >= 0 ? rep.substring(0, qi) : rep);
+            }
+            dayRepository.save(day);
         }
 
         // ===== 알림 트리거: 저장 후 그날 상태 재계산 =====

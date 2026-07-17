@@ -44,6 +44,11 @@ public class DiaryDay {
     @Column(name = "question_id")
     private List<Long> questionIds = new ArrayList<>();
 
+    // 그날의 대표 사진(커플 공유, bare 상대경로). 지도 목록·장소 상세 썸네일에 사용.
+    // 둘 중 누구든 지정 가능. 없으면 첫 사진으로 폴백.
+    @Column(name = "rep_photo_url", length = 500)
+    private String repPhotoUrl;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
