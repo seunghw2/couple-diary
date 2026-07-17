@@ -12,6 +12,8 @@ import { coupleScoreColor, coupleScoreLabel } from '../../lib/sajuUi';
 import { showToast } from '../../lib/dialog';
 import { errorMessage } from '../../lib/errors';
 import { ErrorState } from '../../components/ErrorState';
+import { AvatarBubble } from '../../components/AvatarIcon';
+import { useAuthStore } from '../../store/useAuthStore';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 import { cardStyles, barStyles } from '../../theme/cardStyles';
 
@@ -26,6 +28,8 @@ const CAT_ICON: Record<string, string> = {
 
 export default function SajuCouplePage() {
   const c = useColors();
+  const user = useAuthStore((s) => s.user);
+  const partner = useAuthStore((s) => s.partner);
   const [data, setData] = useState<SajuCouple | null>(null);
   const [error, setError] = useState(false);
   const [requesting, setRequesting] = useState(false);
@@ -116,13 +120,13 @@ export default function SajuCouplePage() {
             <View style={[styles.hero, shadow]}>
               <View style={styles.pairRow}>
                 <View style={styles.person}>
-                  <Text style={styles.personEmoji}>{data!.meEmoji}</Text>
+                  <AvatarBubble value={user?.avatar} color={user?.avatarColor} name={data!.meNickname} size={56} />
                   <Text style={styles.personName}>{data!.meNickname}</Text>
                   <Text style={styles.personType}>{data!.meTypeName}</Text>
                 </View>
                 <Text style={[styles.heart, { color: c.primary }]}>♥</Text>
                 <View style={styles.person}>
-                  <Text style={styles.personEmoji}>{data!.partnerEmoji}</Text>
+                  <AvatarBubble value={partner?.avatar} color={partner?.avatarColor} name={data!.partnerNickname} size={56} />
                   <Text style={styles.personName}>{data!.partnerNickname}</Text>
                   <Text style={styles.personType}>{data!.partnerTypeName}</Text>
                 </View>
