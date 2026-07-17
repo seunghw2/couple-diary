@@ -20,7 +20,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { useCoupleStore } from '../store/useCoupleStore';
 import { Button, Card, Icon } from '../components/ui';
 import { DatePickerSheet } from '../components/DatePickerSheet';
-import { AvatarIcon, isAvatarIcon } from '../components/AvatarIcon';
+import { AvatarBubble } from '../components/AvatarIcon';
 import { colors, font, radius, shadow, spacing, useColors } from '../theme/theme';
 
 /** YYYY-MM-DD가 실제 존재하는 날짜인지 검증. */
@@ -172,15 +172,9 @@ export default function AccountScreen() {
           <View style={styles.hero}>
             <Pressable
               onPress={() => router.push('/avatar')}
-              style={[styles.avatar, { backgroundColor: isAvatarIcon(user?.avatar) ? c.coralSofter : (user?.avatarColor || c.coralSofter) }]}
+              style={styles.avatar}
             >
-              {isAvatarIcon(user?.avatar) ? (
-                <AvatarIcon value={user?.avatar} size={40} color={colors.subText} />
-              ) : user?.avatar ? (
-                <Text style={styles.avatarEmoji}>{user.avatar}</Text>
-              ) : (
-                <Text style={styles.avatarText}>{(user?.nickname ?? '?').slice(0, 1)}</Text>
-              )}
+              <AvatarBubble value={user?.avatar} color={user?.avatarColor} name={user?.nickname} size={76} />
               <View style={[styles.camBadge, { backgroundColor: c.primary }]}>
                 <Icon name="camera" size={12} color={colors.white} />
               </View>

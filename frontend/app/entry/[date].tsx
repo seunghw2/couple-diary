@@ -33,7 +33,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useNotifStore } from '../../store/useNotifStore';
 import { useDataCache, invalidateAfterMutation } from '../../store/useDataCache';
 import { Button, Card, Icon, PhotoThumb, Pill } from '../../components/ui';
-import { AvatarIcon, isAvatarIcon } from '../../components/AvatarIcon';
+import { AvatarBubble } from '../../components/AvatarIcon';
 import { DatePickerSheet } from '../../components/DatePickerSheet';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
@@ -720,15 +720,7 @@ function SideCard({
   return (
     <Card style={{ marginTop: spacing.lg }}>
       <View style={styles.sideHead}>
-        <View style={[styles.sideAvatar, { backgroundColor: isAvatarIcon(avatar) ? c.coralSofter : (avatarColor || c.coralSofter) }]}>
-          {isAvatarIcon(avatar) ? (
-            <AvatarIcon value={avatar} size={15} color={colors.subText} />
-          ) : avatar ? (
-            <Text style={styles.sideAvatarEmoji}>{avatar}</Text>
-          ) : (
-            <Text style={styles.sideAvatarText}>{(avatarName ?? '?').slice(0, 1)}</Text>
-          )}
-        </View>
+        <AvatarBubble value={avatar} color={avatarColor} name={avatarName} size={24} />
         <Text style={[styles.sideTitle, { color: accent }]}>{title}</Text>
       </View>
 

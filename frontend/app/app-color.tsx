@@ -2,6 +2,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useThemeStore } from '../store/useThemeStore';
+import { useAuthStore } from '../store/useAuthStore';
+import { authApi } from '../lib/api';
 import { Icon } from '../components/ui';
 import { colors, font, radius, spacing, useColors } from '../theme/theme';
 
@@ -21,6 +23,18 @@ export default function AppColorScreen() {
   const appPrimary = useThemeStore((s) => s.appPrimary);
   const setAppPrimary = useThemeStore((s) => s.setAppPrimary);
 
+  // 앱 컬러를 고르면 프로필 사진 배경색(avatarColor)도 같은 색으로 서버에 저장 →
+  // 내 프로필은 물론 상대에게 보이는 내 프로필 배경도 이 색으로 통일된다.
+  async function pickColor(hex: string) {
+    setAppPrimary(hex);
+    try {
+      const u = await authApi.updateMe({ avatarColor: hex });
+      useAuthStore.getState().setUser(u);
+    } catch {
+      // 색 동기화 실패해도 앱 테마는 이미 반영됨 — 조용히 무시.
+    }
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
@@ -39,7 +53,7 @@ export default function AppColorScreen() {
             return (
               <Pressable
                 key={sw}
-                onPress={() => setAppPrimary(sw)}
+                onPress={() => pickColor(sw)}
                 style={[
                   styles.swatch,
                   { backgroundColor: sw },

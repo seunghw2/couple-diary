@@ -5,6 +5,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import { sajuApi, worldcupApi } from '../../lib/api';
 import { Icon } from '../../components/ui';
+import { AvatarBubble } from '../../components/AvatarIcon';
 import { colors, font, radius, spacing, useColors } from '../../theme/theme';
 
 export default function SettingsScreen() {
@@ -26,8 +27,6 @@ export default function SettingsScreen() {
     }, [partner])
   );
 
-  const initial = (user?.nickname ?? '?').trim().charAt(0) || '?';
-
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -39,9 +38,7 @@ export default function SettingsScreen() {
         {/* 프로필 헤더 → 내 정보 */}
         <Pressable onPress={() => router.push('/account')} style={({ pressed }) => [pressed && styles.pressed]}>
           <View style={styles.profileCard}>
-            <View style={[styles.avatar, { backgroundColor: c.primary }]}>
-              <Text style={styles.avatarText}>{initial}</Text>
-            </View>
+            <AvatarBubble value={user?.avatar} color={user?.avatarColor} name={user?.nickname} size={52} />
             <View style={{ flex: 1 }}>
               <Text style={styles.profileName}>{user?.nickname ?? '나'}</Text>
               <Text style={styles.profileSub}>

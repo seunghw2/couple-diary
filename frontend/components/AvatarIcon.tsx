@@ -1,21 +1,24 @@
 // 프로필 아바타 아이콘 — 무채색 라인. Phosphor 중심 + Lucide/Tabler 보충(전부 라인 스타일).
 // 값 인코딩: "ph:cat" | "lu:turtle" | "tb:deer". prefix 없으면 구버전(이모지/이니셜) 폴백 대상.
 import { ComponentType, ReactElement } from 'react';
+import { StyleProp, Text, View, ViewStyle } from 'react-native';
 import {
   Cat, Dog, Rabbit, Bird, Butterfly, Fish, Horse, Cow, Shrimp,
   IceCream, Cake, Coffee, Cookie, Popcorn, Cherries, Carrot, Avocado, Egg, Hamburger, Pizza, Orange, Cheese, Bread, Pepper, OrangeSlice,
   Heart, HandHeart, Star, Sparkle, Crown, Flower, Ghost, Rainbow,
   Rocket, Camera, GameController, MusicNotes, Guitar, Palette, Planet, MagicWand,
+  Barbell, SoccerBall, Confetti, Umbrella,
 } from 'phosphor-react-native';
 import { Turtle, Snail, Squirrel, Rat, Panda } from 'lucide-react-native';
 import { IconDeer, IconPig } from '@tabler/icons-react-native';
+import { colors } from '../theme/theme';
 
 type IconProps = { size: number; color: string };
 
-// 각 라이브러리 컴포넌트를 공통 시그니처로 감싼다.
+// 각 라이브러리 컴포넌트를 공통 시그니처로 감싼다. (Tabler는 굵기 prop이 strokeWidth)
 const ph = (C: ComponentType<any>) => ({ size, color }: IconProps) => <C size={size} color={color} weight="regular" />;
 const lu = (C: ComponentType<any>) => ({ size, color }: IconProps) => <C size={size} color={color} strokeWidth={2} />;
-const tb = (C: ComponentType<any>) => ({ size, color }: IconProps) => <C size={size} color={color} stroke={2} />;
+const tb = (C: ComponentType<any>) => ({ size, color }: IconProps) => <C size={size} color={color} strokeWidth={2} />;
 
 const REGISTRY: Record<string, (p: IconProps) => ReactElement> = {
   // 동물 16
@@ -31,9 +34,10 @@ const REGISTRY: Record<string, (p: IconProps) => ReactElement> = {
   // 러블리 8
   'ph:heart': ph(Heart), 'ph:hand-heart': ph(HandHeart), 'ph:star': ph(Star), 'ph:sparkle': ph(Sparkle),
   'ph:crown': ph(Crown), 'ph:flower': ph(Flower), 'ph:ghost': ph(Ghost), 'ph:rainbow': ph(Rainbow),
-  // 사물 8
+  // 사물 12 (운동 2: barbell·soccer-ball 포함)
   'ph:rocket': ph(Rocket), 'ph:camera': ph(Camera), 'ph:game-controller': ph(GameController), 'ph:music-notes': ph(MusicNotes),
   'ph:guitar': ph(Guitar), 'ph:palette': ph(Palette), 'ph:planet': ph(Planet), 'ph:magic-wand': ph(MagicWand),
+  'ph:barbell': ph(Barbell), 'ph:soccer-ball': ph(SoccerBall), 'ph:confetti': ph(Confetti), 'ph:umbrella': ph(Umbrella),
 };
 
 // 피커 섹션 구성.
@@ -47,7 +51,8 @@ export const AVATAR_SECTIONS: { key: string; label: string; items: string[] }[] 
   { key: 'lovely', label: '러블리', items: [
     'ph:heart','ph:hand-heart','ph:star','ph:sparkle','ph:crown','ph:flower','ph:ghost','ph:rainbow' ] },
   { key: 'object', label: '사물', items: [
-    'ph:rocket','ph:camera','ph:game-controller','ph:music-notes','ph:guitar','ph:palette','ph:planet','ph:magic-wand' ] },
+    'ph:rocket','ph:camera','ph:game-controller','ph:music-notes','ph:guitar','ph:palette','ph:planet','ph:magic-wand',
+    'ph:barbell','ph:soccer-ball','ph:confetti','ph:umbrella' ] },
 ];
 
 /** value가 아이콘 아바타면 true(구버전 이모지/이니셜과 구분). */
@@ -59,4 +64,42 @@ export function AvatarIcon({ value, size, color }: { value?: string | null; size
   const Cmp = value ? REGISTRY[value] : undefined;
   if (!Cmp) return null;
   return <Cmp size={size} color={color} />;
+}
+
+/**
+ * 프로필 사진 = 그 사람이 고른 앱 컬러(color) 배경 + 아이콘(흰색).
+ * 아이콘 없으면 구버전 이모지, 그것도 없으면 닉네임 이니셜.
+ */
+export function AvatarBubble({
+  value,
+  color,
+  name,
+  size,
+  style,
+}: {
+  value?: string | null;
+  color?: string | null;
+  name?: string | null;
+  size: number;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const bg = color || colors.coralSofter;
+  return (
+    <View
+      style={[
+        { width: size, height: size, borderRadius: size / 2, backgroundColor: bg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+        style,
+      ]}
+    >
+      {isAvatarIcon(value) ? (
+        <AvatarIcon value={value} size={Math.round(size * 0.56)} color={colors.white} />
+      ) : value ? (
+        <Text style={{ fontSize: Math.round(size * 0.5) }}>{value}</Text>
+      ) : (
+        <Text style={{ fontSize: Math.round(size * 0.42), fontWeight: '800', color: colors.white }}>
+          {(name ?? '?').slice(0, 1)}
+        </Text>
+      )}
+    </View>
+  );
 }
