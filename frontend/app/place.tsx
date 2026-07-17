@@ -1,6 +1,9 @@
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -91,61 +94,29 @@ export default function PlaceScreen() {
         <ActivityIndicator color={c.primary} style={{ marginTop: spacing.xxl }} />
       ) : (
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          {/* 헤더 카드: 별명(크게) + 장소명(작게) + 편집 */}
+          {/* 헤더 카드: 원래이름(크게) + 별명 칩(💛) — 칩 탭하면 바텀시트 편집 */}
           <View style={styles.headCard}>
             <View style={[styles.headIcon, { backgroundColor: c.coralSofter }]}>
               <Icon name="heart" size={22} color={c.primary} />
             </View>
-
-            {editing ? (
-              <View style={styles.editWrap}>
-                <TextInput
-                  value={draft}
-                  onChangeText={setDraft}
-                  placeholder="별명 (예: 우리 아지트)"
-                  placeholderTextColor={colors.placeholder}
-                  style={styles.editInput}
-                  autoFocus
-                  maxLength={30}
-                  returnKeyType="done"
-                  onSubmitEditing={saveNickname}
-                />
-                <View style={styles.editBtns}>
-                  <Pressable onPress={() => setEditing(false)} style={styles.editCancel} hitSlop={6}>
-                    <Text style={styles.editCancelText}>취소</Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={saveNickname}
-                    style={[styles.editSave, { backgroundColor: c.primary }]}
-                    disabled={saving}
-                    hitSlop={6}
-                  >
-                    <Text style={styles.editSaveText}>{saving ? '저장 중…' : '저장'}</Text>
-                  </Pressable>
-                </View>
-              </View>
-            ) : (
-              <View style={{ flex: 1 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.placeTitle} numberOfLines={2}>{placeName}</Text>
+              <Pressable onPress={startEdit} hitSlop={6} style={styles.chipTap}>
                 {nickname ? (
-                  <>
-                    <Text style={styles.nickname} numberOfLines={2}>{nickname}</Text>
-                    <Text style={styles.placeName} numberOfLines={1}>{placeName}</Text>
-                  </>
+                  <View style={[styles.nickChip, { backgroundColor: c.coralSofter }]}>
+                    <Icon name="heart" size={12} color={c.primary} />
+                    <Text style={[styles.nickChipText, { color: c.primary }]} numberOfLines={1}>{nickname}</Text>
+                    <Icon name="pencil" size={11} color={c.primary} />
+                  </View>
                 ) : (
-                  <Text style={styles.nickname} numberOfLines={2}>{placeName}</Text>
+                  <View style={[styles.addChip, { borderColor: c.coralSofter }]}>
+                    <Icon name="add" size={13} color={c.primary} />
+                    <Text style={[styles.addChipText, { color: c.primary }]}>별명 추가</Text>
+                  </View>
                 )}
-              </View>
-            )}
-
-            {!editing && (
-              <Pressable onPress={startEdit} hitSlop={8} style={styles.editIconBtn}>
-                <Icon name={nickname ? 'pencil' : 'add-circle-outline'} size={20} color={c.primary} />
               </Pressable>
-            )}
+            </View>
           </View>
-          {!editing && !nickname ? (
-            <Text style={styles.nickHint}>연필/＋ 을 눌러 이 장소에 별명을 지어보세요.</Text>
-          ) : null}
 
           {/* 방문 요약 */}
           <Text style={styles.sectionLabel}>
@@ -193,6 +164,42 @@ export default function PlaceScreen() {
           )}
         </ScrollView>
       )}
+
+      {/* 별명 편집 바텀시트 */}
+      <Modal visible={editing} transparent animationType="slide" onRequestClose={() => setEditing(false)}>
+        <Pressable style={styles.sheetBg} onPress={() => setEditing(false)}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <Pressable style={styles.sheetCard} onPress={() => {}}>
+              <Text style={styles.sheetTitle}>이 장소의 별명</Text>
+              <Text style={styles.sheetSub}>둘만의 이름을 지어보세요</Text>
+              <TextInput
+                value={draft}
+                onChangeText={setDraft}
+                placeholder="예: 우리 아지트"
+                placeholderTextColor={colors.placeholder}
+                style={styles.sheetInput}
+                autoFocus
+                maxLength={30}
+                returnKeyType="done"
+                onSubmitEditing={saveNickname}
+              />
+              <View style={styles.sheetBtns}>
+                <Pressable onPress={() => setEditing(false)} style={styles.sheetCancel} hitSlop={6}>
+                  <Text style={styles.sheetCancelText}>취소</Text>
+                </Pressable>
+                <Pressable
+                  onPress={saveNickname}
+                  disabled={saving}
+                  style={[styles.sheetSave, { backgroundColor: c.primary }]}
+                  hitSlop={6}
+                >
+                  <Text style={styles.sheetSaveText}>{saving ? '저장 중…' : '저장'}</Text>
+                </Pressable>
+              </View>
+            </Pressable>
+          </KeyboardAvoidingView>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -219,10 +226,32 @@ const styles = StyleSheet.create({
     ...shadow,
   },
   headIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  nickname: { ...font.h1, fontSize: 24 },
-  placeName: { ...font.caption, color: colors.subText, marginTop: 2 },
-  editIconBtn: { padding: 4 },
-  nickHint: { ...font.caption, color: colors.subText, marginTop: spacing.sm, marginLeft: spacing.sm },
+  placeTitle: { ...font.h1, fontSize: 22 },
+  chipTap: { marginTop: 6, alignSelf: 'flex-start' },
+  nickChip: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 5 },
+  nickChipText: { ...font.caption, fontWeight: '800', maxWidth: 160 },
+  addChip: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: radius.pill, borderWidth: 1, borderStyle: 'dashed', paddingHorizontal: 10, paddingVertical: 5 },
+  addChipText: { ...font.caption, fontWeight: '700' },
+
+  sheetBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  sheetCard: { backgroundColor: colors.card, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.xl, paddingBottom: spacing.xxl },
+  sheetTitle: { ...font.h2, marginBottom: 4 },
+  sheetSub: { ...font.caption, color: colors.subText, marginBottom: spacing.md },
+  sheetInput: {
+    backgroundColor: colors.bg,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    height: 48,
+    fontSize: 16,
+    color: colors.text,
+  },
+  sheetBtns: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.lg },
+  sheetCancel: { paddingHorizontal: spacing.md, height: 48, justifyContent: 'center' },
+  sheetCancelText: { ...font.body, color: colors.subText },
+  sheetSave: { flex: 1, height: 48, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  sheetSaveText: { ...font.body, fontWeight: '800', color: colors.white },
 
   editWrap: { flex: 1, gap: spacing.sm },
   editInput: {

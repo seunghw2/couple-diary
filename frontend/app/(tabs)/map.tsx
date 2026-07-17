@@ -190,10 +190,16 @@ export default function MapScreen() {
                       </View>
                     )}
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.placeName} numberOfLines={1}>{nick ?? name}</Text>
-                      <Text style={styles.placeSubName} numberOfLines={1}>
-                        {nick ? `${name} · ${visits}` : visits}
-                      </Text>
+                      <View style={styles.nameRow}>
+                        <Text style={styles.placeName} numberOfLines={1}>{name}</Text>
+                        {nick ? (
+                          <View style={[styles.nickChip, { backgroundColor: c.coralSofter }]}>
+                            <Icon name="heart" size={9} color={c.primary} />
+                            <Text style={[styles.nickChipText, { color: c.primary }]} numberOfLines={1}>{nick}</Text>
+                          </View>
+                        ) : null}
+                      </View>
+                      <Text style={styles.placeSubName} numberOfLines={1}>{visits}</Text>
                     </View>
                     <Icon name="chevron-forward" size={18} color={colors.placeholder} />
                   </Pressable>
@@ -339,7 +345,10 @@ const styles = StyleSheet.create({
   placeIcon: { width: 32, height: 32, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   cardThumb: { width: 42, height: 42, borderRadius: radius.sm, backgroundColor: colors.border },
   cardThumbEmpty: { alignItems: 'center', justifyContent: 'center' },
-  placeName: { ...font.body, fontWeight: '700' },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  placeName: { ...font.body, fontWeight: '700', flexShrink: 1 },
+  nickChip: { flexDirection: 'row', alignItems: 'center', gap: 3, borderRadius: radius.pill, paddingHorizontal: 7, paddingVertical: 2, maxWidth: 130 },
+  nickChipText: { fontSize: 11, fontWeight: '800' },
   placeSubName: { ...font.caption, color: colors.subText, marginTop: 1, fontSize: 11 },
   countPill: { borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 3 },
   countPillText: { ...font.caption, fontWeight: '800' },
