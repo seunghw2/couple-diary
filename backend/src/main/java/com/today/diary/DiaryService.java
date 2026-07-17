@@ -116,7 +116,9 @@ public class DiaryService {
 
         DayStatus status = statusOf(mine != null, partner != null);
 
-        List<QuestionResponse> questions = resolveQuestions(day);
+        // 질문은 개인별 — 내가 고른 질문을 돌려준다(아직 안 썼으면 빈 목록 → 새로 고르기).
+        List<QuestionResponse> questions = resolveQuestions(
+                day.getMode(), mine != null ? mine.getQuestionIds() : List.of());
 
         EntryView myView = mine == null ? null : toEntryView(mine);
         Object partnerView;
@@ -275,19 +277,21 @@ public class DiaryService {
         if (day == null) {
             day = createDay(couple, date, req);
         }
-        // (있으면 기존 mode/질문세트를 따른다 — 요청의 mode/questionIds 무시)
-
-        // 답 입력의 질문 범위 검증 (저장 전에 수행)
-        validateAnswersAgainstDay(day, req.answers());
+        // (mode는 첫 작성자가 정한 걸 따르되, 질문 선택은 각자 개별이다)
 
         DiaryEntry entry = entryRepository.findByDay_IdAndAuthor_Id(day.getId(), userId).orElse(null);
         boolean isNew = entry == null;
+
+        // 이 사람이 고른 질문(개인별). 답 입력의 질문 범위도 이걸로 검증.
+        List<Long> myQuestionIds = resolveMyQuestionIds(day, entry, req);
+        validateAnswersAgainstQuestionIds(day.getMode(), myQuestionIds, req.answers());
         if (isNew) {
             entry = DiaryEntry.builder()
                     .day(day).author(author)
                     .rating(req.rating()).mood(req.mood())
                     .build();
             applyLocations(entry, req);
+            entry.applyQuestionIds(myQuestionIds);
             entry = entryRepository.save(entry);
             entry.setEditableAfter(entry.getCreatedAt() == null
                     ? LocalDateTime.now().plusHours(EDIT_WINDOW_HOURS)
@@ -300,6 +304,7 @@ public class DiaryService {
             entry.setRating(req.rating());
             entry.setMood(req.mood());
             applyLocations(entry, req);
+            entry.applyQuestionIds(myQuestionIds);
             // 부분 수정 지원: null = 변경 안 함(삭제 스킵), 빈 배열 = 전체 삭제
             if (req.answers() != null) {
                 answerRepository.deleteByEntry_Id(entry.getId());
@@ -468,12 +473,28 @@ public class DiaryService {
                 .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT));
     }
 
-    // QUESTION_PICK: answer.questionId는 그날 질문세트 안에 있어야 함
+    // 이 사람이 이번에 쓸 질문 id 목록(개인별). QUESTION_PICK 모드에서만 의미.
+    // 요청에 있으면 검증해 사용, 없으면 기존 내 선택 유지, 그것도 없으면 day 기본(하위호환).
+    private List<Long> resolveMyQuestionIds(DiaryDay day, DiaryEntry existing, UpsertEntryRequest req) {
+        if (day.getMode() != DiaryMode.QUESTION_PICK) return List.of();
+        if (req.questionIds() != null && !req.questionIds().isEmpty()) {
+            if (req.questionIds().size() > MAX_PICK_QUESTIONS) {
+                throw new ApiException(ErrorCode.INVALID_INPUT);
+            }
+            return validateQuestionIds(req.questionIds());
+        }
+        if (existing != null && !existing.getQuestionIds().isEmpty()) {
+            return new ArrayList<>(existing.getQuestionIds());
+        }
+        return new ArrayList<>(day.getQuestionIds());
+    }
+
+    // QUESTION_PICK: answer.questionId는 이 사람이 고른 질문 안에 있어야 함
     // TEMPLATE: questionId 있는 답 거부(promptKey만 허용)
-    private void validateAnswersAgainstDay(DiaryDay day, List<AnswerInput> answers) {
+    private void validateAnswersAgainstQuestionIds(DiaryMode mode, List<Long> myQuestionIds, List<AnswerInput> answers) {
         if (answers == null || answers.isEmpty()) return;
-        if (day.getMode() == DiaryMode.QUESTION_PICK) {
-            Set<Long> allowed = new HashSet<>(day.getQuestionIds());
+        if (mode == DiaryMode.QUESTION_PICK) {
+            Set<Long> allowed = new HashSet<>(myQuestionIds);
             for (AnswerInput a : answers) {
                 if (a.questionId() == null || !allowed.contains(a.questionId())) {
                     throw new ApiException(ErrorCode.INVALID_INPUT);
@@ -544,14 +565,15 @@ public class DiaryService {
         return new ArrayList<>(ids);
     }
 
-    private List<QuestionResponse> resolveQuestions(DiaryDay day) {
-        if (day.getMode() != DiaryMode.QUESTION_PICK || day.getQuestionIds().isEmpty()) {
+    // 개인별 질문 선택을 QuestionResponse로 해석(순서 유지). QUESTION_PICK가 아니거나 비면 빈 목록.
+    private List<QuestionResponse> resolveQuestions(DiaryMode mode, List<Long> ids) {
+        if (mode != DiaryMode.QUESTION_PICK || ids == null || ids.isEmpty()) {
             return List.of();
         }
-        Map<Long, Question> byId = questionRepository.findAllById(day.getQuestionIds()).stream()
+        Map<Long, Question> byId = questionRepository.findAllById(ids).stream()
                 .collect(Collectors.toMap(Question::getId, q -> q));
         List<QuestionResponse> out = new ArrayList<>();
-        for (Long id : day.getQuestionIds()) {
+        for (Long id : ids) {
             Question q = byId.get(id);
             if (q != null) out.add(QuestionResponse.of(q));
         }

@@ -56,6 +56,13 @@ public class DiaryEntry {
             joinColumns = @JoinColumn(name = "entry_id"))
     private List<LocationPoint> locationPoints = new ArrayList<>();
 
+    // QUESTION_PICK 모드에서 이 사람이 고른 질문 3개(개인별). 상대와 독립적으로 각자 고른다.
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "diary_entry_question_ids",
+            joinColumns = @JoinColumn(name = "entry_id"))
+    @Column(name = "question_id")
+    private List<Long> questionIds = new ArrayList<>();
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -97,6 +104,13 @@ public class DiaryEntry {
             this.locationPoints.add(
                     new LocationPoint(p.getName().trim(), p.getLat(), p.getLng(), p.getCategory()));
         }
+    }
+
+    /** 이 사람이 고른 질문 id 목록 설정. null=변경 안 함, 빈 리스트=전체 삭제. */
+    public void applyQuestionIds(List<Long> ids) {
+        if (ids == null) return;
+        this.questionIds.clear();
+        this.questionIds.addAll(ids);
     }
 
     @PrePersist

@@ -22,7 +22,7 @@ import { Directory, File as FsFile, Paths } from 'expo-file-system';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_URL } from '../../lib/config';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, calendarMarkApi, entryApi, isLocked } from '../../lib/api';
+import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, calendarMarkApi, entryApi, questionApi, isLocked } from '../../lib/api';
 import { usePollWhileFocused } from '../../hooks/usePollWhileFocused';
 import { dDayOn, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
 import { specialDayFor } from '../../lib/anniversary';
@@ -60,6 +60,8 @@ export default function EntryDetailScreen() {
 
   // 캐시된 상세가 있으면 즉시 렌더(깜빡임 없음).
   const [detail, setDetail] = useState<DayDetail | null>(() => getDetail(dateStr) ?? null);
+  // 질문은 이제 개인별이라 나/상대가 서로 다른 질문일 수 있다 → 전역 질문목록으로 텍스트 해석.
+  const [allQuestions, setAllQuestions] = useState<QuestionResponse[]>([]);
   const [loading, setLoading] = useState(!getDetail(dateStr));
   const [error, setError] = useState<string | null>(null);
   const [poking, setPoking] = useState(false);
@@ -127,6 +129,13 @@ export default function EntryDetailScreen() {
   }, [dateStr, getDetail, setCacheDetail]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  // 전역 질문목록 로드(개인별 질문 텍스트 해석용). 실패해도 답변 텍스트는 정상 표시.
+  useEffect(() => {
+    (async () => {
+      try { setAllQuestions(await questionApi.list()); } catch { /* 무시 */ }
+    })();
+  }, []);
 
   // 화면이 열려 있는 동안 상대 댓글이 실시간처럼 들어오도록 조용히 폴링.
   usePollWhileFocused(() => {
@@ -331,7 +340,7 @@ export default function EntryDetailScreen() {
                     side={detail.myEntry}
                     tone="coral"
                     mode={detail.mode}
-                    questions={detail.questions}
+                    questions={allQuestions}
                     onOpenPhoto={openPhotoViewer}
                     avatarColor={me?.avatarColor}
                     avatarName={me?.nickname}
@@ -364,7 +373,7 @@ export default function EntryDetailScreen() {
                   side={partnerOpen}
                   tone="partner"
                   mode={detail.mode}
-                  questions={detail.questions}
+                  questions={allQuestions}
                   onOpenPhoto={openPhotoViewer}
                   avatarColor={partner?.avatarColor}
                   avatarName={partner?.nickname}

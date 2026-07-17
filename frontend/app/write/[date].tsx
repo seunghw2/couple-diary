@@ -76,7 +76,8 @@ export default function WriteScreen() {
   const [questions, setQuestions] = useState<QuestionResponse[]>([]);
   const [questionsFailed, setQuestionsFailed] = useState(false);
   const [pickedIds, setPickedIds] = useState<string[]>([]); // 내가 고르는 3개(먼저 쓰는 사람)
-  const [fixedQuestions, setFixedQuestions] = useState<QuestionResponse[] | null>(null); // 상대가 이미 고른 범위
+  const [fixedQuestions, setFixedQuestions] = useState<QuestionResponse[] | null>(null); // 내가 이미 고른 질문(수정 시 프리필)
+  const [modeLocked, setModeLocked] = useState(false); // 커플이 이미 정한 모드가 있어 모드 선택 단계 생략
 
   // 공통 입력
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -136,6 +137,7 @@ export default function WriteScreen() {
             return;
           }
           setMode(detail.mode);
+          setModeLocked(true);
           if (detail.mode === 'QUESTION_PICK') setFixedQuestions(detail.questions);
           const prefill: Record<string, string> = {};
           for (const a of mine.answers) {
@@ -148,10 +150,15 @@ export default function WriteScreen() {
           setLocationPoints(mine.locationPoints ?? []);
           setPhotoUrls(mine.photos.map((p) => p.url).filter((u): u is string => !!u));
           setStep('form');
-        } else if (detail.mode === 'QUESTION_PICK' && detail.questions.length > 0) {
-          // 상대가 고른 질문 범위 내에서 답만 작성
-          setFixedQuestions(detail.questions);
-          setMode('QUESTION_PICK');
+        } else if (detail.mode === 'QUESTION_PICK') {
+          // 커플이 질문 모드 → 나도 내 질문을 직접 고른다(상대와 독립). 모드 변경은 잠금.
+          setMode('FREE');
+          setModeLocked(true);
+          setStep('form');
+        } else if (detail.mode === 'TEMPLATE') {
+          // 커플이 템플릿 모드 → 나도 템플릿으로 작성(모드 변경 잠금).
+          setMode('TEMPLATE');
+          setModeLocked(true);
           setStep('form');
         }
       } catch {
@@ -443,7 +450,7 @@ export default function WriteScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <View style={styles.topBar}>
-          <Pressable onPress={() => (step === 'form' && !fixedQuestions ? setStep('mode') : router.back())} hitSlop={12}>
+          <Pressable onPress={() => (step === 'form' && !fixedQuestions && !modeLocked ? setStep('mode') : router.back())} hitSlop={12}>
             <Icon name="chevron-back" size={28} color={colors.subText} />
           </Pressable>
           <View style={{ alignItems: 'center' }}>
