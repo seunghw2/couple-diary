@@ -42,6 +42,7 @@ public class DiaryService {
     private final PlaceNicknameRepository placeNicknameRepository;
     private final CommentRepository commentRepository;
     private final com.today.upload.PhotoUrlSigner photoUrlSigner;
+    private final com.today.upload.PhotoFileStore photoFileStore;
     private final DiaryDayFactory dayFactory;
     private final NotificationService notificationService;
 
@@ -378,7 +379,19 @@ public class DiaryService {
                 photoRepository.deleteByEntry_IdAndUrlIsNull(entry.getId());
             }
             if (req.photoUrls() != null) {
+                // 이번 수정으로 더는 참조되지 않는 사진은 디스크 파일도 정리(고아 방지).
+                Set<String> keep = new HashSet<>();
+                for (String u : req.photoUrls()) {
+                    if (u == null || u.isBlank()) continue;
+                    int qi = u.indexOf('?');
+                    keep.add(qi >= 0 ? u.substring(0, qi) : u);
+                }
+                List<String> orphans = photoRepository.findByEntry_Id(entry.getId()).stream()
+                        .map(Photo::getUrl)
+                        .filter(u -> u != null && !keep.contains(u))
+                        .toList();
                 photoRepository.deleteByEntry_IdAndUrlIsNotNull(entry.getId());
+                photoFileStore.deleteByUrls(orphans);
             }
             if (req.photoSeeds() != null || req.photoUrls() != null) {
                 photoRepository.flush();
@@ -481,10 +494,18 @@ public class DiaryService {
         DiaryEntry entry = entryRepository.findByDay_IdAndAuthor_Id(day.getId(), userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
 
+        // 이 일기의 사진 파일도 디스크에서 정리(고아 방지). 그날 대표사진이 여기였으면 해제.
+        List<String> photoUrls = photoRepository.findByEntry_Id(entry.getId()).stream()
+                .map(Photo::getUrl).filter(u -> u != null).toList();
         answerRepository.deleteByEntry_Id(entry.getId());
         photoRepository.deleteByEntry_Id(entry.getId());
         entryRepository.delete(entry);
         entryRepository.flush();
+        photoFileStore.deleteByUrls(photoUrls);
+        if (day.getRepPhotoUrl() != null && photoUrls.contains(day.getRepPhotoUrl())) {
+            day.setRepPhotoUrl(null);
+            dayRepository.save(day);
+        }
 
         // 양쪽 entry가 모두 없으면 DiaryDay(및 댓글)도 삭제
         if (entryRepository.findByDay_Id(day.getId()).isEmpty()) {
