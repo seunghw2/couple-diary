@@ -119,6 +119,7 @@ export default function WriteScreen() {
   const [pickedIds, setPickedIds] = useState<string[]>([]); // 내가 고르는 3개(먼저 쓰는 사람)
   const [fixedQuestions, setFixedQuestions] = useState<QuestionResponse[] | null>(null); // 내가 이미 고른 질문(수정 시 프리필)
   const [modeLocked, setModeLocked] = useState(false); // 커플이 이미 정한 모드가 있어 모드 선택 단계 생략
+  const [wizardStep, setWizardStep] = useState(0); // 작성 위저드 단계(0:기분 1:이야기 2:사진 3:장소)
 
   // 공통 입력
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -276,6 +277,7 @@ export default function WriteScreen() {
   function chooseMode(m: FormMode) {
     if (m === 'FREE' && questionsFailed) return;
     setMode(m);
+    setWizardStep(0);
     setStep('form');
   }
 
@@ -429,6 +431,45 @@ export default function WriteScreen() {
     return buildAnswers().length > 0;
   }
 
+  // ── 작성 위저드(단계별 한 화면) ──
+  const WIZ = ['mood', 'story', 'photo', 'place'] as const;
+  const curStep = WIZ[wizardStep];
+  const isLastStep = wizardStep === WIZ.length - 1;
+
+  function storyValid(): boolean {
+    if (mode === 'FREE' && !fixedQuestions && pickedIds.length !== 3) return false;
+    return buildAnswers().length > 0;
+  }
+  function stepValid(): boolean {
+    if (curStep === 'mood') return !!mood;
+    if (curStep === 'story') return storyValid();
+    return true; // 사진·장소는 선택(건너뛰기 가능)
+  }
+  function goNext() {
+    if (!stepValid()) {
+      setError(
+        curStep === 'mood'
+          ? '오늘의 기분을 선택해주세요.'
+          : mode === 'FREE' && !fixedQuestions && pickedIds.length !== 3
+            ? '질문 3개를 골라주세요.'
+            : '한 칸 이상 적어주세요.'
+      );
+      return;
+    }
+    setError(null);
+    setWizardStep((s) => Math.min(s + 1, WIZ.length - 1));
+  }
+  function goBackStep() {
+    if (wizardStep > 0) {
+      setError(null);
+      setWizardStep((s) => s - 1);
+    } else if (!fixedQuestions && !modeLocked) {
+      setStep('mode');
+    } else {
+      router.back();
+    }
+  }
+
   async function onSubmit() {
     if (!canSubmit()) {
       if (!mood) {
@@ -504,7 +545,7 @@ export default function WriteScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <View style={styles.topBar}>
-          <Pressable onPress={() => (step === 'form' && !fixedQuestions && !modeLocked ? setStep('mode') : router.back())} hitSlop={12}>
+          <Pressable onPress={() => (step === 'form' ? goBackStep() : router.back())} hitSlop={12}>
             <Icon name="chevron-back" size={28} color={colors.subText} />
           </Pressable>
           <View style={{ alignItems: 'center' }}>
@@ -517,169 +558,190 @@ export default function WriteScreen() {
         {step === 'mode' ? (
           <ModeSelect onChoose={chooseMode} freeDisabled={questionsFailed} />
         ) : (
-          <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-            {/* 기분 */}
-            <View style={styles.sectionLabelRow}>
-              <Icon name="happy-outline" size={18} color={colors.text} />
-              <Text style={styles.sectionLabel}>오늘의 기분</Text>
-            </View>
-            <View style={styles.moodRow}>
-              {MOODS.map((m) => {
-                const on = mood === m.key;
-                const MIcon = m.Icon;
-                return (
-                  <Pressable
-                    key={m.key}
-                    onPress={() => setMood(m.key)}
-                    style={[styles.moodItem, on && [styles.moodSelected, { borderColor: c.primary }]]}
-                  >
-                    <MIcon size={26} color={on ? c.primary : colors.subText} strokeWidth={1.7} style={styles.moodIcon} />
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {!mood ? (
-              <Text style={styles.requiredHint}>오늘의 기분을 선택해주세요</Text>
-            ) : null}
-
-            {/* 본문 폼 */}
-            {mode === 'TEMPLATE' ? (
-              <TemplateForm answers={answers} onChange={setAnswer} />
-            ) : mode === 'QUESTION_PICK' && fixedQuestions ? (
-              <FixedQuestionForm
-                questions={fixedQuestions}
-                answers={answers}
-                onChange={setAnswer}
-                sceneRows={sceneRows}
-                onSceneChange={setScene}
-                onSceneAdd={addScene}
-                onSceneRemove={removeScene}
-              />
-            ) : (
-              <FreePickForm
-                questions={questions}
-                picked={pickedIds}
-                onToggle={togglePick}
-                answers={answers}
-                onChange={setAnswer}
-                sceneRows={sceneRows}
-                onSceneChange={setScene}
-                onSceneAdd={addScene}
-                onSceneRemove={removeScene}
-              />
-            )}
-
-            {/* 사진 업로드 */}
-            <View style={[styles.sectionLabelRow, { marginTop: spacing.xl }]}>
-              <Icon name="images-outline" size={18} color={colors.text} />
-              <Text style={styles.sectionLabel}>오늘의 흔적</Text>
-            </View>
-            {photoUrls.length > 0 ? (
-              <Text style={styles.repHint}>사진을 탭해 대표 사진(⭐)을 정해요 · 지도·장소에 보여요</Text>
-            ) : null}
-            <View style={styles.photoRow}>
-              {photoUrls.map((u, i) => {
-                const isRep = bareUrl(repPhotoUrl ?? photoUrls[0]) === bareUrl(u);
-                return (
-                  <Pressable key={u + i} onPress={() => setRepPhotoUrl(u)} style={styles.photoItem}>
-                    <PhotoThumb url={u} seed={u} size={72} round={false} />
-                    <View style={[styles.repStar, isRep && { backgroundColor: c.primary }]}>
-                      <Icon name={isRep ? 'star' : 'star-outline'} size={13} color={isRep ? colors.white : colors.white} />
-                    </View>
-                  </Pressable>
-                );
-              })}
-              {uploading ? (
-                <View style={styles.addPhoto}>
-                  <ActivityIndicator color={c.primary} />
-                </View>
-              ) : photoUrls.length < 6 ? (
-                <Pressable onPress={pickAndUploadPhoto} style={styles.addPhoto}>
-                  <Icon name="add" size={30} color={colors.coralSoft} />
-                </Pressable>
-              ) : null}
-            </View>
-
-            {/* 위치 (다중) */}
-            <View style={[styles.sectionLabelRow, { marginTop: spacing.xl }]}>
-              <Icon name="location-outline" size={18} color={colors.text} />
-              <Text style={styles.sectionLabel}>다녀온 장소</Text>
-            </View>
-            {/* 커플 공유 장소 목록 — 왼쪽으로 밀어 삭제(나/연인이 넣은 것 모두) */}
-            {locations.length > 0 ? (
-              <>
-                <View style={styles.placeList}>
-                  {locations.map((loc) => (
-                    <SwipeDeleteRow key={loc} label={loc} onDelete={() => removeLocation(loc)} tint={c.primary} />
-                  ))}
-                </View>
-                <Text style={styles.swipeHint}>← 왼쪽으로 밀어 삭제해요</Text>
-              </>
-            ) : null}
-            {/* 카카오맵에서 검색 */}
-            <Pressable
-              style={[styles.mapSearchBtn, { borderColor: c.primary }]}
-              onPress={() => setMapPickerOpen(true)}
-            >
-              <Icon name="map" size={18} color={c.primary} />
-              <Text style={[styles.mapSearchText, { color: c.primary }]}>지도에서 장소 찾기</Text>
-            </Pressable>
-            {/* 직접 입력 + 추가 */}
-            <View style={styles.locationRow}>
-              <Icon name="add-circle-outline" size={18} color={colors.subText} />
-              <TextInput
-                value={locationInput}
-                onChangeText={setLocationInput}
-                onSubmitEditing={() => addLocation(locationInput)}
-                returnKeyType="done"
-                placeholder="직접 입력 (예: 성수동 · 대림창고)"
-                placeholderTextColor={colors.placeholder}
-                style={styles.locationInput}
-              />
-              {locationInput.trim() ? (
-                <Pressable onPress={() => addLocation(locationInput)} hitSlop={8}>
-                  <Icon name="checkmark-circle" size={24} color={c.primary} />
-                </Pressable>
-              ) : null}
-            </View>
-            {/* 이전 장소 추천 */}
-            {prevLocations.filter((l) => !locations.includes(l)).length > 0 ? (
-              <>
-                <Text style={styles.prevLocLabel}>이전 장소</Text>
-                <View style={styles.chipWrap}>
-                  {prevLocations
-                    .filter((l) => !locations.includes(l))
-                    .map((loc) => (
-                      <Pressable key={loc} onPress={() => addLocation(loc)} style={styles.chip}>
-                        <Text style={styles.chipText}>{loc}</Text>
-                      </Pressable>
-                    ))}
-                </View>
-              </>
-            ) : null}
-
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-
-            <Card style={styles.lockNote}>
-              <View style={styles.lockNoteRow}>
-                <Icon name="lock-closed" size={16} color={colors.subText} style={{ marginTop: 2 }} />
-                <Text style={styles.lockNoteText}>
-                  저장하면 잠금 상태로 대기해요{'\n'}둘 다 쓰면 서로의 글이 열려요!
-                </Text>
+          <>
+            {/* 진행바 */}
+            <View style={styles.progWrap}>
+              <View style={styles.progTrack}>
+                <View style={[styles.progFill, { width: `${((wizardStep + 1) / WIZ.length) * 100}%`, backgroundColor: c.primary }]} />
               </View>
-            </Card>
+              <Text style={styles.progLabel}>{wizardStep + 1}/{WIZ.length}</Text>
+            </View>
 
-            <Button
-              label="저장하고 잠금 대기"
-              icon="lock-closed"
-              onPress={onSubmit}
-              loading={submitting}
-              disabled={!canSubmit()}
-              style={{ marginTop: spacing.lg }}
-            />
-            <Text style={styles.subNote}>상대가 쓰면 자동으로 열려요</Text>
-          </ScrollView>
+            <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              {/* 1) 기분 */}
+              {curStep === 'mood' ? (
+                <>
+                  <Text style={styles.stepTitle}>오늘 기분 어땠어?</Text>
+                  <View style={[styles.moodRow, { marginTop: spacing.md }]}>
+                    {MOODS.map((m) => {
+                      const on = mood === m.key;
+                      const MIcon = m.Icon;
+                      return (
+                        <Pressable
+                          key={m.key}
+                          onPress={() => { setMood(m.key); setError(null); }}
+                          style={[styles.moodItem, on && [styles.moodSelected, { borderColor: c.primary }]]}
+                        >
+                          <MIcon size={26} color={on ? c.primary : colors.subText} strokeWidth={1.7} style={styles.moodIcon} />
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </>
+              ) : null}
+
+              {/* 2) 이야기(질문/답변 또는 템플릿) */}
+              {curStep === 'story' ? (
+                <>
+                  <Text style={styles.stepTitle}>
+                    {mode === 'TEMPLATE' ? '오늘을 채워볼까?' : fixedQuestions ? '그 순간을 적어줘' : '어떤 이야기를 남길까?'}
+                  </Text>
+                  {mode === 'TEMPLATE' ? (
+                    <TemplateForm answers={answers} onChange={setAnswer} />
+                  ) : mode === 'QUESTION_PICK' && fixedQuestions ? (
+                    <FixedQuestionForm
+                      questions={fixedQuestions}
+                      answers={answers}
+                      onChange={setAnswer}
+                      sceneRows={sceneRows}
+                      onSceneChange={setScene}
+                      onSceneAdd={addScene}
+                      onSceneRemove={removeScene}
+                    />
+                  ) : (
+                    <FreePickForm
+                      questions={questions}
+                      picked={pickedIds}
+                      onToggle={togglePick}
+                      answers={answers}
+                      onChange={setAnswer}
+                      sceneRows={sceneRows}
+                      onSceneChange={setScene}
+                      onSceneAdd={addScene}
+                      onSceneRemove={removeScene}
+                    />
+                  )}
+                </>
+              ) : null}
+
+              {/* 3) 사진(선택) */}
+              {curStep === 'photo' ? (
+                <>
+                  <Text style={styles.stepTitle}>오늘의 사진</Text>
+                  <Text style={styles.stepSub}>
+                    {photoUrls.length > 0 ? '사진을 탭해 대표 사진(⭐)을 정해요' : '선택이에요 · 넘어가도 돼요'}
+                  </Text>
+                  <View style={styles.photoRow}>
+                    {photoUrls.map((u, i) => {
+                      const isRep = bareUrl(repPhotoUrl ?? photoUrls[0]) === bareUrl(u);
+                      return (
+                        <Pressable key={u + i} onPress={() => setRepPhotoUrl(u)} style={styles.photoItem}>
+                          <PhotoThumb url={u} seed={u} size={72} round={false} />
+                          <View style={[styles.repStar, isRep && { backgroundColor: c.primary }]}>
+                            <Icon name={isRep ? 'star' : 'star-outline'} size={13} color={colors.white} />
+                          </View>
+                        </Pressable>
+                      );
+                    })}
+                    {uploading ? (
+                      <View style={styles.addPhoto}>
+                        <ActivityIndicator color={c.primary} />
+                      </View>
+                    ) : photoUrls.length < 6 ? (
+                      <Pressable onPress={pickAndUploadPhoto} style={styles.addPhoto}>
+                        <Icon name="add" size={30} color={colors.coralSoft} />
+                      </Pressable>
+                    ) : null}
+                  </View>
+                </>
+              ) : null}
+
+              {/* 4) 장소(선택) */}
+              {curStep === 'place' ? (
+                <>
+                  <Text style={styles.stepTitle}>어디 다녀왔어?</Text>
+                  <Text style={styles.stepSub}>선택이에요 · 넘어가도 돼요</Text>
+                  {locations.length > 0 ? (
+                    <>
+                      <View style={[styles.placeList, { marginTop: spacing.sm }]}>
+                        {locations.map((loc) => (
+                          <SwipeDeleteRow key={loc} label={loc} onDelete={() => removeLocation(loc)} tint={c.primary} />
+                        ))}
+                      </View>
+                      <Text style={styles.swipeHint}>← 왼쪽으로 밀어 삭제해요</Text>
+                    </>
+                  ) : null}
+                  <Pressable style={[styles.mapSearchBtn, { borderColor: c.primary }]} onPress={() => setMapPickerOpen(true)}>
+                    <Icon name="map" size={18} color={c.primary} />
+                    <Text style={[styles.mapSearchText, { color: c.primary }]}>지도에서 장소 찾기</Text>
+                  </Pressable>
+                  <View style={styles.locationRow}>
+                    <Icon name="add-circle-outline" size={18} color={colors.subText} />
+                    <TextInput
+                      value={locationInput}
+                      onChangeText={setLocationInput}
+                      onSubmitEditing={() => addLocation(locationInput)}
+                      returnKeyType="done"
+                      placeholder="직접 입력 (예: 성수동 · 대림창고)"
+                      placeholderTextColor={colors.placeholder}
+                      style={styles.locationInput}
+                    />
+                    {locationInput.trim() ? (
+                      <Pressable onPress={() => addLocation(locationInput)} hitSlop={8}>
+                        <Icon name="checkmark-circle" size={24} color={c.primary} />
+                      </Pressable>
+                    ) : null}
+                  </View>
+                  {prevLocations.filter((l) => !locations.includes(l)).length > 0 ? (
+                    <>
+                      <Text style={styles.prevLocLabel}>이전 장소</Text>
+                      <View style={styles.chipWrap}>
+                        {prevLocations
+                          .filter((l) => !locations.includes(l))
+                          .map((loc) => (
+                            <Pressable key={loc} onPress={() => addLocation(loc)} style={styles.chip}>
+                              <Text style={styles.chipText}>{loc}</Text>
+                            </Pressable>
+                          ))}
+                      </View>
+                    </>
+                  ) : null}
+                  <Card style={styles.lockNote}>
+                    <View style={styles.lockNoteRow}>
+                      <Icon name="lock-closed" size={16} color={colors.subText} style={{ marginTop: 2 }} />
+                      <Text style={styles.lockNoteText}>
+                        저장하면 잠금 상태로 대기해요{'\n'}둘 다 쓰면 서로의 글이 열려요!
+                      </Text>
+                    </View>
+                  </Card>
+                </>
+              ) : null}
+
+              {error ? <Text style={styles.error}>{error}</Text> : null}
+            </ScrollView>
+
+            {/* 하단 내비 */}
+            <View style={styles.wizFooter}>
+              {curStep === 'photo' || curStep === 'place' ? (
+                <Pressable
+                  onPress={() => (isLastStep ? onSubmit() : setWizardStep((s) => Math.min(s + 1, WIZ.length - 1)))}
+                  style={styles.skipBtn}
+                  hitSlop={8}
+                >
+                  <Text style={styles.skipText}>건너뛰기</Text>
+                </Pressable>
+              ) : null}
+              <View style={{ flex: 1 }}>
+                <Button
+                  label={isLastStep ? '저장하고 잠금 대기' : '다음'}
+                  icon={isLastStep ? 'lock-closed' : undefined}
+                  onPress={isLastStep ? onSubmit : goNext}
+                  loading={submitting}
+                  disabled={isLastStep ? !canSubmit() : !stepValid()}
+                />
+              </View>
+            </View>
+          </>
         )}
       </KeyboardAvoidingView>
 
@@ -956,6 +1018,16 @@ const styles = StyleSheet.create({
   title: { ...font.h2 },
   dateSub: { ...font.caption },
   scroll: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xxl },
+  // 위저드
+  progWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.xl, paddingBottom: spacing.md },
+  progTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: colors.border, overflow: 'hidden' },
+  progFill: { height: '100%', borderRadius: 3 },
+  progLabel: { ...font.caption, color: colors.subText, fontWeight: '700' },
+  stepTitle: { ...font.h1, fontSize: 22, marginTop: spacing.md, marginBottom: spacing.xs },
+  stepSub: { ...font.caption, color: colors.subText, marginBottom: spacing.md },
+  wizFooter: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing.md },
+  skipBtn: { paddingHorizontal: spacing.md, paddingVertical: spacing.md },
+  skipText: { ...font.body, color: colors.subText, fontWeight: '700' },
 
   // 모드 선택
   modeWrap: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xl, gap: spacing.lg },
