@@ -638,6 +638,9 @@ export const entryApi = {
   create: (date: string, payload: UpsertEntryRequest) =>
     api.post<DayDetail>(`/api/entries/${date}`, payload),
   remove: (date: string) => api.del(`/api/entries/${date}`),
+  /** 상세 화면에서 공유 사진만 갱신(추가/삭제). photoUrls=유지할 전체 목록. */
+  updatePhotos: (date: string, photoUrls: string[]) =>
+    api.put<DayDetail>(`/api/entries/${date}/photos`, { photoUrls }),
   /** 일기 날짜 이동. 성공 시 이동된 날짜의 상세 반환. */
   move: (date: string, targetDate: string) =>
     api.put<DayDetail>(`/api/entries/${date}/move`, { targetDate }),

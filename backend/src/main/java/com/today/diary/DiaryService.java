@@ -143,12 +143,24 @@ public class DiaryService {
                 mergedPhotos(entries));
     }
 
-    // 사진을 커플 공용 세트로 재조정. 요청(req.photoUrls)이 "유지할 전체 목록"이다.
+    // 상세 화면에서 공유 사진만 추가/삭제(일기 수정창과 무관). 내 일기가 있어야 사진을 붙일 수 있다.
+    @Transactional
+    public DayDetail updateDayPhotos(Long userId, LocalDate date, List<String> photoUrls) {
+        Couple couple = coupleService.requireCouple(userId);
+        DiaryDay day = dayRepository.findByCouple_IdAndDate(couple.getId(), date)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        DiaryEntry mine = entryRepository.findByDay_IdAndAuthor_Id(day.getId(), userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        reconcileSharedPhotos(day, mine, photoUrls);
+        return detail(userId, date);
+    }
+
+    // 사진을 커플 공용 세트로 재조정. 인자가 "유지할 전체 목록"이다.
     // 그날 사진(두 entry 통합) 중 목록에 없는 건 삭제(파일 포함), 새 url은 내 entry에 추가.
-    private void reconcileSharedPhotos(DiaryDay day, DiaryEntry myEntry, UpsertEntryRequest req) {
-        if (req.photoUrls() == null) return;
+    private void reconcileSharedPhotos(DiaryDay day, DiaryEntry myEntry, List<String> photoUrls) {
+        if (photoUrls == null) return;
         java.util.LinkedHashSet<String> submitted = new java.util.LinkedHashSet<>();
-        for (String u : req.photoUrls()) {
+        for (String u : photoUrls) {
             if (u == null || u.isBlank()) continue;
             int qi = u.indexOf('?');
             submitted.add(qi >= 0 ? u.substring(0, qi) : u);
@@ -454,7 +466,7 @@ public class DiaryService {
         }
         // 사진(url)은 커플 공용 목록으로 재조정: 요청 세트에 없는 그날 사진(누구 것이든)은 삭제,
         // 새 url은 내 entry에 추가. → 한 명이 올리면 둘 다 보고, 둘 다 삭제 가능.
-        reconcileSharedPhotos(day, entry, req);
+        reconcileSharedPhotos(day, entry, req.photoUrls());
 
         // 그날 대표 사진(커플 공유). 서명 쿼리(?exp=..&sig=..)는 떼고 bare 경로만 저장.
         if (req.repPhotoUrl() != null) {

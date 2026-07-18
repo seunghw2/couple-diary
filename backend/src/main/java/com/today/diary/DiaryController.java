@@ -40,6 +40,13 @@ public class DiaryController {
         diaryService.deleteEntry(SecurityUtil.currentUserId(), date);
     }
 
+    /** 상세 화면에서 공유 사진만 추가/삭제(일기 수정창과 무관). photoUrls = 유지할 전체 목록. */
+    @PutMapping("/{date}/photos")
+    public DayDetail updatePhotos(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                  @Valid @RequestBody UpdatePhotosRequest req) {
+        return diaryService.updateDayPhotos(SecurityUtil.currentUserId(), date, req.photoUrls());
+    }
+
     @PutMapping("/{date}/move")
     public DayDetail move(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                           @Valid @RequestBody MoveDayRequest req) {

@@ -96,6 +96,11 @@ public class DiaryDtos {
     /** name=장소명, nickname=커플이 붙인 별명. */
     public record PlaceNicknameView(String name, String nickname) {}
 
+    // ---- 상세 화면 공유 사진 추가/삭제 ----
+    public record UpdatePhotosRequest(
+            @Size(max = 30) List<@Size(max = 500) String> photoUrls
+    ) {}
+
     // ---- 장소 별명 upsert ----
     public record PlaceNicknameRequest(
             @NotBlank @Size(max = 100) String name,

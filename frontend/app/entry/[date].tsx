@@ -17,12 +17,14 @@ import {
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import * as MediaLibrary from 'expo-media-library';
 import { Directory, File as FsFile, Paths } from 'expo-file-system';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_URL } from '../../lib/config';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, calendarMarkApi, entryApi, questionApi, isLocked } from '../../lib/api';
+import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, calendarMarkApi, entryApi, questionApi, uploadPhoto, isLocked } from '../../lib/api';
 import { usePollWhileFocused } from '../../hooks/usePollWhileFocused';
 import { dDayOn, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
 import { specialDayFor } from '../../lib/anniversary';
@@ -70,6 +72,7 @@ export default function EntryDetailScreen() {
   const [posting, setPosting] = useState(false);
   const [commentError, setCommentError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false); // 상세에서 공유 사진 추가/삭제 중
 
   // 날짜 변경 모달
   const [moveOpen, setMoveOpen] = useState(false);
@@ -205,6 +208,64 @@ export default function EntryDetailScreen() {
     }
   }
 
+  // 상세 화면에서 공유 사진 추가(업로드 → 공유 목록에 반영).
+  async function addPhoto() {
+    if (photoBusy) return;
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        showAlert('사진 권한이 필요해요', '설정에서 사진 접근을 허용해 주세요.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
+      if (result.canceled || result.assets.length === 0) return;
+      const asset = result.assets[0];
+      setPhotoBusy(true);
+      let up: { uri: string; fileName?: string | null; mimeType?: string | null } = {
+        uri: asset.uri,
+        fileName: asset.fileName,
+        mimeType: asset.mimeType,
+      };
+      if (Platform.OS !== 'web') {
+        try {
+          const actions = asset.width && asset.width > 1440 ? [{ resize: { width: 1440 } }] : [];
+          const m = await ImageManipulator.manipulateAsync(asset.uri, actions, {
+            compress: 0.7,
+            format: ImageManipulator.SaveFormat.JPEG,
+          });
+          up = { uri: m.uri, fileName: (asset.fileName?.replace(/\.[^.]+$/, '') ?? `photo-${Date.now()}`) + '.jpg', mimeType: 'image/jpeg' };
+        } catch { /* 리사이즈 실패 시 원본 */ }
+      }
+      const { url } = await uploadPhoto(up);
+      const cur = (detail?.photos ?? []).map((p) => p.url).filter((u): u is string => !!u);
+      const d = await entryApi.updatePhotos(dateStr, [...cur, url]);
+      setDetail(d);
+      setCacheDetail(dateStr, d);
+    } catch {
+      showAlert('사진 추가에 실패했어요', '잠시 후 다시 시도해 주세요.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
+  // 상세 화면에서 공유 사진 삭제(둘 다 삭제 가능).
+  async function deletePhoto(url: string) {
+    if (photoBusy) return;
+    const ok = await confirmAsync('사진 삭제', '이 사진을 삭제할까요?', '삭제', true);
+    if (!ok) return;
+    setPhotoBusy(true);
+    try {
+      const next = (detail?.photos ?? []).map((p) => p.url).filter((u): u is string => !!u).filter((u) => u !== url);
+      const d = await entryApi.updatePhotos(dateStr, next);
+      setDetail(d);
+      setCacheDetail(dateStr, d);
+    } catch {
+      showAlert('삭제에 실패했어요', '잠시 후 다시 시도해 주세요.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
   function openMove() {
     setMoveDate('');
     setMoveError(null);
@@ -332,26 +393,48 @@ export default function EntryDetailScreen() {
             />
           ) : (
             <>
-              {/* 함께한 사진 — 커플 공용(누가 올렸든 합쳐서 한 번만) */}
-              {(detail.photos?.length ?? 0) > 0 ? (
+              {/* 함께한 사진 — 커플 공용(누가 올렸든 합쳐서 한 번만). 여기서 추가·삭제 가능 */}
+              {(detail.photos?.length ?? 0) > 0 || detail.myEntry ? (
                 <Card style={{ marginTop: spacing.lg }}>
                   <View style={styles.sideHead}>
                     <Icon name="images-outline" size={16} color={c.primary} />
                     <Text style={[styles.sideTitle, { color: c.primary }]}>함께한 사진</Text>
+                    {(detail.photos?.length ?? 0) > 0 ? (
+                      <Text style={styles.photoHint}>길게 눌러 삭제</Text>
+                    ) : null}
                   </View>
-                  <View style={styles.photoRow}>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.photoStrip}
+                  >
                     {(() => {
                       const urls = (detail.photos ?? []).map((p) => p.url).filter((u): u is string => !!u);
                       return (detail.photos ?? []).map((p) => {
                         const vi = p.url ? urls.indexOf(p.url) : -1;
                         return (
-                          <Pressable key={p.id} disabled={vi < 0} onPress={() => openPhotoViewer(urls, Math.max(0, vi))}>
-                            <PhotoThumb url={p.url} seed={p.colorSeed} size={90} round={false} />
+                          <Pressable
+                            key={p.id}
+                            disabled={vi < 0}
+                            onPress={() => openPhotoViewer(urls, Math.max(0, vi))}
+                            onLongPress={() => p.url && deletePhoto(p.url)}
+                            delayLongPress={300}
+                          >
+                            <PhotoThumb url={p.url} seed={p.colorSeed} size={96} round={false} />
                           </Pressable>
                         );
                       });
                     })()}
-                  </View>
+                    {detail.myEntry ? (
+                      <Pressable onPress={addPhoto} disabled={photoBusy} style={[styles.addPhotoTile, { borderColor: c.coralSofter }]}>
+                        {photoBusy ? (
+                          <ActivityIndicator color={c.primary} />
+                        ) : (
+                          <Icon name="add" size={30} color={c.primary} />
+                        )}
+                      </Pressable>
+                    ) : null}
+                  </ScrollView>
                 </Card>
               ) : null}
 
@@ -876,6 +959,18 @@ const styles = StyleSheet.create({
   sideTitle: { ...font.title },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md },
   photoRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+  photoStrip: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md, paddingRight: spacing.sm },
+  photoHint: { ...font.caption, color: colors.subText, marginLeft: 'auto' },
+  addPhotoTile: {
+    width: 96,
+    height: 96,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.card,
+  },
   answerQ: { ...font.label, marginBottom: 2 },
   answerText: { ...font.body, lineHeight: 23 },
 
