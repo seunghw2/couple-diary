@@ -104,7 +104,7 @@ public class DiaryService {
 
         if (dayOpt.isEmpty()) {
             return new DayDetail(date.toString(), DayStatus.EMPTY, null, null,
-                    List.of(), null, null, List.of(), null);
+                    List.of(), null, null, List.of(), null, List.of());
         }
         DiaryDay day = dayOpt.get();
         List<DiaryEntry> entries = entryRepository.findByDay_Id(day.getId());
@@ -138,7 +138,7 @@ public class DiaryService {
         String repPhoto = day.getRepPhotoUrl() != null && !day.getRepPhotoUrl().isBlank()
                 ? photoUrlSigner.signRelative(day.getRepPhotoUrl()) : null;
         return new DayDetail(date.toString(), status, day.getMode(), day.getTemplateType(),
-                questions, myView, partnerView, comments, repPhoto);
+                questions, myView, partnerView, comments, repPhoto, toPointViews(day.getPlaces()));
     }
 
     // ================= 이전 장소 추천 =================
@@ -181,6 +181,32 @@ public class DiaryService {
             placeNicknameRepository.save(PlaceNickname.builder()
                     .couple(couple).name(cleanName).nickname(cleanNick).build());
         }
+    }
+
+    // 커플 공유 장소 저장 + 집계(지도/장소) 호환을 위해 그날 모든 entry.locations에 미러링.
+    private void applySharedPlaces(DiaryDay day, UpsertEntryRequest req) {
+        if (req.places() == null) return;
+        List<LocationPoint> pts = new ArrayList<>();
+        for (DiaryDtos.LocationPointInput p : req.places()) {
+            if (p == null || p.name() == null || p.name().isBlank()) continue;
+            pts.add(new LocationPoint(p.name().trim(), p.lat(), p.lng(), p.category()));
+        }
+        day.applyPlaces(pts);
+        dayRepository.save(day);
+
+        List<String> names = day.getPlaces().stream().map(LocationPoint::getName).toList();
+        for (DiaryEntry e : entryRepository.findByDay_Id(day.getId())) {
+            e.applyLocations(names);
+            e.applyLocationPoints(new ArrayList<>(day.getPlaces()));
+        }
+    }
+
+    private List<DiaryDtos.LocationPointView> toPointViews(List<LocationPoint> pts) {
+        List<DiaryDtos.LocationPointView> out = new ArrayList<>();
+        for (LocationPoint p : pts) {
+            out.add(new DiaryDtos.LocationPointView(p.getName(), p.getLat(), p.getLng(), p.getCategory()));
+        }
+        return out;
     }
 
     // 지도 목록용: 한 장소의 대표 사진(가장 최근 방문일의 사진) + 최근 방문일.
@@ -398,6 +424,9 @@ public class DiaryService {
             }
             dayRepository.save(day);
         }
+
+        // 커플 공유 장소 목록(작성 화면 '다녀온 장소'). 요청에 있으면 day에 저장하고 각 entry에 미러링.
+        applySharedPlaces(day, req);
 
         // ===== 알림 트리거: 저장 후 그날 상태 재계산 =====
         // 상대 entry 존재 여부로 OPEN/LOCKED 판정. isNew=이번에 내 entry가 처음 생김.

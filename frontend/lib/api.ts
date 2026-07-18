@@ -274,6 +274,7 @@ export type DayDetail = {
   partnerEntry?: EntryView | LockedEntryView;
   comments: CommentView[];
   repPhotoUrl?: string | null; // 그날 대표 사진(서명, 없으면 null)
+  places?: PlacePoint[]; // 커플 공유 다녀온 장소(항상 노출)
 };
 
 /** 작성 요청 (UpsertEntryRequest). 사진은 업로드 후 photoUrls로 전송. */
@@ -286,6 +287,7 @@ export type UpsertEntryRequest = {
   photoUrls?: string[];
   locations?: string[]; // 다중 장소
   locationPoints?: LocationPoint[]; // 좌표 메타(선택)
+  places?: PlacePoint[]; // 커플 공유 다녀온 장소(있으면 이걸 소스로)
   repPhotoUrl?: string; // 그날 대표 사진(photoUrls 중 하나)
   rating?: number;
   mood?: string;
@@ -489,6 +491,8 @@ export type PlaceResult = { name: string; address: string; category?: string; la
 
 /** 지도 재현용 장소 좌표 메타(작성/저장/조회 공통). name으로 locations와 매칭. */
 export type LocationPoint = { name: string; lat: number; lng: number; category?: string };
+/** 공유 장소(좌표 없이 이름만일 수 있음). */
+export type PlacePoint = { name: string; lat?: number | null; lng?: number | null; category?: string | null };
 
 /** 작성화면에서 다루는 선택 장소(이름-only 하위호환 + 좌표/수동입력 여부). */
 export type SelectedPlace = {

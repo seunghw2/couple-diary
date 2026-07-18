@@ -723,10 +723,12 @@ function SideCard({
   const c = useColors();
   // 색상은 내/상대 구분 없이 앱 컬러로 통일.
   const accent = c.primary;
-  // 표시할 장소: locations[] 우선, 없으면 단일 locationName 폴백.
-  const locs = side.locations && side.locations.length > 0
-    ? side.locations
-    : side.locationName ? [side.locationName] : [];
+  // 다녀온 장소는 커플 공유(양쪽 entry에 동일 미러링) → 중복 방지 위해 내 카드에만 표시.
+  const locs = self
+    ? (side.locations && side.locations.length > 0
+        ? side.locations
+        : side.locationName ? [side.locationName] : [])
+    : [];
   // 실제 이미지 url이 있는 사진만 뷰어 대상.
   const photoUrls = side.photos.map((p) => p.url).filter((u): u is string => !!u);
   return (

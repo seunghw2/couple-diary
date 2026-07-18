@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   KeyboardAvoidingView,
+  PanResponder,
   Platform,
   Pressable,
   ScrollView,
@@ -44,6 +46,38 @@ function bareUrl(u?: string | null): string {
   if (!u) return '';
   const i = u.indexOf('?');
   return i >= 0 ? u.slice(0, i) : u;
+}
+
+/** 왼쪽으로 밀면 삭제되는 장소 행(공유 목록용). */
+function SwipeDeleteRow({ label, onDelete, tint }: { label: string; onDelete: () => void; tint: string }) {
+  const tx = useRef(new Animated.Value(0)).current;
+  const pan = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_e, g) => g.dx < -6 && Math.abs(g.dx) > Math.abs(g.dy),
+      onPanResponderMove: (_e, g) => {
+        if (g.dx < 0) tx.setValue(Math.max(g.dx, -110));
+      },
+      onPanResponderRelease: (_e, g) => {
+        if (g.dx < -70) {
+          Animated.timing(tx, { toValue: -500, duration: 160, useNativeDriver: true }).start(() => onDelete());
+        } else {
+          Animated.spring(tx, { toValue: 0, useNativeDriver: true, bounciness: 4 }).start();
+        }
+      },
+    })
+  ).current;
+  return (
+    <View style={styles.swipeWrap}>
+      <View style={styles.swipeDeleteBg}>
+        <Icon name="trash-outline" size={16} color={colors.white} />
+        <Text style={styles.swipeDeleteText}>삭제</Text>
+      </View>
+      <Animated.View style={[styles.swipeRow, { transform: [{ translateX: tx }] }]} {...pan.panHandlers}>
+        <Icon name="location" size={15} color={tint} />
+        <Text style={styles.swipeRowText} numberOfLines={1}>{label}</Text>
+      </Animated.View>
+    </View>
+  );
 }
 /** 화면 로컬 모드. 'FREE'=내가 질문 3개를 고르는 단계(제출 시 QUESTION_PICK으로 저장). */
 type FormMode = EntryMode | 'FREE';
@@ -139,6 +173,14 @@ export default function WriteScreen() {
         const detail: DayDetail = await entryApi.detail(dateStr);
         const mine = detail.myEntry;
         if (detail.repPhotoUrl) setRepPhotoUrl(detail.repPhotoUrl); // 그날 대표 사진 프리필(별표)
+        // 다녀온 장소는 커플 공유 목록 — 내가 안 썼어도 상대가 넣은 게 항상 보인다.
+        const shared = detail.places ?? [];
+        setLocations(shared.map((p) => p.name));
+        setLocationPoints(
+          shared
+            .filter((p) => p.lat != null && p.lng != null)
+            .map((p) => ({ name: p.name, lat: p.lat as number, lng: p.lng as number, category: p.category ?? undefined }))
+        );
         if (mine) {
           // 수정 진입: editable=false면 작성 화면 대신 안내
           if (!mine.editable) {
@@ -155,8 +197,7 @@ export default function WriteScreen() {
           }
           setAnswers(prefill);
           setMood(mine.mood ?? null);
-          setLocations(mine.locations ?? (mine.locationName ? [mine.locationName] : []));
-          setLocationPoints(mine.locationPoints ?? []);
+          // 장소는 위에서 공유 목록(detail.places)으로 이미 세팅함 — 여기선 건드리지 않음.
           setPhotoUrls(mine.photos.map((p) => p.url).filter((u): u is string => !!u));
           setStep('form');
         } else if (detail.mode === 'QUESTION_PICK') {
@@ -413,8 +454,11 @@ export default function WriteScreen() {
       questionIds,
       answers: buildAnswers(),
       photoUrls,
-      locations: locations.length > 0 ? locations : undefined,
-      locationPoints: locationPoints.length > 0 ? locationPoints : undefined,
+      // 커플 공유 장소 목록(이름+좌표). 항상 전송해 삭제도 반영.
+      places: locations.map((name) => {
+        const pt = locationPoints.find((p) => p.name === name);
+        return pt ? { name, lat: pt.lat, lng: pt.lng, category: pt.category } : { name };
+      }),
       repPhotoUrl: photoUrls.length > 0 ? (repPhotoUrl ?? photoUrls[0]) : undefined,
       mood: mood ?? undefined,
     };
@@ -562,18 +606,16 @@ export default function WriteScreen() {
               <Icon name="location-outline" size={18} color={colors.text} />
               <Text style={styles.sectionLabel}>다녀온 장소</Text>
             </View>
-            {/* 추가된 장소 칩 */}
+            {/* 커플 공유 장소 목록 — 왼쪽으로 밀어 삭제(나/연인이 넣은 것 모두) */}
             {locations.length > 0 ? (
-              <View style={styles.chipWrap}>
-                {locations.map((loc) => (
-                  <Pressable key={loc} onPress={() => removeLocation(loc)} style={[styles.chip, styles.chipOn, { backgroundColor: c.primary, borderColor: c.primary }]}>
-                    <View style={styles.locChipRow}>
-                      <Text style={[styles.chipText, { color: colors.white }]}>{loc}</Text>
-                      <Icon name="close" size={14} color={colors.white} />
-                    </View>
-                  </Pressable>
-                ))}
-              </View>
+              <>
+                <View style={styles.placeList}>
+                  {locations.map((loc) => (
+                    <SwipeDeleteRow key={loc} label={loc} onDelete={() => removeLocation(loc)} tint={c.primary} />
+                  ))}
+                </View>
+                <Text style={styles.swipeHint}>← 왼쪽으로 밀어 삭제해요</Text>
+              </>
             ) : null}
             {/* 카카오맵에서 검색 */}
             <Pressable
@@ -981,6 +1023,33 @@ const styles = StyleSheet.create({
   prevLocLabel: { ...font.label, color: colors.subText, marginTop: spacing.md, marginBottom: spacing.xs },
 
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.sm },
+  placeList: { gap: spacing.sm },
+  swipeHint: { ...font.caption, color: colors.subText, marginTop: 6, marginLeft: 2 },
+  swipeWrap: { borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.danger },
+  swipeDeleteBg: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 92,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+  },
+  swipeDeleteText: { color: colors.white, fontWeight: '800', fontSize: 13 },
+  swipeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: 12,
+    paddingHorizontal: spacing.md,
+  },
+  swipeRowText: { ...font.body, color: colors.text, flex: 1 },
   chip: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
