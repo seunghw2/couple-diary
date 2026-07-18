@@ -275,6 +275,7 @@ export type DayDetail = {
   comments: CommentView[];
   repPhotoUrl?: string | null; // 그날 대표 사진(서명, 없으면 null)
   places?: PlacePoint[]; // 커플 공유 다녀온 장소(항상 노출)
+  photos?: PhotoView[]; // 커플 공유 사진(두 사람 것 합침, 항상 노출)
 };
 
 /** 작성 요청 (UpsertEntryRequest). 사진은 업로드 후 photoUrls로 전송. */

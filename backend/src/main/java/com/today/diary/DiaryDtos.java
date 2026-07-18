@@ -130,6 +130,7 @@ public class DiaryDtos {
             Object partnerEntry,        // EntryView(OPEN) 또는 LockedEntryView
             List<CommentView> comments,
             String repPhotoUrl,         // 그날 대표 사진(서명, 없으면 null) — 작성 화면 별표 프리필용
-            List<LocationPointView> places // 커플 공유 다녀온 장소(항상 노출)
+            List<LocationPointView> places, // 커플 공유 다녀온 장소(항상 노출)
+            List<PhotoView> photos      // 커플 공유 사진(두 사람 것 합침, 항상 노출)
     ) {}
 }

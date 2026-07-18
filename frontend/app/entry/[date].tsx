@@ -332,6 +332,29 @@ export default function EntryDetailScreen() {
             />
           ) : (
             <>
+              {/* 함께한 사진 — 커플 공용(누가 올렸든 합쳐서 한 번만) */}
+              {(detail.photos?.length ?? 0) > 0 ? (
+                <Card style={{ marginTop: spacing.lg }}>
+                  <View style={styles.sideHead}>
+                    <Icon name="images-outline" size={16} color={c.primary} />
+                    <Text style={[styles.sideTitle, { color: c.primary }]}>함께한 사진</Text>
+                  </View>
+                  <View style={styles.photoRow}>
+                    {(() => {
+                      const urls = (detail.photos ?? []).map((p) => p.url).filter((u): u is string => !!u);
+                      return (detail.photos ?? []).map((p) => {
+                        const vi = p.url ? urls.indexOf(p.url) : -1;
+                        return (
+                          <Pressable key={p.id} disabled={vi < 0} onPress={() => openPhotoViewer(urls, Math.max(0, vi))}>
+                            <PhotoThumb url={p.url} seed={p.colorSeed} size={90} round={false} />
+                          </Pressable>
+                        );
+                      });
+                    })()}
+                  </View>
+                </Card>
+              ) : null}
+
               {/* 내 일기 */}
               {detail.myEntry ? (
                 <>
@@ -729,8 +752,6 @@ function SideCard({
         ? side.locations
         : side.locationName ? [side.locationName] : [])
     : [];
-  // 실제 이미지 url이 있는 사진만 뷰어 대상.
-  const photoUrls = side.photos.map((p) => p.url).filter((u): u is string => !!u);
   return (
     <Card style={{ marginTop: spacing.lg }}>
       <View style={styles.sideHead}>
@@ -761,34 +782,7 @@ function SideCard({
         ))}
       </View>
 
-      {/* 사진: url 있으면 실제 이미지, 없으면 색시드 썸네일 */}
-      {side.photos.length > 0 ? (
-        <View style={styles.photoRow}>
-          {side.photos.slice(0, 3).map((p, i) => {
-            // 뷰어에서의 인덱스(url 있는 사진들 기준)
-            const viewerIndex = p.url ? photoUrls.indexOf(p.url) : -1;
-            return (
-              <Pressable
-                key={p.id}
-                disabled={viewerIndex < 0}
-                onPress={() => onOpenPhoto(photoUrls, Math.max(0, viewerIndex))}
-              >
-                <PhotoThumb
-                  url={p.url}
-                  seed={p.colorSeed}
-                  size={90}
-                  round={false}
-                  label={
-                    i === 2 && side.photos.length > 3
-                      ? `+${side.photos.length - 2}`
-                      : <Icon name="image-outline" size={30} color={colors.white} />
-                  }
-                />
-              </Pressable>
-            );
-          })}
-        </View>
-      ) : null}
+      {/* 사진은 커플 공용이라 상단 '함께한 사진'에서 한 번만 보여줌(여기선 생략) */}
 
       {/* 답변들 — 질문픽이면 질문 문장을 답 위에 표시 */}
       {side.answers.map((a, i) => {

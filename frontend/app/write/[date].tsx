@@ -182,6 +182,8 @@ export default function WriteScreen() {
             .filter((p) => p.lat != null && p.lng != null)
             .map((p) => ({ name: p.name, lat: p.lat as number, lng: p.lng as number, category: p.category ?? undefined }))
         );
+        // 사진도 커플 공용 — 상대가 올린 것까지 합쳐 항상 로드.
+        setPhotoUrls((detail.photos ?? []).map((p) => p.url).filter((u): u is string => !!u));
         if (mine) {
           // 수정 진입: editable=false면 작성 화면 대신 안내
           if (!mine.editable) {
@@ -198,8 +200,7 @@ export default function WriteScreen() {
           }
           setAnswers(prefill);
           setMood(mine.mood ?? null);
-          // 장소는 위에서 공유 목록(detail.places)으로 이미 세팅함 — 여기선 건드리지 않음.
-          setPhotoUrls(mine.photos.map((p) => p.url).filter((u): u is string => !!u));
+          // 장소·사진은 위에서 공유(detail.places/photos)로 이미 세팅함 — 여기선 건드리지 않음.
           setStep('form');
         } else if (detail.mode === 'QUESTION_PICK') {
           // 커플이 질문 모드 → 나도 내 질문을 직접 고른다(상대와 독립). 모드 변경은 잠금.

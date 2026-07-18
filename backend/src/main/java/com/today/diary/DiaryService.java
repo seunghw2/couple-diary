@@ -105,7 +105,7 @@ public class DiaryService {
 
         if (dayOpt.isEmpty()) {
             return new DayDetail(date.toString(), DayStatus.EMPTY, null, null,
-                    List.of(), null, null, List.of(), null, List.of());
+                    List.of(), null, null, List.of(), null, List.of(), List.of());
         }
         DiaryDay day = dayOpt.get();
         List<DiaryEntry> entries = entryRepository.findByDay_Id(day.getId());
@@ -139,7 +139,59 @@ public class DiaryService {
         String repPhoto = day.getRepPhotoUrl() != null && !day.getRepPhotoUrl().isBlank()
                 ? photoUrlSigner.signRelative(day.getRepPhotoUrl()) : null;
         return new DayDetail(date.toString(), status, day.getMode(), day.getTemplateType(),
-                questions, myView, partnerView, comments, repPhoto, toPointViews(day.getPlaces()));
+                questions, myView, partnerView, comments, repPhoto, toPointViews(day.getPlaces()),
+                mergedPhotos(entries));
+    }
+
+    // 사진을 커플 공용 세트로 재조정. 요청(req.photoUrls)이 "유지할 전체 목록"이다.
+    // 그날 사진(두 entry 통합) 중 목록에 없는 건 삭제(파일 포함), 새 url은 내 entry에 추가.
+    private void reconcileSharedPhotos(DiaryDay day, DiaryEntry myEntry, UpsertEntryRequest req) {
+        if (req.photoUrls() == null) return;
+        java.util.LinkedHashSet<String> submitted = new java.util.LinkedHashSet<>();
+        for (String u : req.photoUrls()) {
+            if (u == null || u.isBlank()) continue;
+            int qi = u.indexOf('?');
+            submitted.add(qi >= 0 ? u.substring(0, qi) : u);
+        }
+        List<Long> entryIds = entryRepository.findByDay_Id(day.getId()).stream().map(DiaryEntry::getId).toList();
+        Set<String> existing = new HashSet<>();
+        List<String> removed = new ArrayList<>();
+        for (Photo p : photoRepository.findByEntry_IdIn(entryIds)) {
+            if (p.getUrl() == null || p.getUrl().isBlank()) continue;
+            if (submitted.contains(p.getUrl())) {
+                existing.add(p.getUrl());
+            } else {
+                removed.add(p.getUrl());
+                photoRepository.delete(p);
+            }
+        }
+        for (String bare : submitted) {
+            if (!existing.contains(bare)) {
+                photoRepository.save(Photo.builder().entry(myEntry).url(bare).build());
+            }
+        }
+        photoRepository.flush();
+        if (!removed.isEmpty()) {
+            photoFileStore.deleteByUrls(removed);
+            if (day.getRepPhotoUrl() != null && removed.contains(day.getRepPhotoUrl())) {
+                day.setRepPhotoUrl(null);
+                dayRepository.save(day);
+            }
+        }
+    }
+
+    // 커플 공용 사진: 두 사람 entry의 업로드 사진을 합쳐 중복(url) 제거 후 서명. 잠금과 무관하게 항상 노출.
+    private List<PhotoView> mergedPhotos(List<DiaryEntry> entries) {
+        List<Long> ids = entries.stream().map(DiaryEntry::getId).toList();
+        if (ids.isEmpty()) return List.of();
+        List<PhotoView> out = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (Photo p : photoRepository.findByEntry_IdIn(ids)) {
+            if (p.getUrl() == null || p.getUrl().isBlank()) continue;
+            if (!seen.add(p.getUrl())) continue;
+            out.add(new PhotoView(p.getId(), p.getColorSeed(), photoUrlSigner.signRelative(p.getUrl())));
+        }
+        return out;
     }
 
     // ================= 이전 장소 추천 =================
@@ -375,25 +427,9 @@ public class DiaryService {
                 answerRepository.deleteByEntry_Id(entry.getId());
                 answerRepository.flush();
             }
+            // 사진(url)은 커플 공용 → 아래 reconcileSharedPhotos에서 통합 처리. 여기선 seed(폴백)만.
             if (req.photoSeeds() != null) {
                 photoRepository.deleteByEntry_IdAndUrlIsNull(entry.getId());
-            }
-            if (req.photoUrls() != null) {
-                // 이번 수정으로 더는 참조되지 않는 사진은 디스크 파일도 정리(고아 방지).
-                Set<String> keep = new HashSet<>();
-                for (String u : req.photoUrls()) {
-                    if (u == null || u.isBlank()) continue;
-                    int qi = u.indexOf('?');
-                    keep.add(qi >= 0 ? u.substring(0, qi) : u);
-                }
-                List<String> orphans = photoRepository.findByEntry_Id(entry.getId()).stream()
-                        .map(Photo::getUrl)
-                        .filter(u -> u != null && !keep.contains(u))
-                        .toList();
-                photoRepository.deleteByEntry_IdAndUrlIsNotNull(entry.getId());
-                photoFileStore.deleteByUrls(orphans);
-            }
-            if (req.photoSeeds() != null || req.photoUrls() != null) {
                 photoRepository.flush();
             }
         }
@@ -416,15 +452,9 @@ public class DiaryService {
                 photoRepository.save(Photo.builder().entry(entry).colorSeed(seed).build());
             }
         }
-        if (req.photoUrls() != null) {
-            for (String url : req.photoUrls()) {
-                if (url == null || url.isBlank()) continue;
-                // 서명 쿼리(?exp=..&sig=..)가 붙어 오면 떼고 bare 경로만 저장(재열람 시 새로 서명).
-                int qi = url.indexOf('?');
-                String bare = qi >= 0 ? url.substring(0, qi) : url;
-                photoRepository.save(Photo.builder().entry(entry).url(bare).build());
-            }
-        }
+        // 사진(url)은 커플 공용 목록으로 재조정: 요청 세트에 없는 그날 사진(누구 것이든)은 삭제,
+        // 새 url은 내 entry에 추가. → 한 명이 올리면 둘 다 보고, 둘 다 삭제 가능.
+        reconcileSharedPhotos(day, entry, req);
 
         // 그날 대표 사진(커플 공유). 서명 쿼리(?exp=..&sig=..)는 떼고 bare 경로만 저장.
         if (req.repPhotoUrl() != null) {
