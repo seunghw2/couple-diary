@@ -19,6 +19,7 @@ public class DiaryDtos {
             DayStatus status,
             int photoCount,
             String thumbSeed,
+            String thumbUrl,        // 그날 첫 사진(서명 URL). 없으면 null → 달력은 스티커로 폴백.
             boolean mineWritten,
             boolean partnerWritten
     ) {}

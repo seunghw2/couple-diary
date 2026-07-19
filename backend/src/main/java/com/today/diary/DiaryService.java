@@ -86,12 +86,18 @@ public class DiaryService {
 
             int photoCount = 0;
             String thumbSeed = null;
+            String thumbUrl = null;
             for (DiaryEntry e : entries) {
                 List<Photo> ps = photosByEntry.getOrDefault(e.getId(), List.of());
                 photoCount += ps.size();
-                if (thumbSeed == null && !ps.isEmpty()) thumbSeed = ps.get(0).getColorSeed();
+                for (Photo p : ps) {
+                    if (thumbSeed == null) thumbSeed = p.getColorSeed();
+                    if (thumbUrl == null && p.getUrl() != null && !p.getUrl().isBlank()) {
+                        thumbUrl = photoUrlSigner.signRelative(p.getUrl()); // 그날 첫 실제 사진
+                    }
+                }
             }
-            out.add(new MonthEntrySummary(day.getDate().toString(), status, photoCount, thumbSeed, mine, partner));
+            out.add(new MonthEntrySummary(day.getDate().toString(), status, photoCount, thumbSeed, thumbUrl, mine, partner));
         }
         out.sort(Comparator.comparing(MonthEntrySummary::date));
         return out;

@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MonthEntrySummary } from '../lib/api';
 import { buildMonthGrid } from '../lib/date';
-import { Badge, PhotoThumb } from './ui';
+import { PhotoThumb } from './ui';
 import { colors, font, radius, spacing, useColors } from '../theme/theme';
 
 const WEEK_HEADERS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -44,8 +44,8 @@ export function CalendarGrid({ year, month, entries, today, onPressDate, markedD
           const hasContent = !!e && e.status !== 'EMPTY';
           // 콕 찍어둔 날(기념일 등): 일기가 있든 없든 날짜 숫자에 하이라이트 배경으로 항상 표시(4안).
           const marked = !!markedDates?.has(date);
-          // 서버가 thumbSeed에 실제 이미지 경로(/files/...)를 줄 수도 있음
-          const thumbUrl = e?.thumbSeed?.startsWith('/files/') ? e.thumbSeed : undefined;
+          // 그날 첫 사진(서명 URL). 있으면 셀에 이미지를 원형으로, 없으면 하트 스티커.
+          const thumbUrl = e?.thumbUrl;
 
           return (
             <Pressable key={date} style={styles.cell} onPress={() => onPressDate(date)}>
@@ -64,24 +64,19 @@ export function CalendarGrid({ year, month, entries, today, onPressDate, markedD
                 {hasContent ? (
                   <View>
                     {thumbUrl ? (
+                      // 저장한 사진이 있으면 그 이미지를 원형으로 표시(하트 아이콘·개수 배지 없이).
                       <PhotoThumb
                         url={thumbUrl}
                         seed={e.thumbSeed ?? date}
                         size={THUMB_SIZE}
                         ring={isToday}
-                        label={<ThumbIcon status={e.status} />}
                       />
                     ) : (
-                      // 실제 사진이 없는 스티커: 앱 코럴 톤으로 통일(보라 하드코딩 제거).
+                      // 사진이 없는 날: 코럴 하트 스티커 유지.
                       <View style={[styles.stickerThumb, { backgroundColor: c.primary }, isToday && [styles.stickerRing, { borderColor: c.coralSoft }]]}>
                         <ThumbIcon status={e.status} />
                       </View>
                     )}
-                    {e.photoCount > 0 ? (
-                      <View style={styles.badge}>
-                        <Badge text={`${e.photoCount}`} />
-                      </View>
-                    ) : null}
                   </View>
                 ) : (
                   <View style={[styles.emptyCircle, isToday && { borderColor: c.primary, borderStyle: 'solid' }]} />

@@ -492,13 +492,6 @@ export default function EntryDetailScreen() {
                 </Card>
               ) : null}
 
-              {/* 획득 스티커(OPEN) */}
-              {status === 'OPEN' ? (
-                <View style={styles.stickerRow}>
-                  <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center' }}><Icon name="heart" size={22} color={colors.white} /></View>
-                  <Text style={styles.stickerText}>이 날의 스티커를 획득했어요!</Text>
-                </View>
-              ) : null}
 
               {/* 댓글 (OPEN에서만) */}
               {status === 'OPEN' ? (

@@ -212,6 +212,8 @@ export type MonthEntrySummary = {
   status: EntryStatus;
   photoCount: number;
   thumbSeed?: string;
+  /** 그날 첫 사진(서명 URL). 있으면 달력 셀에 이 이미지를 원형으로 표시. 없으면 스티커. */
+  thumbUrl?: string;
   mineWritten: boolean;
   partnerWritten: boolean;
 };
