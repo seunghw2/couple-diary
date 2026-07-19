@@ -136,10 +136,9 @@ public class DiaryService {
                     .map(this::toCommentView).toList()
                 : List.of();
 
-        String repPhoto = day.getRepPhotoUrl() != null && !day.getRepPhotoUrl().isBlank()
-                ? photoUrlSigner.signRelative(day.getRepPhotoUrl()) : null;
+        // 대표 사진(⭐) 개념 제거 — 항상 null.
         return new DayDetail(date.toString(), status, day.getMode(), day.getTemplateType(),
-                questions, myView, partnerView, comments, repPhoto, toPointViews(day.getPlaces()),
+                questions, myView, partnerView, comments, null, toPointViews(day.getPlaces()),
                 mergedPhotos(entries));
     }
 
@@ -201,7 +200,9 @@ public class DiaryService {
         for (Photo p : photoRepository.findByEntry_IdIn(ids)) {
             if (p.getUrl() == null || p.getUrl().isBlank()) continue;
             if (!seen.add(p.getUrl())) continue;
-            out.add(new PhotoView(p.getId(), p.getColorSeed(), photoUrlSigner.signRelative(p.getUrl())));
+            Long authorId = p.getEntry() != null && p.getEntry().getAuthor() != null
+                    ? p.getEntry().getAuthor().getId() : null;
+            out.add(new PhotoView(p.getId(), p.getColorSeed(), photoUrlSigner.signRelative(p.getUrl()), authorId));
         }
         return out;
     }
@@ -282,22 +283,17 @@ public class DiaryService {
         }
         DiaryDay recentDay = entries.get(0).getDay(); // date desc → 첫 항목이 최근
         String recentDate = recentDay.getDate().toString();
-        String thumb;
-        if (recentDay.getRepPhotoUrl() != null && !recentDay.getRepPhotoUrl().isBlank()) {
-            thumb = photoUrlSigner.signRelative(recentDay.getRepPhotoUrl()); // 최근 일기의 대표 사진
-        } else {
-            // 대표 미지정 → 최근 방문일부터 첫 사진으로 폴백
-            List<Long> ids = entries.stream().map(DiaryEntry::getId).toList();
-            Map<Long, List<Photo>> byEntry = photoRepository.findByEntry_IdIn(ids).stream()
-                    .collect(Collectors.groupingBy(p -> p.getEntry().getId()));
-            thumb = null;
-            outer:
-            for (DiaryEntry e : entries) {
-                for (Photo p : byEntry.getOrDefault(e.getId(), List.of())) {
-                    if (p.getUrl() != null && !p.getUrl().isBlank()) {
-                        thumb = photoUrlSigner.signRelative(p.getUrl());
-                        break outer;
-                    }
+        // 대표 사진(⭐) 개념 제거 → 최근 방문일부터 첫 사진을 썸네일로 사용.
+        List<Long> ids = entries.stream().map(DiaryEntry::getId).toList();
+        Map<Long, List<Photo>> byEntry = photoRepository.findByEntry_IdIn(ids).stream()
+                .collect(Collectors.groupingBy(p -> p.getEntry().getId()));
+        String thumb = null;
+        outer:
+        for (DiaryEntry e : entries) {
+            for (Photo p : byEntry.getOrDefault(e.getId(), List.of())) {
+                if (p.getUrl() != null && !p.getUrl().isBlank()) {
+                    thumb = photoUrlSigner.signRelative(p.getUrl());
+                    break outer;
                 }
             }
         }
@@ -467,18 +463,7 @@ public class DiaryService {
         // 사진(url)은 커플 공용 목록으로 재조정: 요청 세트에 없는 그날 사진(누구 것이든)은 삭제,
         // 새 url은 내 entry에 추가. → 한 명이 올리면 둘 다 보고, 둘 다 삭제 가능.
         reconcileSharedPhotos(day, entry, req.photoUrls());
-
-        // 그날 대표 사진(커플 공유). 서명 쿼리(?exp=..&sig=..)는 떼고 bare 경로만 저장.
-        if (req.repPhotoUrl() != null) {
-            String rep = req.repPhotoUrl().trim();
-            if (rep.isEmpty()) {
-                day.setRepPhotoUrl(null);
-            } else {
-                int qi = rep.indexOf('?');
-                day.setRepPhotoUrl(qi >= 0 ? rep.substring(0, qi) : rep);
-            }
-            dayRepository.save(day);
-        }
+        // 대표 사진(⭐) 개념은 앱에서 제거됨 — repPhotoUrl은 더 이상 저장하지 않는다.
 
         // 커플 공유 장소 목록(작성 화면 '다녀온 장소'). 요청에 있으면 day에 저장하고 각 entry에 미러링.
         applySharedPlaces(day, req);
@@ -726,8 +711,9 @@ public class DiaryService {
         List<AnswerView> answers = answerRepository.findByEntry_Id(e.getId()).stream()
                 .map(a -> new AnswerView(a.getQuestionId(), a.getPromptKey(), a.getText()))
                 .toList();
+        Long authorId = e.getAuthor() != null ? e.getAuthor().getId() : null;
         List<PhotoView> photos = photoRepository.findByEntry_Id(e.getId()).stream()
-                .map(p -> new PhotoView(p.getId(), p.getColorSeed(), photoUrlSigner.signRelative(p.getUrl())))
+                .map(p -> new PhotoView(p.getId(), p.getColorSeed(), photoUrlSigner.signRelative(p.getUrl()), authorId))
                 .toList();
         boolean editable = e.getEditableAfter() == null || LocalDateTime.now().isBefore(e.getEditableAfter());
         List<String> locations = new ArrayList<>(e.getLocations());

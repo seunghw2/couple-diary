@@ -16,6 +16,8 @@ export type WriteDraft = {
   /** 지도에서 찍은 장소의 좌표 메타(이름은 locations에 하위호환 저장). 없을 수 있음. */
   locationPoints?: LocationPoint[];
   photoUrls: string[];
+  /** photoUrls 중 내가 올린 사진(bare url). 인당 장수 제한·삭제 권한 복원용. */
+  myPhotoBares?: string[];
   pickedIds: string[];
   savedAt: number;
 };

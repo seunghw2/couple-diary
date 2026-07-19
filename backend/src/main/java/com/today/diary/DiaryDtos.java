@@ -60,7 +60,7 @@ public class DiaryDtos {
     /** 지도 재현용 장소 좌표 메타. */
     public record LocationPointView(String name, Double lat, Double lng, String category) {}
 
-    public record PhotoView(Long id, String colorSeed, String url) {}
+    public record PhotoView(Long id, String colorSeed, String url, Long authorId) {}
 
     public record EntryView(
             Long id,

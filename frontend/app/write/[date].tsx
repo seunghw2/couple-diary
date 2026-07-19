@@ -34,7 +34,7 @@ import { showAlert } from '../../lib/dialog';
 import { errorMessage } from '../../lib/errors';
 import { invalidateAfterMutation } from '../../store/useDataCache';
 import { clearDraft, draftHasContent, loadDraft, saveDraft } from '../../lib/writeDraft';
-import { MOODS, TEMPLATE_PROMPTS } from '../../constants/content';
+import { MOODS, MOOD_CATS, TEMPLATE_PROMPTS } from '../../constants/content';
 import { Button, Card, Icon, PhotoThumb } from '../../components/ui';
 import { KakaoMapPicker } from '../../components/KakaoMapPicker';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
@@ -131,8 +131,9 @@ export default function WriteScreen() {
   const [locationInput, setLocationInput] = useState('');
   const [prevLocations, setPrevLocations] = useState<string[]>([]); // 이전 장소 추천
   const [mapPickerOpen, setMapPickerOpen] = useState(false); // 지도+검색 통합 시트
-  const [photoUrls, setPhotoUrls] = useState<string[]>([]); // 업로드 완료된 /files/... 경로
-  const [repPhotoUrl, setRepPhotoUrl] = useState<string | null>(null); // 그날 대표 사진(탭해 별표)
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]); // 업로드 완료된 /files/... 경로(커플 공용)
+  // 각 사진 소유(bare url → 'me'|'partner'). 인당 3장 제한·삭제권한 구분용. 미기록=내 새 업로드.
+  const [photoAuthors, setPhotoAuthors] = useState<Record<string, 'me' | 'partner'>>({});
   const [uploading, setUploading] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
@@ -173,7 +174,6 @@ export default function WriteScreen() {
       try {
         const detail: DayDetail = await entryApi.detail(dateStr);
         const mine = detail.myEntry;
-        if (detail.repPhotoUrl) setRepPhotoUrl(detail.repPhotoUrl); // 그날 대표 사진 프리필(별표)
         // 다녀온 장소는 커플 공유 목록 — 내가 안 썼어도 상대가 넣은 게 항상 보인다.
         const shared = detail.places ?? [];
         setLocations(shared.map((p) => p.name));
@@ -182,8 +182,15 @@ export default function WriteScreen() {
             .filter((p) => p.lat != null && p.lng != null)
             .map((p) => ({ name: p.name, lat: p.lat as number, lng: p.lng as number, category: p.category ?? undefined }))
         );
-        // 사진도 커플 공용 — 상대가 올린 것까지 합쳐 항상 로드.
-        setPhotoUrls((detail.photos ?? []).map((p) => p.url).filter((u): u is string => !!u));
+        // 사진도 커플 공용 — 상대가 올린 것까지 합쳐 항상 로드하고, 소유(내/상대)를 기록.
+        const sharedPhotos = (detail.photos ?? []).filter((p): p is typeof p & { url: string } => !!p.url);
+        setPhotoUrls(sharedPhotos.map((p) => p.url));
+        const myAid = mine?.authorId;
+        const authors: Record<string, 'me' | 'partner'> = {};
+        for (const p of sharedPhotos) {
+          authors[bareUrl(p.url)] = myAid != null && p.authorId === myAid ? 'me' : 'partner';
+        }
+        setPhotoAuthors(authors);
         if (mine) {
           // 수정 진입: editable=false면 작성 화면 대신 안내
           if (!mine.editable) {
@@ -262,6 +269,14 @@ export default function WriteScreen() {
       setLocations(d.locations ?? []);
       setLocationPoints(d.locationPoints ?? []);
       setPhotoUrls(d.photoUrls ?? []);
+      // 내 사진 소유 복원(기록 없으면 새 업로드=내 것으로 간주됨).
+      if (d.myPhotoBares && d.myPhotoBares.length > 0) {
+        const authors: Record<string, 'me' | 'partner'> = {};
+        for (const u of d.photoUrls ?? []) {
+          authors[bareUrl(u)] = d.myPhotoBares.includes(bareUrl(u)) ? 'me' : 'partner';
+        }
+        setPhotoAuthors(authors);
+      }
       setPickedIds(d.pickedIds ?? []);
     })();
   }, [loadingDetail, editExpired, dateStr]);
@@ -269,7 +284,8 @@ export default function WriteScreen() {
   // ── 초안 저장: 작성 중(form) 상태를 debounce로 기기에 저장 ──
   useEffect(() => {
     if (!hydratedRef.current || step !== 'form') return;
-    const draft = { step, mode, answers, scenes, mood, locations, locationPoints, photoUrls, pickedIds, savedAt: Date.now() };
+    const myPhotoBares = photoUrls.filter((u) => (photoAuthors[bareUrl(u)] ?? 'me') === 'me').map((u) => bareUrl(u));
+    const draft = { step, mode, answers, scenes, mood, locations, locationPoints, photoUrls, myPhotoBares, pickedIds, savedAt: Date.now() };
     if (!draftHasContent(draft)) return;
     const t = setTimeout(() => void saveDraft(dateStr, draft), 600);
     return () => clearTimeout(t);
@@ -355,9 +371,24 @@ export default function WriteScreen() {
     });
   }
 
-  /** 갤러리에서 이미지 선택 → 서버 업로드 → url 목록에 추가. */
+  // 내가 올린 사진 수(미기록=내 새 업로드로 간주). 인당 최대 3장.
+  const myPhotoCount = photoUrls.filter((u) => (photoAuthors[bareUrl(u)] ?? 'me') === 'me').length;
+  const canAddPhoto = !uploading && myPhotoCount < 3 && photoUrls.length < 6;
+
+  /** 내가 올린 사진만 삭제(상대 사진은 여기서 못 지움). */
+  function deleteMyPhoto(url: string) {
+    const bare = bareUrl(url);
+    setPhotoUrls((prev) => prev.filter((u) => bareUrl(u) !== bare));
+    setPhotoAuthors((prev) => {
+      const next = { ...prev };
+      delete next[bare];
+      return next;
+    });
+  }
+
+  /** 갤러리에서 이미지 선택 → 서버 업로드 → url 목록에 추가(내 사진, 인당 3장 제한). */
   async function pickAndUploadPhoto() {
-    if (photoUrls.length >= 6 || uploading) return;
+    if (!canAddPhoto) return;
     try {
       if (Platform.OS !== 'web') {
         const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -394,6 +425,7 @@ export default function WriteScreen() {
       }
       const { url } = await uploadPhoto(up);
       setPhotoUrls((prev) => [...prev, url]);
+      setPhotoAuthors((prev) => ({ ...prev, [bareUrl(url)]: 'me' }));
     } catch (e) {
       showAlert('사진 업로드에 실패했어요', errorMessage(e, '연결을 확인하고 다시 시도해 주세요.'));
     } finally {
@@ -501,7 +533,6 @@ export default function WriteScreen() {
         const pt = locationPoints.find((p) => p.name === name);
         return pt ? { name, lat: pt.lat, lng: pt.lng, category: pt.category } : { name };
       }),
-      repPhotoUrl: photoUrls.length > 0 ? (repPhotoUrl ?? photoUrls[0]) : undefined,
       mood: mood ?? undefined,
     };
 
@@ -573,21 +604,30 @@ export default function WriteScreen() {
               {curStep === 'mood' ? (
                 <>
                   <Text style={styles.stepTitle}>오늘 기분 어땠어?</Text>
-                  <View style={[styles.moodRow, { marginTop: spacing.md }]}>
-                    {MOODS.map((m) => {
-                      const on = mood === m.key;
-                      const MIcon = m.Icon;
-                      return (
-                        <Pressable
-                          key={m.key}
-                          onPress={() => { setMood(m.key); setError(null); }}
-                          style={[styles.moodItem, on && [styles.moodSelected, { borderColor: c.primary }]]}
-                        >
-                          <MIcon size={26} color={on ? c.primary : colors.subText} strokeWidth={1.7} style={styles.moodIcon} />
-                        </Pressable>
-                      );
-                    })}
-                  </View>
+                  {MOOD_CATS.map((ct) => (
+                    <View key={ct.cat}>
+                      <Text style={styles.moodCatLabel}>{ct.label}</Text>
+                      <View style={styles.moodCatRow}>
+                        {MOODS.filter((m) => m.cat === ct.cat).map((m) => {
+                          const on = mood === m.key;
+                          const MIcon = m.Icon;
+                          return (
+                            <Pressable
+                              key={m.key}
+                              onPress={() => { setMood(m.key); setError(null); }}
+                              style={[
+                                styles.moodChip,
+                                on && { borderColor: c.primary, backgroundColor: `${c.primary}14` },
+                              ]}
+                            >
+                              <MIcon size={20} color={on ? c.primary : colors.subText} strokeWidth={1.7} style={styles.moodIcon} />
+                              <Text style={[styles.moodChipLabel, on && { color: c.primary, fontWeight: '700' }]}>{m.label}</Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  ))}
                 </>
               ) : null}
 
@@ -625,35 +665,52 @@ export default function WriteScreen() {
                 </>
               ) : null}
 
-              {/* 3) 사진(선택) */}
+              {/* 3) 사진(선택) — 필름 스트립. 커플 공용, 인당 최대 3장/총 6장. */}
               {curStep === 'photo' ? (
                 <>
                   <Text style={styles.stepTitle}>오늘의 사진</Text>
                   <Text style={styles.stepSub}>
-                    {photoUrls.length > 0 ? '사진을 탭해 대표 사진(⭐)을 정해요' : '선택이에요 · 넘어가도 돼요'}
+                    {photoUrls.length > 0
+                      ? `오늘을 담은 순간들 · 내 사진 ${myPhotoCount}/3`
+                      : '선택이에요 · 넘어가도 돼요'}
                   </Text>
-                  <View style={styles.photoRow}>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.filmStrip}
+                    keyboardShouldPersistTaps="handled"
+                  >
                     {photoUrls.map((u, i) => {
-                      const isRep = bareUrl(repPhotoUrl ?? photoUrls[0]) === bareUrl(u);
+                      const mineOwn = (photoAuthors[bareUrl(u)] ?? 'me') === 'me';
                       return (
-                        <Pressable key={u + i} onPress={() => setRepPhotoUrl(u)} style={styles.photoItem}>
-                          <PhotoThumb url={u} seed={u} size={72} round={false} />
-                          <View style={[styles.repStar, isRep && { backgroundColor: c.primary }]}>
-                            <Icon name={isRep ? 'star' : 'star-outline'} size={13} color={colors.white} />
-                          </View>
-                        </Pressable>
+                        <View key={u + i} style={styles.filmCard}>
+                          <PhotoThumb url={u} seed={u} size={148} round={false} />
+                          {mineOwn ? (
+                            <Pressable onPress={() => deleteMyPhoto(u)} style={styles.filmDel} hitSlop={6}>
+                              <Icon name="close" size={15} color={colors.white} />
+                            </Pressable>
+                          ) : (
+                            <View style={styles.filmPartner}>
+                              <Icon name="person" size={11} color={colors.white} />
+                            </View>
+                          )}
+                        </View>
                       );
                     })}
                     {uploading ? (
-                      <View style={styles.addPhoto}>
+                      <View style={styles.filmAdd}>
                         <ActivityIndicator color={c.primary} />
                       </View>
-                    ) : photoUrls.length < 6 ? (
-                      <Pressable onPress={pickAndUploadPhoto} style={styles.addPhoto}>
-                        <Icon name="add" size={30} color={colors.coralSoft} />
+                    ) : canAddPhoto ? (
+                      <Pressable onPress={pickAndUploadPhoto} style={styles.filmAdd}>
+                        <Icon name="add" size={30} color={c.primary} />
+                        <Text style={[styles.filmAddText, { color: c.primary }]}>추가</Text>
                       </Pressable>
                     ) : null}
-                  </View>
+                  </ScrollView>
+                  {myPhotoCount >= 3 ? (
+                    <Text style={styles.photoCapHint}>내 사진은 최대 3장까지 담을 수 있어요</Text>
+                  ) : null}
                 </>
               ) : null}
 
@@ -662,40 +719,15 @@ export default function WriteScreen() {
                 <>
                   <Text style={styles.stepTitle}>어디 다녀왔어?</Text>
                   <Text style={styles.stepSub}>선택이에요 · 넘어가도 돼요</Text>
-                  {locations.length > 0 ? (
-                    <>
-                      <View style={[styles.placeList, { marginTop: spacing.sm }]}>
-                        {locations.map((loc) => (
-                          <SwipeDeleteRow key={loc} label={loc} onDelete={() => removeLocation(loc)} tint={c.primary} />
-                        ))}
-                      </View>
-                      <Text style={styles.swipeHint}>← 왼쪽으로 밀어 삭제해요</Text>
-                    </>
-                  ) : null}
-                  <Pressable style={[styles.mapSearchBtn, { borderColor: c.primary }]} onPress={() => setMapPickerOpen(true)}>
-                    <Icon name="map" size={18} color={c.primary} />
-                    <Text style={[styles.mapSearchText, { color: c.primary }]}>지도에서 장소 찾기</Text>
+                  {/* 검색 먼저: 지도/검색으로 장소 찾기 */}
+                  <Pressable style={[styles.placeSearch, { borderColor: c.primary }]} onPress={() => setMapPickerOpen(true)}>
+                    <Icon name="search" size={18} color={c.primary} />
+                    <Text style={styles.placeSearchText}>장소 검색 (성수동 · 대림창고…)</Text>
                   </Pressable>
-                  <View style={styles.locationRow}>
-                    <Icon name="add-circle-outline" size={18} color={colors.subText} />
-                    <TextInput
-                      value={locationInput}
-                      onChangeText={setLocationInput}
-                      onSubmitEditing={() => addLocation(locationInput)}
-                      returnKeyType="done"
-                      placeholder="직접 입력 (예: 성수동 · 대림창고)"
-                      placeholderTextColor={colors.placeholder}
-                      style={styles.locationInput}
-                    />
-                    {locationInput.trim() ? (
-                      <Pressable onPress={() => addLocation(locationInput)} hitSlop={8}>
-                        <Icon name="checkmark-circle" size={24} color={c.primary} />
-                      </Pressable>
-                    ) : null}
-                  </View>
+                  {/* 최근 함께 간 곳: 원탭 추가 */}
                   {prevLocations.filter((l) => !locations.includes(l)).length > 0 ? (
                     <>
-                      <Text style={styles.prevLocLabel}>이전 장소</Text>
+                      <Text style={styles.prevLocLabel}>최근 함께 간 곳 · 탭해서 추가</Text>
                       <View style={styles.chipWrap}>
                         {prevLocations
                           .filter((l) => !locations.includes(l))
@@ -705,6 +737,36 @@ export default function WriteScreen() {
                             </Pressable>
                           ))}
                       </View>
+                    </>
+                  ) : null}
+                  {/* 직접 입력(보조) */}
+                  <View style={styles.locationRow}>
+                    <Icon name="add-circle-outline" size={18} color={colors.subText} />
+                    <TextInput
+                      value={locationInput}
+                      onChangeText={setLocationInput}
+                      onSubmitEditing={() => addLocation(locationInput)}
+                      returnKeyType="done"
+                      placeholder="여기 없으면 직접 입력"
+                      placeholderTextColor={colors.placeholder}
+                      style={styles.locationInput}
+                    />
+                    {locationInput.trim() ? (
+                      <Pressable onPress={() => addLocation(locationInput)} hitSlop={8}>
+                        <Icon name="checkmark-circle" size={24} color={c.primary} />
+                      </Pressable>
+                    ) : null}
+                  </View>
+                  {/* 담은 곳 라인 리스트(← 밀어서 삭제) */}
+                  {locations.length > 0 ? (
+                    <>
+                      <Text style={styles.prevLocLabel}>담은 곳 ({locations.length})</Text>
+                      <View style={styles.placeList}>
+                        {locations.map((loc) => (
+                          <SwipeDeleteRow key={loc} label={loc} onDelete={() => removeLocation(loc)} tint={c.primary} />
+                        ))}
+                      </View>
+                      <Text style={styles.swipeHint}>← 왼쪽으로 밀어 삭제해요</Text>
                     </>
                   ) : null}
                   <Card style={styles.lockNote}>
@@ -959,50 +1021,50 @@ function FreePickForm({
 } & SceneProps) {
   const c = useColors();
   return (
-    <Card style={{ marginTop: spacing.lg }}>
+    <View style={{ marginTop: spacing.md }}>
       <View style={styles.formHeadingRow}>
         <Icon name="help-circle-outline" size={18} color={colors.text} />
-        <Text style={styles.formHeading}>질문 3개 고르기 ({picked.length}/3)</Text>
+        <Text style={styles.formHeading}>누르면 그 자리에서 바로 써요 ({picked.length}/3)</Text>
       </View>
       {questions.length === 0 ? (
         <Text style={styles.error}>질문을 불러오지 못했어요</Text>
       ) : null}
-      <View style={styles.chipWrap}>
-        {questions.map((q) => {
-          const id = String(q.id);
-          const on = picked.includes(id);
-          return (
-            <Pressable key={id} onPress={() => onToggle(id)} style={[styles.chip, on && [styles.chipOn, { backgroundColor: c.primary, borderColor: c.primary }]]}>
-              <Text style={[styles.chipText, on && { color: colors.white }]}>{q.text}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {picked.map((id, i) => {
-        const q = questions.find((x) => String(x.id) === id);
-        if (!q) return null;
+      {/* 리스트 아코디언: 질문 탭 = 선택 + 그 자리 입력 펼침. 최대 3개. */}
+      {questions.map((q) => {
+        const id = String(q.id);
+        const on = picked.includes(id);
+        const atMax = !on && picked.length >= 3;
         return (
-          <View key={id} style={styles.formDivider}>
-            <Text style={[styles.promptLabel, { color: c.primary }]}>Q{i + 1}. {q.text}</Text>
-            {isSceneQuestion(q.text) ? (
-              <SceneInputs
-                rows={sceneRows(id)}
-                onChange={(idx, t) => onSceneChange(id, idx, t)}
-                onAdd={() => onSceneAdd(id)}
-                onRemove={(idx) => onSceneRemove(id, idx)}
-              />
-            ) : (
-              <MultilineAnswerInput
-                value={answers[id] ?? ''}
-                onChangeText={(t) => onChange(id, t)}
-                placeholder="답을 적어봐..."
-              />
-            )}
+          <View key={id} style={[styles.accCard, on && { borderColor: c.primary }]}>
+            <Pressable onPress={() => onToggle(id)} style={styles.accHead} disabled={atMax}>
+              <View style={[styles.accCheck, on && { backgroundColor: c.primary, borderColor: c.primary }]}>
+                {on ? <Icon name="checkmark" size={13} color={colors.white} /> : null}
+              </View>
+              <Text style={[styles.accText, atMax && { color: colors.placeholder }]} numberOfLines={2}>{q.text}</Text>
+              <Icon name={on ? 'chevron-down' : 'chevron-forward'} size={18} color={colors.subText} />
+            </Pressable>
+            {on ? (
+              <View style={styles.accBody}>
+                {isSceneQuestion(q.text) ? (
+                  <SceneInputs
+                    rows={sceneRows(id)}
+                    onChange={(idx, t) => onSceneChange(id, idx, t)}
+                    onAdd={() => onSceneAdd(id)}
+                    onRemove={(idx) => onSceneRemove(id, idx)}
+                  />
+                ) : (
+                  <MultilineAnswerInput
+                    value={answers[id] ?? ''}
+                    onChangeText={(t) => onChange(id, t)}
+                    placeholder="여기에 적어줘..."
+                  />
+                )}
+              </View>
+            ) : null}
           </View>
         );
       })}
-    </Card>
+    </View>
   );
 }
 
@@ -1046,22 +1108,24 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sectionLabel: { ...font.title },
-  // 12개 → 6열 2줄 그리드.
-  moodRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: spacing.sm },
-  moodItem: {
-    width: '15%',
-    aspectRatio: 1,
-    borderRadius: radius.md,
-    backgroundColor: colors.card,
+  // 기분 24개 — 좋아/차분/힘들어 카테고리별 아이콘+라벨 칩.
+  moodCatLabel: { ...font.label, color: colors.subText, marginTop: spacing.md, marginBottom: spacing.sm },
+  moodCatRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  moodChip: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
-    ...shadow,
+    gap: 5,
+    paddingVertical: 8,
+    paddingLeft: 10,
+    paddingRight: 13,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+    borderWidth: 1.5,
+    borderColor: colors.border,
   },
-  moodSelected: { borderColor: colors.primary },
-  // Tabler mood 아이콘이 칸에서 살짝 아래로 보여 광학 보정(위로 2px).
-  moodIcon: { transform: [{ translateY: -2 }] },
+  moodChipLabel: { ...font.body, fontSize: 14, color: colors.text },
+  // Tabler mood 아이콘이 살짝 아래로 보여 광학 보정(위로 1px).
+  moodIcon: { transform: [{ translateY: -1 }] },
 
   formHeadingRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.md },
   formHeading: { ...font.title },
@@ -1134,43 +1198,81 @@ const styles = StyleSheet.create({
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { ...font.caption, color: colors.text },
 
-  repHint: { ...font.caption, color: colors.subText, marginBottom: spacing.sm },
-  photoItem: { position: 'relative' },
-  repStar: {
+  // 이야기 단계 아코디언(탭=선택=그자리 입력)
+  accCard: {
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.card,
+    marginBottom: spacing.sm,
+    overflow: 'hidden',
+  },
+  accHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 13, paddingHorizontal: spacing.md },
+  accCheck: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  accText: { ...font.body, color: colors.text, flex: 1, fontWeight: '600' },
+  accBody: { paddingHorizontal: spacing.md, paddingBottom: spacing.md, paddingTop: 2 },
+
+  // 사진 단계 — 필름 스트립
+  filmStrip: { flexDirection: 'row', gap: spacing.sm, paddingVertical: spacing.xs, paddingRight: spacing.md },
+  filmCard: { position: 'relative', borderRadius: radius.md, overflow: 'hidden' },
+  filmDel: {
     position: 'absolute',
-    top: 4,
-    right: 4,
+    top: 6,
+    left: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(90,64,56,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filmPartner: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(90,64,56,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  addPhoto: {
-    width: 72,
-    height: 72,
+  filmAdd: {
+    width: 100,
+    height: 148,
     borderRadius: radius.md,
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: colors.coralSoft,
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 4,
     backgroundColor: colors.card,
   },
-  mapSearchBtn: {
-    marginTop: spacing.md,
+  filmAddText: { ...font.label },
+  photoCapHint: { ...font.caption, color: colors.subText, marginTop: spacing.sm },
+
+  // 장소 단계 — 검색 먼저
+  placeSearch: {
+    marginTop: spacing.xs,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: spacing.sm,
-    height: 48,
+    height: 52,
     borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
+    borderWidth: 2,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.card,
   },
-  mapSearchText: { ...font.body, fontWeight: '700' },
+  placeSearchText: { ...font.body, color: colors.placeholder, flex: 1 },
   locationRow: {
     marginTop: spacing.sm,
     flexDirection: 'row',

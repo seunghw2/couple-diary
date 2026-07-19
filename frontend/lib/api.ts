@@ -229,6 +229,8 @@ export type PhotoView = {
   colorSeed: string;
   /** 실제 업로드된 이미지 상대경로(/files/...). 없으면 colorSeed 그라데이션 폴백. */
   url?: string;
+  /** 이 사진을 올린 사람(entry author) id. 내 사진/상대 사진 구분·인당 장수 제한용. */
+  authorId?: number | null;
 };
 
 /** 한 사람이 쓴 일기 본문 (OPEN 상태). */
