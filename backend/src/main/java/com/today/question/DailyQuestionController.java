@@ -54,6 +54,14 @@ public class DailyQuestionController {
         return questionService.answer(SecurityUtil.currentUserId(), req.text());
     }
 
+    /** 봉인 대기(pending) 지난 편지에 답장(상대가 먼저 답해 나를 기다리는 편지). 답하면 즉시 열림. */
+    @PostMapping("/pending/{date}/answer")
+    public TodayResponse answerPending(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @Valid @RequestBody AnswerRequest req) {
+        return questionService.answerPending(SecurityUtil.currentUserId(), date, req.text());
+    }
+
     /** 오늘의 편지에 댓글 추가(date 생략 시 오늘). 열린 편지에만 가능. */
     @PostMapping("/comment")
     public CommentView addComment(@Valid @RequestBody CommentRequest req) {

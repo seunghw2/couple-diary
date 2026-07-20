@@ -80,11 +80,15 @@ public class QuestionService {
         LocalTime arrivalT = setting.getArrivalTime();
         String arrival = arrivalT.format(HM);
 
+        // 아직 답 기다리는 지난 편지(한 명만 답해 봉인 대기, 내 차례) — 배너용. 오늘 상태와 무관하게 항상 계산.
+        List<PendingLetter> pending = pendingLettersFor(couple, userId);
+
         // 현재 기간 질문 보장(마감=저장된 deadline 기준). 첫 도착 전이면 빈 리스트.
         List<DailyQuestion> todays = ensureCurrentPeriod(couple, arrivalT);
         if (todays.isEmpty()) {
             LocalDate d = effectiveDate(arrivalT);
-            return base(d, "BEFORE_ARRIVAL", arrival, computeStreak(couple.getId(), d), false).build();
+            return base(d, "BEFORE_ARRIVAL", arrival, computeStreak(couple.getId(), d), false)
+                    .pendingLetters(pending).build();
         }
         LocalDate today = todays.get(0).getDate();
         int streak = computeStreak(couple.getId(), today);
@@ -101,6 +105,7 @@ public class QuestionService {
                     .toList();
             return base(today, "NEEDS_CHOICE", arrival, streak, missedYesterday)
                     .choices(choices)
+                    .pendingLetters(pending)
                     .build();
         }
 
@@ -119,6 +124,7 @@ public class QuestionService {
         boolean partnerSealed = partnerAns != null && partnerAns.getSealedAt() != null;
 
         var builder = base(today, null, arrival, streak, missedYesterday)
+                .pendingLetters(pending)
                 .question(qv)
                 .chosenBy(chosenByPerson)
                 .chosenByMe(chosenByMe);
@@ -253,6 +259,44 @@ public class QuestionService {
             }
         }
 
+        return today(userId);
+    }
+
+    /**
+     * 봉인 대기(pending) 지난 편지에 답장. 상대가 먼저 답해 나를 기다리는 편지에만 허용.
+     * 마감 여부와 무관하게 답할 수 있고, 답하면 즉시 양쪽 편지가 열린다.
+     */
+    @Transactional
+    public TodayResponse answerPending(Long userId, LocalDate date, String rawText) {
+        Couple couple = coupleRepository.findByMember(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.COUPLE_NOT_FOUND));
+        User me = memberOf(couple, userId);
+        User partner = partnerOf(couple, userId);
+
+        DailyQuestion chosen = dailyQuestionRepository
+                .findByCouple_IdAndDateAndChosenTrue(couple.getId(), date)
+                .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT));
+
+        if (bothSealed(chosen)) throw new ApiException(ErrorCode.INVALID_INPUT); // 이미 열림
+        QuestionAnswer mine = answerRepository
+                .findByDailyQuestion_IdAndAuthor_Id(chosen.getId(), userId).orElse(null);
+        if (mine != null && mine.getSealedAt() != null) throw new ApiException(ErrorCode.INVALID_INPUT); // 내가 이미 답함
+        boolean partnerSealed = partner != null && answerRepository
+                .findByDailyQuestion_IdAndAuthor_Id(chosen.getId(), partner.getId())
+                .map(a -> a.getSealedAt() != null).orElse(false);
+        if (!partnerSealed) throw new ApiException(ErrorCode.INVALID_INPUT); // pending(상대 먼저 답) 상태가 아님
+
+        String text = rawText == null ? "" : rawText.trim();
+        if (text.isEmpty() || text.length() > 2000) throw new ApiException(ErrorCode.INVALID_INPUT);
+
+        if (mine != null) {
+            mine.setText(text);
+            mine.setSealedAt(LocalDateTime.now());
+        } else {
+            answerRepository.save(QuestionAnswer.builder()
+                    .dailyQuestion(chosen).author(me).text(text).sealedAt(LocalDateTime.now()).build());
+        }
+        notificationService.onQuestionOpened(me, partner, date); // 둘 다 봉인 → 편지 열림
         return today(userId);
     }
 
@@ -606,8 +650,10 @@ public class QuestionService {
                 .map(DailyQuestion::getDate)
                 .ifPresent(prevDate -> {
                     List<DailyQuestion> prevPeriod = dailyQuestionRepository.findByCouple_IdAndDate(couple.getId(), prevDate);
-                    boolean opened = prevPeriod.stream().anyMatch(dq -> dq.isChosen() && bothSealed(dq));
-                    if (!opened) {
+                    DailyQuestion prevChosen = prevPeriod.stream().filter(DailyQuestion::isChosen).findFirst().orElse(null);
+                    long sealed = prevChosen == null ? 0 : sealedCount(prevChosen);
+                    // 아무도 답하지 않았을 때(0)만 '편지가 지나갔어요'. 한 명이라도 답했으면(1) 봉인 대기로 유지 → 알림 없음.
+                    if (sealed == 0) {
                         notificationService.onQuestionMissed(couple.getUser1(), couple.getUser2(), prevDate);
                     }
                 });
@@ -928,14 +974,35 @@ public class QuestionService {
         LocalDate yesterday = today.minusDays(1);
         return dailyQuestionRepository
                 .findByCouple_IdAndDateAndChosenTrue(coupleId, yesterday)
-                .map(dq -> !bothSealed(dq))
+                .map(dq -> sealedCount(dq) == 0) // 아무도 답 안 했을 때만 '지나감'(한 명 답=봉인 대기)
                 .orElse(false);
     }
 
     private boolean bothSealed(DailyQuestion dq) {
-        List<QuestionAnswer> answers = answerRepository.findByDailyQuestion_Id(dq.getId());
-        long sealed = answers.stream().filter(a -> a.getSealedAt() != null).count();
-        return sealed >= 2;
+        return sealedCount(dq) >= 2;
+    }
+
+    /** 봉인된 답장 수(0/1/2). */
+    private long sealedCount(DailyQuestion dq) {
+        return answerRepository.findByDailyQuestion_Id(dq.getId()).stream()
+                .filter(a -> a.getSealedAt() != null).count();
+    }
+
+    /**
+     * 아직 답 기다리는 지난 편지(내 차례). 한 명만 봉인한 pending 편지 중,
+     * 내가 아직 답하지 않은 것만(상대가 먼저 답해 나를 기다리는 편지) 배너에 노출.
+     */
+    private List<PendingLetter> pendingLettersFor(Couple couple, Long userId) {
+        List<DailyQuestion> pend = dailyQuestionRepository.findPendingLetters(couple.getId(), LocalDateTime.now(KST));
+        List<PendingLetter> out = new ArrayList<>();
+        for (DailyQuestion dq : pend) {
+            QuestionAnswer mine = answerRepository
+                    .findByDailyQuestion_IdAndAuthor_Id(dq.getId(), userId).orElse(null);
+            if (mine != null && mine.getSealedAt() != null) continue; // 내가 이미 답함 → 상대 대기(배너 제외)
+            String nick = dq.getChosenBy() == null ? null : dq.getChosenBy().getNickname();
+            out.add(new PendingLetter(dq.getDate().toString(), dq.displayText(), nick));
+        }
+        return out;
     }
 
     private String milestoneLabel(int totalOpened) {
@@ -1001,6 +1068,7 @@ public class QuestionService {
         private int streak;
         private Boolean missedYesterday;
         private List<CommentView> comments;
+        private List<PendingLetter> pendingLetters = List.of();
 
         TodayResponseBuilder date(String v) { this.date = v; return this; }
         TodayResponseBuilder state(String v) { this.state = v; return this; }
@@ -1016,11 +1084,12 @@ public class QuestionService {
         TodayResponseBuilder streak(int v) { this.streak = v; return this; }
         TodayResponseBuilder missedYesterday(Boolean v) { this.missedYesterday = v; return this; }
         TodayResponseBuilder comments(List<CommentView> v) { this.comments = v; return this; }
+        TodayResponseBuilder pendingLetters(List<PendingLetter> v) { this.pendingLetters = v; return this; }
 
         TodayResponse build() {
             return new TodayResponse(date, state, arrivalTime, true, choices, question,
                     chosenBy, chosenByMe, myAnswer, myAnswerEditable, partnerAnswer, partnerSealed, streak,
-                    missedYesterday, comments);
+                    missedYesterday, comments, pendingLetters);
         }
     }
 }

@@ -1,14 +1,27 @@
 package com.today.question;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface DailyQuestionRepository extends JpaRepository<DailyQuestion, Long> {
 
     List<DailyQuestion> findByCouple_IdAndDate(Long coupleId, LocalDate date);
+
+    /**
+     * 봉인 대기(pending) 편지: chosen이고 마감이 지났는데 봉인된 답이 정확히 1개인 것.
+     * (한 명만 답장 → 지나가지 않고 계속 봉인. 상대가 답하면 열림.) 날짜 내림차순.
+     */
+    @Query("select dq from DailyQuestion dq where dq.couple.id = :coupleId and dq.chosen = true "
+            + "and dq.deadline is not null and dq.deadline < :now "
+            + "and (select count(a) from QuestionAnswer a where a.dailyQuestion = dq and a.sealedAt is not null) = 1 "
+            + "order by dq.date desc")
+    List<DailyQuestion> findPendingLetters(@Param("coupleId") Long coupleId, @Param("now") LocalDateTime now);
 
     boolean existsByCouple_Id(Long coupleId);
 

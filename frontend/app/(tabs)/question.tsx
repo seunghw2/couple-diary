@@ -162,6 +162,30 @@ export default function QuestionScreen() {
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />}
       >
+        {/* 아직 답 기다리는 지난 편지(한 명만 답해 봉인 대기, 내 차례) — 오늘 편지 위 배너 */}
+        {today.coupled && (today.pendingLetters?.length ?? 0) > 0 ? (
+          <Pressable
+            style={[styles.pendingBanner, { borderColor: c.primary }]}
+            onPress={() => {
+              const pl = today.pendingLetters![0];
+              router.push({ pathname: '/question/write', params: { date: pl.date, q: pl.questionText } });
+            }}
+          >
+            <View style={[styles.pendingIcon, { backgroundColor: c.primary }]}>
+              <Icon name="mail-unread" size={18} color={colors.white} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.pendingTitle}>
+                아직 답 기다리는 편지 {today.pendingLetters!.length}통
+              </Text>
+              <Text style={styles.pendingSub} numberOfLines={1}>
+                {today.pendingLetters![0].questionText}
+              </Text>
+            </View>
+            <Text style={[styles.pendingCta, { color: c.primary }]}>답장하기</Text>
+          </Pressable>
+        ) : null}
+
         {/* 미연결 */}
         {!today.coupled ? (
           <Card style={styles.stateCard}>
@@ -547,6 +571,23 @@ const styles = StyleSheet.create({
   emptyText: { ...font.body, color: colors.subText, textAlign: 'center' },
 
   // 상태 카드(안내형)
+  // 답 기다리는 지난 편지 배너
+  pendingBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.card,
+    borderWidth: 1.5,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+  },
+  pendingIcon: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  pendingTitle: { ...font.body, fontWeight: '800', color: colors.text },
+  pendingSub: { ...font.caption, color: colors.subText, marginTop: 2 },
+  pendingCta: { ...font.label, fontWeight: '800' },
+
   stateCard: { alignItems: 'center', paddingVertical: spacing.xxl, marginTop: spacing.lg },
   stateTitle: { ...font.h2, marginTop: spacing.md, textAlign: 'center' },
   stateBody: { ...font.body, color: colors.subText, textAlign: 'center', marginTop: spacing.sm, lineHeight: 21 },

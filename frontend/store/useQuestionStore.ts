@@ -15,6 +15,8 @@ type QuestionState = {
   loadToday: () => Promise<void>;
   choose: (questionId: number) => Promise<void>;
   answer: (text: string) => Promise<void>;
+  /** 봉인 대기 중인 지난 편지(date)에 답장 — 답하면 즉시 열림. */
+  answerPending: (date: string, text: string) => Promise<void>;
   /** 오늘 열린 편지에 댓글 달기. 성공 시 today.comments에 낙관적 추가. */
   comment: (text: string) => Promise<void>;
   /** API 응답으로 today/hasTodo를 한 번에 갱신(choose/answer 결과 반영). */
@@ -46,6 +48,11 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
 
   answer: async (text) => {
     const today = await dailyQuestionApi.answer(text);
+    get().setFromResponse(today);
+  },
+
+  answerPending: async (date, text) => {
+    const today = await dailyQuestionApi.answerPending(date, text);
     get().setFromResponse(today);
   },
 

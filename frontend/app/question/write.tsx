@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { showAlert } from '../../lib/dialog';
 import { errorMessage } from '../../lib/errors';
 import { subj } from '../../lib/josa';
@@ -25,40 +25,49 @@ const MAX_LEN = 2000;
 export default function QuestionWriteScreen() {
   const router = useRouter();
   const c = useColors();
+  // 지난 편지(pending) 답장 모드: date/q 파라미터가 오면 그 편지에 답한다.
+  const { date: pendingDate, q: pendingQ } = useLocalSearchParams<{ date?: string; q?: string }>();
+  const isPending = !!pendingDate;
+
   const today = useQuestionStore((s) => s.today);
   const loading = useQuestionStore((s) => s.loading);
   const loadToday = useQuestionStore((s) => s.loadToday);
   const answer = useQuestionStore((s) => s.answer);
+  const answerPending = useQuestionStore((s) => s.answerPending);
 
   const [text, setText] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // 내 답장이 이미 있으면 '수정' 모드.
-  const isEdit = !!today?.myAnswer?.text;
+  // 내 답장이 이미 있으면 '수정' 모드(오늘 편지에서만). pending은 항상 새 답장.
+  const isEdit = !isPending && !!today?.myAnswer?.text;
+  const questionText = isPending ? (pendingQ ?? '') : (today?.question?.text ?? '');
 
   // 진입 시 최신 상태 확인.
   useEffect(() => {
     loadToday();
   }, [loadToday]);
 
-  // 답장 쓰기(NEEDS_ANSWER)도 아니고 내 답장(수정)도 없으면 뒤로.
+  // (오늘 편지 모드) 답장 쓰기(NEEDS_ANSWER)도 아니고 내 답장(수정)도 없으면 뒤로.
   useEffect(() => {
+    if (isPending) return;
     if (!loading && today && today.state !== 'NEEDS_ANSWER' && !today.myAnswer) {
       router.back();
     }
-  }, [loading, today, router]);
+  }, [isPending, loading, today, router]);
 
   // 수정 모드: 기존 답장 프리필(첫 로드 때만, 입력 중 값은 안 덮음).
   useEffect(() => {
+    if (isPending) return;
     const prev = today?.myAnswer?.text;
     if (prev) setText((cur) => (cur ? cur : prev));
-  }, [today?.myAnswer?.text]);
+  }, [isPending, today?.myAnswer?.text]);
 
   const chosenLine = useMemo(() => {
+    if (isPending) return '아직 답 기다리던 편지예요';
     if (!today) return '';
     if (today.chosenByMe) return '내가 고른 편지예요';
     return today.chosenBy?.nickname ? `${subj(today.chosenBy.nickname)} 고른 편지예요` : '';
-  }, [today]);
+  }, [isPending, today]);
 
   const trimmed = text.trim();
   const canSubmit = trimmed.length > 0 && !saving;
@@ -67,7 +76,8 @@ export default function QuestionWriteScreen() {
     if (!canSubmit) return;
     setSaving(true);
     try {
-      await answer(trimmed);
+      if (isPending) await answerPending(pendingDate!, trimmed);
+      else await answer(trimmed);
       router.back();
     } catch (e) {
       showAlert('답장을 보내지 못했어요', errorMessage(e, '잠시 후 다시 시도해 주세요.'));
@@ -85,7 +95,7 @@ export default function QuestionWriteScreen() {
         <View style={{ width: 28 }} />
       </View>
 
-      {!today && loading ? (
+      {!isPending && !today && loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={c.primary} size="large" />
         </View>
@@ -101,8 +111,8 @@ export default function QuestionWriteScreen() {
               <View style={[styles.letterSeal, { backgroundColor: c.primary }]}>
                 <Icon name="heart" size={16} color={colors.white} />
               </View>
-              <Text style={styles.letterLabel}>오늘의 질문</Text>
-              <Text style={styles.letterQuestion}>{today?.question?.text ?? ''}</Text>
+              <Text style={styles.letterLabel}>{isPending ? '지난 편지' : '오늘의 질문'}</Text>
+              <Text style={styles.letterQuestion}>{questionText}</Text>
               {chosenLine ? <Text style={styles.chosenLine}>{chosenLine}</Text> : null}
             </View>
 
@@ -124,7 +134,9 @@ export default function QuestionWriteScreen() {
             </View>
 
             <Text style={styles.hint}>
-              {isEdit
+              {isPending
+                ? '상대가 먼저 답한 편지예요. 답장을 보내면 바로 편지가 열려요.'
+                : isEdit
                 ? '수정한 내용으로 답장이 바뀌어요.'
                 : today?.partnerSealed
                 ? '답장을 보내면 바로 편지가 열려요.'

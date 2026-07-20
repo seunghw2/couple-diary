@@ -35,14 +35,19 @@ public class DailyQuestionDtos {
             Boolean partnerSealed,
             int streak,
             Boolean missedYesterday,
-            List<CommentView> comments
+            List<CommentView> comments,
+            /** 아직 답 기다리는 지난 편지(한 명만 답해 봉인 대기 중, 내 차례). 없으면 빈 리스트. */
+            List<PendingLetter> pendingLetters
     ) {
         /** 커플 미연결 응답. */
         public static TodayResponse notCoupled() {
             return new TodayResponse(null, null, null, false, null, null,
-                    null, null, null, null, null, null, 0, null, null);
+                    null, null, null, null, null, null, 0, null, null, null);
         }
     }
+
+    /** 봉인 대기 편지(내 차례). date로 답장 API를 호출한다. */
+    public record PendingLetter(String date, String questionText, String chosenByNickname) {}
 
     /** 선택 후보. id = QuestionPool id. */
     public record Choice(Long id, String text, int slot) {}

@@ -359,6 +359,9 @@ export type QuestionChoice = { id: number; text: string; slot: number };
 /** 확정된 오늘의 질문. */
 export type DailyQuestion = { id: number; text: string };
 
+/** 아직 답 기다리는 지난 편지(한 명만 답해 봉인 대기, 내 차례). date로 답장. */
+export type PendingLetter = { date: string; questionText: string; chosenByNickname?: string };
+
 /** 답장(내/상대 공통). sealed=봉인(내용 숨김). */
 export type QuestionAnswer = {
   id: number;
@@ -385,6 +388,8 @@ export type TodayQuestion = {
   comments?: CommentView[];
   streak: number;
   missedYesterday?: boolean;
+  /** 아직 답 기다리는 지난 편지들(내 차례). 없으면 빈 배열. 오늘 편지 위 배너로 노출. */
+  pendingLetters?: PendingLetter[];
 };
 
 /** GET /api/questions/archive 리스트 항목. */
@@ -430,6 +435,9 @@ export const dailyQuestionApi = {
   choose: (questionId: number) =>
     api.post<TodayQuestion>('/api/questions/daily/today/choose', { questionId }),
   answer: (text: string) => api.post<TodayQuestion>('/api/questions/daily/today/answer', { text }),
+  /** 봉인 대기 중인 지난 편지(date)에 답장 — 답하면 즉시 열림. */
+  answerPending: (date: string, text: string) =>
+    api.post<TodayQuestion>(`/api/questions/daily/pending/${date}/answer`, { text }),
   /** 오늘 열린 편지(또는 date 지정)에 댓글 달기. */
   comment: (text: string, date?: string) =>
     api.post<CommentView>('/api/questions/daily/comment', { date, text }),
