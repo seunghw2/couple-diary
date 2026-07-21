@@ -109,7 +109,7 @@ export default function WriteScreen() {
   const dateStr = date ?? todayISO();
 
   const [step, setStep] = useState<Step>('mode');
-  const [mode, setMode] = useState<FormMode>('TEMPLATE');
+  const [mode, setMode] = useState<FormMode>('FREE'); // 기록 방식 선택 제거 → '질문 골라 쓰기'가 기본
   const [loadingDetail, setLoadingDetail] = useState(true);
   const [editExpired, setEditExpired] = useState(false); // 내 일기 수정 가능 시간(24시간) 경과
 
@@ -219,9 +219,15 @@ export default function WriteScreen() {
           setMode('TEMPLATE');
           setModeLocked(true);
           setStep('form');
+        } else {
+          // 첫 작성자(둘 다 안 씀·모드 미정): 방식 선택 없이 바로 '질문 골라 쓰기'로 진입.
+          setMode('FREE');
+          setStep('form');
         }
       } catch {
-        // detail 없음 = 내가 먼저 쓰는 사람. 모드 선택부터.
+        // detail 없음 = 내가 먼저 쓰는 사람. 기록 방식 선택 없이 바로 '질문 골라 쓰기'로 진입.
+        setMode('FREE');
+        setStep('form');
       } finally {
         setLoadingDetail(false);
       }
@@ -397,35 +403,47 @@ export default function WriteScreen() {
           return;
         }
       }
+      // 인당 3장·총 6장 한도 내에서 한 번에 여러 장 선택 가능.
+      const remaining = Math.min(3 - myPhotoCount, 6 - photoUrls.length);
+      if (remaining <= 0) return;
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         quality: 0.7,
+        allowsMultipleSelection: true,
+        selectionLimit: remaining,
       });
       if (result.canceled || result.assets.length === 0) return;
-      const asset = result.assets[0];
+      const assets = result.assets.slice(0, remaining);
       setUploading(true);
-      // 업로드 전 리사이즈/압축 → 파일 크기를 줄여 로딩을 빠르게. (네이티브만)
-      let up = { uri: asset.uri, fileName: asset.fileName, mimeType: asset.mimeType };
-      if (Platform.OS !== 'web') {
+      let failed = 0;
+      for (const asset of assets) {
+        // 업로드 전 리사이즈/압축 → 파일 크기를 줄여 로딩을 빠르게. (네이티브만)
+        let up = { uri: asset.uri, fileName: asset.fileName, mimeType: asset.mimeType };
+        if (Platform.OS !== 'web') {
+          try {
+            const actions = asset.width && asset.width > 1440 ? [{ resize: { width: 1440 } }] : [];
+            const m = await ImageManipulator.manipulateAsync(asset.uri, actions, {
+              compress: 0.7,
+              format: ImageManipulator.SaveFormat.JPEG,
+            });
+            up = {
+              uri: m.uri,
+              fileName: (asset.fileName?.replace(/\.[^.]+$/, '') ?? `photo-${Date.now()}`) + '.jpg',
+              mimeType: 'image/jpeg',
+            };
+          } catch {
+            /* 리사이즈 실패 시 원본 업로드 */
+          }
+        }
         try {
-          const actions =
-            asset.width && asset.width > 1440 ? [{ resize: { width: 1440 } }] : [];
-          const m = await ImageManipulator.manipulateAsync(asset.uri, actions, {
-            compress: 0.7,
-            format: ImageManipulator.SaveFormat.JPEG,
-          });
-          up = {
-            uri: m.uri,
-            fileName: (asset.fileName?.replace(/\.[^.]+$/, '') ?? `photo-${Date.now()}`) + '.jpg',
-            mimeType: 'image/jpeg',
-          };
+          const { url } = await uploadPhoto(up);
+          setPhotoUrls((prev) => [...prev, url]);
+          setPhotoAuthors((prev) => ({ ...prev, [bareUrl(url)]: 'me' }));
         } catch {
-          /* 리사이즈 실패 시 원본 업로드 */
+          failed++;
         }
       }
-      const { url } = await uploadPhoto(up);
-      setPhotoUrls((prev) => [...prev, url]);
-      setPhotoAuthors((prev) => ({ ...prev, [bareUrl(url)]: 'me' }));
+      if (failed > 0) showAlert('일부 사진을 올리지 못했어요', `${failed}장은 업로드에 실패했어요. 다시 시도해 주세요.`);
     } catch (e) {
       showAlert('사진 업로드에 실패했어요', errorMessage(e, '연결을 확인하고 다시 시도해 주세요.'));
     } finally {
@@ -496,9 +514,8 @@ export default function WriteScreen() {
     if (wizardStep > 0) {
       setError(null);
       setWizardStep((s) => s - 1);
-    } else if (!fixedQuestions && !modeLocked) {
-      setStep('mode');
     } else {
+      // 기록 방식 선택 화면이 없어졌으므로 첫 단계에서 뒤로가면 화면을 닫는다.
       router.back();
     }
   }
@@ -665,26 +682,30 @@ export default function WriteScreen() {
                 </>
               ) : null}
 
-              {/* 3) 사진(선택) — 필름 스트립. 커플 공용, 인당 최대 3장/총 6장. */}
+              {/* 3) 사진(선택) — 폴라로이드 벽. 커플 공용, 인당 최대 3장/총 6장, 여러 장 한 번에. */}
               {curStep === 'photo' ? (
                 <>
                   <Text style={styles.stepTitle}>오늘의 사진</Text>
                   <Text style={styles.stepSub}>
                     {photoUrls.length > 0
-                      ? `오늘을 담은 순간들 · 내 사진 ${myPhotoCount}/3`
-                      : '선택이에요 · 넘어가도 돼요'}
+                      ? `오늘 우리 벽 · ${photoUrls.length}장 (내 사진 ${myPhotoCount}/3)`
+                      : '여기에 오늘을 붙여봐요 · 넘어가도 돼요'}
                   </Text>
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.filmStrip}
+                    contentContainerStyle={styles.wallStrip}
                     keyboardShouldPersistTaps="handled"
                   >
                     {photoUrls.map((u, i) => {
                       const mineOwn = (photoAuthors[bareUrl(u)] ?? 'me') === 'me';
+                      const tilt = (i % 3) - 1; // -1,0,1 → 살짝 기울여 붙인 느낌
                       return (
-                        <View key={u + i} style={styles.filmCard}>
-                          <PhotoThumb url={u} seed={u} size={148} round={false} />
+                        <View key={u + i} style={[styles.polaroid, { transform: [{ rotate: `${tilt * 3}deg` }] }]}>
+                          <PhotoThumb url={u} seed={u} size={132} round={false} />
+                          <Text style={[styles.polaroidCap, { color: mineOwn ? c.primary : colors.subText }]}>
+                            {mineOwn ? '내가 담은 순간' : '상대가 담은 순간'}
+                          </Text>
                           {mineOwn ? (
                             <Pressable onPress={() => deleteMyPhoto(u)} style={styles.filmDel} hitSlop={6}>
                               <Icon name="close" size={15} color={colors.white} />
@@ -698,13 +719,15 @@ export default function WriteScreen() {
                       );
                     })}
                     {uploading ? (
-                      <View style={styles.filmAdd}>
+                      <View style={[styles.polaroid, styles.polaroidAdd]}>
                         <ActivityIndicator color={c.primary} />
                       </View>
                     ) : canAddPhoto ? (
-                      <Pressable onPress={pickAndUploadPhoto} style={styles.filmAdd}>
-                        <Icon name="add" size={30} color={c.primary} />
-                        <Text style={[styles.filmAddText, { color: c.primary }]}>추가</Text>
+                      <Pressable onPress={pickAndUploadPhoto} style={[styles.polaroid, styles.polaroidAdd, { transform: [{ rotate: '2deg' }] }]}>
+                        <View style={styles.tape} />
+                        <Icon name="add" size={28} color={c.primary} />
+                        <Text style={[styles.filmAddText, { color: c.primary }]}>붙이기</Text>
+                        <Text style={styles.polaroidAddSub}>여러 장 가능</Text>
                       </Pressable>
                     ) : null}
                   </ScrollView>
@@ -1020,12 +1043,29 @@ function FreePickForm({
   onChange: (key: string, text: string) => void;
 } & SceneProps) {
   const c = useColors();
+  const shortQ = (txt: string) => (txt.length > 11 ? txt.slice(0, 11) + '…' : txt);
   return (
     <View style={{ marginTop: spacing.md }}>
-      <View style={styles.formHeadingRow}>
-        <Icon name="help-circle-outline" size={18} color={colors.text} />
-        <Text style={styles.formHeading}>누르면 그 자리에서 바로 써요 ({picked.length}/3)</Text>
+      {/* 오늘의 이야기 3칸 트레이 — 고른 질문이 슬롯에 채워져 3/3 진행감이 늘 보인다. */}
+      <View style={styles.trayRow}>
+        {[0, 1, 2].map((i) => {
+          const id = picked[i];
+          const q = id ? questions.find((x) => String(x.id) === id) : null;
+          return (
+            <View
+              key={i}
+              style={[styles.traySlot, q && { backgroundColor: `${c.primary}14`, borderColor: c.primary, borderStyle: 'solid' }]}
+            >
+              <Text style={[styles.traySlotText, q && { color: c.primary, fontWeight: '800' }]} numberOfLines={2}>
+                {q ? shortQ(q.text) : '＋'}
+              </Text>
+            </View>
+          );
+        })}
       </View>
+      <Text style={styles.trayHint}>
+        {picked.length < 3 ? `마음이 가는 이야기를 3개 골라요 · ${picked.length}/3` : '오늘 이야기 다 골랐어요 ✍️'}
+      </Text>
       {questions.length === 0 ? (
         <Text style={styles.error}>질문을 불러오지 못했어요</Text>
       ) : null}
@@ -1134,13 +1174,38 @@ const styles = StyleSheet.create({
   promptLabel: { ...font.label, color: colors.primary },
   multiInput: {
     ...font.body,
-    minHeight: 48,
+    minHeight: 56,
     textAlignVertical: 'top',
     color: colors.text,
-    lineHeight: 21,
-    paddingTop: 8,
+    lineHeight: 22,
+    // 편지지 느낌: 따뜻한 종이 배경 + 라운드 + 안쪽 여백.
+    backgroundColor: '#FFFCF6',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingHorizontal: spacing.md,
   },
   requiredHint: { ...font.caption, color: colors.danger, marginTop: spacing.sm },
+
+  // 이야기 3칸 트레이
+  trayRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+  traySlot: {
+    flex: 1,
+    minHeight: 46,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+  },
+  traySlotText: { ...font.caption, color: colors.placeholder, textAlign: 'center', fontWeight: '700' },
+  trayHint: { ...font.caption, color: colors.subText, marginBottom: spacing.md, marginLeft: 2 },
 
   sceneRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, marginTop: spacing.sm },
   sceneNum: {
@@ -1259,6 +1324,41 @@ const styles = StyleSheet.create({
   },
   filmAddText: { ...font.label },
   photoCapHint: { ...font.caption, color: colors.subText, marginTop: spacing.sm },
+
+  // 폴라로이드 벽
+  wallStrip: { flexDirection: 'row', gap: spacing.md, paddingVertical: spacing.md, paddingHorizontal: spacing.sm },
+  polaroid: {
+    position: 'relative',
+    backgroundColor: '#FFFFFF',
+    padding: 7,
+    paddingBottom: 6,
+    borderRadius: 6,
+    alignItems: 'center',
+    ...shadow,
+    shadowOpacity: 0.16,
+    shadowRadius: 10,
+  },
+  polaroidCap: { ...font.caption, fontSize: 11, marginTop: 6, marginBottom: 2, fontWeight: '700' },
+  polaroidAdd: {
+    width: 132 + 14,
+    height: 132 + 34,
+    borderWidth: 1.5,
+    borderColor: colors.coralSoft,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    gap: 3,
+    backgroundColor: colors.card,
+  },
+  polaroidAddSub: { ...font.caption, fontSize: 10, color: colors.subText },
+  tape: {
+    position: 'absolute',
+    top: -9,
+    width: 46,
+    height: 18,
+    backgroundColor: 'rgba(140,169,196,0.35)',
+    borderRadius: 2,
+    transform: [{ rotate: '-4deg' }],
+  },
 
   // 장소 단계 — 검색 먼저
   placeSearch: {
