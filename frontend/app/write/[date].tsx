@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import * as ImageManipulator from 'expo-image-manipulator';
+import { uploadAssetsParallel } from '../../lib/photoUpload';
 import {
   AnswerView,
   DayDetail,
@@ -27,7 +27,6 @@ import {
   entryApi,
   locationApi,
   questionApi,
-  uploadPhoto,
 } from '../../lib/api';
 import { formatKoLong, todayISO, weekdayKo } from '../../lib/date';
 import { showAlert } from '../../lib/dialog';
@@ -415,33 +414,15 @@ export default function WriteScreen() {
       if (result.canceled || result.assets.length === 0) return;
       const assets = result.assets.slice(0, remaining);
       setUploading(true);
-      let failed = 0;
-      for (const asset of assets) {
-        // 업로드 전 리사이즈/압축 → 파일 크기를 줄여 로딩을 빠르게. (네이티브만)
-        let up = { uri: asset.uri, fileName: asset.fileName, mimeType: asset.mimeType };
-        if (Platform.OS !== 'web') {
-          try {
-            const actions = asset.width && asset.width > 1440 ? [{ resize: { width: 1440 } }] : [];
-            const m = await ImageManipulator.manipulateAsync(asset.uri, actions, {
-              compress: 0.7,
-              format: ImageManipulator.SaveFormat.JPEG,
-            });
-            up = {
-              uri: m.uri,
-              fileName: (asset.fileName?.replace(/\.[^.]+$/, '') ?? `photo-${Date.now()}`) + '.jpg',
-              mimeType: 'image/jpeg',
-            };
-          } catch {
-            /* 리사이즈 실패 시 원본 업로드 */
-          }
-        }
-        try {
-          const { url } = await uploadPhoto(up);
-          setPhotoUrls((prev) => [...prev, url]);
-          setPhotoAuthors((prev) => ({ ...prev, [bareUrl(url)]: 'me' }));
-        } catch {
-          failed++;
-        }
+      // 여러 장을 병렬로 리사이즈·업로드 → 대기시간 단축.
+      const { urls, failed } = await uploadAssetsParallel(assets);
+      if (urls.length > 0) {
+        setPhotoUrls((prev) => [...prev, ...urls]);
+        setPhotoAuthors((prev) => {
+          const next = { ...prev };
+          for (const url of urls) next[bareUrl(url)] = 'me';
+          return next;
+        });
       }
       if (failed > 0) showAlert('일부 사진을 올리지 못했어요', `${failed}장은 업로드에 실패했어요. 다시 시도해 주세요.`);
     } catch (e) {

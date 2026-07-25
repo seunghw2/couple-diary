@@ -18,13 +18,13 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import * as ImageManipulator from 'expo-image-manipulator';
+import { uploadAssetsParallel } from '../../lib/photoUpload';
 import * as MediaLibrary from 'expo-media-library';
 import { Directory, File as FsFile, Paths } from 'expo-file-system';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_URL } from '../../lib/config';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, calendarMarkApi, entryApi, questionApi, uploadPhoto, isLocked } from '../../lib/api';
+import { ApiException, CommentView, DayDetail, EntryView, QuestionResponse, calendarMarkApi, entryApi, questionApi, isLocked } from '../../lib/api';
 import { usePollWhileFocused } from '../../hooks/usePollWhileFocused';
 import { dDayOn, formatDday, formatKoShort, todayISO, weekdayKo } from '../../lib/date';
 import { specialDayFor } from '../../lib/anniversary';
@@ -217,30 +217,30 @@ export default function EntryDetailScreen() {
         showAlert('사진 권한이 필요해요', '설정에서 사진 접근을 허용해 주세요.');
         return;
       }
-      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
-      if (result.canceled || result.assets.length === 0) return;
-      const asset = result.assets[0];
-      setPhotoBusy(true);
-      let up: { uri: string; fileName?: string | null; mimeType?: string | null } = {
-        uri: asset.uri,
-        fileName: asset.fileName,
-        mimeType: asset.mimeType,
-      };
-      if (Platform.OS !== 'web') {
-        try {
-          const actions = asset.width && asset.width > 1440 ? [{ resize: { width: 1440 } }] : [];
-          const m = await ImageManipulator.manipulateAsync(asset.uri, actions, {
-            compress: 0.7,
-            format: ImageManipulator.SaveFormat.JPEG,
-          });
-          up = { uri: m.uri, fileName: (asset.fileName?.replace(/\.[^.]+$/, '') ?? `photo-${Date.now()}`) + '.jpg', mimeType: 'image/jpeg' };
-        } catch { /* 리사이즈 실패 시 원본 */ }
-      }
-      const { url } = await uploadPhoto(up);
+      // 공유 사진은 총 6장까지. 남은 만큼 여러 장 한 번에 선택.
       const cur = (detail?.photos ?? []).map((p) => p.url).filter((u): u is string => !!u);
-      const d = await entryApi.updatePhotos(dateStr, [...cur, url]);
-      setDetail(d);
-      setCacheDetail(dateStr, d);
+      const remaining = Math.max(0, 6 - cur.length);
+      if (remaining <= 0) {
+        showAlert('사진이 가득 찼어요', '하루 사진은 최대 6장까지 담을 수 있어요.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.7,
+        allowsMultipleSelection: true,
+        selectionLimit: remaining,
+      });
+      if (result.canceled || result.assets.length === 0) return;
+      const assets = result.assets.slice(0, remaining);
+      setPhotoBusy(true);
+      // 여러 장 병렬 업로드 → 대기시간 단축.
+      const { urls, failed } = await uploadAssetsParallel(assets);
+      if (urls.length > 0) {
+        const d = await entryApi.updatePhotos(dateStr, [...cur, ...urls]);
+        setDetail(d);
+        setCacheDetail(dateStr, d);
+      }
+      if (failed > 0) showAlert('일부 사진을 올리지 못했어요', `${failed}장은 업로드에 실패했어요. 다시 시도해 주세요.`);
     } catch {
       showAlert('사진 추가에 실패했어요', '잠시 후 다시 시도해 주세요.');
     } finally {
