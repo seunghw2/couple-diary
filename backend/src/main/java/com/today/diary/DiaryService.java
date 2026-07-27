@@ -219,9 +219,16 @@ public class DiaryService {
         Couple couple = coupleService.requireCouple(userId);
         var page = org.springframework.data.domain.PageRequest.of(0, 20);
         List<String> locations = entryRepository.findDistinctLocationsByCouple(couple.getId(), page);
+        // 장소 카테고리는 커플의 모든 location_points에서 한 번에 로드해 name→category 맵으로 매핑(N+1 방지).
+        // 같은 이름이 여러 개면 first-wins(비어있지 않은 것만 조회하므로 아무거나 non-null).
+        Map<String, String> categoryByName = new HashMap<>();
+        for (var lc : entryRepository.findLocationCategoriesByCouple(couple.getId())) {
+            categoryByName.putIfAbsent(lc.getName(), lc.getCategory());
+        }
         List<DiaryDtos.LocationCount> counts = entryRepository
                 .findLocationCountsByCouple(couple.getId(), page).stream()
-                .map(p -> buildLocationCount(couple.getId(), p.getName(), p.getCount()))
+                .map(p -> buildLocationCount(couple.getId(), p.getName(), p.getCount(),
+                        categoryByName.get(p.getName())))
                 .toList();
         List<DiaryDtos.PlaceNicknameView> nicknames = placeNicknameRepository
                 .findByCouple_Id(couple.getId()).stream()
@@ -282,10 +289,10 @@ public class DiaryService {
     }
 
     // 지도 목록용: 한 장소의 대표 사진(가장 최근 방문일의 사진) + 최근 방문일.
-    private DiaryDtos.LocationCount buildLocationCount(Long coupleId, String name, long count) {
+    private DiaryDtos.LocationCount buildLocationCount(Long coupleId, String name, long count, String category) {
         List<DiaryEntry> entries = entryRepository.findByCoupleAndLocation(coupleId, name);
         if (entries.isEmpty()) {
-            return new DiaryDtos.LocationCount(name, count, null, null);
+            return new DiaryDtos.LocationCount(name, count, null, null, category);
         }
         DiaryDay recentDay = entries.get(0).getDay(); // date desc → 첫 항목이 최근
         String recentDate = recentDay.getDate().toString();
@@ -303,7 +310,7 @@ public class DiaryService {
                 }
             }
         }
-        return new DiaryDtos.LocationCount(name, count, thumb, recentDate);
+        return new DiaryDtos.LocationCount(name, count, thumb, recentDate, category);
     }
 
     // ================= 장소 상세(그 장소에 쌓인 기록) =================

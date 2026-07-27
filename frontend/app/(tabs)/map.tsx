@@ -10,12 +10,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { locationApi } from '../../lib/api';
 import type { LocationCount, LocationNickname } from '../../lib/api';
-import { toThumb } from '../../lib/images';
 import { KakaoMap } from '../../components/KakaoMap';
 import { ErrorState } from '../../components/ErrorState';
 import { Icon } from '../../components/ui';
@@ -28,6 +26,41 @@ function fmtMD(iso: string): string {
   const parts = iso.split('-');
   if (parts.length < 3) return iso;
   return `${Number(parts[1])}.${Number(parts[2])}`;
+}
+
+type IconName = React.ComponentProps<typeof Icon>['name'];
+
+/**
+ * 카카오 category_group_name → (아이콘, 은은한 타일 배경색).
+ * 사진 대신 장소 종류를 구분해 보여주기 위함. 색은 앱 워밍 톤에 맞춰 파스텔로.
+ */
+const CATEGORY_MAP: Record<string, { icon: IconName; bg: string; fg: string }> = {
+  카페: { icon: 'cafe', bg: '#F3E4D2', fg: '#B07A3C' },
+  음식점: { icon: 'restaurant', bg: '#FFE0D2', fg: '#E5654B' },
+  관광명소: { icon: 'camera', bg: '#E4EEDC', fg: '#6E9B57' },
+  숙박: { icon: 'bed', bg: '#E8E2F5', fg: '#8B7BD8' },
+  문화시설: { icon: 'film', bg: '#F1E1EC', fg: '#C77BA6' },
+  병원: { icon: 'medkit', bg: '#DCEBEE', fg: '#4E9AA6' },
+  약국: { icon: 'medical', bg: '#E2EFE4', fg: '#5CA36E' },
+  대형마트: { icon: 'cart', bg: '#FCE8D0', fg: '#E0A24A' },
+  편의점: { icon: 'storefront', bg: '#E4ECDA', fg: '#7A9C4E' },
+  지하철역: { icon: 'subway', bg: '#DEE7F2', fg: '#5F82B8' },
+  은행: { icon: 'card', bg: '#E3EAF3', fg: '#5E7FA8' },
+  학교: { icon: 'school', bg: '#F1E7D4', fg: '#B78F42' },
+  학원: { icon: 'school', bg: '#F1E7D4', fg: '#B78F42' },
+  주차장: { icon: 'car', bg: '#E7E9EC', fg: '#7C838C' },
+  주유소: { icon: 'car-sport', bg: '#F3E5D8', fg: '#C08A55' },
+  공공기관: { icon: 'business', bg: '#E7E9EC', fg: '#77808A' },
+};
+
+const DEFAULT_CATEGORY = { icon: 'location' as IconName, bg: colors.coralSofter, fg: colors.primary };
+
+/** 카테고리명(부분 포함)으로 타일 스타일을 고른다. 매칭 실패·미입력이면 기본(하트 대체 location). */
+function categoryTile(category?: string | null): { icon: IconName; bg: string; fg: string } {
+  if (!category) return DEFAULT_CATEGORY;
+  // 카카오는 "음식점 > 카페" 처럼 마지막 그룹명만 오지만, 방어적으로 부분 매칭.
+  const key = Object.keys(CATEGORY_MAP).find((k) => category.includes(k));
+  return key ? CATEGORY_MAP[key] : DEFAULT_CATEGORY;
 }
 
 /** 지도 탭 — 일기에 남긴 장소들을 Kakao 핀맵 / 리스트로 모아보기. */
@@ -176,19 +209,14 @@ export default function MapScreen() {
                     style={({ pressed }) => [styles.placeCard, pressed && { opacity: 0.85 }]}
                     onPress={() => router.push({ pathname: '/place', params: { name } })}
                   >
-                    {m?.thumbUrl ? (
-                      <Image
-                        source={{ uri: toThumb(m.thumbUrl, 120) }}
-                        style={styles.cardThumb}
-                        contentFit="cover"
-                        cachePolicy="memory-disk"
-                        transition={120}
-                      />
-                    ) : (
-                      <View style={[styles.cardThumb, styles.cardThumbEmpty, { backgroundColor: c.coralSofter }]}>
-                        <Icon name="heart" size={20} color={c.primary} />
-                      </View>
-                    )}
+                    {(() => {
+                      const tile = categoryTile(m?.category);
+                      return (
+                        <View style={[styles.cardThumb, styles.cardThumbEmpty, { backgroundColor: tile.bg }]}>
+                          <Icon name={tile.icon} size={22} color={tile.fg} />
+                        </View>
+                      );
+                    })()}
                     <View style={{ flex: 1 }}>
                       <View style={styles.nameRow}>
                         <Text style={styles.placeName} numberOfLines={1}>{name}</Text>

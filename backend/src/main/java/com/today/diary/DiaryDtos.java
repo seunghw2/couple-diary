@@ -91,8 +91,9 @@ public class DiaryDtos {
     public record LocationsResponse(List<String> locations, List<LocationCount> counts,
                                     List<PlaceNicknameView> nicknames) {}
 
-    /** name=장소명, count=방문 날짜 수, thumbUrl=대표 사진(서명, 없으면 null), recentDate=가장 최근 방문일. */
-    public record LocationCount(String name, long count, String thumbUrl, String recentDate) {}
+    /** name=장소명, count=방문 날짜 수, thumbUrl=대표 사진(서명, 없으면 null), recentDate=가장 최근 방문일,
+     *  category=장소 종류(카카오 카테고리, 없으면 null → 프론트 기본 아이콘). */
+    public record LocationCount(String name, long count, String thumbUrl, String recentDate, String category) {}
 
     /** name=장소명, nickname=커플이 붙인 별명. */
     public record PlaceNicknameView(String name, String nickname) {}

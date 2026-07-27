@@ -44,9 +44,24 @@ public interface DiaryEntryRepository extends JpaRepository<DiaryEntry, Long> {
     List<DiaryEntry> findByCoupleAndLocation(@Param("coupleId") Long coupleId,
                                              @Param("name") String name);
 
+    /**
+     * 커플의 entry에 저장된 장소 좌표 메타(locationPoints)에서 (이름, 카테고리) 쌍을 한 번에 로드.
+     * 지도 목록에서 name→category 매핑용. category가 비어있지 않은 것만 가져와, 같은 이름이
+     * 여러 개면 그 중 아무거나 하나를 쓰면 된다(호출부에서 first-wins 매핑). N+1 방지용 배치 쿼리.
+     */
+    @Query("select lp.name as name, lp.category as category from DiaryEntry e join e.locationPoints lp " +
+            "where e.day.couple.id = :coupleId and lp.category is not null and trim(lp.category) <> ''")
+    List<LocationCategoryProjection> findLocationCategoriesByCouple(@Param("coupleId") Long coupleId);
+
     /** JPQL projection: 장소명 + 방문 일수. */
     interface LocationCountProjection {
         String getName();
         long getCount();
+    }
+
+    /** JPQL projection: 장소명 + 카테고리(장소 종류). */
+    interface LocationCategoryProjection {
+        String getName();
+        String getCategory();
     }
 }
