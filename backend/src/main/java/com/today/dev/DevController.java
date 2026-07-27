@@ -2,7 +2,6 @@ package com.today.dev;
 
 import com.today.common.SecurityUtil;
 import com.today.dev.DevDtos.FeedbackView;
-import com.today.dev.DevDtos.PoolItem;
 import com.today.dev.DevDtos.StatsView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,11 +23,6 @@ public class DevController {
     @GetMapping("/feedback")
     public List<FeedbackView> feedback() {
         return devService.feedback(SecurityUtil.currentUserId());
-    }
-
-    @GetMapping("/questions")
-    public List<PoolItem> questions() {
-        return devService.questionPool(SecurityUtil.currentUserId());
     }
 
     @GetMapping("/stats")

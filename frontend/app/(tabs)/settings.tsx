@@ -97,12 +97,6 @@ export default function SettingsScreen() {
             onPress={() => router.push('/notification-settings')}
           />
           <SettingsRow
-            icon="mail-outline"
-            tint={c.primary}
-            label="오늘의 질문 설정"
-            onPress={() => router.push('/question/settings')}
-          />
-          <SettingsRow
             icon="color-palette-outline"
             tint={c.primary}
             label="앱 컬러 변경"

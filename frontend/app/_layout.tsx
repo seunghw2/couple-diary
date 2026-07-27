@@ -69,10 +69,6 @@ export default function RootLayout() {
         router.push('/saju/couple');
       } else if (d.type === 'ANNIVERSARY') {
         router.push('/anniversaries');
-      } else if (d.type === 'QUESTION_COMMENT' && d.entryDate) {
-        router.push({ pathname: '/question/[date]', params: { date: d.entryDate } });
-      } else if (d.type?.startsWith('QUESTION_')) {
-        router.push('/question');
       } else if (d.entryDate) {
         router.push({ pathname: '/entry/[date]', params: { date: d.entryDate } });
       } else {
@@ -184,10 +180,6 @@ export default function RootLayout() {
           <Stack.Screen name="account" options={{ presentation: 'card' }} />
           <Stack.Screen name="avatar" options={{ presentation: 'card' }} />
           <Stack.Screen name="place" options={{ presentation: 'card' }} />
-          <Stack.Screen name="question/write" options={{ presentation: 'card' }} />
-          <Stack.Screen name="question/archive" options={{ presentation: 'card' }} />
-          <Stack.Screen name="question/[date]" options={{ presentation: 'card' }} />
-          <Stack.Screen name="question/settings" options={{ presentation: 'card' }} />
           <Stack.Screen name="legal/privacy" options={{ presentation: 'card' }} />
           <Stack.Screen name="legal/terms" options={{ presentation: 'card' }} />
           <Stack.Screen name="app-color" options={{ presentation: 'card' }} />

@@ -341,121 +341,6 @@ export const questionApi = {
   list: () => api.get<QuestionResponse[]>('/api/questions'),
 };
 
-// ─────────────────────────── 오늘의 질문 (편지함) ───────────────────────────
-// 백엔드 계약: base path /api/questions. jackson non_null → null 필드는 생략, 전부 optional.
-// (위 questionApi.list = 일기 작성용 질문 풀. 이 dailyQuestionApi = '오늘의 질문' 편지함 기능.)
-
-/** 오늘의 질문 진행 상태. */
-export type TodayQuestionState =
-  | 'BEFORE_ARRIVAL' // 아직 도착 시간 전
-  | 'NEEDS_CHOICE' // 봉투 2개 중 하나 골라야 함
-  | 'NEEDS_ANSWER' // 질문 확정됨, 내 답장 필요
-  | 'WAITING_PARTNER' // 내 답 봉인됨, 상대 대기
-  | 'OPENED'; // 둘 다 답해 열림
-
-/** 봉투(선택지) 한 장. */
-export type QuestionChoice = { id: number; text: string; slot: number };
-
-/** 확정된 오늘의 질문. */
-export type DailyQuestion = { id: number; text: string };
-
-/** 아직 답 기다리는 지난 편지(한 명만 답해 봉인 대기, 내 차례). date로 답장. */
-export type PendingLetter = { date: string; questionText: string; chosenByNickname?: string };
-
-/** 답장(내/상대 공통). sealed=봉인(내용 숨김). */
-export type QuestionAnswer = {
-  id: number;
-  text?: string;
-  sealed: boolean;
-};
-
-/** GET /api/questions/today. */
-export type TodayQuestion = {
-  date: string; // YYYY-MM-DD
-  state: TodayQuestionState;
-  arrivalTime: string; // HH:mm
-  coupled: boolean;
-  choices?: QuestionChoice[];
-  question?: DailyQuestion;
-  chosenBy?: { id: number; nickname: string };
-  chosenByMe?: boolean;
-  myAnswer?: QuestionAnswer;
-  /** 내 답장이 아직 수정 가능한가(봉인 후 24시간 이내). WAITING_PARTNER·OPENED에서만 옴. */
-  myAnswerEditable?: boolean;
-  partnerAnswer?: QuestionAnswer;
-  partnerSealed?: boolean;
-  /** OPENED에서만 옴 — 이 편지에 달린 댓글들. */
-  comments?: CommentView[];
-  streak: number;
-  missedYesterday?: boolean;
-  /** 아직 답 기다리는 지난 편지들(내 차례). 없으면 빈 배열. 오늘 편지 위 배너로 노출. */
-  pendingLetters?: PendingLetter[];
-};
-
-/** GET /api/questions/archive 리스트 항목. */
-export type ArchiveItem = {
-  date: string; // YYYY-MM-DD
-  questionText: string;
-  opened: boolean;
-  chosenByNickname?: string;
-};
-
-/** GET /api/questions/archive. */
-export type ArchiveResponse = {
-  items: ArchiveItem[];
-  nextCursor?: string;
-  totalOpened: number;
-  streak: number;
-  milestone?: string;
-};
-
-/** GET /api/questions/archive/{date}. */
-export type ArchiveDetail = {
-  date: string; // YYYY-MM-DD
-  questionText: string;
-  chosenBy?: { id: number; nickname: string };
-  opened: boolean;
-  myAnswer?: { text?: string; sealed: boolean };
-  partnerAnswer?: { text?: string; sealed: boolean };
-  partnerNickname?: string;
-  /** opened면 이 편지에 달린 댓글들. */
-  comments?: CommentView[];
-};
-
-/** GET/PUT /api/questions/settings. */
-export type QuestionSettings = {
-  notifyOn: boolean;
-  arrivalTime: string; // HH:mm
-  showStreak: boolean;
-  milestoneOn: boolean;
-};
-
-export const dailyQuestionApi = {
-  today: () => api.get<TodayQuestion>('/api/questions/daily/today'),
-  choose: (questionId: number) =>
-    api.post<TodayQuestion>('/api/questions/daily/today/choose', { questionId }),
-  answer: (text: string) => api.post<TodayQuestion>('/api/questions/daily/today/answer', { text }),
-  /** 봉인 대기 중인 지난 편지(date)에 답장 — 답하면 즉시 열림. */
-  answerPending: (date: string, text: string) =>
-    api.post<TodayQuestion>(`/api/questions/daily/pending/${date}/answer`, { text }),
-  /** 오늘 열린 편지(또는 date 지정)에 댓글 달기. */
-  comment: (text: string, date?: string) =>
-    api.post<CommentView>('/api/questions/daily/comment', { date, text }),
-  /** '이 질문 별로예요' 신고. 해당 봉투(선택지)를 덜 보여주도록 요청. */
-  report: (questionId: number) => api.post<void>(`/api/questions/daily/${questionId}/report`),
-  archive: (cursor?: string, limit?: number) => {
-    const params = new URLSearchParams();
-    if (cursor) params.set('cursor', cursor);
-    if (limit != null) params.set('limit', String(limit));
-    const qs = params.toString();
-    return api.get<ArchiveResponse>(`/api/questions/daily/archive${qs ? `?${qs}` : ''}`);
-  },
-  archiveDetail: (date: string) => api.get<ArchiveDetail>(`/api/questions/daily/archive/${date}`),
-  getSettings: () => api.get<QuestionSettings>('/api/questions/daily/settings'),
-  updateSettings: (patch: QuestionSettings) =>
-    api.put<QuestionSettings>('/api/questions/daily/settings', patch),
-};
-
 /** 이전에 쓴 장소 추천 목록. */
 /** 장소별 방문 일수(지도 핀 뱃지용). */
 export type LocationCount = { name: string; count: number; thumbUrl?: string | null; recentDate?: string | null };
@@ -535,13 +420,7 @@ export type NotificationType =
   | 'WORLDCUP_COMPLETED'
   | 'WORLDCUP_COMPARABLE'
   | 'SAJU_BIRTHDAY_REQUEST'
-  | 'SAJU_COMPATIBILITY_READY'
-  | 'QUESTION_ARRIVED'
-  | 'QUESTION_CHOSEN'
-  | 'QUESTION_ANSWERED'
-  | 'QUESTION_OPENED'
-  | 'QUESTION_MISSED'
-  | 'QUESTION_COMMENT';
+  | 'SAJU_COMPATIBILITY_READY';
 
 export type Notification = {
   id: number;
@@ -621,7 +500,6 @@ export const devApi = {
 
 export type NotificationSettings = {
   diary: boolean;
-  question: boolean;
   poke: boolean;
   anniversary: boolean;
   worldcup: boolean;

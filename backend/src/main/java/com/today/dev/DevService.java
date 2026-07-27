@@ -4,11 +4,9 @@ import com.today.common.ApiException;
 import com.today.common.ErrorCode;
 import com.today.couple.CoupleRepository;
 import com.today.dev.DevDtos.FeedbackView;
-import com.today.dev.DevDtos.PoolItem;
 import com.today.dev.DevDtos.StatsView;
 import com.today.diary.DiaryEntryRepository;
 import com.today.feedback.FeedbackRepository;
-import com.today.question.QuestionPoolRepository;
 import com.today.user.User;
 import com.today.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +24,6 @@ public class DevService {
     private final UserRepository userRepository;
     private final CoupleRepository coupleRepository;
     private final DiaryEntryRepository diaryEntryRepository;
-    private final QuestionPoolRepository questionPoolRepository;
     private final FeedbackRepository feedbackRepository;
 
     private void requireAdmin(Long userId) {
@@ -50,23 +47,6 @@ public class DevService {
     }
 
     @Transactional(readOnly = true)
-    public List<PoolItem> questionPool(Long userId) {
-        requireAdmin(userId);
-        return questionPoolRepository.findAll(Sort.by("category", "depth", "id")).stream()
-                .map(p -> new PoolItem(
-                        p.getId(),
-                        p.getText(),
-                        p.getCategory(),
-                        p.getTheme(),
-                        p.getDepth(),
-                        p.getContextTrigger(),
-                        p.isTemplate(),
-                        p.getUsedCount(),
-                        p.isActive()))
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
     public StatsView stats(Long userId) {
         requireAdmin(userId);
         long couples = coupleRepository.count();
@@ -79,8 +59,6 @@ public class DevService {
                 couples * 2,
                 realCouples * 2,
                 diaryEntryRepository.count(),
-                questionPoolRepository.count(),
-                questionPoolRepository.countByActiveTrue(),
                 feedbackRepository.count());
     }
 }

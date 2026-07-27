@@ -140,62 +140,6 @@ public class NotificationService {
                 .recipient(recipient).type(type).title(title).body(body).entryDate(date).build());
     }
 
-    /** 도착시간: 오늘의 질문 두 통 도착 — 양쪽에게. */
-    @Transactional
-    public void onQuestionArrived(User a, User b, LocalDate date) {
-        createIfAbsent(a, NotificationType.QUESTION_ARRIVED, "오늘의 편지가 도착했어요",
-                "오늘의 질문 두 통이 왔어요 — 하나 골라 답장해요 💌", date);
-        createIfAbsent(b, NotificationType.QUESTION_ARRIVED, "오늘의 편지가 도착했어요",
-                "오늘의 질문 두 통이 왔어요 — 하나 골라 답장해요 💌", date);
-    }
-
-    /** 상대가 오늘 질문을 골랐어요 — 고르지 않은 상대에게. */
-    @Transactional
-    public void onQuestionChosen(User chooser, User partner, LocalDate date) {
-        if (chooser == null || partner == null) return;
-        createIfAbsent(partner, NotificationType.QUESTION_CHOSEN, "오늘의 질문이 정해졌어요",
-                chooser.getNickname() + "님이 오늘 질문을 골랐어요 — 답장해 볼까요?", date);
-    }
-
-    /** 상대가 답장을 남겼는데 아직 내 차례일 때 — 아직 안 쓴 상대에게. */
-    @Transactional
-    public void onQuestionAnswered(User answerer, User partner, LocalDate date) {
-        if (answerer == null || partner == null) return;
-        createIfAbsent(partner, NotificationType.QUESTION_ANSWERED, "상대가 답장했어요",
-                answerer.getNickname() + "님이 답장을 남겼어요 — 나도 쓰면 편지가 열려요", date);
-    }
-
-    /** 둘 다 답해 편지가 열렸어요 — 양쪽에게. */
-    @Transactional
-    public void onQuestionOpened(User a, User b, LocalDate date) {
-        createIfAbsent(a, NotificationType.QUESTION_OPENED, "편지가 열렸어요", "오늘의 편지가 서로 열렸어요 💗", date);
-        createIfAbsent(b, NotificationType.QUESTION_OPENED, "편지가 열렸어요", "오늘의 편지가 서로 열렸어요 💗", date);
-    }
-
-    /** 오늘의 편지에 댓글 — 상대에게(여러 개 허용, 중복 방지 없음). */
-    @Transactional
-    public void onQuestionComment(User me, User partner, LocalDate date, String preview) {
-        if (me == null || partner == null) return;
-        String p = preview == null ? "" : preview.strip();
-        if (p.length() > 20) p = p.substring(0, 20);
-        persist(Notification.builder()
-                .recipient(partner)
-                .type(NotificationType.QUESTION_COMMENT)
-                .title("오늘의 편지에 댓글")
-                .body(me.getNickname() + "님이 댓글을 남겼어요: " + p)
-                .entryDate(date)
-                .build());
-    }
-
-    /** 자정 마감: 어제 편지가 열리지 못하고 지나갔어요 — 양쪽에게. */
-    @Transactional
-    public void onQuestionMissed(User a, User b, LocalDate date) {
-        createIfAbsent(a, NotificationType.QUESTION_MISSED, "편지가 지나갔어요",
-                "어제 편지는 답장이 다 오지 않아 열리지 않았어요", date);
-        createIfAbsent(b, NotificationType.QUESTION_MISSED, "편지가 지나갔어요",
-                "어제 편지는 답장이 다 오지 않아 열리지 않았어요", date);
-    }
-
     // ===================== 엔드포인트 =====================
 
     @Transactional

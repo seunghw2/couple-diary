@@ -13,7 +13,6 @@ type Key = keyof NotificationSettings;
 
 const ROWS: { key: Key; label: string; desc: string }[] = [
   { key: 'diary', label: '일기', desc: '상대가 일기를 쓰거나 공개·댓글을 남겼을 때' },
-  { key: 'question', label: '오늘의 질문', desc: '편지 도착·상대 답장·편지 열림·댓글' },
   { key: 'poke', label: '콕 찌르기', desc: '상대가 콕 찔렀을 때' },
   { key: 'anniversary', label: '기념일', desc: '기념일이 다가올 때' },
   { key: 'worldcup', label: '월드컵 게임', desc: '상대가 완주하거나 결과를 비교할 수 있을 때' },

@@ -20,14 +20,6 @@ import com.today.diary.EntryAnswerRepository;
 import com.today.diary.PhotoRepository;
 import com.today.diary.PlaceNicknameRepository;
 import com.today.notification.NotificationRepository;
-import com.today.question.DailyQuestion;
-import com.today.question.DailyQuestionRepository;
-import com.today.question.QuestionAnswer;
-import com.today.question.QuestionAnswerRepository;
-import com.today.question.QuestionCommentRepository;
-import com.today.question.QuestionReactionRepository;
-import com.today.question.QuestionReportRepository;
-import com.today.question.QuestionSettingRepository;
 import com.today.user.UserDtos.*;
 import com.today.worldcup.WorldcupResultRepository;
 import lombok.RequiredArgsConstructor;
@@ -54,12 +46,6 @@ public class UserService {
     private final CommentRepository commentRepository;
     private final CalendarMarkRepository calendarMarkRepository;
     private final PlaceNicknameRepository placeNicknameRepository;
-    private final DailyQuestionRepository dailyQuestionRepository;
-    private final QuestionAnswerRepository questionAnswerRepository;
-    private final QuestionReactionRepository questionReactionRepository;
-    private final QuestionCommentRepository questionCommentRepository;
-    private final QuestionReportRepository questionReportRepository;
-    private final QuestionSettingRepository questionSettingRepository;
     private final NotificationRepository notificationRepository;
     private final WorldcupResultRepository worldcupResultRepository;
     private final com.today.push.PushTokenRepository pushTokenRepository;
@@ -246,7 +232,7 @@ public class UserService {
     /**
      * 계정 삭제 (Apple 5.1.1(v) 필수). 내 계정과 관련 데이터를 하나의 트랜잭션에서 FK 안전 순서로 하드 삭제한다.
      *
-     * 커플이 있으면 커플 범위 공유 데이터(오늘의 질문/답/하트/댓글/신고/설정, 일기 day/entry/사진/답/댓글,
+     * 커플이 있으면 커플 범위 공유 데이터(일기 day/entry/사진/답/댓글,
      * 캘린더 마커, 장소 별명)를 먼저 지우고 커플을 삭제한다. couple은 user1/user2 NOT NULL FK라 유저보다 먼저 정리.
      * 상대 유저 레코드는 남기되, 커플이 사라져 '미연결' 상태가 된다.
      *
@@ -263,23 +249,6 @@ public class UserService {
 
         coupleRepository.findByMember(userId).ifPresent(couple -> {
             Long coupleId = couple.getId();
-
-            // ── 오늘의 질문(편지) 트리: reaction → answer/comment → daily_question ──
-            List<DailyQuestion> dailyQuestions = dailyQuestionRepository.findByCouple_Id(coupleId);
-            List<Long> dqIds = dailyQuestions.stream().map(DailyQuestion::getId).toList();
-            if (!dqIds.isEmpty()) {
-                List<QuestionAnswer> answers = questionAnswerRepository.findByDailyQuestion_IdIn(dqIds);
-                List<Long> answerIds = answers.stream().map(QuestionAnswer::getId).toList();
-                if (!answerIds.isEmpty()) {
-                    questionReactionRepository.deleteByAnswer_IdIn(answerIds);
-                }
-                questionCommentRepository.deleteByDailyQuestion_IdIn(dqIds);
-                questionAnswerRepository.deleteByDailyQuestion_IdIn(dqIds);
-            }
-            // chosen_by(user FK)까지 포함해 커플의 daily_question 전부 삭제.
-            dailyQuestionRepository.deleteByCouple_Id(coupleId);
-            questionReportRepository.deleteByCouple_Id(coupleId);
-            questionSettingRepository.deleteByCouple_Id(coupleId);
 
             // ── 일기 트리: photo/entry_answer → entry → comment → day ──
             List<DiaryDay> days = diaryDayRepository.findByCouple_Id(coupleId);
