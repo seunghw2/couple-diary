@@ -825,9 +825,14 @@ export default function WriteScreen() {
   );
 }
 
+/** 답변 입력 한 줄 높이(=lineHeight 22 + 위아래 padding 10). 빈 칸도 이 높이로 통일된다. */
+const INPUT_MIN_H = 42;
+
 /**
  * 여러 줄 답변 입력. 줄 겹침 방지를 위해 textAlignVertical:'top' + lineHeight 고정 +
- * onContentSizeChange로 내용에 맞춰 높이 자동 확장(최소 48).
+ * onContentSizeChange로 내용에 맞춰 높이 자동 확장(최소 INPUT_MIN_H).
+ * 높이는 state 한 곳에서만 정한다(스타일에 minHeight를 같이 두면 플랫폼별로 값이 어긋나
+ * 같은 빈 칸끼리 높이가 달라 보였다).
  */
 function MultilineAnswerInput({
   value,
@@ -838,7 +843,7 @@ function MultilineAnswerInput({
   onChangeText: (t: string) => void;
   placeholder: string;
 }) {
-  const [height, setHeight] = useState(48);
+  const [height, setHeight] = useState(INPUT_MIN_H);
   return (
     <TextInput
       value={value}
@@ -847,7 +852,7 @@ function MultilineAnswerInput({
       placeholderTextColor={colors.placeholder}
       multiline
       textAlignVertical="top"
-      onContentSizeChange={(e) => setHeight(Math.max(48, e.nativeEvent.contentSize.height))}
+      onContentSizeChange={(e) => setHeight(Math.max(INPUT_MIN_H, e.nativeEvent.contentSize.height))}
       style={[styles.multiInput, { height }]}
     />
   );
@@ -881,7 +886,7 @@ function SceneInputs({
             />
           </View>
           {rows.length > 1 ? (
-            <Pressable onPress={() => onRemove(i)} hitSlop={8} style={{ paddingTop: 12 }}>
+            <Pressable onPress={() => onRemove(i)} hitSlop={8} style={styles.sceneRemove}>
               <Icon name="remove-circle-outline" size={20} color={colors.coralSoft} />
             </Pressable>
           ) : null}
@@ -1024,7 +1029,21 @@ function FreePickForm({
   onChange: (key: string, text: string) => void;
 } & SceneProps) {
   const c = useColors();
-  const shortQ = (txt: string) => (txt.length > 11 ? txt.slice(0, 11) + '…' : txt);
+  // 슬롯이 좁아 그대로 두면 한글이 글자 단위로 끊긴다("느낀 감/정 한 줄").
+  // 어절 단위로 2줄까지 채우고 남으면 말줄임.
+  const traySlotLabel = (txt: string) => {
+    const lines: string[] = [];
+    let cur = '';
+    let rest = false;
+    for (const w of txt.split(/\s+/)) {
+      if (!cur) cur = w;
+      else if (cur.length + 1 + w.length <= 9) cur = `${cur} ${w}`;
+      else if (lines.length < 1) { lines.push(cur); cur = w; }
+      else { rest = true; break; }
+    }
+    if (cur) lines.push(cur);
+    return rest ? `${lines.join('\n')}…` : lines.join('\n');
+  };
   return (
     <View style={{ marginTop: spacing.md }}>
       {/* 오늘의 이야기 3칸 트레이 — 고른 질문이 슬롯에 채워져 3/3 진행감이 늘 보인다. */}
@@ -1037,8 +1056,12 @@ function FreePickForm({
               key={i}
               style={[styles.traySlot, q && { backgroundColor: `${c.primary}14`, borderColor: c.primary, borderStyle: 'solid' }]}
             >
-              <Text style={[styles.traySlotText, q && { color: c.primary, fontWeight: '800' }]} numberOfLines={2}>
-                {q ? shortQ(q.text) : '＋'}
+              <Text
+                style={[styles.traySlotText, q && { color: c.primary, fontWeight: '800' }]}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+              >
+                {q ? traySlotLabel(q.text) : '＋'}
               </Text>
             </View>
           );
@@ -1155,7 +1178,6 @@ const styles = StyleSheet.create({
   promptLabel: { ...font.label, color: colors.primary },
   multiInput: {
     ...font.body,
-    minHeight: 56,
     textAlignVertical: 'top',
     color: colors.text,
     lineHeight: 22,
@@ -1174,7 +1196,8 @@ const styles = StyleSheet.create({
   trayRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
   traySlot: {
     flex: 1,
-    minHeight: 46,
+    // 채워진 슬롯이 2줄이 돼도 빈 슬롯과 높이가 같도록 고정.
+    height: 52,
     borderRadius: radius.md,
     borderWidth: 1.5,
     borderColor: colors.border,
@@ -1182,10 +1205,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 6,
-    paddingVertical: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
-  traySlotText: { ...font.caption, color: colors.placeholder, textAlign: 'center', fontWeight: '700' },
+  traySlotText: {
+    ...font.caption,
+    fontSize: 12,
+    lineHeight: 16,
+    color: colors.placeholder,
+    textAlign: 'center',
+    fontWeight: '700',
+  },
   trayHint: { ...font.caption, color: colors.subText, marginBottom: spacing.md, marginLeft: 2 },
 
   sceneRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, marginTop: spacing.sm },
@@ -1196,10 +1226,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.coralSofter,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 12,
+    // 입력 첫 줄(padding 10 + lineHeight 22)의 세로 중앙에 맞춘다.
+    marginTop: 10,
   },
   sceneNumText: { ...font.caption, color: colors.text, fontWeight: '700' },
-  sceneAdd: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.sm, alignSelf: 'flex-start' },
+  // 삭제 버튼도 같은 첫 줄 중앙 기준.
+  sceneRemove: { paddingTop: 11, paddingLeft: 2 },
+  // 번호 뱃지 폭(22)+gap(8)만큼 들여써 입력칸 왼쪽 선과 맞춘다.
+  sceneAdd: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10, marginLeft: 30, alignSelf: 'flex-start' },
   sceneAddText: { ...font.label, color: colors.primary },
 
   locChipRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
