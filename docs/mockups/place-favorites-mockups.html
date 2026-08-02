@@ -1,0 +1,292 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<title>장소 = 즐겨찾기만 · 자주 간 곳 처리 3안</title>
+<link rel="stylesheet" href="_shared.css">
+<style>
+  .fseg{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .fseg .f{font-size:12px;font-weight:600;color:var(--sub);padding:7px 12px;border-radius:var(--r-pill);
+    background:var(--card);border:1px solid var(--border);display:inline-flex;align-items:center;gap:5px}
+  .fseg .f.on{background:var(--primary);border-color:var(--primary);color:#fff}
+  .fseg .f .n{opacity:.65;font-weight:700}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .tile{position:relative;background:var(--card);border:1px solid var(--border);border-radius:var(--r-md);
+    padding:11px 12px;display:flex;flex-direction:column;gap:7px;min-height:70px}
+  .tile .ic{width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .tile .nm{font-size:13px;font-weight:600;line-height:1.25;color:var(--text);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .tile .ct{position:absolute;right:11px;top:12px;font-size:11px;font-weight:700;color:var(--ph)}
+  .tile.on{border-color:var(--primary);border-width:1.5px;background:rgba(143,169,200,.10)}
+  .tile .ck{position:absolute;right:9px;bottom:9px;width:20px;height:20px;border-radius:50%;
+    background:var(--primary);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .direct{display:flex;align-items:center;gap:8px;border:1px dashed var(--border);border-radius:var(--r-md);
+    padding:12px 14px;margin-top:12px;font-size:13px;color:var(--ph)}
+  .hint{font-size:11px;color:var(--ph);margin-top:9px;line-height:1.45}
+  /* 빈 상태 */
+  .empty{border:1px dashed var(--border);border-radius:var(--r-md);background:var(--card);
+    padding:22px 18px;text-align:center;color:var(--sub)}
+  .empty .big{font-size:24px;margin-bottom:8px}
+  .empty .t{font-size:14px;font-weight:700;color:var(--text);margin-bottom:5px}
+  .empty .d{font-size:12px;line-height:1.5}
+  /* 1안 제안 배너 */
+  .sug{display:flex;align-items:center;gap:10px;background:rgba(143,169,200,.13);border:1px solid var(--pSofter);
+    border-radius:var(--r-md);padding:12px 13px;margin-top:12px}
+  .sug .tx{font-size:12.5px;line-height:1.45;color:var(--text)}
+  .sug .tx b{font-weight:700}
+  .sug .go{margin-left:auto;flex:0 0 auto;font-size:12px;font-weight:700;color:#fff;background:var(--primary);
+    padding:7px 12px;border-radius:var(--r-pill)}
+  /* 시트 */
+  .sheetwrap{position:relative;flex:1;display:flex;flex-direction:column;justify-content:flex-end}
+  .dim{position:absolute;inset:0;background:rgba(40,28,24,.34)}
+  .sheet{position:relative;background:var(--bg);border-radius:24px 24px 0 0;padding:16px 20px 20px;
+    box-shadow:0 -6px 20px rgba(90,64,56,.18)}
+  .sheet .bar{width:40px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 14px}
+  .sheet .st{font-size:16px;font-weight:700;margin-bottom:4px}
+  .sheet .ss{font-size:12px;color:var(--sub);margin-bottom:14px}
+  .lrow{display:flex;align-items:center;gap:11px;padding:10px 12px;background:var(--card);
+    border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:8px}
+  .lrow .ic{width:32px;height:32px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 32px}
+  .lrow .nm{font-size:13.5px;font-weight:600;line-height:1.2}
+  .lrow .mt{font-size:11px;color:var(--sub);margin-top:3px}
+  .lrow .star{margin-left:auto;font-size:17px}
+  /* 지도 탭 */
+  .maphead{display:flex;align-items:center;gap:8px;padding:14px 24px 6px}
+  .maphead .t{font-size:20px;font-weight:700}
+  .mapbox{height:120px;border-radius:var(--r-md);background:linear-gradient(160deg,#E8EFE4,#DCE6EC);
+    border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:#8B9AA3;font-size:12px;margin-bottom:14px}
+  .tabbar{display:flex;border-top:1px solid var(--border);background:var(--card);padding:8px 0 12px}
+  .tabbar div{flex:1;text-align:center;font-size:10.5px;color:var(--ph)}
+  .tabbar div.on{color:var(--primary);font-weight:700}
+  .tabbar .ico{display:block;font-size:16px;margin-bottom:3px}
+</style></head>
+<body>
+
+<!-- ============ 1안 ============ -->
+<section class="ver">
+  <div class="vhead"><div class="vtag">1안</div><div class="vname">자주 간 곳은 "즐겨찾기 하시겠어요?" 제안으로만</div></div>
+  <div class="vdesc">장소 화면에는 <b>즐겨찾기만</b> 보인다. 자주 간 곳 데이터는 목록으로 깔지 않고, 여러 번 간 곳이 즐겨찾기에 없을 때 <b>아래 한 줄 제안</b>으로만 나온다. 탭하면 즐겨찾기에 들어가고 제안은 사라진다.</div>
+  <div class="strip">
+
+    <div class="col"><div class="cap">1. 즐겨찾기가 있는 평소 화면</div>
+      <div class="phone">
+        <div class="status"><span>10:08</span><span>5G ▮</span></div>
+        <div class="top"><div class="ttl">오늘의 일기</div><div class="tsub">2026년 8월 2일 · 일요일</div></div>
+        <div class="prog"><div class="track"><div class="fill" style="width:100%"></div></div><div class="pnum">4/4</div></div>
+        <div class="body">
+          <h1 class="step">어디에 다녀왔어요?</h1>
+          <div class="stepsub">선택이에요 · 넘어가도 돼요</div>
+          <div class="search"><span>🔍</span><span>장소 검색 (성수동 · 대림창고…)</span></div>
+          <div class="sec">⭐ <b>즐겨찾기</b></div>
+          <div class="grid">
+            <div class="tile"><div class="ic" style="background:#F3E4D2;color:#B07A3C">☕</div><div class="nm">멜라 홍대점</div></div>
+            <div class="tile"><div class="ic" style="background:#E7E9EC;color:#7C838C">🅿</div><div class="nm">여의도한강공원 3주차장</div></div>
+            <div class="tile"><div class="ic" style="background:#FFE0D2;color:#E5654B">🍽</div><div class="nm">멘부쿠제면소</div></div>
+            <div class="tile"><div class="ic" style="background:#E4EEDC;color:#6E9B57">🌳</div><div class="nm">사당만남의공원</div></div>
+          </div>
+          <div class="sug"><span style="font-size:17px">⭐</span>
+            <div class="tx"><b>벌툰 몽유도원 사당역점</b>, 3번이나 갔어요<br>즐겨찾기에 넣어둘까요?</div>
+            <span class="go">넣기</span></div>
+          <div class="direct">＋ 여기 없으면 직접 입력</div>
+        </div>
+        <div class="footer"><span class="skip">건너뛰기</span><div class="btn">🔒 저장하고 잠금 대기</div></div>
+      </div>
+    </div>
+
+    <div class="col"><div class="cap">2. 처음 — 즐겨찾기가 아직 비었을 때</div>
+      <div class="phone">
+        <div class="status"><span>10:08</span><span>5G ▮</span></div>
+        <div class="top"><div class="ttl">오늘의 일기</div><div class="tsub">2026년 8월 2일 · 일요일</div></div>
+        <div class="prog"><div class="track"><div class="fill" style="width:100%"></div></div><div class="pnum">4/4</div></div>
+        <div class="body">
+          <h1 class="step">어디에 다녀왔어요?</h1>
+          <div class="stepsub">선택이에요 · 넘어가도 돼요</div>
+          <div class="search"><span>🔍</span><span>장소 검색 (성수동 · 대림창고…)</span></div>
+          <div class="sec">⭐ <b>즐겨찾기</b></div>
+          <div class="empty"><div class="big">⭐</div><div class="t">자주 가는 곳을 담아두면 여기 나와요</div>
+            <div class="d">검색해서 고른 뒤 별표를 눌러두면<br>다음부터 한 번에 담을 수 있어요</div></div>
+          <div class="sug"><span style="font-size:17px">⭐</span>
+            <div class="tx"><b>멘부쿠제면소</b> 외 2곳을 여러 번 갔어요<br>즐겨찾기로 등록해 둘까요?</div>
+            <span class="go">보기</span></div>
+          <div class="direct">＋ 여기 없으면 직접 입력</div>
+        </div>
+        <div class="footer"><span class="skip">건너뛰기</span><div class="btn">🔒 저장하고 잠금 대기</div></div>
+      </div>
+    </div>
+
+    <div class="col"><div class="cap">3. 제안 탭 → 여러 곳 한 번에 등록</div>
+      <div class="phone">
+        <div class="status"><span>10:08</span><span>5G ▮</span></div>
+        <div class="top"><div class="ttl">오늘의 일기</div><div class="tsub">2026년 8월 2일 · 일요일</div></div>
+        <div class="prog"><div class="track"><div class="fill" style="width:100%"></div></div><div class="pnum">4/4</div></div>
+        <div class="sheetwrap">
+          <div class="dim"></div>
+          <div class="sheet">
+            <div class="bar"></div>
+            <div class="st">자주 간 곳을 즐겨찾기로</div>
+            <div class="ss">두 번 이상 간 곳이에요 · 별표를 눌러 담아두세요</div>
+            <div class="lrow"><div class="ic" style="background:#FFE0D2;color:#E5654B">🍽</div>
+              <div><div class="nm">멘부쿠제면소</div><div class="mt">12번 함께</div></div><span class="star">⭐</span></div>
+            <div class="lrow"><div class="ic" style="background:#E7E9EC;color:#7C838C">🅿</div>
+              <div><div class="nm">여의도한강공원 3주차장</div><div class="mt">8번 함께</div></div><span class="star">⭐</span></div>
+            <div class="lrow"><div class="ic" style="background:#F3E4D2;color:#B07A3C">☕</div>
+              <div><div class="nm">멜라 홍대점</div><div class="mt">5번 함께</div></div><span class="star" style="opacity:.3">☆</span></div>
+            <div class="lrow"><div class="ic" style="background:#F1E1EC;color:#C77BA6">🎬</div>
+              <div><div class="nm">벌툰 몽유도원 사당역점</div><div class="mt">3번 함께</div></div><span class="star" style="opacity:.3">☆</span></div>
+            <div class="btn" style="margin-top:14px">완료</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2안 ============ -->
+<section class="ver">
+  <div class="vhead"><div class="vtag">2안</div><div class="vname">자주 간 곳은 '우리의 지도' 탭으로 옮기기</div></div>
+  <div class="vdesc">일기 쓰는 화면은 <b>즐겨찾기만</b>으로 완전히 비운다. 자주 간 곳 순위는 원래 자리인 <b>지도 탭</b>에서 "많이 간 곳"으로 보여주고, 즐겨찾기 등록도 거기서 한다. 쓸 때는 안 쓰고, 한가할 때 정리하는 구조.</div>
+  <div class="strip">
+
+    <div class="col"><div class="cap">1. 일기 — 즐겨찾기만, 가장 단순</div>
+      <div class="phone">
+        <div class="status"><span>10:08</span><span>5G ▮</span></div>
+        <div class="top"><div class="ttl">오늘의 일기</div><div class="tsub">2026년 8월 2일 · 일요일</div></div>
+        <div class="prog"><div class="track"><div class="fill" style="width:100%"></div></div><div class="pnum">4/4</div></div>
+        <div class="body">
+          <h1 class="step">어디에 다녀왔어요?</h1>
+          <div class="stepsub">선택이에요 · 넘어가도 돼요</div>
+          <div class="search"><span>🔍</span><span>장소 검색 (성수동 · 대림창고…)</span></div>
+          <div class="sec">⭐ <b>즐겨찾기</b></div>
+          <div class="grid">
+            <div class="tile"><div class="ic" style="background:#F3E4D2;color:#B07A3C">☕</div><div class="nm">멜라 홍대점</div></div>
+            <div class="tile"><div class="ic" style="background:#E7E9EC;color:#7C838C">🅿</div><div class="nm">여의도한강공원 3주차장</div></div>
+            <div class="tile"><div class="ic" style="background:#FFE0D2;color:#E5654B">🍽</div><div class="nm">멘부쿠제면소</div></div>
+            <div class="tile"><div class="ic" style="background:#E4EEDC;color:#6E9B57">🌳</div><div class="nm">사당만남의공원</div></div>
+          </div>
+          <div class="direct">＋ 여기 없으면 직접 입력</div>
+          <div class="hint">즐겨찾기는 지도 탭에서 관리할 수 있어요</div>
+        </div>
+        <div class="footer"><span class="skip">건너뛰기</span><div class="btn">🔒 저장하고 잠금 대기</div></div>
+      </div>
+    </div>
+
+    <div class="col"><div class="cap">2. 한 곳 담은 상태</div>
+      <div class="phone">
+        <div class="status"><span>10:08</span><span>5G ▮</span></div>
+        <div class="top"><div class="ttl">오늘의 일기</div><div class="tsub">2026년 8월 2일 · 일요일</div></div>
+        <div class="prog"><div class="track"><div class="fill" style="width:100%"></div></div><div class="pnum">4/4</div></div>
+        <div class="body">
+          <h1 class="step">어디에 다녀왔어요?</h1>
+          <div class="stepsub">한 곳 담았어요</div>
+          <div class="search"><span>🔍</span><span>장소 검색 (성수동 · 대림창고…)</span></div>
+          <div class="sec">⭐ <b>즐겨찾기</b></div>
+          <div class="grid">
+            <div class="tile on"><div class="ic" style="background:#F3E4D2;color:#B07A3C">☕</div><div class="nm">멜라 홍대점</div><span class="ck">✓</span></div>
+            <div class="tile"><div class="ic" style="background:#E7E9EC;color:#7C838C">🅿</div><div class="nm">여의도한강공원 3주차장</div></div>
+            <div class="tile"><div class="ic" style="background:#FFE0D2;color:#E5654B">🍽</div><div class="nm">멘부쿠제면소</div></div>
+            <div class="tile"><div class="ic" style="background:#E4EEDC;color:#6E9B57">🌳</div><div class="nm">사당만남의공원</div></div>
+          </div>
+          <div class="sec" style="margin-top:16px">오늘 담은 곳 <b>1</b></div>
+          <div class="picked">☕ 멜라 홍대점 <span class="x">✕</span></div>
+          <div class="direct">＋ 여기 없으면 직접 입력</div>
+        </div>
+        <div class="footer"><span class="skip">건너뛰기</span><div class="btn">🔒 저장하고 잠금 대기</div></div>
+      </div>
+    </div>
+
+    <div class="col"><div class="cap">3. 지도 탭 — 많이 간 곳에서 별표 등록</div>
+      <div class="phone">
+        <div class="status"><span>10:08</span><span>5G ▮</span></div>
+        <div class="maphead"><div class="t">우리의 지도</div></div>
+        <div class="body" style="padding-top:8px">
+          <div class="mapbox">지도 · 우리가 간 곳 13</div>
+          <div class="fseg"><span class="f on">많이 간 곳</span><span class="f">전체</span><span class="f">⭐ 즐겨찾기 <span class="n">4</span></span></div>
+          <div class="lrow"><div class="ic" style="background:#FFE0D2;color:#E5654B">🍽</div>
+            <div><div class="nm">멘부쿠제면소</div><div class="mt">12번 함께 · 3일 전</div></div><span class="star">⭐</span></div>
+          <div class="lrow"><div class="ic" style="background:#E7E9EC;color:#7C838C">🅿</div>
+            <div><div class="nm">여의도한강공원 3주차장</div><div class="mt">8번 함께 · 2주 전</div></div><span class="star">⭐</span></div>
+          <div class="lrow"><div class="ic" style="background:#F3E4D2;color:#B07A3C">☕</div>
+            <div><div class="nm">멜라 홍대점</div><div class="mt">5번 함께 · 한 달 전</div></div><span class="star">⭐</span></div>
+          <div class="lrow"><div class="ic" style="background:#F1E1EC;color:#C77BA6">🎬</div>
+            <div><div class="nm">벌툰 몽유도원 사당역점</div><div class="mt">3번 함께 · 한 달 전</div></div><span class="star" style="opacity:.3">☆</span></div>
+          <div class="hint">별표를 누르면 일기 쓸 때 바로 담을 수 있어요</div>
+        </div>
+        <div class="tabbar"><div><span class="ico">📅</span>달력</div><div><span class="ico">✍️</span>오늘</div>
+          <div class="on"><span class="ico">🗺</span>지도</div><div><span class="ico">💞</span>사주</div><div><span class="ico">👤</span>내 정보</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3안 ============ -->
+<section class="ver">
+  <div class="vhead"><div class="vtag">3안</div><div class="vname">자주 간 곳은 검색 시트 안에 숨기기</div></div>
+  <div class="vdesc">평소 화면엔 <b>즐겨찾기만</b>. 자주 간 곳은 <b>검색을 눌렀을 때</b> 시트 맨 위에 "자주 간 곳"으로 먼저 뜬다. 검색하러 들어간 김에 눈에 띄니 따로 화면을 만들 필요가 없다.</div>
+  <div class="strip">
+
+    <div class="col"><div class="cap">1. 평소 — 즐겨찾기만</div>
+      <div class="phone">
+        <div class="status"><span>10:08</span><span>5G ▮</span></div>
+        <div class="top"><div class="ttl">오늘의 일기</div><div class="tsub">2026년 8월 2일 · 일요일</div></div>
+        <div class="prog"><div class="track"><div class="fill" style="width:100%"></div></div><div class="pnum">4/4</div></div>
+        <div class="body">
+          <h1 class="step">어디에 다녀왔어요?</h1>
+          <div class="stepsub">선택이에요 · 넘어가도 돼요</div>
+          <div class="search"><span>🔍</span><span>장소 검색 (성수동 · 대림창고…)</span></div>
+          <div class="sec">⭐ <b>즐겨찾기</b></div>
+          <div class="grid">
+            <div class="tile"><div class="ic" style="background:#F3E4D2;color:#B07A3C">☕</div><div class="nm">멜라 홍대점</div></div>
+            <div class="tile"><div class="ic" style="background:#E7E9EC;color:#7C838C">🅿</div><div class="nm">여의도한강공원 3주차장</div></div>
+            <div class="tile"><div class="ic" style="background:#FFE0D2;color:#E5654B">🍽</div><div class="nm">멘부쿠제면소</div></div>
+            <div class="tile"><div class="ic" style="background:#E4EEDC;color:#6E9B57">🌳</div><div class="nm">사당만남의공원</div></div>
+          </div>
+          <div class="direct">＋ 여기 없으면 직접 입력</div>
+        </div>
+        <div class="footer"><span class="skip">건너뛰기</span><div class="btn">🔒 저장하고 잠금 대기</div></div>
+      </div>
+    </div>
+
+    <div class="col"><div class="cap">2. 검색 탭 → 시트 맨 위에 자주 간 곳</div>
+      <div class="phone">
+        <div class="status"><span>10:08</span><span>5G ▮</span></div>
+        <div class="top"><div class="ttl">오늘의 일기</div><div class="tsub">2026년 8월 2일 · 일요일</div></div>
+        <div class="prog"><div class="track"><div class="fill" style="width:100%"></div></div><div class="pnum">4/4</div></div>
+        <div class="sheetwrap">
+          <div class="dim"></div>
+          <div class="sheet">
+            <div class="bar"></div>
+            <div class="search" style="margin-bottom:14px"><span>🔍</span><span>장소 이름으로 찾기</span></div>
+            <div class="sec">자주 간 곳</div>
+            <div class="lrow"><div class="ic" style="background:#FFE0D2;color:#E5654B">🍽</div>
+              <div><div class="nm">멘부쿠제면소</div><div class="mt">12번 함께</div></div><span class="star" style="opacity:.3">☆</span></div>
+            <div class="lrow"><div class="ic" style="background:#E7E9EC;color:#7C838C">🅿</div>
+              <div><div class="nm">여의도한강공원 3주차장</div><div class="mt">8번 함께</div></div><span class="star" style="opacity:.3">☆</span></div>
+            <div class="lrow"><div class="ic" style="background:#F1E1EC;color:#C77BA6">🎬</div>
+              <div><div class="nm">벌툰 몽유도원 사당역점</div><div class="mt">3번 함께</div></div><span class="star" style="opacity:.3">☆</span></div>
+            <div class="hint">행을 탭하면 오늘 담기 · ☆를 누르면 즐겨찾기에 고정</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col"><div class="cap">3. 검색어를 치면 지도 결과로 전환</div>
+      <div class="phone">
+        <div class="status"><span>10:08</span><span>5G ▮</span></div>
+        <div class="top"><div class="ttl">오늘의 일기</div><div class="tsub">2026년 8월 2일 · 일요일</div></div>
+        <div class="prog"><div class="track"><div class="fill" style="width:100%"></div></div><div class="pnum">4/4</div></div>
+        <div class="sheetwrap">
+          <div class="dim"></div>
+          <div class="sheet">
+            <div class="bar"></div>
+            <div class="search" style="margin-bottom:14px;border-color:var(--primary)"><span>🔍</span><span style="color:var(--text)">성수동 대림창고</span></div>
+            <div class="sec">검색 결과</div>
+            <div class="lrow"><div class="ic" style="background:#F1E1EC;color:#C77BA6">🎨</div>
+              <div><div class="nm">대림창고 갤러리컬럼</div><div class="mt">서울 성동구 성수이로 78</div></div><span class="star" style="opacity:.3">☆</span></div>
+            <div class="lrow"><div class="ic" style="background:#F3E4D2;color:#B07A3C">☕</div>
+              <div><div class="nm">대림창고 카페</div><div class="mt">서울 성동구 성수이로 78</div></div><span class="star" style="opacity:.3">☆</span></div>
+            <div class="hint">지도에서 고르면 이름이 하나로 정리돼요</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body></html>

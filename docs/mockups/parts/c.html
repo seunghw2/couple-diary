@@ -1,0 +1,141 @@
+<section class="ver">
+  <style>
+    /* C안 전용 — 모든 클래스에 c- 접두사 */
+    .c-hint{font-size:12px;color:var(--ph);text-align:center;margin:-4px 0 26px}
+
+    /* 주인공 검색: 공용 .search 위에 얹는 모디파이어 */
+    .search.c-big{padding:22px 20px;border-width:2px;border-radius:26px;margin:26px 0 10px;
+      box-shadow:0 4px 14px rgba(143,169,200,.16)}
+    .search.c-big .c-mag{font-size:20px;line-height:1}
+    .search.c-big span.c-ph{font-size:17px;font-weight:600;color:var(--ph)}
+    .c-kbd{margin-left:auto;font-size:11px;font-weight:700;color:var(--primary);
+      border:1px solid var(--pSofter);border-radius:var(--r-pill);padding:4px 10px}
+
+    /* 자주 가는 곳 — 얇은 한 줄 가로 스크롤 */
+    .c-row{display:flex;gap:8px;overflow:hidden;flex-wrap:nowrap;position:relative;padding-bottom:2px}
+    .c-row .chip{flex:0 0 auto;white-space:nowrap;padding:9px 12px;font-size:12.5px;background:var(--card)}
+    .c-cnt{font-size:10.5px;font-weight:700;color:var(--sub);opacity:.75;margin-left:1px}
+    .c-fade{position:relative;margin-bottom:4px}
+    .c-fade:after{content:"";position:absolute;top:0;right:-24px;width:72px;height:100%;
+      background:linear-gradient(90deg,rgba(255,246,239,0),var(--bg) 62%)}
+
+    /* 여기 없으면 직접 입력 */
+    .c-manual{margin-top:auto;text-align:center;font-size:13px;color:var(--sub);
+      padding:14px 0 6px;border-top:1px dashed var(--border)}
+    .c-manual b{color:var(--primary);font-weight:700}
+    .c-flow{display:flex;flex-direction:column;height:100%}
+    .c-gap{height:22px}
+  </style>
+
+  <div class="vhead">
+    <div class="vtag">C안</div>
+    <div class="vname">검색이 주인공인 미니멀</div>
+  </div>
+  <div class="vdesc">이번에 가는 곳은 대개 처음 가는 곳이라는 전제로, 화면의 중심을 큰 검색창 하나에 몰아줬습니다. 자주 가는 곳은 얇은 한 줄 칩으로만 조용히 두고, 스크롤 없이 한 화면에서 고르거나 그냥 건너뛰게 만드는 게 목적입니다.</div>
+
+  <div class="strip">
+
+    <!-- 1. 기본 상태 -->
+    <div class="col">
+      <div class="cap">1. 기본 — 아무것도 안 고른 상태</div>
+      <div class="phone">
+        <div class="status"><span>10:08</span><span>5G</span></div>
+        <div class="top">
+          <div class="ttl">오늘의 일기</div>
+          <div class="tsub">2026년 8월 2일 · 일요일</div>
+        </div>
+        <div class="prog">
+          <div class="track"><div class="fill" style="width:100%"></div></div>
+          <div class="pnum">4/4</div>
+        </div>
+
+        <div class="body">
+          <div class="c-flow">
+            <h1 class="step">오늘 어디 다녀왔어요?</h1>
+            <div class="stepsub">안 넣어도 일기는 저장돼요</div>
+
+            <div class="search c-big">
+              <span class="c-mag">🔍</span>
+              <span class="c-ph">장소 이름으로 찾기</span>
+              <span class="c-kbd">지도</span>
+            </div>
+            <div class="c-hint">가게 이름, 동네 이름 아무거나 좋아요</div>
+
+            <div class="sec">자주 가는 곳</div>
+            <div class="c-fade">
+              <div class="c-row">
+                <span class="chip">🍽 멘부쿠제면소 <span class="c-cnt">12</span></span>
+                <span class="chip">🅿 여의도한강공원 3주차장 <span class="c-cnt">8</span></span>
+                <span class="chip">☕ 멜라 홍대점 <span class="c-cnt">5</span></span>
+                <span class="chip">🎬 벌툰 몽유도원 사당역점 <span class="c-cnt">3</span></span>
+                <span class="chip">🍽 무로 <span class="c-cnt">2</span></span>
+              </div>
+            </div>
+
+            <div class="c-manual">여기 없으면 <b>직접 입력</b></div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="skip">건너뛰기</div>
+          <div class="btn">저장하고 잠금 대기 🔒</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 검색으로 새 장소를 담은 상태 -->
+    <div class="col">
+      <div class="cap">2. 검색으로 새 장소를 담은 상태</div>
+      <div class="phone">
+        <div class="status"><span>10:08</span><span>5G</span></div>
+        <div class="top">
+          <div class="ttl">오늘의 일기</div>
+          <div class="tsub">2026년 8월 2일 · 일요일</div>
+        </div>
+        <div class="prog">
+          <div class="track"><div class="fill" style="width:100%"></div></div>
+          <div class="pnum">4/4</div>
+        </div>
+
+        <div class="body">
+          <div class="c-flow">
+            <h1 class="step">오늘 어디 다녀왔어요?</h1>
+            <div class="stepsub">안 넣어도 일기는 저장돼요</div>
+
+            <div class="search c-big">
+              <span class="c-mag">🔍</span>
+              <span class="c-ph">한 곳 더 찾기</span>
+              <span class="c-kbd">지도</span>
+            </div>
+
+            <div class="c-gap"></div>
+
+            <div class="sec">오늘 담은 곳 <b>1</b></div>
+            <div class="picked">📍 성수동 대림창고 <span class="x">✕</span></div>
+
+            <div class="c-gap"></div>
+
+            <div class="sec">자주 가는 곳</div>
+            <div class="c-fade">
+              <div class="c-row">
+                <span class="chip">🍽 멘부쿠제면소 <span class="c-cnt">12</span></span>
+                <span class="chip">🅿 여의도한강공원 3주차장 <span class="c-cnt">8</span></span>
+                <span class="chip">☕ 멜라 홍대점 <span class="c-cnt">5</span></span>
+                <span class="chip">🎬 벌툰 몽유도원 사당역점 <span class="c-cnt">3</span></span>
+                <span class="chip">🍽 무로 <span class="c-cnt">2</span></span>
+              </div>
+            </div>
+
+            <div class="c-manual">여기 없으면 <b>직접 입력</b></div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="skip">건너뛰기</div>
+          <div class="btn">저장하고 잠금 대기 🔒</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>

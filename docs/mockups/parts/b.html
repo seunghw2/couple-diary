@@ -1,0 +1,246 @@
+<section class="ver">
+  <style>
+    /* B안 전용 — 모든 클래스에 b- 접두사 */
+    .b-body{display:flex;flex-direction:column}
+    .b-scroll{flex:1;overflow:hidden;display:flex;flex-direction:column}
+    h1.b-h1{margin-bottom:3px}
+    .b-sub{margin-bottom:10px}
+    .b-search{margin-bottom:12px}
+
+    /* 종류 필터 칩 줄 */
+    .b-filters{display:flex;gap:6px;margin-bottom:10px}
+    .b-f{flex:0 0 auto;padding:7px 11px;font-size:12px;background:var(--card)}
+    .b-f b{font-weight:700;color:var(--sub);margin-left:3px}
+    .b-f-on{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:700}
+    .b-f-on b{color:rgba(255,255,255,.82)}
+
+    /* 한 줄 리스트 */
+    .b-list{background:var(--card);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden}
+    .b-row{display:flex;align-items:center;gap:12px;padding:7px 12px}
+    .b-row + .b-row{border-top:1px solid var(--border)}
+    .b-tile{width:38px;height:38px;flex:0 0 38px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1}
+    .b-meat{background:#FFE0D2;color:#E5654B}
+    .b-cafe{background:#F3E4D2;color:#B07A3C}
+    .b-cult{background:#F1E1EC;color:#C77BA6}
+    .b-park{background:#E7E9EC;color:#7C838C}
+    .b-txt{flex:1;min-width:0}
+    .b-nm{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .b-mt{font-size:11px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .b-mt i{font-style:normal;color:var(--ph);margin:0 4px}
+    .b-add{width:30px;height:30px;flex:0 0 30px;border-radius:var(--r-pill);
+      border:1.5px solid var(--pSofter);color:var(--primary);background:var(--card);
+      display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;line-height:1}
+    .b-row-on{background:rgba(143,169,200,.12)}
+    .b-row-on .b-nm{color:#3E5877}
+    .b-add-on{background:var(--primary);border-color:var(--primary);color:#fff}
+
+    /* 하단 고정 영역 */
+    .b-fixed{padding-top:4px}
+    .b-manual{text-align:center;font-size:12px;color:var(--sub);padding:7px 0 1px}
+    .b-manual b{color:var(--primary);font-weight:700}
+    .b-sec{margin:5px 0 5px}
+    .b-picked{padding:9px 14px;margin-bottom:0}
+    .b-ptile{width:22px;height:22px;flex:0 0 22px;border-radius:7px;
+      display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1}
+  </style>
+
+  <div class="vhead"><span class="vtag">B안</span><span class="vname">한 줄 리스트 + 종류 필터</span></div>
+  <div class="vdesc">자주 간 곳을 세로 한 줄 리스트로 정렬해, 길이가 제각각인 칩 나열에서 오던 들쭉날쭉함을 없앴습니다. 위쪽 종류 필터로 음식·카페·문화만 빠르게 좁혀 보고, 각 행에서 바로 담을 수 있습니다.</div>
+
+  <div class="strip">
+
+    <!-- 화면 1: 기본 상태 -->
+    <div class="col">
+      <div class="cap">1. 기본 — 필터 “전체”</div>
+      <div class="phone">
+        <div class="status"><span>10:08</span><span>5G</span></div>
+        <div class="top">
+          <div class="ttl">오늘의 일기</div>
+          <div class="tsub">2026년 8월 2일 · 일요일</div>
+        </div>
+        <div class="prog">
+          <div class="track"><div class="fill" style="width:100%"></div></div>
+          <span class="pnum">4/4</span>
+        </div>
+
+        <div class="body b-body">
+          <div class="b-scroll">
+            <h1 class="step b-h1">어디에 다녀왔어요?</h1>
+            <div class="stepsub b-sub">자주 간 곳을 방문 횟수 순으로 모아뒀어요</div>
+
+            <div class="search b-search"><span>🔍</span><span>장소 검색 (성수동 · 대림창고…)</span></div>
+
+            <div class="b-filters">
+              <span class="chip b-f b-f-on">전체 <b>6</b></span>
+              <span class="chip b-f">음식 <b>2</b></span>
+              <span class="chip b-f">카페 <b>1</b></span>
+              <span class="chip b-f">문화 <b>2</b></span>
+              <span class="chip b-f">주차 <b>1</b></span>
+            </div>
+
+            <div class="b-list">
+              <div class="b-row">
+                <div class="b-tile b-meat">🍽</div>
+                <div class="b-txt">
+                  <div class="b-nm">멘부쿠제면소</div>
+                  <div class="b-mt">12번 함께<i>·</i>3일 전</div>
+                </div>
+                <div class="b-add">＋</div>
+              </div>
+              <div class="b-row">
+                <div class="b-tile b-park">🅿</div>
+                <div class="b-txt">
+                  <div class="b-nm">여의도한강공원 3주차장</div>
+                  <div class="b-mt">8번 함께<i>·</i>2주 전</div>
+                </div>
+                <div class="b-add">＋</div>
+              </div>
+              <div class="b-row">
+                <div class="b-tile b-cafe">☕</div>
+                <div class="b-txt">
+                  <div class="b-nm">멜라 홍대점</div>
+                  <div class="b-mt">5번 함께<i>·</i>한 달 전</div>
+                </div>
+                <div class="b-add">＋</div>
+              </div>
+              <div class="b-row">
+                <div class="b-tile b-cult">🎬</div>
+                <div class="b-txt">
+                  <div class="b-nm">벌툰 몽유도원 사당역점</div>
+                  <div class="b-mt">3번 함께<i>·</i>한 달 전</div>
+                </div>
+                <div class="b-add">＋</div>
+              </div>
+              <div class="b-row">
+                <div class="b-tile b-meat">🍽</div>
+                <div class="b-txt">
+                  <div class="b-nm">무로</div>
+                  <div class="b-mt">2번 함께<i>·</i>두 달 전</div>
+                </div>
+                <div class="b-add">＋</div>
+              </div>
+              <div class="b-row">
+                <div class="b-tile b-cult">🎬</div>
+                <div class="b-txt">
+                  <div class="b-nm">캐치미 셀프사진관 홍대점</div>
+                  <div class="b-mt">2번 함께<i>·</i>두 달 전</div>
+                </div>
+                <div class="b-add">＋</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="b-fixed">
+            <div class="b-manual">여기 없으면 <b>직접 입력</b></div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <span class="skip">건너뛰기</span>
+          <div class="btn">저장하고 잠금 대기</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 화면 2: 한 곳 고른 상태 -->
+    <div class="col">
+      <div class="cap">2. 한 곳 담음 — 멜라 홍대점</div>
+      <div class="phone">
+        <div class="status"><span>10:08</span><span>5G</span></div>
+        <div class="top">
+          <div class="ttl">오늘의 일기</div>
+          <div class="tsub">2026년 8월 2일 · 일요일</div>
+        </div>
+        <div class="prog">
+          <div class="track"><div class="fill" style="width:100%"></div></div>
+          <span class="pnum">4/4</span>
+        </div>
+
+        <div class="body b-body">
+          <div class="b-scroll">
+            <h1 class="step b-h1">어디에 다녀왔어요?</h1>
+            <div class="stepsub b-sub">자주 간 곳을 방문 횟수 순으로 모아뒀어요</div>
+
+            <div class="search b-search"><span>🔍</span><span>장소 검색 (성수동 · 대림창고…)</span></div>
+
+            <div class="b-filters">
+              <span class="chip b-f b-f-on">전체 <b>6</b></span>
+              <span class="chip b-f">음식 <b>2</b></span>
+              <span class="chip b-f">카페 <b>1</b></span>
+              <span class="chip b-f">문화 <b>2</b></span>
+              <span class="chip b-f">주차 <b>1</b></span>
+            </div>
+
+            <div class="b-list">
+              <div class="b-row">
+                <div class="b-tile b-meat">🍽</div>
+                <div class="b-txt">
+                  <div class="b-nm">멘부쿠제면소</div>
+                  <div class="b-mt">12번 함께<i>·</i>3일 전</div>
+                </div>
+                <div class="b-add">＋</div>
+              </div>
+              <div class="b-row">
+                <div class="b-tile b-park">🅿</div>
+                <div class="b-txt">
+                  <div class="b-nm">여의도한강공원 3주차장</div>
+                  <div class="b-mt">8번 함께<i>·</i>2주 전</div>
+                </div>
+                <div class="b-add">＋</div>
+              </div>
+              <div class="b-row b-row-on">
+                <div class="b-tile b-cafe">☕</div>
+                <div class="b-txt">
+                  <div class="b-nm">멜라 홍대점</div>
+                  <div class="b-mt">5번 함께<i>·</i>한 달 전</div>
+                </div>
+                <div class="b-add b-add-on">✓</div>
+              </div>
+              <div class="b-row">
+                <div class="b-tile b-cult">🎬</div>
+                <div class="b-txt">
+                  <div class="b-nm">벌툰 몽유도원 사당역점</div>
+                  <div class="b-mt">3번 함께<i>·</i>한 달 전</div>
+                </div>
+                <div class="b-add">＋</div>
+              </div>
+              <div class="b-row">
+                <div class="b-tile b-meat">🍽</div>
+                <div class="b-txt">
+                  <div class="b-nm">무로</div>
+                  <div class="b-mt">2번 함께<i>·</i>두 달 전</div>
+                </div>
+                <div class="b-add">＋</div>
+              </div>
+              <div class="b-row">
+                <div class="b-tile b-cult">🎬</div>
+                <div class="b-txt">
+                  <div class="b-nm">캐치미 셀프사진관 홍대점</div>
+                  <div class="b-mt">2번 함께<i>·</i>두 달 전</div>
+                </div>
+                <div class="b-add">＋</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="b-fixed">
+            <div class="b-manual">여기 없으면 <b>직접 입력</b></div>
+            <div class="sec b-sec">오늘 담은 곳 <b>1</b></div>
+            <div class="picked b-picked">
+              <span class="b-ptile b-cafe">☕</span>
+              <span>멜라 홍대점</span>
+              <span class="x">✕</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <span class="skip">건너뛰기</span>
+          <div class="btn">저장하고 잠금 대기</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>

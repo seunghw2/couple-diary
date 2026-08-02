@@ -1,0 +1,48 @@
+/* 목업 공용 토큰/프레임 — theme/theme.ts 기준 (primary는 사용자 앱컬러=블루 계열) */
+:root{
+  --bg:#FFF6EF; --card:#FFFDFA; --primary:#8FA9C8; --pSoft:#A8BCD3; --pSofter:#C7D4E3;
+  --text:#5A4038; --sub:#7A5A4E; --border:#F1E2D6; --ph:#B39685; --white:#fff;
+  --r-sm:12px; --r-md:18px; --r-lg:22px; --r-pill:999px;
+  --s-xs:4px; --s-sm:8px; --s-md:12px; --s-lg:16px; --s-xl:24px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#EDE4DC;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;color:var(--text);padding:36px 40px 48px}
+.ver{margin-bottom:44px}
+.ver + .ver{border-top:2px dashed #CDBCAF;padding-top:40px}
+.vhead{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+.vtag{font-size:30px;font-weight:800;color:#3E2E27}
+.vname{font-size:22px;font-weight:700;color:#6B564C}
+.vdesc{font-size:15px;color:#7B6459;margin-bottom:20px;line-height:1.5}
+.strip{display:flex;gap:26px;align-items:flex-start}
+.col{width:393px}
+.cap{font-size:14px;font-weight:600;color:#6B564C;margin-bottom:8px;text-align:center}
+
+/* 폰 프레임 + 위저드 공통 골격 */
+.phone{width:393px;height:720px;background:var(--bg);border-radius:34px;overflow:hidden;
+  box-shadow:0 10px 26px rgba(90,64,56,.22);border:1px solid #E3D3C6;display:flex;flex-direction:column}
+.status{display:flex;justify-content:space-between;padding:12px 22px 2px;font-size:13px;font-weight:700;color:var(--text)}
+.top{padding:6px 24px 0;text-align:center}
+.ttl{font-size:20px;font-weight:700}
+.tsub{font-size:12px;color:var(--sub);margin-top:2px}
+.prog{display:flex;align-items:center;gap:8px;padding:12px 24px 0}
+.track{flex:1;height:6px;border-radius:3px;background:var(--border);overflow:hidden}
+.fill{height:100%;background:var(--primary);border-radius:3px}
+.pnum{font-size:12px;font-weight:700;color:var(--sub)}
+.body{padding:14px 24px 0;flex:1;overflow:hidden}
+h1.step{font-size:22px;font-weight:800;margin-bottom:4px}
+.stepsub{font-size:12px;color:var(--sub);margin-bottom:14px}
+.search{display:flex;align-items:center;gap:8px;border:1.5px solid var(--primary);border-radius:var(--r-lg);
+  background:var(--card);padding:14px 16px;margin-bottom:16px}
+.search span{font-size:15px;color:var(--ph)}
+.sec{font-size:13px;font-weight:600;color:var(--sub);margin:2px 0 10px;display:flex;align-items:center;gap:6px}
+.sec b{color:var(--text)}
+.footer{display:flex;align-items:center;gap:12px;padding:10px 24px 16px}
+.skip{font-size:15px;font-weight:700;color:var(--sub);padding:0 6px}
+.btn{flex:1;height:52px;border-radius:var(--r-pill);background:var(--primary);color:#fff;
+  font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:8px 13px;border-radius:var(--r-pill);
+  background:var(--bg);border:1px solid var(--border);font-size:12px;color:var(--text)}
+/* 오늘 담은 곳 행 */
+.picked{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:11px 14px;font-size:14px;margin-bottom:8px}
+.picked .x{margin-left:auto;color:var(--ph);font-size:15px}
