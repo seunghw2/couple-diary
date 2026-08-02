@@ -36,6 +36,7 @@ import { clearDraft, draftHasContent, loadDraft, saveDraft } from '../../lib/wri
 import { MOODS, MOOD_CATS, TEMPLATE_PROMPTS } from '../../constants/content';
 import { Button, Card, Icon, PhotoThumb } from '../../components/ui';
 import { KakaoMapPicker } from '../../components/KakaoMapPicker';
+import { PhotoViewer, PhotoViewerTarget } from '../../components/PhotoViewer';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
 type Step = 'mode' | 'form';
@@ -134,6 +135,7 @@ export default function WriteScreen() {
   // 각 사진 소유(bare url → 'me'|'partner'). 인당 3장 제한·삭제권한 구분용. 미기록=내 새 업로드.
   const [photoAuthors, setPhotoAuthors] = useState<Record<string, 'me' | 'partner'>>({});
   const [uploading, setUploading] = useState(false);
+  const [viewer, setViewer] = useState<PhotoViewerTarget>(null); // 사진 크게 보기(탭)
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -682,7 +684,12 @@ export default function WriteScreen() {
                       const mineOwn = (photoAuthors[bareUrl(u)] ?? 'me') === 'me';
                       const tilt = (i % 3) - 1; // -1,0,1 → 살짝 기울여 붙인 느낌
                       return (
-                        <View key={u + i} style={[styles.polaroid, { transform: [{ rotate: `${tilt * 3}deg` }] }]}>
+                        // 사진을 탭하면 풀스크린으로 크게 본다(좌우 스와이프로 다른 사진, 아래로 밀면 닫힘).
+                        <Pressable
+                          key={u + i}
+                          onPress={() => setViewer({ urls: photoUrls, index: i })}
+                          style={[styles.polaroid, { transform: [{ rotate: `${tilt * 3}deg` }] }]}
+                        >
                           <PhotoThumb url={u} seed={u} size={132} round={false} />
                           <Text style={[styles.polaroidCap, { color: mineOwn ? c.primary : colors.subText }]}>
                             {mineOwn ? '내가 담은 순간' : '상대가 담은 순간'}
@@ -696,7 +703,7 @@ export default function WriteScreen() {
                               <Icon name="person" size={11} color={colors.white} />
                             </View>
                           )}
-                        </View>
+                        </Pressable>
                       );
                     })}
                     {uploading ? (
@@ -712,6 +719,9 @@ export default function WriteScreen() {
                       </Pressable>
                     ) : null}
                   </ScrollView>
+                  {photoUrls.length > 0 ? (
+                    <Text style={styles.photoCapHint}>사진을 탭하면 크게 볼 수 있어요</Text>
+                  ) : null}
                   {myPhotoCount >= 3 ? (
                     <Text style={styles.photoCapHint}>내 사진은 최대 3장까지 담을 수 있어요</Text>
                   ) : null}
@@ -811,6 +821,15 @@ export default function WriteScreen() {
           </>
         )}
       </KeyboardAvoidingView>
+
+      {/* 사진 크게 보기. key로 열 때마다 새 인덱스/제스처 상태로 마운트. */}
+      {viewer ? (
+        <PhotoViewer
+          key={`${viewer.index}-${viewer.urls.join(',')}`}
+          viewer={viewer}
+          onClose={() => setViewer(null)}
+        />
+      ) : null}
 
       <KakaoMapPicker
         visible={mapPickerOpen}
