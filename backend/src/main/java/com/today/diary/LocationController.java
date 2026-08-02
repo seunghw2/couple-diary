@@ -32,6 +32,12 @@ public class LocationController {
         diaryService.setNickname(SecurityUtil.currentUserId(), req.name(), req.nickname());
     }
 
+    /** 즐겨찾기 장소 등록/해제(커플 공용). */
+    @PutMapping("/favorite")
+    public void setFavorite(@Valid @RequestBody DiaryDtos.PlaceFavoriteRequest req) {
+        diaryService.setFavorite(SecurityUtil.currentUserId(), req.name(), req.favorite());
+    }
+
     /** 한 장소에 쌓인 기록(날짜별 1항목, 최신순) + 별명. */
     @GetMapping("/detail")
     public PlaceDetailResponse detail(@RequestParam String name) {

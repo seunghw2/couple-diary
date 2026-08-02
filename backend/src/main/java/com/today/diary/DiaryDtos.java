@@ -88,8 +88,9 @@ public class DiaryDtos {
     // ---- 이전 장소 추천 / 지도 ----
     // locations: 이름만(작성화면 추천용, 하위호환). counts: 장소별 방문 일수(지도 핀 뱃지용).
     // nicknames: 별명이 있는 장소만(지도/목록에 별명 표시용).
+    // favorites: 커플이 고정해 둔 즐겨찾기 장소명(작성화면 "자주 가는 곳"에 노출, 등록순).
     public record LocationsResponse(List<String> locations, List<LocationCount> counts,
-                                    List<PlaceNicknameView> nicknames) {}
+                                    List<PlaceNicknameView> nicknames, List<String> favorites) {}
 
     /** name=장소명, count=방문 날짜 수, thumbUrl=대표 사진(서명, 없으면 null), recentDate=가장 최근 방문일,
      *  category=장소 종류(카카오 카테고리, 없으면 null → 프론트 기본 아이콘). */
@@ -107,6 +108,12 @@ public class DiaryDtos {
     public record PlaceNicknameRequest(
             @NotBlank @Size(max = 100) String name,
             @Size(max = 100) String nickname
+    ) {}
+
+    // ---- 즐겨찾기 장소 등록/해제 ----
+    public record PlaceFavoriteRequest(
+            @NotBlank @Size(max = 100) String name,
+            boolean favorite
     ) {}
 
     // ---- 장소 상세(한 장소에 쌓인 기록) ----

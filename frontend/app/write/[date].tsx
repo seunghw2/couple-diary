@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Animated,
+  Dimensions,
   KeyboardAvoidingView,
-  PanResponder,
   Platform,
   Pressable,
   ScrollView,
@@ -48,37 +47,6 @@ function bareUrl(u?: string | null): string {
   return i >= 0 ? u.slice(0, i) : u;
 }
 
-/** 왼쪽으로 밀면 삭제되는 장소 행(공유 목록용). */
-function SwipeDeleteRow({ label, onDelete, tint }: { label: string; onDelete: () => void; tint: string }) {
-  const tx = useRef(new Animated.Value(0)).current;
-  const pan = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_e, g) => g.dx < -6 && Math.abs(g.dx) > Math.abs(g.dy),
-      onPanResponderMove: (_e, g) => {
-        if (g.dx < 0) tx.setValue(Math.max(g.dx, -110));
-      },
-      onPanResponderRelease: (_e, g) => {
-        if (g.dx < -70) {
-          Animated.timing(tx, { toValue: -500, duration: 160, useNativeDriver: true }).start(() => onDelete());
-        } else {
-          Animated.spring(tx, { toValue: 0, useNativeDriver: true, bounciness: 4 }).start();
-        }
-      },
-    })
-  ).current;
-  return (
-    <View style={styles.swipeWrap}>
-      <View style={styles.swipeDeleteBg}>
-        <Icon name="trash-outline" size={16} color={colors.white} />
-        <Text style={styles.swipeDeleteText}>삭제</Text>
-      </View>
-      <Animated.View style={[styles.swipeRow, { transform: [{ translateX: tx }] }]} {...pan.panHandlers}>
-        <Icon name="location" size={15} color={tint} />
-        <Text style={styles.swipeRowText} numberOfLines={1}>{label}</Text>
-      </Animated.View>
-    </View>
-  );
-}
 /** 화면 로컬 모드. 'FREE'=내가 질문 3개를 고르는 단계(제출 시 QUESTION_PICK으로 저장). */
 type FormMode = EntryMode | 'FREE';
 
@@ -129,7 +97,9 @@ export default function WriteScreen() {
   const [locations, setLocations] = useState<string[]>([]); // 다중 장소 칩(이름, 하위호환)
   const [locationPoints, setLocationPoints] = useState<LocationPoint[]>([]); // 좌표 메타(지도에서 찍은 곳)
   const [locationInput, setLocationInput] = useState('');
-  const [prevLocations, setPrevLocations] = useState<string[]>([]); // 이전 장소 추천
+  const [favLocations, setFavLocations] = useState<string[]>([]); // 즐겨찾기(자주 가는 곳)
+  const [topLocations, setTopLocations] = useState<string[]>([]); // 방문 많은 곳 — 즐겨찾기가 비었을 때 안내용
+  const [favBusy, setFavBusy] = useState(false);
   const [mapPickerOpen, setMapPickerOpen] = useState(false); // 지도+검색 통합 시트
   const [photoUrls, setPhotoUrls] = useState<string[]>([]); // 업로드 완료된 /files/... 경로(커플 공용)
   // 각 사진 소유(bare url → 'me'|'partner'). 인당 3장 제한·삭제권한 구분용. 미기록=내 새 업로드.
@@ -158,11 +128,19 @@ export default function WriteScreen() {
         setQuestionsFailed(true);
       }
     })();
-    // 이전에 쓴 장소 추천 로드 (실패해도 무시)
+    // 자주 가는 곳(즐겨찾기) 로드 (실패해도 무시)
     (async () => {
       try {
-        const { locations: prev } = await locationApi.list();
-        setPrevLocations(prev ?? []);
+        const { favorites, counts } = await locationApi.list();
+        setFavLocations(favorites ?? []);
+        // 즐겨찾기가 비었을 때 "여러 번 간 곳" 안내에 쓸 상위 목록(2번 이상 간 곳).
+        setTopLocations(
+          (counts ?? [])
+            .filter((c) => c.count >= 2)
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 3)
+            .map((c) => c.name)
+        );
       } catch {
         /* 무시 */
       }
@@ -327,6 +305,22 @@ export default function WriteScreen() {
   function removeLocation(name: string) {
     setLocations((prev) => prev.filter((l) => l !== name));
     setLocationPoints((prev) => prev.filter((p) => p.name !== name));
+  }
+
+  /** 즐겨찾기(자주 가는 곳) 등록/해제. 화면은 먼저 바꾸고, 실패하면 되돌린다. */
+  async function toggleFavorite(name: string) {
+    if (favBusy) return;
+    const on = favLocations.includes(name);
+    setFavBusy(true);
+    setFavLocations((prev) => (on ? prev.filter((l) => l !== name) : [...prev, name]));
+    try {
+      await locationApi.setFavorite(name, !on);
+    } catch {
+      setFavLocations((prev) => (on ? [...prev, name] : prev.filter((l) => l !== name)));
+      showAlert('저장하지 못했어요', '잠시 후 다시 시도해 주세요.');
+    } finally {
+      setFavBusy(false);
+    }
   }
 
   /** 지도 시트에서 확정한 장소들을 이름 칩 + 좌표 메타로 병합. */
@@ -738,21 +732,6 @@ export default function WriteScreen() {
                     <Icon name="search" size={18} color={c.primary} />
                     <Text style={styles.placeSearchText}>장소 검색 (성수동 · 대림창고…)</Text>
                   </Pressable>
-                  {/* 최근 함께 간 곳: 원탭 추가 */}
-                  {prevLocations.filter((l) => !locations.includes(l)).length > 0 ? (
-                    <>
-                      <Text style={styles.prevLocLabel}>최근 함께 간 곳 · 탭해서 추가</Text>
-                      <View style={styles.chipWrap}>
-                        {prevLocations
-                          .filter((l) => !locations.includes(l))
-                          .map((loc) => (
-                            <Pressable key={loc} onPress={() => addLocation(loc)} style={styles.chip}>
-                              <Text style={styles.chipText}>{loc}</Text>
-                            </Pressable>
-                          ))}
-                      </View>
-                    </>
-                  ) : null}
                   {/* 직접 입력(보조) */}
                   <View style={styles.locationRow}>
                     <Icon name="add-circle-outline" size={18} color={colors.subText} />
@@ -771,16 +750,50 @@ export default function WriteScreen() {
                       </Pressable>
                     ) : null}
                   </View>
-                  {/* 담은 곳 라인 리스트(← 밀어서 삭제) */}
+                  {/* 자주 가는 곳(즐겨찾기) — 2열 2행씩 옆으로 넘겨서 본다 */}
+                  <Text style={styles.prevLocLabel}>⭐ 자주 가는 곳</Text>
+                  {favLocations.length > 0 ? (
+                    <FavoritePager
+                      names={favLocations}
+                      picked={locations}
+                      onPick={addLocation}
+                      onUnpick={removeLocation}
+                      tint={c.primary}
+                    />
+                  ) : (
+                    <View style={styles.favEmpty}>
+                      <Text style={styles.favEmptyText}>
+                        {topLocations.length > 0
+                          ? `${topLocations[0]} 같이 자주 가는 곳을 아래에서 별표로 담아두면 여기 나와요`
+                          : '담은 곳 왼쪽의 별표를 누르면 여기 모여요'}
+                      </Text>
+                    </View>
+                  )}
+                  {/* 오늘 담은 곳 — 왼쪽 별표로 즐겨찾기 등록/해제 */}
                   {locations.length > 0 ? (
                     <>
-                      <Text style={styles.prevLocLabel}>담은 곳 ({locations.length})</Text>
+                      <Text style={styles.prevLocLabel}>오늘 담은 곳 ({locations.length})</Text>
                       <View style={styles.placeList}>
-                        {locations.map((loc) => (
-                          <SwipeDeleteRow key={loc} label={loc} onDelete={() => removeLocation(loc)} tint={c.primary} />
-                        ))}
+                        {locations.map((loc) => {
+                          const fav = favLocations.includes(loc);
+                          return (
+                            <View key={loc} style={[styles.pickedRow, fav && { borderColor: c.primary }]}>
+                              <Pressable onPress={() => toggleFavorite(loc)} hitSlop={10} style={styles.pickedStar}>
+                                <Icon
+                                  name={fav ? 'star' : 'star-outline'}
+                                  size={20}
+                                  color={fav ? colors.star : colors.placeholder}
+                                />
+                              </Pressable>
+                              <Text style={styles.pickedName} numberOfLines={1}>{loc}</Text>
+                              <Pressable onPress={() => removeLocation(loc)} hitSlop={10}>
+                                <Icon name="close" size={18} color={colors.placeholder} />
+                              </Pressable>
+                            </View>
+                          );
+                        })}
                       </View>
-                      <Text style={styles.swipeHint}>← 왼쪽으로 밀어 삭제해요</Text>
+                      <Text style={styles.swipeHint}>왼쪽 별을 누르면 자주 가는 곳에 담겨요</Text>
                     </>
                   ) : null}
                   <Card style={styles.lockNote}>
@@ -841,6 +854,65 @@ export default function WriteScreen() {
         })}
       />
     </SafeAreaView>
+  );
+}
+
+/**
+ * 자주 가는 곳(즐겨찾기) — 2열 2행(한 판 4곳)씩 옆으로 넘겨 본다.
+ * 곳이 늘어도 세로로 길어지지 않게 가로 페이징으로 담는다. 아이콘 없이 이름만 얇게.
+ */
+function FavoritePager({
+  names,
+  picked,
+  onPick,
+  onUnpick,
+  tint,
+}: {
+  names: string[];
+  picked: string[];
+  onPick: (name: string) => void;
+  onUnpick: (name: string) => void;
+  tint: string;
+}) {
+  // 페이지 폭 = 화면 폭 - 좌우 여백. 넘길 때 다음 판이 딱 맞게 서도록 스냅 간격으로도 쓴다.
+  const pageW = Dimensions.get('window').width - spacing.xl * 2;
+  const pages: string[][] = [];
+  for (let i = 0; i < names.length; i += 4) pages.push(names.slice(i, i + 4));
+
+  return (
+    <View>
+      <ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={pageW + spacing.sm}
+        decelerationRate="fast"
+        keyboardShouldPersistTaps="handled"
+      >
+        {pages.map((page, pi) => (
+          <View key={pi} style={[styles.favPage, { width: pageW, marginRight: pi < pages.length - 1 ? spacing.sm : 0 }]}>
+            {page.map((name) => {
+              const on = picked.includes(name);
+              return (
+                <Pressable
+                  key={name}
+                  onPress={() => (on ? onUnpick(name) : onPick(name))}
+                  style={[styles.favTile, on && { borderColor: tint, backgroundColor: `${tint}14` }]}
+                >
+                  <Text style={[styles.favTileText, on && { color: tint, fontWeight: '700' }]} numberOfLines={1}>
+                    {name}
+                  </Text>
+                  {on ? <Icon name="checkmark" size={14} color={tint} /> : null}
+                </Pressable>
+              );
+            })}
+          </View>
+        ))}
+      </ScrollView>
+      {pages.length > 1 ? (
+        <Text style={styles.favPageHint}>옆으로 넘기면 {names.length}곳을 다 볼 수 있어요</Text>
+      ) : null}
+    </View>
   );
 }
 
@@ -1258,23 +1330,36 @@ const styles = StyleSheet.create({
   locChipRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   prevLocLabel: { ...font.label, color: colors.subText, marginTop: spacing.md, marginBottom: spacing.xs },
 
-  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.sm },
-  placeList: { gap: spacing.sm },
-  swipeHint: { ...font.caption, color: colors.subText, marginTop: 6, marginLeft: 2 },
-  swipeWrap: { borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.danger },
-  swipeDeleteBg: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: 92,
+  // 자주 가는 곳(즐겨찾기) — 한 판 4곳(2열 2행), 아이콘 없이 이름만 얇게.
+  favPage: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  favTile: {
+    width: '48%',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
+    justifyContent: 'space-between',
+    gap: 4,
+    height: 40,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  swipeDeleteText: { color: colors.white, fontWeight: '800', fontSize: 13 },
-  swipeRow: {
+  favTileText: { ...font.body, fontSize: 13, color: colors.text, flexShrink: 1 },
+  favPageHint: { ...font.caption, color: colors.placeholder, marginTop: spacing.sm, marginLeft: 2 },
+  favEmpty: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    borderRadius: radius.md,
+    backgroundColor: colors.card,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
+  },
+  favEmptyText: { ...font.caption, color: colors.subText, textAlign: 'center', lineHeight: 18 },
+
+  // 오늘 담은 곳 — 왼쪽 별표(즐겨찾기) + 이름 + 삭제
+  pickedRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
@@ -1282,20 +1367,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
-    paddingVertical: 12,
+    paddingVertical: 11,
     paddingHorizontal: spacing.md,
   },
-  swipeRowText: { ...font.body, color: colors.text, flex: 1 },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-    backgroundColor: colors.bg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText: { ...font.caption, color: colors.text },
+  pickedStar: { paddingRight: 2 },
+  pickedName: { ...font.body, color: colors.text, flex: 1 },
+
+  placeList: { gap: spacing.sm },
+  swipeHint: { ...font.caption, color: colors.subText, marginTop: 6, marginLeft: 2 },
 
   // 이야기 단계 아코디언(탭=선택=그자리 입력)
   accCard: {

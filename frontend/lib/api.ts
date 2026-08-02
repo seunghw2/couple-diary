@@ -364,9 +364,16 @@ export type PlaceDetail = {
 
 export const locationApi = {
   list: () =>
-    api.get<{ locations: string[]; counts?: LocationCount[]; nicknames?: LocationNickname[] }>(
-      '/api/locations'
-    ),
+    api.get<{
+      locations: string[];
+      counts?: LocationCount[];
+      nicknames?: LocationNickname[];
+      /** 커플이 고정해 둔 즐겨찾기 장소(등록순). 작성 화면 "자주 가는 곳". */
+      favorites?: string[];
+    }>('/api/locations'),
+  /** 즐겨찾기 등록/해제(커플 공용). */
+  setFavorite: (name: string, favorite: boolean) =>
+    api.put<void>('/api/locations/favorite', { name, favorite }),
   /** 장소 상세 — 별명 + 그곳에 갔던 날짜별 일기 목록. */
   detail: (name: string) =>
     api.get<PlaceDetail>(`/api/locations/detail?name=${encodeURIComponent(name)}`),

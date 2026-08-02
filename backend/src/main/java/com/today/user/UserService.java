@@ -16,6 +16,7 @@ import com.today.diary.DiaryDay;
 import com.today.diary.DiaryDayRepository;
 import com.today.diary.DiaryEntry;
 import com.today.diary.DiaryEntryRepository;
+import com.today.diary.PlaceFavoriteRepository;
 import com.today.diary.EntryAnswerRepository;
 import com.today.diary.PhotoRepository;
 import com.today.diary.PlaceNicknameRepository;
@@ -46,6 +47,7 @@ public class UserService {
     private final CommentRepository commentRepository;
     private final CalendarMarkRepository calendarMarkRepository;
     private final PlaceNicknameRepository placeNicknameRepository;
+    private final PlaceFavoriteRepository placeFavoriteRepository;
     private final NotificationRepository notificationRepository;
     private final WorldcupResultRepository worldcupResultRepository;
     private final com.today.push.PushTokenRepository pushTokenRepository;
@@ -270,6 +272,7 @@ public class UserService {
             // 커플 범위 기타 데이터.
             calendarMarkRepository.deleteByCouple_Id(coupleId);
             placeNicknameRepository.deleteByCouple_Id(coupleId);
+            placeFavoriteRepository.deleteByCouple_Id(coupleId);
             // 월드컵 결과(양쪽 멤버 것 모두) — couple FK라 커플 삭제 전에 정리.
             worldcupResultRepository.deleteByCouple_Id(coupleId);
 

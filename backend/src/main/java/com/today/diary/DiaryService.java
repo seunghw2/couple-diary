@@ -40,6 +40,7 @@ public class DiaryService {
     private final EntryAnswerRepository answerRepository;
     private final PhotoRepository photoRepository;
     private final PlaceNicknameRepository placeNicknameRepository;
+    private final PlaceFavoriteRepository placeFavoriteRepository;
     private final CommentRepository commentRepository;
     private final com.today.upload.PhotoUrlSigner photoUrlSigner;
     private final com.today.upload.PhotoFileStore photoFileStore;
@@ -234,7 +235,30 @@ public class DiaryService {
                 .findByCouple_Id(couple.getId()).stream()
                 .map(pn -> new DiaryDtos.PlaceNicknameView(pn.getName(), pn.getNickname()))
                 .toList();
-        return new LocationsResponse(locations, counts, nicknames);
+        List<String> favorites = placeFavoriteRepository
+                .findByCouple_IdOrderByIdAsc(couple.getId()).stream()
+                .map(PlaceFavorite::getName)
+                .toList();
+        return new LocationsResponse(locations, counts, nicknames, favorites);
+    }
+
+    // ================= 즐겨찾기 장소 등록/해제 =================
+    // 같은 장소를 두 번 등록해도 한 번만 남는다(있으면 무시).
+    @Transactional
+    public void setFavorite(Long userId, String name, boolean favorite) {
+        if (name == null || name.isBlank()) {
+            throw new ApiException(ErrorCode.INVALID_INPUT);
+        }
+        Couple couple = coupleService.requireCouple(userId);
+        String cleanName = name.trim();
+        if (favorite) {
+            if (!placeFavoriteRepository.existsByCouple_IdAndName(couple.getId(), cleanName)) {
+                placeFavoriteRepository.save(PlaceFavorite.builder()
+                        .couple(couple).name(cleanName).build());
+            }
+        } else {
+            placeFavoriteRepository.deleteByCouple_IdAndName(couple.getId(), cleanName);
+        }
     }
 
     // ================= 장소 별명 upsert / clear =================
