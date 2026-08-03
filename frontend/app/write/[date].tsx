@@ -35,6 +35,7 @@ import { clearDraft, draftHasContent, loadDraft, saveDraft } from '../../lib/wri
 import { MOODS, MOOD_CATS, TEMPLATE_PROMPTS } from '../../constants/content';
 import { Button, Card, Icon, PhotoThumb } from '../../components/ui';
 import { KakaoMapPicker } from '../../components/KakaoMapPicker';
+import { mergePickedPlaces } from '../../lib/places';
 import { PhotoViewer, PhotoViewerTarget } from '../../components/PhotoViewer';
 import { colors, font, radius, shadow, spacing, useColors } from '../../theme/theme';
 
@@ -154,13 +155,18 @@ export default function WriteScreen() {
         const detail: DayDetail = await entryApi.detail(dateStr);
         const mine = detail.myEntry;
         // 다녀온 장소는 커플 공유 목록 — 내가 안 썼어도 상대가 넣은 게 항상 보인다.
+        // 이름이 같은 다른 지점이 이미 저장돼 있을 수 있어(예전 데이터) 여기서도 구분해 둔다.
         const shared = detail.places ?? [];
-        setLocations(shared.map((p) => p.name));
-        setLocationPoints(
-          shared
-            .filter((p) => p.lat != null && p.lng != null)
-            .map((p) => ({ name: p.name, lat: p.lat as number, lng: p.lng as number, category: p.category ?? undefined }))
+        const merged = mergePickedPlaces(
+          shared.map((p) => ({
+            name: p.name,
+            lat: p.lat ?? undefined,
+            lng: p.lng ?? undefined,
+            category: p.category ?? undefined,
+          }))
         );
+        setLocations(merged.names);
+        setLocationPoints(merged.points);
         // 사진도 커플 공용 — 상대가 올린 것까지 합쳐 항상 로드하고, 소유(내/상대)를 기록.
         const sharedPhotos = (detail.photos ?? []).filter((p): p is typeof p & { url: string } => !!p.url);
         setPhotoUrls(sharedPhotos.map((p) => p.url));
@@ -326,19 +332,9 @@ export default function WriteScreen() {
   /** 지도 시트에서 확정한 장소들을 이름 칩 + 좌표 메타로 병합. */
   // 피커는 initial=현재 locations 전체로 시작하므로, 확정 시 넘어온 바스켓이 '최종 상태'다.
   // → add-only가 아니라 통째로 교체해야 피커에서 뺀 장소가 실제로 빠진다.
+  // 같은 이름의 다른 지점 구분은 mergePickedPlaces가 처리한다.
   function applyPickedPlaces(places: SelectedPlace[]) {
-    const names: string[] = [];
-    const points: LocationPoint[] = [];
-    const seen = new Set<string>();
-    for (const pl of places) {
-      const nm = pl.name.trim();
-      if (!nm || seen.has(nm)) continue;
-      seen.add(nm);
-      names.push(nm);
-      if (pl.lat != null && pl.lng != null) {
-        points.push({ name: nm, lat: pl.lat, lng: pl.lng, category: pl.category });
-      }
-    }
+    const { names, points } = mergePickedPlaces(places);
     setLocations(names);
     setLocationPoints(points);
   }
@@ -856,6 +852,7 @@ export default function WriteScreen() {
     </SafeAreaView>
   );
 }
+
 
 /**
  * 자주 가는 곳(즐겨찾기) — 2열 2행(한 판 4곳)씩 옆으로 넘겨 본다.

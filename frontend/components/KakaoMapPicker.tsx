@@ -13,6 +13,7 @@ import {
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import * as Location from 'expo-location';
 import { placeApi, type PlaceResult, type SelectedPlace } from '../lib/api';
+import { placeKey } from '../lib/places';
 import { KAKAO_JS_KEY } from '../lib/config';
 import { Icon } from './ui';
 import { colors, font, radius, shadow, spacing, useColors } from '../theme/theme';
@@ -59,9 +60,6 @@ function formatDistance(m: number): string {
   return `${(m / 1000).toFixed(1)}km`;
 }
 
-function sameName(a: string, b: string): boolean {
-  return a.trim() === b.trim();
-}
 
 /**
  * 지도 + 검색 통합 시트(장소 콕 찍기).
@@ -226,12 +224,13 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
     }
   };
 
-  const addedSet = useMemo(() => new Set(basket.map((p) => p.name.trim())), [basket]);
+  const addedSet = useMemo(() => new Set(basket.map(placeKey)), [basket]);
 
   function toggleBasket(place: SelectedPlace) {
+    const key = placeKey(place);
     setBasket((prev) => {
-      const exists = prev.find((p) => sameName(p.name, place.name));
-      if (exists) return prev.filter((p) => !sameName(p.name, place.name));
+      const exists = prev.some((p) => placeKey(p) === key);
+      if (exists) return prev.filter((p) => placeKey(p) !== key);
       return [...prev, place];
     });
   }
@@ -394,7 +393,7 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
             <View style={styles.listOverlay}>
               <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.listContent}>
                 {results.map((p, i) => {
-                  const added = addedSet.has(p.name.trim());
+                  const added = addedSet.has(placeKey(p));
                   const dist = distanceOf(p);
                   return (
                     <Pressable
@@ -446,7 +445,7 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
               ) : (
                 <ScrollView style={{ maxHeight: 240 }} keyboardShouldPersistTaps="handled">
                   {nearby.candidates.map((p, i) => {
-                    const added = addedSet.has(p.name.trim());
+                    const added = addedSet.has(placeKey(p));
                     const dist = p.dist != null ? formatDistance(p.dist) : distanceOf(p);
                     return (
                       <Pressable
@@ -550,7 +549,7 @@ export function KakaoMapPicker({ visible, onClose, onConfirm, initial = [] }: Pr
           {/* 핀 탭 → 장소 카드 */}
           {active && !pinned ? (
             (() => {
-              const added = addedSet.has(active.name.trim());
+              const added = addedSet.has(placeKey(active));
               const dist = distanceOf(active);
               return (
                 <View style={styles.card}>
