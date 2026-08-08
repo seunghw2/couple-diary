@@ -193,7 +193,7 @@ export default function HomeScreen() {
           {partnerName ? ` & ${partnerName}` : ' · 상대 대기 중'}
         </Text>
 
-        {/* 상대가 기다려요 배너 + 콕 찌르기 */}
+        {/* 상대가 먼저 썼어요 — 재촉받을 쪽이 나이므로 여기엔 콕 찌르기를 두지 않는다 */}
         {todayEntry?.partnerWritten && !todayEntry?.mineWritten ? (
           <View style={[styles.waitBanner, { borderColor: c.coralSofter }]}>
             <Pressable
@@ -205,6 +205,18 @@ export default function HomeScreen() {
                 {partnerName ?? '상대'}님이 오늘 일기를 썼어요 — 내가 쓰면 열려요
               </Text>
             </Pressable>
+          </View>
+        ) : null}
+
+        {/* 내가 먼저 썼어요 — 아직 안 쓴 상대를 콕 찌를 수 있다 */}
+        {todayEntry?.mineWritten && !todayEntry?.partnerWritten ? (
+          <View style={[styles.waitBanner, { borderColor: c.coralSofter }]}>
+            <View style={styles.waitBannerRow}>
+              <Icon name="hourglass-outline" size={16} color={c.primary} />
+              <Text style={[styles.waitBannerText, { color: c.primary }]}>
+                {partnerName ?? '상대'}님이 아직 안 썼어요 — 쓰면 서로 열려요
+              </Text>
+            </View>
             <Pressable style={[styles.pokeBtn, { borderColor: c.coralSofter }]} onPress={onPoke} disabled={poking} hitSlop={6}>
               {poking ? (
                 <ActivityIndicator color={c.primary} size="small" />

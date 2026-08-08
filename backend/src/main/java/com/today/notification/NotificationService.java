@@ -30,6 +30,8 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final CoupleRepository coupleRepository;
+    private final com.today.diary.DiaryDayRepository diaryDayRepository;
+    private final com.today.diary.DiaryEntryRepository diaryEntryRepository;
     private final PushSender pushSender;
     private final NotificationSettingService notificationSettingService;
 
@@ -267,6 +269,13 @@ public class NotificationService {
         User me = memberOf(couple, userId);
         User partner = partnerOf(couple, userId);
         if (partner == null) throw new ApiException(ErrorCode.COUPLE_NOT_FOUND);
+
+        // 콕 찌르기는 "오늘 쓴 사람"만 할 수 있다. 내가 안 썼으면 재촉받을 쪽이 나이므로 막는다.
+        boolean iWroteToday = diaryDayRepository
+                .findByCouple_IdAndDate(couple.getId(), LocalDate.now(KST))
+                .flatMap(day -> diaryEntryRepository.findByDay_IdAndAuthor_Id(day.getId(), userId))
+                .isPresent();
+        if (!iWroteToday) throw new ApiException(ErrorCode.POKE_NOT_WRITTEN);
 
         // 스팸 방지: 최근 1시간 내 상대에게 보낸 POKE 있으면 무시(중복 생성 안 함)
         LocalDateTime since = LocalDateTime.now().minusHours(POKE_COOLDOWN_HOURS);

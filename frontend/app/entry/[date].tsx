@@ -463,8 +463,6 @@ export default function EntryDetailScreen() {
               {status === 'LOCKED' && !mineWritten ? (
                 <LockedPartner
                   onWrite={() => router.push({ pathname: '/write/[date]', params: { date: dateStr } })}
-                  onPoke={onPoke}
-                  poking={poking}
                 />
               ) : partnerOpen ? (
                 <SideCard
@@ -482,6 +480,15 @@ export default function EntryDetailScreen() {
                 <Card style={styles.waitCard}>
                   <Icon name="lock-closed" size={22} color={colors.coralSoft} style={{ marginBottom: spacing.sm }} />
                   <Text style={styles.waitText}>상대가 아직 오늘 일기를 안 썼어요{'\n'}상대가 쓰면 자동으로 열려요!</Text>
+                  {/* 나는 이미 썼으니 안 쓴 상대를 콕 찌를 수 있다. */}
+                  <Button
+                    label="콕 찌르기"
+                    icon="hand-left-outline"
+                    variant="ghost"
+                    onPress={onPoke}
+                    loading={poking}
+                    style={{ marginTop: spacing.md, alignSelf: 'stretch' }}
+                  />
                 </Card>
               ) : null}
 
@@ -599,15 +606,8 @@ function EmptyState({ future, onWrite }: { future: boolean; onWrite: () => void 
   );
 }
 
-function LockedPartner({
-  onWrite,
-  onPoke,
-  poking,
-}: {
-  onWrite: () => void;
-  onPoke: () => void;
-  poking: boolean;
-}) {
+// 내가 아직 안 쓴 상태 — 재촉받을 쪽이 나이므로 콕 찌르기는 두지 않는다.
+function LockedPartner({ onWrite }: { onWrite: () => void }) {
   return (
     <Card style={[styles.lockedCard]}>
       <View style={styles.blurBox}>
@@ -619,14 +619,6 @@ function LockedPartner({
       <Text style={styles.lockedTitle}>상대의 일기는 잠겨 있어요</Text>
       <Text style={styles.lockedSub}>내 일기를 쓰면 서로의 글이 열려요</Text>
       <Button label="내 일기 쓰기" onPress={onWrite} style={{ marginTop: spacing.md, alignSelf: 'stretch' }} />
-      <Button
-        label="콕 찌르기"
-        icon="hand-left-outline"
-        variant="ghost"
-        onPress={onPoke}
-        loading={poking}
-        style={{ marginTop: spacing.sm, alignSelf: 'stretch' }}
-      />
     </Card>
   );
 }

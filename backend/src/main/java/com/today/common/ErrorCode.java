@@ -32,6 +32,7 @@ public enum ErrorCode {
     ANSWER_NOT_EDITABLE(HttpStatus.FORBIDDEN, "Q002", "답장은 24시간 이내에만 수정할 수 있어요."),
 
     DAY_LOCKED(HttpStatus.FORBIDDEN, "D001", "아직 열리지 않은 일기예요."),
+    POKE_NOT_WRITTEN(HttpStatus.FORBIDDEN, "D004", "오늘 일기를 쓴 뒤에 콕 찌를 수 있어요."),
     ENTRY_NOT_EDITABLE(HttpStatus.FORBIDDEN, "D002", "작성 후 24시간이 지나 수정할 수 없어요."),
     DAY_ALREADY_EXISTS(HttpStatus.CONFLICT, "D003", "그날에는 이미 일기가 있어요."),
     ;
