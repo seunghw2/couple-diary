@@ -20,6 +20,14 @@ spring:
       max-request-size: 12MB
 
 server:
+  tomcat:
+    accesslog:
+      enabled: true
+      directory: /Users/shstl/.config/lovetoday
+      prefix: access
+      suffix: .log
+      file-date-format: ''
+      pattern: '%t %s %D ms %r'
   # PaaS(Fly/Railway 등)는 PORT를 주입한다. 로컬은 미설정이라 8083 유지.
   port: ${PORT:8083}
   servlet:

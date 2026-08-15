@@ -89,8 +89,16 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   kakaoLogin: async () => {
+    // 다른 계정으로 갈아타는 경우를 위해 옛 세션을 먼저 비운다.
+    // (안 비우면 로그인이 도중에 끊겼을 때 이전 계정 화면이 그대로 남아 혼란스럽다.)
+    await tokenStore.clear();
+    set({ coupled: false, partner: null, user: null });
     const token = await loginWithKakao();
-    if (!token) return false; // 사용자 취소
+    if (!token) {
+      // 취소 → 로그인 화면으로 돌려보낸다(옛 세션은 이미 비웠다).
+      set({ status: 'guest' });
+      return false;
+    }
     await tokenStore.saveToken(token);
     set({ status: 'authenticated' });
     // 로그인 직후 내 정보/커플 상태 동기화
@@ -105,8 +113,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   appleLogin: async () => {
+    await tokenStore.clear();
+    set({ coupled: false, partner: null, user: null });
     const cred = await loginWithApple();
-    if (!cred) return false; // 사용자 취소
+    if (!cred) {
+      set({ status: 'guest' });
+      return false;
+    }
     const res = await authApi.appleLogin(cred.identityToken, cred.authorizationCode, cred.fullName);
     await tokenStore.saveToken(res.accessToken);
     set({ status: 'authenticated', user: res.user });

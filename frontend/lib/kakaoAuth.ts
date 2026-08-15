@@ -34,8 +34,14 @@ export async function loginWithKakao(): Promise<string | null> {
   const result = await WebBrowser.openAuthSessionAsync(authUrl, returnUri);
 
   if (result.type !== 'success' || !result.url) {
-    // cancel / dismiss
-    return null;
+    // 사용자가 직접 닫았으면 조용히 취소로 처리한다.
+    if (result.type === 'cancel') return null;
+    // dismiss/locked 등은 "로그인은 됐는데 앱으로 못 돌아온" 경우일 수 있다.
+    // 이때 조용히 넘기면 이전 계정 세션이 그대로 남아 다른 사람 화면처럼 보이므로,
+    // 앱으로 돌아온 딥링크(today://auth?token=...)를 잠깐 기다려 본다.
+    const viaLink = await waitForAuthDeepLink(4000);
+    if (viaLink) return viaLink;
+    throw new Error(`로그인 창이 닫혔어요. 다시 시도해 주세요. (${result.type})`);
   }
 
   const { queryParams } = Linking.parse(result.url);
@@ -48,4 +54,41 @@ export async function loginWithKakao(): Promise<string | null> {
     throw new Error('로그인 응답이 올바르지 않아요.');
   }
   return token;
+}
+
+/**
+ * 브라우저 세션이 결과를 못 돌려준 경우의 보완책.
+ * 서버 콜백은 today://auth?token=... 으로 앱을 여는데, 이 딥링크가 세션 밖으로 도착하면
+ * openAuthSessionAsync는 dismiss로 끝난다. 그 직후 도착하는 링크를 잠깐 기다려 토큰을 건진다.
+ */
+async function waitForAuthDeepLink(timeoutMs: number): Promise<string | null> {
+  const fromInitial = await Linking.getInitialURL();
+  const initialToken = tokenFromUrl(fromInitial);
+  if (initialToken) return initialToken;
+
+  return new Promise((resolve) => {
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      const t = tokenFromUrl(url);
+      if (t) {
+        clearTimeout(timer);
+        sub.remove();
+        resolve(t);
+      }
+    });
+    const timer = setTimeout(() => {
+      sub.remove();
+      resolve(null);
+    }, timeoutMs);
+  });
+}
+
+function tokenFromUrl(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const { queryParams } = Linking.parse(url);
+    const t = queryParams?.token;
+    return typeof t === 'string' && t ? t : null;
+  } catch {
+    return null;
+  }
 }

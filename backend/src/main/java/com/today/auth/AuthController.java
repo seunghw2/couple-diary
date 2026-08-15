@@ -6,6 +6,7 @@ import com.today.user.UserDtos.KakaoLoginRequest;
 import com.today.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.net.URLEncoder;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -79,6 +81,7 @@ public class AuthController {
                     .toUri();
             return ResponseEntity.status(HttpStatus.FOUND).location(target).build();
         } catch (RuntimeException e) {
+            log.warn("Kakao callback login failed (state={})", state, e);
             URI target = UriComponentsBuilder.fromUriString(state)
                     .queryParam("error", "kakao_login_failed")
                     .build(true)
