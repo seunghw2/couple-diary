@@ -1,11 +1,13 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
+import * as ExpoLinking from 'expo-linking';
 import { Component, ReactNode, useEffect, useRef } from 'react';
 import { ActivityIndicator, AppState, AppStateStatus, Keyboard, Platform, Pressable, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { pushApi, setOnUnauthorized } from '../lib/api';
 import { getExpoPushToken } from '../lib/push';
+import { tokenStore } from '../lib/tokenStore';
 import { AppAlert } from '../components/AppAlert';
 import { AppToast } from '../components/AppToast';
 import { ErrorState } from '../components/ErrorState';
@@ -30,6 +32,29 @@ export default function RootLayout() {
     // 저장된 앱 컬러 복원(로컬).
     void useThemeStore.getState().hydrate();
     return () => setOnUnauthorized(null);
+  }, []);
+
+  // 로그인 토큰 딥링크(auth?token=)의 최종 안전망.
+  // 카카오 인가가 카카오톡·사파리를 경유하면 인증 세션 밖으로 토큰이 도착하는데,
+  // 앱이 종료돼 있다 이 링크로 켜지면 로그인 흐름 자체가 없으므로 여기서 받아 세션을 연다.
+  useEffect(() => {
+    const handle = async (url: string | null) => {
+      if (!url) return;
+      try {
+        const parsed = ExpoLinking.parse(url);
+        const token = parsed.queryParams?.token;
+        const isAuth = parsed.path === 'auth' || parsed.hostname === 'auth';
+        if (isAuth && typeof token === 'string' && token) {
+          await tokenStore.saveToken(token);
+          await useAuthStore.getState().bootstrap();
+        }
+      } catch {
+        /* 잘못된 링크 무시 */
+      }
+    };
+    void ExpoLinking.getInitialURL().then(handle);
+    const sub = ExpoLinking.addEventListener('url', ({ url }) => void handle(url));
+    return () => sub.remove();
   }, []);
 
   // 로그인되면 커플 상태 로드, 로그아웃되면 초기화.

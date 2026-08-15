@@ -25,8 +25,11 @@ export function setOnUnauthorized(handler: (() => void) | null) {
 }
 
 async function handleUnauthorized() {
+  // 토큰이 이미 없으면(로그아웃 진행 중 등) 다시 로그아웃을 부르지 않는다.
+  // 로그아웃 중의 푸시 해제가 401을 받으면 로그아웃→401→로그아웃… 무한 반복이 났었다.
+  const had = await tokenStore.getToken();
   await tokenStore.clear();
-  unauthorizedHandler?.();
+  if (had) unauthorizedHandler?.();
 }
 
 async function request<T = unknown>(path: string, opts: RequestOpts = {}): Promise<T> {
