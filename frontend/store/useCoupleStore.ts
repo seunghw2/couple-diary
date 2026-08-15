@@ -29,7 +29,9 @@ export const useCoupleStore = create<CoupleState>((set) => ({
       const couple = await coupleApi.get();
       set({ couple, loaded: true });
     } catch {
-      set({ couple: null, loaded: true });
+      // 조회 실패를 '커플 없음'으로 확정하지 않는다(연결 화면으로 튕기는 원인이었다).
+      // 이미 알던 커플 정보가 있으면 그대로 두고, 없으면 미확정으로 남긴다.
+      set((st) => (st.couple ? {} : { loaded: false }));
     } finally {
       set({ loading: false });
     }

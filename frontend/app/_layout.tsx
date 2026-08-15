@@ -8,6 +8,7 @@ import { pushApi, setOnUnauthorized } from '../lib/api';
 import { getExpoPushToken } from '../lib/push';
 import { AppAlert } from '../components/AppAlert';
 import { AppToast } from '../components/AppToast';
+import { ErrorState } from '../components/ErrorState';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCoupleStore } from '../store/useCoupleStore';
 import { useNotifStore } from '../store/useNotifStore';
@@ -124,9 +125,17 @@ export default function RootLayout() {
     return () => sub.remove();
   }, []);
 
+  // 서버에 못 닿은 상태면 5초마다 스스로 다시 붙어 본다(사용자가 앱을 껐다 켜지 않아도 되게).
+  useEffect(() => {
+    if (status !== 'offline') return;
+    const t = setInterval(() => void bootstrap(), 5000);
+    return () => clearInterval(t);
+  }, [status]);
+
   // 라우팅 가드
   useEffect(() => {
-    if (status === 'unknown') return;
+    // offline = 서버에 못 닿아 커플 여부를 모르는 상태. 이때 라우팅하면 커플 연결 화면으로 튕긴다.
+    if (status === 'unknown' || status === 'offline') return;
     const segs = segments as string[];
     const first = segs[0] as string | undefined;
     const inAuth = first === '(auth)';
@@ -162,6 +171,18 @@ export default function RootLayout() {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator color={colors.primary} size="large" />
+      </View>
+    );
+  }
+
+  // 로그인은 돼 있는데 서버에 못 닿은 상태 — 기록이 사라진 게 아니라는 걸 분명히 알린다.
+  if (status === 'offline') {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <ErrorState
+          message={'연결 상태를 불러오지 못했어요.\n기록은 그대로 있으니 잠시 후 다시 시도해 주세요.'}
+          onRetry={() => void bootstrap()}
+        />
       </View>
     );
   }

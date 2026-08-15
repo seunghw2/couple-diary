@@ -12,7 +12,11 @@ import { useNotifStore } from './useNotifStore';
 let bootstrapInflight: Promise<void> | null = null;
 
 type AuthState = {
-  status: 'unknown' | 'authenticated' | 'guest';
+  /**
+   * offline = 토큰은 있는데 서버에 못 닿은 상태.
+   * 이때 커플 여부를 '없음'으로 단정하면 연결 화면이 떠서 데이터가 사라진 것처럼 보인다.
+   */
+  status: 'unknown' | 'authenticated' | 'guest' | 'offline';
   user: UserSummary | null;
   coupled: boolean;
   partner: PartnerSummary | null;
@@ -53,12 +57,15 @@ export const useAuthStore = create<AuthState>((set) => ({
           admin: me.admin ?? false,
         });
       } catch (e) {
-        // 진짜 401(토큰 만료/무효)일 때만 토큰 삭제. 네트워크/5xx 같은 일시 오류엔
-        // 유효한 토큰을 지우지 않아, 연결 불안정으로 로그아웃되는 것을 막는다.
+        // 진짜 401(토큰 만료/무효)일 때만 토큰 삭제 + 게스트로.
         if (e instanceof ApiException && e.status === 401) {
           await tokenStore.clear();
+          set({ status: 'guest', user: null, coupled: false, partner: null, admin: false });
+          return;
         }
-        set({ status: 'guest', user: null, coupled: false, partner: null, admin: false });
+        // 네트워크/5xx: 토큰은 멀쩡할 수 있다. 커플 여부를 모르는 채로 false로 두면
+        // 커플 연결 화면이 떠 데이터가 날아간 것처럼 보이므로, 알 수 없음 상태로 둔다.
+        set({ status: 'offline' });
       }
     })();
     try {
@@ -91,7 +98,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       const me = await authApi.me();
       set({ user: me.user, coupled: me.coupled, partner: me.partner ?? null, admin: me.admin ?? false });
     } catch {
-      /* 무시: 가드가 재조회 */
+      // 커플 여부를 확인 못 했다. false로 두면 커플 연결 화면으로 튕기므로 offline으로.
+      set({ status: 'offline' });
     }
     return true;
   },
@@ -107,7 +115,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       const me = await authApi.me();
       set({ user: me.user, coupled: me.coupled, partner: me.partner ?? null, admin: me.admin ?? false });
     } catch {
-      /* 무시: 가드가 재조회 */
+      // 커플 여부를 확인 못 했다. false로 두면 커플 연결 화면으로 튕기므로 offline으로.
+      set({ status: 'offline' });
     }
     return true;
   },
