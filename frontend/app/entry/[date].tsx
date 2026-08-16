@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -283,6 +282,27 @@ export default function EntryDetailScreen() {
     setMoving(true);
     setMoveError(null);
     try {
+      // 옮길 날에 상대가 이미 썼는지 먼저 확인 — 합치면 그 자리에서 서로 공개되므로 한 번 묻는다.
+      let targetHasPartner = false;
+      try {
+        const t = await entryApi.detail(target);
+        if (t.myEntry) {
+          setMoveError('그 날엔 이미 내 일기가 있어요. 다른 날짜를 골라주세요.');
+          return;
+        }
+        targetHasPartner = !!t.partnerEntry;
+      } catch {
+        // 확인에 실패하면 그냥 진행 — 충돌은 서버가 막아준다.
+      }
+      if (targetHasPartner) {
+        const ok = await confirmAsync(
+          '그 날엔 상대 일기가 있어요',
+          '같은 날로 합칠까요? 합치면 두 사람 일기가 바로 서로에게 열려요.',
+          '합치기'
+        );
+        if (!ok) return;
+      }
+
       await entryApi.move(dateStr, target);
       // 이전/새 날짜 detail + 두 달 month 무효화
       invalidateAfterMutation(dateStr);
@@ -291,7 +311,8 @@ export default function EntryDetailScreen() {
       router.replace({ pathname: '/entry/[date]', params: { date: target } });
     } catch (e) {
       if (e instanceof ApiException && e.status === 409) {
-        setMoveError('그 날짜엔 이미 일기가 있어요. 다른 날짜를 골라주세요.');
+        // 합칠 수 없는 사유(내 일기 있음/함께 쓴 날/기록 방식 다름)는 서버 문구를 그대로 보여준다.
+        setMoveError(e.body?.message ?? '그 날짜엔 이미 일기가 있어요. 다른 날짜를 골라주세요.');
       } else if (e instanceof ApiException && e.status === 400) {
         setMoveError('옮길 수 없는 날짜예요. 다시 확인해 주세요.');
       } else {
@@ -538,8 +559,10 @@ export default function EntryDetailScreen() {
         />
       ) : null}
 
-      {/* 날짜 변경 모달 */}
-      <Modal visible={moveOpen} transparent animationType="fade" onRequestClose={() => setMoveOpen(false)}>
+      {/* 날짜 변경 다이얼로그.
+          Modal이 아니라 화면 안 오버레이로 띄운다 — iOS에서 Modal 위에 다른 Modal
+          (DatePickerSheet)을 형제로 띄우면 피커가 안 열리거나 닫은 뒤 터치가 죽는다. */}
+      {moveOpen ? (
         <Pressable style={styles.moveBackdrop} onPress={() => setMoveOpen(false)}>
           <Pressable style={styles.moveSheet} onPress={() => {}}>
             <Text style={styles.moveTitle}>날짜 변경</Text>
@@ -567,7 +590,7 @@ export default function EntryDetailScreen() {
             </View>
           </Pressable>
         </Pressable>
-      </Modal>
+      ) : null}
 
       {/* 옮길 날짜 선택(미래 불가) */}
       <DatePickerSheet
@@ -830,7 +853,9 @@ const styles = StyleSheet.create({
   commentBtn: { height: 44, paddingHorizontal: spacing.lg },
 
   moveBackdrop: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 20,
+    elevation: 20,
     backgroundColor: 'rgba(0,0,0,0.4)',
     alignItems: 'center',
     justifyContent: 'center',

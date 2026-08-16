@@ -597,14 +597,75 @@ public class DiaryService {
 
         // 제자리 이동은 그대로 반환
         if (!date.equals(targetDate)) {
-            // 대상 날짜에 이미 DiaryDay가 있으면 충돌
-            if (dayRepository.findByCouple_IdAndDate(couple.getId(), targetDate).isPresent()) {
-                throw new ApiException(ErrorCode.DAY_ALREADY_EXISTS);
+            Optional<DiaryDay> targetOpt = dayRepository.findByCouple_IdAndDate(couple.getId(), targetDate);
+            if (targetOpt.isPresent()) {
+                // 대상 날짜에 이미 일기가 있으면 — 상대만 쓴 날이면 같은 날로 합친다.
+                boolean nowOpen = mergeIntoDay(userId, day, targetOpt.get());
+                if (nowOpen) {
+                    // 합쳐서 둘 다 쓴 상태가 됐으니 새로 쓴 것과 똑같이 "일기가 열렸어요"를 알린다.
+                    User author = userRepository.findById(userId)
+                            .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+                    notificationService.onEntryUpsert(author, partnerOf(couple, userId), targetDate, true);
+                }
+            } else {
+                day.setDate(targetDate);
+                dayRepository.flush();  // uk_day_couple_date 위반 시 조기 감지
             }
-            day.setDate(targetDate);
-            dayRepository.flush();  // uk_day_couple_date 위반 시 조기 감지
         }
         return detail(userId, targetDate);
+    }
+
+    /**
+     * 내 일기를 이미 존재하는 다른 날(target)로 합친다. 날짜를 잘못 골라 쓴 걸 바로잡는 용도라,
+     * 상대가 그날 이미 써 뒀다면 합친 뒤 둘 다 쓴 상태가 되어 그 자리에서 열린다.
+     * 합칠 수 없는 경우는 그대로 409로 막는다(대상에 내 일기가 이미 있음 / 원본이 함께 쓴 날 / 기록 방식 불일치).
+     *
+     * @return 합친 결과 그날이 둘 다 쓴 상태(OPEN)가 됐으면 true
+     */
+    private boolean mergeIntoDay(Long userId, DiaryDay source, DiaryDay target) {
+        List<DiaryEntry> sourceEntries = entryRepository.findByDay_Id(source.getId());
+        DiaryEntry mine = sourceEntries.stream()
+                .filter(e -> e.getAuthor().getId().equals(userId)).findFirst()
+                .orElseThrow(() -> new ApiException(ErrorCode.DAY_ALREADY_EXISTS));
+
+        // 원본에 상대 일기도 있으면 둘을 쪼개게 되므로 막는다.
+        if (sourceEntries.size() > 1) {
+            throw new ApiException(ErrorCode.DAY_MERGE_SHARED);
+        }
+        // 대상에 내 일기가 이미 있으면 진짜 충돌(하나의 날에 한 사람 하나).
+        if (entryRepository.findByDay_IdAndAuthor_Id(target.getId(), userId).isPresent()) {
+            throw new ApiException(ErrorCode.DAY_ALREADY_EXISTS);
+        }
+        // 기록 방식이 다르면 질문/답이 대응되지 않아 화면이 깨진다.
+        if (source.getMode() != target.getMode()) {
+            throw new ApiException(ErrorCode.DAY_MERGE_MODE_MISMATCH);
+        }
+
+        boolean partnerWroteOnTarget = !entryRepository.findByDay_Id(target.getId()).isEmpty();
+
+        // 답·사진은 entry에 달려 있으므로 entry의 day만 옮기면 따라간다.
+        mine.setDay(target);
+        entryRepository.save(mine);
+
+        // 공유 장소는 두 날의 목록을 합친다(이름 기준 중복 제거는 applyPlaces가 처리).
+        if (!source.getPlaces().isEmpty()) {
+            List<LocationPoint> merged = new ArrayList<>(target.getPlaces());
+            merged.addAll(source.getPlaces());
+            target.applyPlaces(merged);
+        }
+        // 대표 사진이 비어 있으면 원본 것을 이어받는다.
+        if (target.getRepPhotoUrl() == null && source.getRepPhotoUrl() != null) {
+            target.setRepPhotoUrl(source.getRepPhotoUrl());
+        }
+        dayRepository.save(target);
+
+        // 원본은 빈 날이 되므로 정리. (댓글은 OPEN인 날에만 달리므로 여기엔 없다)
+        entryRepository.flush();
+        commentRepository.deleteByDay_Id(source.getId());
+        dayRepository.delete(source);
+        dayRepository.flush();
+
+        return partnerWroteOnTarget;
     }
 
     // 첫 작성자용 DiaryDay 생성: 입력 검증 + 동시 생성 경합(uk_day_couple_date) 처리

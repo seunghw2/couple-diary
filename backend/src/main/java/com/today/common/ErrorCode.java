@@ -35,6 +35,8 @@ public enum ErrorCode {
     POKE_NOT_WRITTEN(HttpStatus.FORBIDDEN, "D004", "오늘 일기를 쓴 뒤에 콕 찌를 수 있어요."),
     ENTRY_NOT_EDITABLE(HttpStatus.FORBIDDEN, "D002", "작성 후 24시간이 지나 수정할 수 없어요."),
     DAY_ALREADY_EXISTS(HttpStatus.CONFLICT, "D003", "그날에는 이미 일기가 있어요."),
+    DAY_MERGE_SHARED(HttpStatus.CONFLICT, "D005", "두 사람이 함께 쓴 날이라 다른 날로 합칠 수 없어요."),
+    DAY_MERGE_MODE_MISMATCH(HttpStatus.CONFLICT, "D006", "기록 방식이 달라 그날과 합칠 수 없어요."),
     ;
 
     private final HttpStatus status;
